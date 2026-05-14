@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-${SERVICE_NAME}
+  namespace: ${K8S_NAMESPACE}
+  labels:
+    app: ${LABEL}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${LABEL}
+  template:
+    metadata:
+      labels:
+        app: ${LABEL}
+    spec:
+      containers:
+        - name: frontend
+          image: ${IMAGE}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
