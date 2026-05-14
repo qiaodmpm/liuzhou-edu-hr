@@ -79,6 +79,36 @@ body {
 .menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
 .menu-item.active .menu-icon { opacity: 1; }
 
+/* Role Switcher */
+.role-switcher {
+  padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08);
+  margin-top: auto;
+}
+.role-switcher-label {
+  font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px;
+  margin-bottom: 8px; padding: 0 4px;
+}
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  transition: var(--transition); border: 1px solid transparent;
+  background: transparent; font-family: inherit; width: 100%; text-align: left;
+}
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active {
+  background: rgba(59,130,246,0.2); color: #fff;
+  border-color: rgba(59,130,246,0.4); font-weight: 500;
+}
+.role-switch-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
 /* ===== MAIN CONTENT ===== */
 .main {
   margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px;
@@ -270,6 +300,27 @@ th { color: var(--text-secondary); font-weight: 600; background-color: #FAFBFC; 
 <!-- ===== SIDEBAR ===== -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher" id="roleSwitcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')">
+        <span class="role-switch-dot city"></span>市管理员
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">张建国</span>
+      </button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')">
+        <span class="role-switch-dot district"></span>区管理员
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">李振华</span>
+      </button>
+      <button class="role-switch-btn active" data-role="school" onclick="switchRole('school')">
+        <span class="role-switch-dot school"></span>校管理员
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">王玉兰</span>
+      </button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')">
+        <span class="role-switch-dot teacher"></span>教 师
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">陈明辉</span>
+      </button>
+    </div>
+  </div>
 </aside>
 
 <!-- ===== MAIN CONTENT ===== -->
@@ -310,46 +361,138 @@ var MENU_ICONS = {
   account: 'users'
 };
 
-// ===== Sidebar Menu (school admin) =====
-var sidebarData = {
-  top: [
-    { id: 'workbench', icon: 'home', label: '工作台' },
-    { id: 'dashboard', icon: 'chart', label: '数据概览' }
-  ],
-  groups: [
-    { name: '编制管理', items: [
-      { id: 'staffing', label: '编制使用申请' },
-      { id: 'entry', label: '入编申请' },
-      { id: 'exit', label: '教师出编管理' }
-    ]},
-    { name: '岗位管理', items: [
-      { id: 'postset', label: '岗位设置申请' },
-      { id: 'promote', label: '岗位晋升申请' },
-      { id: 'recruit', label: '招聘岗位申请' }
-    ]},
-    { name: '聘用管理', items: [
-      { id: 'employ', label: '聘用手续办理' }
-    ]},
-    { name: '人事管理', items: [
-      { id: 'retire', label: '退休呈报' },
-      { id: 'salary', label: '工资核定申请' },
-      { id: 'ethics', label: '师德师风举报' },
-      { id: 'honor', label: '荣誉申请' }
-    ]},
-    { name: '系统设置', items: [
-      { id: 'account', label: '账号管理' }
-    ]}
-  ]
+var currentRole = 'school';
+
+var ROLES = {
+  city: {
+    name: '张建国', short: '张',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请' },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请' },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [
+          { id: 'employ', label: '聘用手续办理' }
+        ]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [
+          { id: 'account', label: '账号管理' },
+          { id: 'org', label: '机构管理' },
+          { id: 'perm', label: '角色权限' },
+          { id: 'log', label: '操作日志' }
+        ]}
+      ]
+    }
+  },
+  district: {
+    name: '李振华', short: '李',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请' },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请' },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [
+          { id: 'employ', label: '聘用手续办理' }
+        ]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [
+          { id: 'account', label: '账号管理' }
+        ]}
+      ]
+    }
+  },
+  school: {
+    name: '王玉兰', short: '王',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请' },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请' },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [
+          { id: 'employ', label: '聘用手续办理' }
+        ]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [
+          { id: 'account', label: '账号管理' }
+        ]}
+      ]
+    }
+  },
+  teacher: {
+    name: '陈明辉', short: '陈',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' }
+      ],
+      groups: [
+        { name: '业务申请', items: [
+          { id: 'entry', label: '入编申请' },
+          { id: 'promote', label: '岗位晋升申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]}
+      ]
+    }
+  }
 };
 
 function renderSidebar() {
+  var data = ROLES[currentRole].sidebar;
   var html = '';
-  sidebarData.top.forEach(function(item) {
+  data.top.forEach(function(item) {
     html += '<a class="menu-item" onclick="sidebarClick(\'' + item.id + '\')">';
     html += ICONS[item.icon];
     html += '<span>' + item.label + '</span></a>';
   });
-  sidebarData.groups.forEach(function(group) {
+  data.groups.forEach(function(group) {
     html += '<div class="menu-group">' + group.name + '</div>';
     group.items.forEach(function(item) {
       var isActive = item.id === 'entry';
@@ -359,6 +502,24 @@ function renderSidebar() {
     });
   });
   document.getElementById('sidebarMenu').innerHTML = html;
+}
+
+function updateUserInfo() {
+  var role = ROLES[currentRole];
+  var roleLabel = currentRole === 'city' ? '市管理员' : currentRole === 'district' ? '区管理员' : currentRole === 'school' ? '校管理员' : '教师';
+  var avatarEl = document.querySelector('.topnav-user .avatar');
+  var nameEl = document.querySelector('.topnav-user span');
+  if (avatarEl) avatarEl.textContent = role.short;
+  if (nameEl) nameEl.textContent = role.name + ' · ' + roleLabel;
+}
+
+function switchRole(role) {
+  currentRole = role;
+  renderSidebar();
+  updateUserInfo();
+  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.role === role);
+  });
 }
 
 function sidebarClick(id) {
