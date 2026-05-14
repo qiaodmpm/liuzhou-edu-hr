@@ -144,6 +144,46 @@ body {
 .status-badge.approved { background: #D1FAE5; color: #059669; }
 .status-badge.rejected { background: #FEE2E2; color: var(--danger); }
 
+/* ===== STATUS SEAL STAMP ===== */
+.status-seal {
+  width: 80px; height: 80px; border-radius: 50%; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  position: relative; flex-shrink: 0;
+  border: 3px solid; font-weight: 700; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transform: rotate(-8deg);
+}
+.status-seal::before {
+  content: ''; position: absolute; inset: 5px; border-radius: 50%;
+  border: 1.5px dashed currentColor; opacity: 0.5;
+}
+.status-seal .seal-label { font-size: 9px; letter-spacing: 1px; opacity: 0.8; }
+.status-seal .seal-text { font-size: 15px; line-height: 1.1; }
+.status-seal.approved {
+  color: #059669; border-color: #059669; background: rgba(209,250,229,0.3);
+}
+.status-seal.rejected {
+  color: #DC2626; border-color: #DC2626; background: rgba(254,226,226,0.3);
+}
+.status-seal.reviewing {
+  color: #D97706; border-color: #D97706; background: rgba(254,243,199,0.3);
+}
+.status-seal.submitted {
+  color: #1E40AF; border-color: #1E40AF; background: rgba(239,246,255,0.3);
+}
+.status-seal.draft {
+  color: #64748B; border-color: #64748B; background: rgba(241,245,249,0.5);
+}
+
+/* ===== TWO-COLUMN LAYOUT ===== */
+.detail-layout {
+  display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start;
+}
+.detail-col-left { min-width: 0; }
+.detail-col-right { position: sticky; top: 80px; }
+.detail-col-right .card { padding: 24px 24px; }
+.detail-col-right .card-title { font-size: 14px; padding-bottom: 12px; margin-bottom: 16px; }
+
 /* Card */
 .card {
   background: #fff; border-radius: var(--radius-lg);
@@ -313,6 +353,10 @@ body {
 .summary-item .s-label { font-size: 11px; color: var(--text-light); }
 .summary-item .s-value { font-size: 16px; font-weight: 700; color: var(--text); }
 
+@media (max-width: 1024px) {
+  .detail-layout { grid-template-columns: 1fr; }
+  .detail-col-right { position: static; }
+}
 @media (max-width: 768px) {
   .sidebar { display: none; }
   .main { margin-left: 0; }
@@ -438,9 +482,12 @@ body {
       <h1>申报详情 — 附件9</h1>
       <div class="subtitle" id="headerSubtitle">申报编号：S2026-004 &nbsp;|&nbsp; 2026年度第一批 &nbsp;|&nbsp; 柳州市第八中学</div>
     </div>
-    <div>
-      <span class="status-badge approved" id="headerStatus">已通过</span>
-      <button class="btn btn-outline" style="margin-left:12px;" onclick="window.location.href='staffing-application.html'">← 返回列表</button>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="status-seal approved" id="headerSeal">
+        <span class="seal-label">审核</span>
+        <span class="seal-text">通过</span>
+      </div>
+      <button class="btn btn-outline" onclick="window.location.href='staffing-application.html'">← 返回列表</button>
     </div>
   </div>
 
@@ -469,89 +516,99 @@ body {
     </div>
   </div>
 
-  <!-- ===== 申报进度 ===== -->
-  <div class="card">
-    <div class="card-title">📌 申报进度</div>
-    <div class="progress-tracker" id="progressTracker"></div>
-  </div>
+  <!-- Two-column layout -->
+  <div class="detail-layout">
+    <!-- Left: main info -->
+    <div class="detail-col-left">
 
-  <!-- ===== 审核结果 ===== -->
-  <div class="card" id="auditResultCard" style="display:none;">
-    <div class="card-title">📋 审核结果</div>
-    <div id="auditResultContent"></div>
-  </div>
-
-  <!-- ===== Step 1: 申请单位情况 ===== -->
-  <div class="card">
-    <div class="card-title"><span class="step-num">1</span>申请单位情况</div>
-
-    <div class="info-row">
-      <div class="info-item" style="flex:2;">
-        <div class="info-label">单位全称</div>
-        <div class="info-value" id="unitName">柳州市第八中学</div>
+      <!-- ===== 申报进度 ===== -->
+      <div class="card">
+        <div class="card-title">📌 申报进度</div>
+        <div class="progress-tracker" id="progressTracker"></div>
       </div>
-    </div>
 
-    <div class="info-row">
-      <div class="info-item">
-        <div class="info-label">核定编制数（名）</div>
-        <div class="info-value" id="totalStaff">88</div>
+      <!-- ===== 审核结果 ===== -->
+      <div class="card" id="auditResultCard" style="display:none;">
+        <div class="card-title">📋 审核结果</div>
+        <div id="auditResultContent"></div>
       </div>
-      <div class="info-item">
-        <div class="info-label">在编人数（人）</div>
-        <div class="info-value" id="currentStaff">82</div>
-      </div>
-      <div class="info-item">
-        <div class="info-label">未使用计划数</div>
-        <div class="info-value" style="color:var(--text-light);" id="unusedPlan">0</div>
-      </div>
-    </div>
 
-    <div class="info-row">
-      <div class="info-item">
-        <div class="info-label">核定聘用教师控制数（名）</div>
-        <div class="info-value" id="controlNum">16</div>
+      <!-- ===== Step 1: 申请单位情况 ===== -->
+      <div class="card">
+        <div class="card-title"><span class="step-num">1</span>申请单位情况</div>
+
+        <div class="info-row">
+          <div class="info-item" style="flex:2;">
+            <div class="info-label">单位全称</div>
+            <div class="info-value" id="unitName">柳州市第八中学</div>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-item">
+            <div class="info-label">核定编制数（名）</div>
+            <div class="info-value" id="totalStaff">88</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">在编人数（人）</div>
+            <div class="info-value" id="currentStaff">82</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">未使用计划数</div>
+            <div class="info-value" style="color:var(--text-light);" id="unusedPlan">0</div>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-item">
+            <div class="info-label">核定聘用教师控制数（名）</div>
+            <div class="info-value" id="controlNum">16</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">聘用教师控制数实有数（人）</div>
+            <div class="info-value" id="controlActual">14</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">未使用控制数计划数</div>
+            <div class="info-value" style="color:var(--text-light);" id="unusedControl">1</div>
+          </div>
+        </div>
       </div>
-      <div class="info-item">
-        <div class="info-label">聘用教师控制数实有数（人）</div>
-        <div class="info-value" id="controlActual">14</div>
+
+      <!-- ===== Step 2: 使用形式及数量 ===== -->
+      <div class="card">
+        <div class="card-title"><span class="step-num">2</span>使用形式及数量</div>
+
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th style="width:140px;">使用形式</th>
+              <th>使用控制数（名）</th>
+              <th>学历、专业（大类）、从业资格等</th>
+              <th>相关条件</th>
+              <th>备注</th>
+            </tr>
+          </thead>
+          <tbody id="useFormBody"></tbody>
+        </table>
       </div>
-      <div class="info-item">
-        <div class="info-label">未使用控制数计划数</div>
-        <div class="info-value" style="color:var(--text-light);" id="unusedControl">1</div>
+
+      <!-- ===== Step 3: 附件上传 ===== -->
+      <div class="card">
+        <div class="card-title"><span class="step-num">3</span>附件上传</div>
+        <div id="attachmentsArea"></div>
       </div>
-    </div>
-  </div>
 
-  <!-- ===== Step 2: 使用形式及数量 ===== -->
-  <div class="card">
-    <div class="card-title"><span class="step-num">2</span>使用形式及数量</div>
+    </div><!-- /detail-col-left -->
 
-    <table class="detail-table">
-      <thead>
-        <tr>
-          <th style="width:140px;">使用形式</th>
-          <th>使用控制数（名）</th>
-          <th>学历、专业（大类）、从业资格等</th>
-          <th>相关条件</th>
-          <th>备注</th>
-        </tr>
-      </thead>
-      <tbody id="useFormBody"></tbody>
-    </table>
-  </div>
-
-  <!-- ===== Step 3: 附件上传 ===== -->
-  <div class="card">
-    <div class="card-title"><span class="step-num">3</span>附件上传</div>
-    <div id="attachmentsArea"></div>
-  </div>
-
-  <!-- ===== 申报履历 ===== -->
-  <div class="card">
-    <div class="card-title">📜 申报履历</div>
-    <div class="timeline" id="timeline"></div>
-  </div>
+    <!-- Right: timeline -->
+    <div class="detail-col-right">
+      <div class="card">
+        <div class="card-title">📜 申报履历</div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div><!-- /detail-col-right -->
+  </div><!-- /detail-layout -->
 </main>
 
 <script>
@@ -705,8 +762,19 @@ var STATUS_CSS = { submitted: 'submitted', reviewing: 'reviewing', approved: 'ap
 
 // ===== RENDER HEADER =====
 document.getElementById('headerSubtitle').innerHTML = '申报编号：' + s.id + ' &nbsp;|&nbsp; ' + s.batchName + ' &nbsp;|&nbsp; ' + s.school;
-document.getElementById('headerStatus').textContent = STATUS_MAP[s.status];
-document.getElementById('headerStatus').className = 'status-badge ' + STATUS_CSS[s.status];
+
+// Seal stamp
+var SEAL_MAP = {
+  draft:    { css: 'draft',    label: '审核', text: '待提交' },
+  submitted:{ css: 'submitted',label: '审核', text: '已提交' },
+  reviewing:{ css: 'reviewing',label: '审核', text: '审核中' },
+  approved: { css: 'approved', label: '审核', text: '通过' },
+  rejected: { css: 'rejected', label: '审核', text: '退回' }
+};
+var seal = SEAL_MAP[s.status] || SEAL_MAP['draft'];
+document.getElementById('headerSeal').className = 'status-seal ' + seal.css;
+document.getElementById('headerSeal').querySelector('.seal-label').textContent = seal.label;
+document.getElementById('headerSeal').querySelector('.seal-text').textContent = seal.text;
 document.getElementById('sumId').textContent = s.id;
 document.getElementById('sumSchool').textContent = s.school;
 document.getElementById('sumDate').textContent = s.submitDate || '—';
