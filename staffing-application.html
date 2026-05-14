@@ -221,8 +221,27 @@ body {
 .progress-fill.approved { background: var(--success); }
 .progress-fill.submitted { background: var(--accent); }
 .progress-fill.rejected { background: var(--danger); }
-.batch-card-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.batch-card-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
 .batch-card-actions .btn { font-size: 11px; padding: 4px 12px; }
+
+/* School batch card — submission status */
+.school-batch-sub-status {
+  display: inline-block; padding: 3px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 500; margin-right: 8px;
+}
+.school-batch-sub-status.approved { background: #ECFDF5; color: #10B981; }
+.school-batch-sub-status.reviewing { background: #FFFBEB; color: #D97706; }
+.school-batch-sub-status.submitted { background: #EFF6FF; color: #1E40AF; }
+.school-batch-sub-status.rejected { background: #FEF2F2; color: #EF4444; }
+.school-batch-sub-status.draft { background: #F1F5F9; color: #64748B; }
+.school-batch-sub-status.none { background: #F8FAFC; color: #94A3B8; }
+
+/* Batch dropdown filter */
+.batch-filter-bar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  font-size: 13px;
+}
+.batch-filter-bar label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
 
 /* Status filter buttons */
 .status-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -694,6 +713,7 @@ const STATUS_MAP = {
 let currentRole = 'city';
 let selectedBatchId = null; // Currently selected batch
 let currentFilter = 'all'; // 'all' | 'pending' | 'approved' | 'rejected'
+let schoolBatchFilter = 'all'; // 'all' | 'active' | 'closed' — school admin batch dropdown
 
 // ===== BATCH STATS HELPER =====
 function getBatchStats(batchId) {
@@ -704,6 +724,91 @@ function getBatchStats(batchId) {
     approved: subs.filter(function(s) { return s.status === 'approved'; }).length,
     rejected: subs.filter(function(s) { return s.status === 'rejected'; }).length,
   };
+}
+
+// ===== SCHOOL BATCH HELPERS =====
+function getSchoolSubmissionForBatch(batchId) {
+  var schoolName = ROLES[currentRole].org;
+  for (var i = 0; i < SUBMISSIONS.length; i++) {
+    if (SUBMISSIONS[i].batchId === batchId && SUBMISSIONS[i].school === schoolName) {
+      return SUBMISSIONS[i];
+    }
+  }
+  return null;
+}
+
+function getSchoolBatches() {
+  var all = BATCHES.concat(BATCHES_DISTRICT);
+  // Filter by dropdown
+  if (schoolBatchFilter === 'active') {
+    all = all.filter(function(b) { return b.status === '进行中'; });
+  } else if (schoolBatchFilter === 'closed') {
+    all = all.filter(function(b) { return b.status === '已结束'; });
+  }
+  // Sort by publishDate descending
+  all.sort(function(a, b) {
+    if (a.publishDate > b.publishDate) return -1;
+    if (a.publishDate < b.publishDate) return 1;
+    return 0;
+  });
+  return all;
+}
+
+function renderSchoolBatchList() {
+  var batches = getSchoolBatches();
+  var h = '';
+
+  // Dropdown filter
+  h += '<div class="batch-filter-bar">';
+  h += '<label>批次筛选：</label>';
+  h += '<select class="filter-select" onchange="setSchoolBatchFilter(this.value)">';
+  h += '<option value="all"' + (schoolBatchFilter === 'all' ? ' selected' : '') + '>全部批次</option>';
+  h += '<option value="active"' + (schoolBatchFilter === 'active' ? ' selected' : '') + '>进行中</option>';
+  h += '<option value="closed"' + (schoolBatchFilter === 'closed' ? ' selected' : '') + '>已结束</option>';
+  h += '</select>';
+  h += '<span style="font-size:12px;color:var(--text-light);margin-left:auto;">共 ' + batches.length + ' 个批次</span>';
+  h += '</div>';
+
+  if (batches.length === 0) {
+    h += '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无批次</div></div>';
+    return h;
+  }
+
+  h += '<div class="batch-list">';
+  for (var i = 0; i < batches.length; i++) {
+    var b = batches[i];
+    var sub = getSchoolSubmissionForBatch(b.id);
+    var hasSubmitted = !!sub;
+
+    h += '<div class="batch-card">';
+    h += '<div class="batch-card-header">';
+    h += '<span class="batch-card-name" onclick="showBatchDetail(\'' + b.id + '\')">' + b.name + '</span>';
+    h += '<span class="batch-card-status ' + (b.status === '进行中' ? 'active' : 'closed') + '">' + b.status + '</span>';
+    h += '</div>';
+    h += '<div class="batch-card-meta"><span>📅 ' + b.publishDate + ' ~ ' + b.deadline + '</span><span>发布：' + b.org + '</span></div>';
+
+    h += '<div class="batch-card-actions">';
+    if (hasSubmitted) {
+      h += '<span class="school-batch-sub-status ' + sub.status + '">' + STATUS_MAP[sub.status] + '</span>';
+      h += '<button class="btn btn-outline btn-sm" onclick="window.location.href=\'staffing-detail.html?id=' + sub.id + '\'">查看</button>';
+    } else {
+      h += '<span class="school-batch-sub-status none">未申报</span>';
+      if (b.status === '进行中') {
+        h += '<button class="btn btn-primary btn-sm" onclick="window.location.href=\'staffing-form.html?batchId=' + b.id + '\'">申报</button>';
+      }
+    }
+    h += '</div>';
+
+    h += '</div>';
+  }
+  h += '</div>';
+
+  return h;
+}
+
+function setSchoolBatchFilter(val) {
+  schoolBatchFilter = val;
+  renderMain();
 }
 
 // ===== MODAL =====
@@ -795,11 +900,7 @@ function renderMain() {
   // Page header
   html += '<div class="page-header">';
   html += '<div class="page-header-left"><h1>编制使用申请</h1><div class="subtitle">中小学聘用教师控制数使用计划管理</div></div>';
-  html += '<div class="page-header-right">';
-  if (currentRole === 'school') {
-    html += '<button class="btn btn-primary" onclick="window.location.href=\'staffing-form.html\'">+ 新建申报</button>';
-  }
-  html += '</div></div>';
+  html += '<div class="page-header-right"></div></div>';
 
   // For admin: batch directory (left) + submissions (right)
   if (currentRole === 'city' || currentRole === 'district') {
@@ -818,8 +919,8 @@ function renderMain() {
     html += renderSubmissionsTable(subs);
     html += '</div></div>';
   } else {
-    // School view: just submissions
-    html += renderSubmissionsTable(getFilteredSubmissions());
+    // School view: batch list with submit/view actions
+    html += renderSchoolBatchList();
   }
 
   document.getElementById('contentArea').innerHTML = html;
@@ -1036,6 +1137,9 @@ function renderSubmissionsTable(subs) {
 // ===== ROLE SWITCH =====
 function switchRole(role) {
   currentRole = role;
+  selectedBatchId = null;
+  currentFilter = 'all';
+  schoolBatchFilter = 'all';
   document.querySelectorAll('.role-switch-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.role === role);
   });
