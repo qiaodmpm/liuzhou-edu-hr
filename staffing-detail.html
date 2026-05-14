@@ -171,10 +171,6 @@ body {
 .status-seal.submitted {
   color: #1E40AF; border-color: #1E40AF; background: rgba(239,246,255,0.3);
 }
-.status-seal.draft {
-  color: #64748B; border-color: #64748B; background: rgba(241,245,249,0.5);
-}
-
 /* ===== TWO-COLUMN LAYOUT ===== */
 .detail-layout {
   display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start;
@@ -700,11 +696,11 @@ var submissions = [
       { type: '调动', num: 0, edu: '', cond: '', note: '' },
       { type: '其他', num: 0, edu: '', cond: '', note: '' }
     ],
-    attachment9: false, attachment9Name: '',
+    attachment9: true, attachment9Name: '附件9_柳州市第一中学_2026第二批.pdf',
     followUp: false, followUpName: '',
-    status: 'draft', submitDate: null, approveDate: null,
+    status: 'submitted', submitDate: '2026-05-06', approveDate: null,
     history: [
-      { action: 'create', title: '创建申报', time: '2026-05-04 15:30', desc: '校管理员开始填写申报表，尚未完成提交。' }
+      { action: 'submit', title: '提交申报', time: '2026-05-06 11:20', desc: '校管理员提交了编制使用申报（附件9），使用控制数合计2名。' }
     ]
   }
 ];
@@ -719,21 +715,20 @@ function findById(id) {
 var s = findById(detailId);
 
 // ===== STATUS MAP =====
-var STATUS_MAP = { draft: '填写中', submitted: '已提交', reviewing: '审核中', approved: '已通过', rejected: '已退回' };
-var STATUS_CSS = { submitted: 'submitted', reviewing: 'reviewing', approved: 'approved', rejected: 'rejected', draft: 'submitted' };
+var STATUS_MAP = { submitted: '已提交', reviewing: '审核中', approved: '已通过', rejected: '已退回' };
+var STATUS_CSS = { submitted: 'submitted', reviewing: 'reviewing', approved: 'approved', rejected: 'rejected' };
 
 // ===== RENDER HEADER =====
 document.getElementById('headerSubtitle').innerHTML = '申报编号：' + s.id + ' &nbsp;|&nbsp; ' + s.batchName + ' &nbsp;|&nbsp; ' + s.school;
 
 // Seal stamp
 var SEAL_MAP = {
-  draft:    { css: 'draft',    label: '审核', text: '待提交' },
   submitted:{ css: 'submitted',label: '审核', text: '已提交' },
   reviewing:{ css: 'reviewing',label: '审核', text: '审核中' },
   approved: { css: 'approved', label: '审核', text: '通过' },
   rejected: { css: 'rejected', label: '审核', text: '退回' }
 };
-var seal = SEAL_MAP[s.status] || SEAL_MAP['draft'];
+var seal = SEAL_MAP[s.status] || SEAL_MAP['submitted'];
 document.getElementById('headerSeal').className = 'status-seal ' + seal.css;
 document.getElementById('headerSeal').querySelector('.seal-label').textContent = seal.label;
 document.getElementById('headerSeal').querySelector('.seal-text').textContent = seal.text;
@@ -790,10 +785,7 @@ function renderProgress() {
   var steps;
   var currentIdx;
 
-  if (s.status === 'draft') {
-    steps = [{ label: '填写中', state: 'current' }, { label: '已提交', state: 'pending' }, { label: '审核中', state: 'pending' }, { label: '已通过', state: 'pending' }];
-    currentIdx = 0;
-  } else if (s.status === 'submitted') {
+  if (s.status === 'submitted') {
     steps = [{ label: '已提交', state: 'done' }, { label: '审核中', state: 'current' }, { label: '已通过', state: 'pending' }];
     currentIdx = 1;
   } else if (s.status === 'reviewing') {
