@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>柳州市教师人事管理信息系统 - 教师入编管理（学校管理员）</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SheetJS 用于导出 Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #1E293B;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* 左侧导航 */
+        .sidebar {
+            width: 260px;
+            background-color: white;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .logo-area {
+            padding: 20px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 16px;
+        }
+        .logo-area h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1E40AF, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .logo-area p {
+            font-size: 0.65rem;
+            color: #64748B;
+            margin-top: 4px;
+        }
+        .nav-menu {
+            flex: 1;
+            padding: 0 12px;
+        }
+        .nav-item {
+            margin-bottom: 4px;
+        }
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-header i {
+            width: 22px;
+            color: #64748B;
+            font-size: 0.9rem;
+        }
+        .nav-header:hover {
+            background-color: #F1F5F9;
+        }
+        .nav-header.active {
+            background-color: #EFF6FF;
+            color: #1E40AF;
+        }
+        .nav-header.active i {
+            color: #1E40AF;
+        }
+        .sub-menu {
+            padding-left: 32px;
+            margin-top: 4px;
+            margin-bottom: 6px;
+            display: none;
+        }
+        .sub-menu.show {
+            display: block;
+        }
+        .sub-item {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            color: #475569;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .sub-item:hover {
+            background-color: #F1F5F9;
+            color: #1E40AF;
+        }
+        .sub-item.active {
+            background-color: #EFF6FF;
+            color: #1E40AF;
+            font-weight: 500;
+        }
+        /* 角色切换区域（仅示意，固定学校管理员） */
+        .role-switch-side {
+            padding: 16px;
+            border-top: 1px solid #edf2f7;
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748B;
+        }
+
+        /* 右侧主区域 */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background-color: #F8FAFC;
+        }
+        .page-header {
+            padding: 20px 28px 0 28px;
+        }
+        .breadcrumb-card {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #edf2f7;
+            margin-bottom: 20px;
+        }
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: #64748B;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .breadcrumb span:last-child {
+            color: #1E293B;
+            font-weight: 500;
+        }
+        .back-icon {
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #64748B;
+        }
+        .back-icon:hover {
+            color: #1E40AF;
+        }
+        .breadcrumb-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            min-width: 140px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            z-index: 20;
+            margin-top: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .dropdown-content a {
+            color: #1E293B;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+        }
+        .dropdown-content a:hover {
+            background-color: #F1F5F9;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .content-view {
+            padding: 0 28px 24px 28px;
+        }
+
+        /* 双栏布局 */
+        .two-column-layout {
+            display: flex;
+            gap: 24px;
+        }
+        .left-panel {
+            width: 320px;
+            flex-shrink: 0;
+        }
+        .right-panel {
+            flex: 1;
+            min-width: 0;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #edf2f7;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .batch-filter {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .batch-filter select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .batch-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .batch-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .batch-item:hover {
+            background-color: #F8FAFC;
+        }
+        .batch-item.active {
+            background-color: #EFF6FF;
+            border-left: 3px solid #1E40AF;
+        }
+        .batch-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            cursor: pointer;
+            color: #1E40AF;
+        }
+        .batch-name:hover {
+            text-decoration: underline;
+        }
+        .batch-meta {
+            font-size: 0.7rem;
+            color: #64748B;
+            margin-bottom: 8px;
+        }
+        .batch-progress {
+            font-size: 0.7rem;
+            color: #1E40AF;
+        }
+
+        /* 标签栏 */
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px 0 20px;
+            flex-wrap: wrap;
+            margin-bottom: 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .tab-btn {
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: #F1F5F9;
+            color: #475569;
+            border: none;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #1E40AF;
+            color: white;
+        }
+        .tab-count {
+            margin-left: 6px;
+            font-size: 0.7rem;
+        }
+
+        /* 申请列表表格 */
+        .data-table {
+            padding: 0 20px 20px 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        th, td {
+            text-align: center;
+            padding: 12px 8px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        th {
+            color: #475569;
+            font-weight: 600;
+            background-color: #FAFBFC;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+        .status-pending { background: #FEF3C7; color: #B45309; }
+        .status-approved { background: #D1FAE5; color: #065F46; }
+        .status-rejected { background: #FEE2E2; color: #991B1B; }
+        .action-link {
+            color: #3B82F6;
+            cursor: pointer;
+            margin: 0 4px;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        .action-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 底部工具栏 */
+        .list-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid #f0f2f5;
+        }
+        .btn-export {
+            background: #F1F5F9;
+            border: 1px solid #e2e8f0;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-export:hover {
+            background: #E2E8F0;
+        }
+        .btn-batch {
+            background: #1E40AF;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .page-btn {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .page-btn.active {
+            background: #1E40AF;
+            color: white;
+            border-color: #1E40AF;
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-container {
+            background: white;
+            border-radius: 24px;
+            width: 500px;
+            max-width: 90%;
+            padding: 24px;
+        }
+        .modal-container h3 {
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #334155;
+        }
+        .readonly-field {
+            background: #F8FAFC;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .batch-check-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 16px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .check-item:last-child {
+            border-bottom: none;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1E293B;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            z-index: 2000;
+            animation: fadeInOut 2s;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <!-- 左侧导航栏 -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <h2><i class="fas fa-chalkboard-user"></i> 柳州教师人事</h2>
+            <p>编制·岗位·聘用·退休</p>
+        </div>
+        <div class="nav-menu" id="navMenu"></div>
+        <div class="role-switch-side">
+            <div class="role-selector">
+                <i class="fas fa-user-check"></i> 学校管理员视角
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-container">
+        <div class="page-header">
+            <div class="breadcrumb-card">
+                <div class="breadcrumb">
+                    <i class="fas fa-arrow-left back-icon" id="backBtn"></i>
+                    <span>编制管理</span> / <span>教师入编管理</span>
+                </div>
+                <div class="breadcrumb-right">
+                    <div class="dropdown user-info">
+                        <span><i class="fas fa-user-circle"></i> 陈志远 (学校管理员)</span>
+                        <div class="dropdown-content">
+                            <a href="#" onclick="alert('个人中心开发中'); return false;">个人中心</a>
+                            <a href="#" onclick="alert('忘记密码功能开发中'); return false;">忘记密码</a>
+                            <a href="#" onclick="alert('切换账号功能开发中'); return false;">切换账号</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-view" id="mainContent"></div>
+    </div>
+</div>
+
+<script>
+    // ==================== 模拟数据（学校管理员视角） ====================
+    // 批次列表（新增详细的申报/审核时间，含时分秒）
+    let batches = [
+        { id: "EB2026-001", name: "2026年度第一批教师入编申请", year: "2026", createdAt: "2026-03-01 09:00:00", total: 12, submitted: 10,
+          applyStart: "2026-03-01 00:00:00", applyEnd: "2026-03-20 23:59:59", reviewStart: "2026-03-21 00:00:00", reviewEnd: "2026-04-10 23:59:59" },
+        { id: "EB2026-002", name: "2026年度第二批教师入编申请", year: "2026", createdAt: "2026-04-01 10:30:00", total: 8, submitted: 5,
+          applyStart: "2026-04-01 00:00:00", applyEnd: "2026-04-20 23:59:59", reviewStart: "2026-04-21 00:00:00", reviewEnd: "2026-05-10 23:59:59" },
+        { id: "EB2026-003", name: "2026年度第三批教师入编申请", year: "2026", createdAt: "2026-05-01 14:15:00", total: 6, submitted: 2,
+          applyStart: "2026-05-01 00:00:00", applyEnd: "2026-05-20 23:59:59", reviewStart: "2026-05-21 00:00:00", reviewEnd: "2026-06-10 23:59:59" },
+        { id: "EB2025-001", name: "2025年度第一批教师入编申请", year: "2025", createdAt: "2025-03-01 08:20:00", total: 15, submitted: 15,
+          applyStart: "2025-03-01 00:00:00", applyEnd: "2025-03-20 23:59:59", reviewStart: "2025-03-21 00:00:00", reviewEnd: "2025-04-10 23:59:59" }
+    ];
+
+    // 申请人列表（按批次）
+    let applicantsData = {
+        "EB2026-001": [
+            { id: 1, name: "张雅琴", gender: "女", idCard: "450201199003150022", position: "语文教师", method: "统一公开招聘", docNumber: "柳教人〔2026〕10号", reason: "学科教师紧缺", status: "待审批", applyTime: "2026-03-10 09:30:00" },
+            { id: 2, name: "李思思", gender: "女", idCard: "450201199105156788", position: "数学教师", method: "统一公开招聘", docNumber: "柳教人〔2026〕11号", reason: "扩班需求", status: "已通过", applyTime: "2026-03-11 10:15:00" },
+            { id: 3, name: "王明", gender: "男", idCard: "450201198912014567", position: "英语教师", method: "中高级人才招聘", docNumber: "柳教人〔2026〕12号", reason: "骨干教师引进", status: "已驳回", applyTime: "2026-03-12 14:20:00" },
+            { id: 4, name: "赵丽颖", gender: "女", idCard: "450201199210103344", position: "物理教师", method: "单位自主实施招聘", docNumber: "柳教人〔2026〕13号", reason: "实验教学需要", status: "待审批", applyTime: "2026-03-13 11:00:00" },
+            { id: 5, name: "刘强", gender: "男", idCard: "450201198807215678", position: "化学教师", method: "调动", docNumber: "柳教人〔2026〕14号", reason: "夫妻分居", status: "待审批", applyTime: "2026-03-14 09:45:00" }
+        ],
+        "EB2026-002": [
+            { id: 6, name: "周杰", gender: "男", idCard: "450201199505123456", position: "生物教师", method: "统一公开招聘", docNumber: "柳教人〔2026〕15号", reason: "新高考需求", status: "待审批", applyTime: "2026-04-05 09:00:00" },
+            { id: 7, name: "吴倩", gender: "女", idCard: "450201199608234567", position: "历史教师", method: "统一公开招聘", docNumber: "柳教人〔2026〕16号", reason: "学科补充", status: "已通过", applyTime: "2026-04-06 14:20:00" }
+        ],
+        "EB2026-003": [],
+        "EB2025-001": []
+    };
+
+    let currentBatchId = "EB2026-001";
+    let currentTab = "全部";   // 全部/待审批/已通过/已驳回
+    let currentPage = 1;
+    const pageSize = 5;
+
+    // 获取当前批次申请列表（根据标签过滤）
+    function getCurrentApplicants() {
+        let apps = applicantsData[currentBatchId] || [];
+        if (currentTab !== "全部") {
+            apps = apps.filter(a => a.status === currentTab);
+        }
+        return apps;
+    }
+
+    // 获取各状态数量
+    function getStatusCounts() {
+        const apps = applicantsData[currentBatchId] || [];
+        return {
+            全部: apps.length,
+            待审批: apps.filter(a => a.status === "待审批").length,
+            已通过: apps.filter(a => a.status === "已通过").length,
+            已驳回: apps.filter(a => a.status === "已驳回").length
+        };
+    }
+
+    // 显示批次详情弹框
+    function showBatchDetailModal(batchId) {
+        const batch = batches.find(b => b.id === batchId);
+        if (!batch) return;
+        const modalHtml = `
+            <div class="modal-overlay" id="batchDetailModal">
+                <div class="modal-container">
+                    <h3>批次详情</h3>
+                    <div class="form-group">
+                        <label>批次名称</label>
+                        <div class="readonly-field">${batch.name}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>批次编号</label>
+                        <div class="readonly-field">${batch.id}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>发布时间</label>
+                        <div class="readonly-field">${batch.createdAt}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>申报开始时间</label>
+                        <div class="readonly-field">${batch.applyStart}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>申报结束时间</label>
+                        <div class="readonly-field">${batch.applyEnd}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>审核开始时间</label>
+                        <div class="readonly-field">${batch.reviewStart}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>审核结束时间</label>
+                        <div class="readonly-field">${batch.reviewEnd}</div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" id="closeModalBtn" style="background:#F1F5F9; border:none; padding:8px 16px; border-radius:30px;">关闭</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.getElementById("closeModalBtn").onclick = () => document.getElementById("batchDetailModal").remove();
+    }
+
+    // ==================== 左侧导航菜单渲染 ====================
+    function renderSidebar() {
+        const menus = [
+            { title: "工作台", icon: "fas fa-tachometer-alt", children: [] },
+            { title: "数据概览", icon: "fas fa-chart-pie", children: [] },
+            { title: "编制管理", icon: "fas fa-chart-line", children: ["编制使用申请", "教师入编管理", "教师出编管理"] },
+            { title: "岗位管理", icon: "fas fa-layer-group", children: ["岗位设置", "岗位晋升"] },
+            { title: "聘用管理", icon: "fas fa-user-plus", children: ["招聘岗位申请", "聘用手续"] },
+            { title: "退休管理", icon: "fas fa-calendar-alt", children: ["退休呈报"] },
+            { title: "工资管理", icon: "fas fa-coins", children: ["工资核定"] },
+            { title: "考核管理", icon: "fas fa-clipboard-list", children: ["师德师风举报"] },
+            { title: "荣誉管理", icon: "fas fa-medal", children: ["荣誉评选"] }
+        ];
+        const container = document.getElementById("navMenu");
+        container.innerHTML = "";
+        menus.forEach(menu => {
+            const hasChildren = menu.children && menu.children.length;
+            const parentDiv = document.createElement("div");
+            parentDiv.className = "nav-item";
+            const header = document.createElement("div");
+            header.className = "nav-header";
+            header.innerHTML = `<i class="${menu.icon}"></i><span>${menu.title}</span>${hasChildren ? '<i class="fas fa-chevron-down" style="margin-left:auto; font-size:0.7rem;"></i>' : ''}`;
+            const subDiv = document.createElement("div");
+            subDiv.className = "sub-menu";
+            if (hasChildren) {
+                menu.children.forEach(child => {
+                    const subItem = document.createElement("div");
+                    subItem.className = "sub-item";
+                    subItem.innerText = child;
+                    subItem.onclick = () => {
+                        if (child === "教师入编管理") {
+                            // 当前页面，无需跳转
+                        } else {
+                            alert(`跳转至：${menu.title} - ${child}（功能开发中）`);
+                        }
+                    };
+                    subDiv.appendChild(subItem);
+                });
+                header.onclick = () => subDiv.classList.toggle("show");
+                if (menu.title === "编制管理") subDiv.classList.add("show");
+            } else {
+                header.onclick = () => alert(`跳转至：${menu.title}（功能开发中）`);
+            }
+            parentDiv.appendChild(header);
+            if (hasChildren) parentDiv.appendChild(subDiv);
+            container.appendChild(parentDiv);
+        });
+        // 高亮“教师入编管理”
+        document.querySelectorAll(".sub-item").forEach(s => s.classList.remove("active"));
+        document.querySelectorAll(".sub-item").forEach(s => {
+            if (s.innerText === "教师入编管理") s.classList.add("active");
+        });
+    }
+
+    // ==================== 页面渲染 ====================
+    function renderPage() {
+        const mainContent = document.getElementById("mainContent");
+        const year = document.getElementById("batchYearFilter")?.value || "2026";
+        const filteredBatches = batches.filter(b => b.year === year);
+        const counts = getStatusCounts();
+
+        // 左侧批次列表HTML
+        const batchListHtml = filteredBatches.map(b => {
+            const progress = `${b.submitted}/${b.total}`;
+            const isActive = (currentBatchId === b.id) ? 'active' : '';
+            return `
+                <div class="batch-item ${isActive}" data-id="${b.id}">
+                    <div class="batch-name" onclick="event.stopPropagation(); showBatchDetailModal('${b.id}')">${b.name}</div>
+                    <div class="batch-meta">${b.id} | ${b.createdAt.split(' ')[0]}</div>
+                    <div class="batch-progress">申报进度：${progress}</div>
+                </div>
+            `;
+        }).join('');
+
+        // 标签栏
+        const tabs = ["全部", "待审批", "已通过", "已驳回"];
+        const tabsHtml = tabs.map(tab => `
+            <button class="tab-btn ${currentTab === tab ? 'active' : ''}" data-tab="${tab}">
+                ${tab}<span class="tab-count">(${counts[tab] || 0})</span>
+            </button>
+        `).join('');
+
+        // 右侧申请列表
+        const applicants = getCurrentApplicants();
+        const start = (currentPage - 1) * pageSize;
+        const pageApps = applicants.slice(start, start + pageSize);
+        const totalPages = Math.ceil(applicants.length / pageSize);
+        const tableRows = pageApps.map((app, idx) => {
+            let statusClass = "";
+            if (app.status === "待审批") statusClass = "status-pending";
+            else if (app.status === "已通过") statusClass = "status-approved";
+            else statusClass = "status-rejected";
+            const actionHtml = (app.status === "待审批") 
+                ? `<span class="action-link" onclick="handleApprove(${app.id})">审批</span><span class="action-link" onclick="handleView(${app.id})">查看</span>`
+                : `<span class="action-link" onclick="handleView(${app.id})">查看</span>`;
+            return `
+                <tr>
+                    <td>${start + idx + 1}</td>
+                    <td>${app.name}</td>
+                    <td>${app.gender}</td>
+                    <td>${app.idCard}</td>
+                    <td>${app.position}</td>
+                    <td>${app.method}</td>
+                    <td>${app.docNumber}</td>
+                    <td>${app.reason}</td>
+                    <td><span class="status-badge ${statusClass}">${app.status}</span></td>
+                    <td>${app.applyTime}</td>
+                    <td>${actionHtml}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // 分页HTML
+        let paginationHtml = '';
+        if (totalPages > 1) {
+            paginationHtml = `
+                <div class="pagination">
+                    <button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} id="prevPage">上一页</button>
+                    ${Array.from({length: totalPages}, (_, i) => `<button class="page-btn ${currentPage === i+1 ? 'active' : ''}" data-page="${i+1}">${i+1}</button>`).join('')}
+                    <button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} id="nextPage">下一页</button>
+                </div>
+            `;
+        }
+
+        const fullHtml = `
+            <div class="two-column-layout">
+                <div class="left-panel">
+                    <div class="card">
+                        <div class="card-header">📋 入编批次</div>
+                        <div class="batch-filter">
+                            <select id="batchYearFilter">
+                                <option value="2026">2026年</option>
+                                <option value="2025">2025年</option>
+                            </select>
+                        </div>
+                        <div class="batch-list" id="batchList">
+                            ${batchListHtml}
+                        </div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="card">
+                        <div class="card-header">📝 申请列表</div>
+                        <div class="tab-bar">${tabsHtml}</div>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th><th>申请人</th><th>性别</th><th>身份证号</th><th>拟入编岗位</th>
+                                        <th>入编方式</th><th>依据文号</th><th>申请理由</th><th>状态</th><th>申请时间</th><th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${tableRows || '<tr><td colspan="11" style="text-align:center;">暂无数据</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                        <div class="list-footer">
+                            <button class="btn-export" id="exportBtn"><i class="fas fa-download"></i> 导出增人备案表</button>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                ${paginationHtml}
+                                <button class="btn-batch" id="batchSubmitBtn"><i class="fas fa-check-double"></i> 批量提交</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        mainContent.innerHTML = fullHtml;
+
+        // 绑定事件
+        document.querySelectorAll('.batch-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                if (e.target.classList.contains('batch-name')) return;
+                currentBatchId = el.dataset.id;
+                currentTab = "全部";
+                currentPage = 1;
+                renderPage();
+            });
+        });
+        const yearSelect = document.getElementById("batchYearFilter");
+        yearSelect.value = year;
+        yearSelect.addEventListener('change', () => {
+            const newYear = yearSelect.value;
+            const firstBatch = batches.find(b => b.year === newYear);
+            if (firstBatch) currentBatchId = firstBatch.id;
+            currentTab = "全部";
+            currentPage = 1;
+            renderPage();
+        });
+        // 标签点击事件
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentTab = btn.dataset.tab;
+                currentPage = 1;
+                renderPage();
+            });
+        });
+        // 分页事件
+        document.querySelectorAll('[data-page]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                currentPage = parseInt(e.target.dataset.page);
+                renderPage();
+            });
+        });
+        const prevBtn = document.getElementById("prevPage");
+        if (prevBtn) prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderPage(); } });
+        const nextBtn = document.getElementById("nextPage");
+        if (nextBtn) nextBtn.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderPage(); } });
+        // 导出按钮
+        document.getElementById("exportBtn")?.addEventListener('click', exportToExcel);
+        // 批量提交按钮
+        document.getElementById("batchSubmitBtn")?.addEventListener('click', showBatchSubmitModal);
+    }
+
+    // 导出Excel（增人备案表）
+    function exportToExcel() {
+        const applicants = getCurrentApplicants();
+        if (applicants.length === 0) {
+            alert("暂无数据可导出");
+            return;
+        }
+        const wsData = [
+            ["序号", "申请人", "性别", "身份证号", "拟入编岗位", "入编方式", "依据文号", "申请理由", "状态", "申请时间"],
+            ...applicants.map((app, idx) => [
+                idx+1, app.name, app.gender, app.idCard, app.position, app.method, app.docNumber, app.reason, app.status, app.applyTime
+            ])
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "教师入编申请");
+        XLSX.writeFile(wb, `教师入编申请_${currentBatchId}.xlsx`);
+        showToast("导出成功");
+    }
+
+    // 批量提交弹框
+    function showBatchSubmitModal() {
+        const pendingApps = getCurrentApplicants().filter(app => app.status === "待审批");
+        if (pendingApps.length === 0) {
+            alert("当前批次没有待审批的申请");
+            return;
+        }
+        const modalHtml = `
+            <div class="modal-overlay" id="batchModal">
+                <div class="modal-container">
+                    <h3>批量提交审核</h3>
+                    <div class="batch-check-list" id="batchCheckList">
+                        ${pendingApps.map(app => `
+                            <div class="check-item">
+                                <input type="checkbox" class="batch-checkbox" data-id="${app.id}" checked> 
+                                <span>${app.name} - ${app.position}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="form-group">
+                        <label>控制数类型 <span style="color:red;">*</span></label>
+                        <select id="controlType">
+                            <option value="">请选择</option>
+                            <option value="中小学校聘用教师控制数">中小学校聘用教师控制数</option>
+                            <option value="中职中专学校教职人员控制数">中职中专学校教职人员控制数</option>
+                            <option value="高等职业学校教职人员控制数">高等职业学校教职人员控制数</option>
+                            <option value="公立医院聘用人员控制数">公立医院聘用人员控制数</option>
+                        </select>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" id="cancelBatch" style="background:#F1F5F9; border:none; padding:8px 16px; border-radius:30px;">取消</button>
+                        <button class="btn-primary-sm" id="confirmBatch" style="background:#1E40AF; color:white; border:none; padding:8px 16px; border-radius:30px;">确定提交</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.getElementById("cancelBatch").onclick = () => document.getElementById("batchModal").remove();
+        document.getElementById("confirmBatch").onclick = () => {
+            const controlType = document.getElementById("controlType").value;
+            if (!controlType) {
+                alert("请选择控制数类型");
+                return;
+            }
+            const selectedIds = [];
+            document.querySelectorAll('.batch-checkbox:checked').forEach(cb => {
+                selectedIds.push(parseInt(cb.dataset.id));
+            });
+            if (selectedIds.length === 0) {
+                alert("请至少选择一项");
+                return;
+            }
+            // 模拟批量提交成功，更新这些申请的状态为“已通过”
+            const applicants = getCurrentApplicants();
+            selectedIds.forEach(id => {
+                const app = applicants.find(a => a.id === id);
+                if (app) app.status = "已通过";
+            });
+            document.getElementById("batchModal").remove();
+            showToast(`提交${selectedIds.length}条数据`, () => renderPage());
+        };
+    }
+
+    // 查看详情
+    window.handleView = function(appId) {
+        alert(`跳转到教师入编个人详情页，申请ID：${appId}`);
+    };
+    // 审批单个
+    window.handleApprove = function(appId) {
+        alert(`跳转到审核教师入编页（学校管理员视角），申请ID：${appId}`);
+    };
+
+    // Toast提示
+    function showToast(message, callback) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+            if (callback) callback();
+        }, 1500);
+    }
+
+    // 返回上一页
+    function goBack() {
+        alert("返回上一页");
+    }
+
+    document.getElementById("backBtn")?.addEventListener("click", goBack);
+    // 全局函数供批次名称弹框调用
+    window.showBatchDetailModal = showBatchDetailModal;
+
+    // 初始化
+    renderSidebar();
+    renderPage();
+</script>
+</body>
+</html>

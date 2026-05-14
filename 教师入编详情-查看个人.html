@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>柳州市教师人事管理信息系统 - 教师入编详情页</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SheetJS 用于导出 Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #1E293B;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 整体布局 flex */
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* 左侧导航 */
+        .sidebar {
+            width: 260px;
+            background-color: white;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .logo-area {
+            padding: 20px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 16px;
+        }
+        .logo-area h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1E40AF, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .logo-area p {
+            font-size: 0.65rem;
+            color: #64748B;
+            margin-top: 4px;
+        }
+        .nav-menu {
+            flex: 1;
+            padding: 0 12px;
+        }
+        .nav-item {
+            margin-bottom: 4px;
+        }
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-header i {
+            width: 22px;
+            color: #64748B;
+            font-size: 0.9rem;
+        }
+        .nav-header:hover {
+            background-color: #F1F5F9;
+        }
+        .nav-header.active {
+            background-color: #EFF6FF;
+            color: #1E40AF;
+        }
+        .nav-header.active i {
+            color: #1E40AF;
+        }
+        .sub-menu {
+            padding-left: 32px;
+            margin-top: 4px;
+            margin-bottom: 6px;
+            display: none;
+        }
+        .sub-menu.show {
+            display: block;
+        }
+        .sub-item {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            color: #475569;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .sub-item:hover {
+            background-color: #F1F5F9;
+            color: #1E40AF;
+        }
+        .sub-item.active {
+            background-color: #EFF6FF;
+            color: #1E40AF;
+            font-weight: 500;
+        }
+        /* 角色切换区域 */
+        .role-switch-side {
+            padding: 16px;
+            border-top: 1px solid #edf2f7;
+            margin-top: auto;
+        }
+        .role-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F8FAFC;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+        }
+        .role-selector select {
+            flex: 1;
+            border: 1px solid #cbd5e1;
+            border-radius: 30px;
+            padding: 4px 8px;
+            background: white;
+            font-weight: 500;
+            outline: none;
+        }
+
+        /* 右侧主区域 */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background-color: #F8FAFC;
+        }
+        .page-header {
+            padding: 20px 28px 0 28px;
+        }
+        .breadcrumb-card {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #edf2f7;
+            margin-bottom: 20px;
+        }
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: #64748B;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .breadcrumb span:last-child {
+            color: #1E293B;
+            font-weight: 500;
+        }
+        .back-icon {
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #64748B;
+        }
+        .back-icon:hover {
+            color: #1E40AF;
+        }
+        .breadcrumb-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            min-width: 140px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            z-index: 20;
+            margin-top: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .dropdown-content a {
+            color: #1E293B;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+        }
+        .dropdown-content a:hover {
+            background-color: #F1F5F9;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .content-view {
+            padding: 0 28px 24px 28px;
+        }
+
+        /* 页面标题行 */
+        .page-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1E293B;
+        }
+        .btn-export {
+            background: #F1F5F9;
+            border: 1px solid #e2e8f0;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-export:hover {
+            background: #E2E8F0;
+        }
+
+        /* 双栏布局：左侧主要内容，右侧申报履历 */
+        .main-content-wrapper {
+            display: flex;
+            gap: 24px;
+        }
+        .left-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .right-timeline {
+            width: 360px;
+            flex-shrink: 0;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #edf2f7;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            background-color: #FAFBFC;
+        }
+        .batch-info {
+            background: #F8FAFC;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 16px 20px 20px 20px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 20px;
+        }
+        .info-item {
+            background: #F8FAFC;
+            padding: 12px;
+            border-radius: 12px;
+        }
+        .info-label {
+            font-size: 0.7rem;
+            color: #64748B;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        /* 左中右三列统计表格样式 */
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .stats-card {
+            flex: 1;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            overflow: hidden;
+            background: white;
+        }
+        .stats-card-header {
+            background: #F8FAFC;
+            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stats-card-header .total-number {
+            font-size: 1.2rem;
+            color: #1E40AF;
+        }
+        .three-col-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .three-col-table th, .three-col-table td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.75rem;
+        }
+        .three-col-table th {
+            background: #FAFBFC;
+            font-weight: 600;
+            width: 33%;
+        }
+        .three-col-table tr:last-child td {
+            border-bottom: none;
+        }
+        /* 进度条 */
+        .progress-container {
+            padding: 20px;
+        }
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        .progress-node {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .progress-node .node-dot {
+            width: 36px;
+            height: 36px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            line-height: 36px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748B;
+        }
+        .progress-node.completed .node-dot {
+            background: #10B981;
+            color: white;
+        }
+        .progress-node.active .node-dot {
+            background: #1E40AF;
+            color: white;
+        }
+        .progress-node .node-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .progress-node .node-detail {
+            font-size: 0.65rem;
+            color: #64748B;
+        }
+        /* 时间轴 */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+            border-left: 2px solid #e2e8f0;
+            margin-left: 12px;
+            padding-left: 20px;
+        }
+        .timeline-item:last-child {
+            border-left-color: transparent;
+            padding-bottom: 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -9px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #cbd5e1;
+        }
+        .timeline-item.completed .timeline-dot {
+            background: #10B981;
+            border-color: #10B981;
+        }
+        .timeline-time {
+            font-size: 0.7rem;
+            color: #64748B;
+            margin-bottom: 4px;
+        }
+        .timeline-title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+        .timeline-desc {
+            font-size: 0.7rem;
+            color: #475569;
+        }
+        .status-stamp {
+            display: inline-block;
+            padding: 6px 16px;
+            border: 2px solid;
+            transform: rotate(-5deg);
+            font-weight: 700;
+            font-size: 0.85rem;
+            background: white;
+        }
+        .status-stamp.approved {
+            color: #10B981;
+            border-color: #10B981;
+        }
+        .status-stamp.rejected {
+            color: #EF4444;
+            border-color: #EF4444;
+        }
+        .status-stamp.pending {
+            color: #F59E0B;
+            border-color: #F59E0B;
+        }
+        .form-group {
+            margin-bottom: 16px;
+            padding: 0 20px;
+        }
+        .form-group label {
+            font-weight: 500;
+            font-size: 0.8rem;
+            display: block;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-family: inherit;
+            background-color: #F8FAFC;
+        }
+        .form-group textarea {
+            resize: vertical;
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1E293B;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            z-index: 2000;
+            animation: fadeInOut 2s;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <!-- 左侧导航栏 -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <h2><i class="fas fa-chalkboard-user"></i> 柳州教师人事</h2>
+            <p>编制·岗位·聘用·退休</p>
+        </div>
+        <div class="nav-menu" id="navMenu"></div>
+        <div class="role-switch-side">
+            <div class="role-selector">
+                <i class="fas fa-users"></i>
+                <select id="roleSelect">
+                    <option value="teacher">教师</option>
+                    <option value="school">学校管理员</option>
+                    <option value="city">市教育局管理员</option>
+                    <option value="district">区教育局管理员</option>
+                </select>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-container">
+        <div class="page-header">
+            <div class="breadcrumb-card">
+                <div class="breadcrumb">
+                    <i class="fas fa-arrow-left back-icon" id="backBtn"></i>
+                    <span>编制管理</span> / <span>教师入编管理</span> / <span>教师入编详情页</span>
+                </div>
+                <div class="breadcrumb-right">
+                    <div class="dropdown user-info">
+                        <span><i class="fas fa-user-circle"></i> <span id="currentUserDisplay">张雅琴 (教师)</span></span>
+                        <div class="dropdown-content">
+                            <a href="#" onclick="alert('个人中心开发中'); return false;">个人中心</a>
+                            <a href="#" onclick="alert('忘记密码功能开发中'); return false;">忘记密码</a>
+                            <a href="#" onclick="alert('切换账号功能开发中'); return false;">切换账号</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-view" id="mainContent">
+            <!-- 动态内容 -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== 角色配置 ====================
+    const roleConfig = {
+        teacher: { name: "张雅琴", roleTitle: "教师", menus: [
+            { title: "工作台", icon: "fas fa-tachometer-alt", children: [] },
+            { title: "编制管理", icon: "fas fa-chart-line", children: ["教师入编管理"] },
+            { title: "岗位管理", icon: "fas fa-layer-group", children: ["岗位晋升"] },
+            { title: "考核管理", icon: "fas fa-clipboard-list", children: ["师德师风举报"] },
+            { title: "荣誉管理", icon: "fas fa-medal", children: ["荣誉评选"] }
+        ] },
+        school: { name: "陈志远", roleTitle: "学校管理员", menus: [
+            { title: "工作台", icon: "fas fa-tachometer-alt", children: [] },
+            { title: "数据概览", icon: "fas fa-chart-pie", children: [] },
+            { title: "编制管理", icon: "fas fa-chart-line", children: ["编制使用申请", "教师入编管理", "教师出编管理"] }
+        ] },
+        city: { name: "张建国", roleTitle: "市教育局管理员", menus: [
+            { title: "工作台", icon: "fas fa-tachometer-alt", children: [] },
+            { title: "数据概览", icon: "fas fa-chart-pie", children: [] },
+            { title: "编制管理", icon: "fas fa-chart-line", children: ["编制使用申请", "教师入编管理", "教师出编管理"] }
+        ] },
+        district: { name: "李芳", roleTitle: "区教育局管理员", menus: [
+            { title: "工作台", icon: "fas fa-tachometer-alt", children: [] },
+            { title: "数据概览", icon: "fas fa-chart-pie", children: [] },
+            { title: "编制管理", icon: "fas fa-chart-line", children: ["编制使用申请", "教师入编管理", "教师出编管理"] }
+        ] }
+    };
+
+    let currentRole = "teacher";
+
+    function renderSidebar() {
+        const config = roleConfig[currentRole];
+        const container = document.getElementById("navMenu");
+        container.innerHTML = "";
+        config.menus.forEach(menu => {
+            const hasChildren = menu.children && menu.children.length;
+            const parentDiv = document.createElement("div");
+            parentDiv.className = "nav-item";
+            const header = document.createElement("div");
+            header.className = "nav-header";
+            header.innerHTML = `<i class="${menu.icon}"></i><span>${menu.title}</span>${hasChildren ? '<i class="fas fa-chevron-down" style="margin-left:auto; font-size:0.7rem;"></i>' : ''}`;
+            const subDiv = document.createElement("div");
+            subDiv.className = "sub-menu";
+            if (hasChildren) {
+                menu.children.forEach(child => {
+                    const subItem = document.createElement("div");
+                    subItem.className = "sub-item";
+                    subItem.innerText = child;
+                    subItem.onclick = () => {
+                        if (child === "教师入编管理") {
+                            alert("返回教师入编管理列表页");
+                        } else {
+                            alert(`跳转至：${menu.title} - ${child}（功能开发中）`);
+                        }
+                    };
+                    subDiv.appendChild(subItem);
+                });
+                header.onclick = () => {
+                    subDiv.classList.toggle("show");
+                    const icon = header.querySelector(".fa-chevron-down");
+                    if (icon) icon.style.transform = subDiv.classList.contains("show") ? "rotate(180deg)" : "rotate(0deg)";
+                };
+                if (menu.title === "编制管理") {
+                    subDiv.classList.add("show");
+                }
+            } else {
+                header.onclick = () => alert(`跳转至：${menu.title}（功能开发中）`);
+            }
+            parentDiv.appendChild(header);
+            if (hasChildren) parentDiv.appendChild(subDiv);
+            container.appendChild(parentDiv);
+        });
+        // 高亮“教师入编管理”
+        document.querySelectorAll(".sub-item").forEach(s => s.classList.remove("active"));
+        document.querySelectorAll(".sub-item").forEach(s => {
+            if (s.innerText === "教师入编管理") s.classList.add("active");
+        });
+        document.getElementById("currentUserDisplay").innerText = `${config.name} (${config.roleTitle})`;
+    }
+
+    // ==================== 模拟数据 ====================
+    const teacherName = "张雅琴";
+    const batchInfo = {
+        name: "2026年度第一批教师入编申请",
+        id: "EB2026-001",
+        publishTime: "2026-03-01",
+        publisher: "市教育局"
+    };
+    const applicationStatus = "approved";
+    const progressData = {
+        submit: { user: "张雅琴", time: "2026-03-10 09:30", status: "completed" },
+        schoolAudit: { user: "陈志远（学校管理员）", time: "2026-03-12 14:20", status: "completed" },
+        eduAudit: { user: "张建国（市教育局）", time: "2026-03-18 10:15", status: "completed" },
+        complete: { result: "审批通过", reason: null, status: "completed" }
+    };
+    const timelineRecords = [
+        { time: "2026-03-18 10:15", operator: "张建国", action: "教育局审核通过", opinion: "符合入编条件，同意办理", result: "通过" },
+        { time: "2026-03-12 14:20", operator: "陈志远", action: "学校审核通过", opinion: "材料齐全，同意上报", result: "通过" },
+        { time: "2026-03-10 09:30", operator: "张雅琴", action: "提交申请", opinion: "申请入编", result: "提交" }
+    ];
+
+    const unitInfo = {
+        fullName: "柳州高级中学",
+        creditCode: "12450200MB1A12345X",
+        institutionLevel: "正处级",
+        fundingSource: "财政全额拨款",
+        authorizedStaff: 186,
+        authorizedDetail: { admin: 32, tech: 142, logistic: 12, leadership: { deptLevel: 1, divisionLevel: 4, sectionLevel: 8 } },
+        currentStaff: 175,
+        currentDetail: { admin: 30, tech: 138, logistic: 7, leadership: { deptLevel: 1, divisionLevel: 4, sectionLevel: 7 } }
+    };
+
+    const personalInfo = {
+        name: "张雅琴",
+        gender: "女",
+        birthDate: "1990-03-15",
+        age: 36,
+        idCard: "450201199003150022",
+        politics: "中共党员",
+        ethnicity: "汉族",
+        nativePlace: "广西柳州",
+        education: "硕士研究生",
+        graduateSchool: "广西师范大学",
+        major: "汉语言文学",
+        previousJob: "某中学语文教师",
+        cadreOrWorker: "干部",
+        orgType: "事业单位",
+        title: "一级教师",
+        funding: "财政全额",
+        spouseName: "李伟",
+        spouseWorkUnit: "柳州银行"
+    };
+
+    const entryData = {
+        assignPosition: "语文教师",
+        entryMethod: "统一公开招聘",
+        basisDoc: "柳教人〔2026〕10号",
+        reason: "学科教师紧缺，符合学校发展规划"
+    };
+
+    // 渲染三列统计表格（核定编制数 / 现有人数）
+    function renderStatsTable(title, total, details, leadership, category1Name, category2Name) {
+        // details: { admin, tech, logistic }
+        // leadership: { deptLevel, divisionLevel, sectionLevel }
+        return `
+            <div class="stats-card">
+                <div class="stats-card-header">
+                    <span>${title}</span>
+                    <span class="total-number">${total}</span>
+                </div>
+                <table class="three-col-table">
+                    <thead>
+                        <tr><th>类别</th><th>分项</th><th>数量</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td rowspan="3">${category1Name}</td><td>行政管理岗位</td><td>${details.admin}</td></tr>
+                        <tr><td>专业技术岗位</td><td>${details.tech}</td></tr>
+                        <tr><td>后勤服务岗位</td><td>${details.logistic}</td></tr>
+                        <tr><td rowspan="3">${category2Name}</td><td>厅级</td><td>${leadership.deptLevel}</td></tr>
+                        <tr><td>处级</td><td>${leadership.divisionLevel}</td></tr>
+                        <tr><td>科级</td><td>${leadership.sectionLevel}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function renderDetailPage() {
+        const mainContent = document.getElementById("mainContent");
+
+        const statusStamp = applicationStatus === 'approved' ? '<div class="status-stamp approved">审批通过</div>' :
+                           (applicationStatus === 'rejected' ? '<div class="status-stamp rejected">审批驳回</div>' :
+                           '<div class="status-stamp pending">待审核</div>');
+
+        const getNodeClass = (status) => status === 'completed' ? 'completed' : (status === 'active' ? 'active' : '');
+        const getNodeIcon = (status) => status === 'completed' ? '✓' : (status === 'active' ? '●' : '○');
+        const progressHtml = `
+            <div class="card">
+                <div class="card-header">⏳ 审批进度</div>
+                <div class="progress-container">
+                    <div class="progress-steps">
+                        <div class="progress-node ${getNodeClass(progressData.submit.status)}">
+                            <div class="node-dot">${getNodeIcon(progressData.submit.status)}</div>
+                            <div class="node-title">提交申请</div>
+                            <div class="node-detail">${progressData.submit.user}<br>${progressData.submit.time}</div>
+                        </div>
+                        <div class="progress-node ${getNodeClass(progressData.schoolAudit.status)}">
+                            <div class="node-dot">${getNodeIcon(progressData.schoolAudit.status)}</div>
+                            <div class="node-title">学校审核</div>
+                            <div class="node-detail">${progressData.schoolAudit.user}<br>${progressData.schoolAudit.time}</div>
+                        </div>
+                        <div class="progress-node ${getNodeClass(progressData.eduAudit.status)}">
+                            <div class="node-dot">${getNodeIcon(progressData.eduAudit.status)}</div>
+                            <div class="node-title">市/区教育局审核</div>
+                            <div class="node-detail">${progressData.eduAudit.user}<br>${progressData.eduAudit.time}</div>
+                        </div>
+                        <div class="progress-node ${getNodeClass(progressData.complete.status)}">
+                            <div class="node-dot">${getNodeIcon(progressData.complete.status)}</div>
+                            <div class="node-title">审核完成</div>
+                            <div class="node-detail">${progressData.complete.result}${progressData.complete.reason ? '<br>驳回原因：' + progressData.complete.reason : ''}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const timelineHtml = `
+            <div class="card">
+                <div class="card-header">
+                    申报履历
+                    ${statusStamp}
+                </div>
+                <div style="padding: 20px;">
+                    <div class="timeline">
+                        ${timelineRecords.map(record => `
+                            <div class="timeline-item completed">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-time">${record.time}</div>
+                                <div class="timeline-title">${record.action}</div>
+                                <div class="timeline-desc">${record.operator}</div>
+                                <div class="timeline-desc" style="margin-top:4px; color:#64748B;">意见：${record.opinion}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const statsRowHtml = `
+            <div class="stats-row">
+                ${renderStatsTable("核定编制数", unitInfo.authorizedStaff, 
+                    { admin: unitInfo.authorizedDetail.admin, tech: unitInfo.authorizedDetail.tech, logistic: unitInfo.authorizedDetail.logistic },
+                    unitInfo.authorizedDetail.leadership, "其中", "领导职数")}
+                ${renderStatsTable("现有人数", unitInfo.currentStaff,
+                    { admin: unitInfo.currentDetail.admin, tech: unitInfo.currentDetail.tech, logistic: unitInfo.currentDetail.logistic },
+                    unitInfo.currentDetail.leadership, "其中", "领导人数")}
+            </div>
+        `;
+
+        const unitHtml = `
+            <div class="card">
+                <div class="card-header">🏫 单位信息</div>
+                <div style="padding: 20px;">
+                    <div class="info-grid">
+                        <div class="info-item"><div class="info-label">单位全称</div><div class="info-value">${unitInfo.fullName}</div></div>
+                        <div class="info-item"><div class="info-label">统一社会信用代码</div><div class="info-value">${unitInfo.creditCode}</div></div>
+                        <div class="info-item"><div class="info-label">机构级别</div><div class="info-value">${unitInfo.institutionLevel}</div></div>
+                        <div class="info-item"><div class="info-label">经费来源</div><div class="info-value">${unitInfo.fundingSource}</div></div>
+                    </div>
+                    ${statsRowHtml}
+                </div>
+            </div>
+        `;
+
+        // 个人信息卡片
+        const otherInfoItems = [
+            { label: "性别", value: personalInfo.gender }, { label: "出生年月", value: personalInfo.birthDate },
+            { label: "年龄", value: personalInfo.age }, { label: "身份证号码", value: personalInfo.idCard },
+            { label: "政治面貌", value: personalInfo.politics }, { label: "民族", value: personalInfo.ethnicity },
+            { label: "籍贯", value: personalInfo.nativePlace }, { label: "文化程度", value: personalInfo.education },
+            { label: "毕业院校及专业", value: `${personalInfo.graduateSchool} ${personalInfo.major}` }, { label: "原工作岗位", value: personalInfo.previousJob },
+            { label: "干部或工人", value: personalInfo.cadreOrWorker }, { label: "单位性质", value: personalInfo.orgType },
+            { label: "职务/职称", value: personalInfo.title }, { label: "经费来源", value: personalInfo.funding },
+            { label: "配偶姓名", value: personalInfo.spouseName }, { label: "配偶工作单位", value: personalInfo.spouseWorkUnit }
+        ];
+        let otherFieldsHtml = '';
+        for (let i = 0; i < otherInfoItems.length; i += 2) {
+            const left = otherInfoItems[i];
+            const right = otherInfoItems[i+1];
+            if (right) {
+                otherFieldsHtml += `<div class="info-item"><div class="info-label">${left.label}</div><div class="info-value">${left.value}</div></div>
+                                    <div class="info-item"><div class="info-label">${right.label}</div><div class="info-value">${right.value}</div></div>`;
+            } else {
+                otherFieldsHtml += `<div class="info-item full-width"><div class="info-label">${left.label}</div><div class="info-value">${left.value}</div></div>`;
+            }
+        }
+        const personalHtml = `
+            <div class="card">
+                <div class="card-header">👤 个人信息</div>
+                <div class="info-grid">
+                    <div class="info-item full-width"><div class="info-label">姓名</div><div class="info-value">${personalInfo.name}</div></div>
+                    ${otherFieldsHtml}
+                </div>
+            </div>
+        `;
+
+        const entryHtml = `
+            <div class="card">
+                <div class="card-header">📝 入编信息</div>
+                <div class="form-group">
+                    <label>拟分配岗位</label>
+                    <input type="text" value="${entryData.assignPosition}" disabled>
+                </div>
+                <div class="form-group">
+                    <label>入编方式</label>
+                    <select disabled>
+                        <option ${entryData.entryMethod === "统一公开招聘" ? "selected" : ""}>统一公开招聘</option>
+                        <option ${entryData.entryMethod === "单位自主实施招聘" ? "selected" : ""}>单位自主实施招聘</option>
+                        <option ${entryData.entryMethod === "中高级人才招聘" ? "selected" : ""}>中高级人才招聘</option>
+                        <option ${entryData.entryMethod === "引进高层次人才" ? "selected" : ""}>引进高层次人才</option>
+                        <option ${entryData.entryMethod === "调动" ? "selected" : ""}>调动</option>
+                        <option ${entryData.entryMethod === "其他" ? "selected" : ""}>其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>依据文号</label>
+                    <input type="text" value="${entryData.basisDoc}" disabled>
+                </div>
+                <div class="form-group">
+                    <label>申请理由</label>
+                    <textarea rows="3" disabled>${entryData.reason}</textarea>
+                </div>
+            </div>
+        `;
+
+        const fullHtml = `
+            <div class="page-title-row">
+                <div class="page-title">教师入编详情 - ${teacherName}</div>
+                <button class="btn-export" id="exportBtn"><i class="fas fa-download"></i> 导出表单</button>
+            </div>
+            <div class="main-content-wrapper">
+                <div class="left-content">
+                    ${progressHtml}
+                    <div class="batch-info">
+                        <strong>教师入编批次：</strong> ${batchInfo.name}（${batchInfo.id}）<br>
+                        <span style="font-size:0.7rem;">发布时间：${batchInfo.publishTime} | 发布人：${batchInfo.publisher}</span>
+                    </div>
+                    ${unitHtml}
+                    ${personalHtml}
+                    ${entryHtml}
+                </div>
+                <div class="right-timeline">
+                    ${timelineHtml}
+                </div>
+            </div>
+        `;
+        mainContent.innerHTML = fullHtml;
+
+        document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+    }
+
+    function exportToExcel() {
+        const unitRows = [
+            ["单位全称", unitInfo.fullName],
+            ["统一社会信用代码", unitInfo.creditCode],
+            ["机构级别", unitInfo.institutionLevel],
+            ["经费来源", unitInfo.fundingSource],
+            ["核定编制数（名）", unitInfo.authorizedStaff],
+            ["其中：行政管理岗位", unitInfo.authorizedDetail.admin],
+            ["专业技术岗位", unitInfo.authorizedDetail.tech],
+            ["后勤服务岗位", unitInfo.authorizedDetail.logistic],
+            ["领导职数：厅级", unitInfo.authorizedDetail.leadership.deptLevel],
+            ["处级", unitInfo.authorizedDetail.leadership.divisionLevel],
+            ["科级", unitInfo.authorizedDetail.leadership.sectionLevel],
+            ["现有人数（人）", unitInfo.currentStaff],
+            ["其中：行政管理岗位人数", unitInfo.currentDetail.admin],
+            ["专业技术岗位人数", unitInfo.currentDetail.tech],
+            ["后勤服务岗位人数", unitInfo.currentDetail.logistic],
+            ["领导人数：厅级", unitInfo.currentDetail.leadership.deptLevel],
+            ["处级", unitInfo.currentDetail.leadership.divisionLevel],
+            ["科级", unitInfo.currentDetail.leadership.sectionLevel]
+        ];
+        const personalRows = [
+            ["姓名", personalInfo.name], ["性别", personalInfo.gender], ["出生年月", personalInfo.birthDate],
+            ["年龄", personalInfo.age], ["身份证号码", personalInfo.idCard], ["政治面貌", personalInfo.politics],
+            ["民族", personalInfo.ethnicity], ["籍贯", personalInfo.nativePlace], ["文化程度", personalInfo.education],
+            ["毕业院校及专业", `${personalInfo.graduateSchool} ${personalInfo.major}`], ["原工作岗位", personalInfo.previousJob],
+            ["干部或工人", personalInfo.cadreOrWorker], ["单位性质", personalInfo.orgType], ["职务/职称", personalInfo.title],
+            ["经费来源", personalInfo.funding], ["配偶姓名", personalInfo.spouseName], ["配偶工作单位", personalInfo.spouseWorkUnit]
+        ];
+        const entryRows = [
+            ["拟分配岗位", entryData.assignPosition],
+            ["入编方式", entryData.entryMethod],
+            ["依据文号", entryData.basisDoc],
+            ["申请理由", entryData.reason]
+        ];
+        const wsData = [
+            ["【单位信息】"], ...unitRows, [],
+            ["【个人信息】"], ...personalRows, [],
+            ["【入编信息】"], ...entryRows
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "教师入编详情");
+        XLSX.writeFile(wb, `教师入编详情_${personalInfo.name}.xlsx`);
+        showToast("导出成功");
+    }
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
+    function goBack() {
+        alert("返回上一页（教师入编管理列表页）");
+    }
+
+    document.getElementById("backBtn")?.addEventListener("click", goBack);
+    document.getElementById("roleSelect")?.addEventListener("change", (e) => {
+        currentRole = e.target.value;
+        renderSidebar();
+        renderDetailPage();
+    });
+
+    renderSidebar();
+    renderDetailPage();
+</script>
+</body>
+</html>
