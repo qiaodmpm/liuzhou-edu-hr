@@ -693,7 +693,7 @@ const STATUS_MAP = {
 
 let currentRole = 'city';
 let selectedBatchId = null; // Currently selected batch
-let currentFilter = 'all'; // 'all' | 'pending' | 'approved' | 'rejected' | 'draft'
+let currentFilter = 'all'; // 'all' | 'pending' | 'approved' | 'rejected'
 
 // ===== BATCH STATS HELPER =====
 function getBatchStats(batchId) {
@@ -703,7 +703,6 @@ function getBatchStats(batchId) {
     submitted: subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; }).length,
     approved: subs.filter(function(s) { return s.status === 'approved'; }).length,
     rejected: subs.filter(function(s) { return s.status === 'rejected'; }).length,
-    draft: subs.filter(function(s) { return s.status === 'draft'; }).length
   };
 }
 
@@ -726,7 +725,6 @@ function renderStatusFilters() {
     { key: 'pending', label: '待审批' },
     { key: 'approved', label: '已通过' },
     { key: 'rejected', label: '已退回' },
-    { key: 'draft', label: '未提交' }
   ];
   var h = '<div class="status-filters">';
   filters.forEach(function(f) {
@@ -846,8 +844,6 @@ function getFilteredSubmissions() {
     subs = subs.filter(function(s) { return s.status === 'approved'; });
   } else if (currentFilter === 'rejected') {
     subs = subs.filter(function(s) { return s.status === 'rejected'; });
-  } else if (currentFilter === 'draft') {
-    subs = subs.filter(function(s) { return s.status === 'draft'; });
   }
   return subs;
 }
@@ -857,10 +853,9 @@ function renderBatchCards(batches) {
   batches.forEach(function(b) {
     var stats = getBatchStats(b.id);
     var isSelected = b.id === selectedBatchId;
-    var totalNonDraft = stats.total - stats.draft;
-    var approvedPct = totalNonDraft > 0 ? Math.round(stats.approved / totalNonDraft * 100) : 0;
-    var submittedPct = totalNonDraft > 0 ? Math.round(stats.submitted / totalNonDraft * 100) : 0;
-    var rejectedPct = totalNonDraft > 0 ? Math.round(stats.rejected / totalNonDraft * 100) : 0;
+    var approvedPct = stats.total > 0 ? Math.round(stats.approved / stats.total * 100) : 0;
+    var submittedPct = stats.total > 0 ? Math.round(stats.submitted / stats.total * 100) : 0;
+    var rejectedPct = stats.total > 0 ? Math.round(stats.rejected / stats.total * 100) : 0;
 
     h += '<div class="batch-card' + (isSelected ? ' selected' : '') + '" onclick="selectBatch(\'' + b.id + '\')">';
     h += '<div class="batch-card-header">';
@@ -869,7 +864,7 @@ function renderBatchCards(batches) {
     h += '</div>';
     h += '<div class="batch-card-meta"><span>📅 ' + b.publishDate + ' ~ ' + b.deadline + '</span><span>发布：' + b.org + '</span></div>';
     h += '<div class="batch-card-progress">';
-    h += '<div class="progress-labels"><span>已通过 ' + stats.approved + '</span><span>待审批 ' + stats.submitted + '</span><span>已退回 ' + stats.rejected + '</span><span style="color:var(--text-light);">未提交 ' + stats.draft + '</span></div>';
+    h += '<div class="progress-labels"><span>已通过 ' + stats.approved + '</span><span>待审批 ' + stats.submitted + '</span><span>已退回 ' + stats.rejected + '</span></div>';
     h += '<div class="progress-bar">';
     if (approvedPct > 0) h += '<div class="progress-fill approved" style="width:' + approvedPct + '%"></div>';
     if (submittedPct > 0) h += '<div class="progress-fill submitted" style="width:' + submittedPct + '%"></div>';
@@ -911,7 +906,6 @@ function showBatchDetail(id) {
   c += '<div class="batch-detail-row"><span class="bdl">已通过</span><span class="bdv" style="color:var(--success);">' + stats.approved + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">待审批</span><span class="bdv" style="color:var(--accent);">' + stats.submitted + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">已退回</span><span class="bdv" style="color:var(--danger);">' + stats.rejected + '</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">未提交</span><span class="bdv" style="color:var(--text-light);">' + stats.draft + '</span></div>';
   c += '</div>';
   c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">关闭</button></div>';
   openModal(c);
@@ -1026,9 +1020,6 @@ function renderSubmissionsTable(subs) {
     }
     if (s.status === 'approved' && s.school === '柳州市第八中学' && isSchoolView) {
       h += '<a onclick="showToast(\'上传后续材料\')">上传后续材料</a>';
-    }
-    if (s.status === 'draft' && isSchoolView) {
-      h += '<a href="staffing-form.html">编辑</a>';
     }
     if (s.status === 'rejected' && isSchoolView) {
       h += '<a href="staffing-form.html">修改重提</a>';
