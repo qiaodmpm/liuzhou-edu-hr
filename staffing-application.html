@@ -224,16 +224,35 @@ body {
 .batch-card-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
 .batch-card-actions .btn { font-size: 11px; padding: 4px 12px; }
 
-/* School batch card — submission status */
-.school-batch-sub-status {
-  display: inline-block; padding: 3px 10px; border-radius: 12px;
-  font-size: 11px; font-weight: 500; margin-right: 8px;
+/* School batch card — two-column layout */
+.school-batch-card {
+  display: flex; gap: 0; border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border); background: #fff;
+  overflow: hidden; transition: var(--transition);
 }
-.school-batch-sub-status.approved { background: #ECFDF5; color: #10B981; }
-.school-batch-sub-status.reviewing { background: #FFFBEB; color: #D97706; }
-.school-batch-sub-status.submitted { background: #EFF6FF; color: #1E40AF; }
-.school-batch-sub-status.rejected { background: #FEF2F2; color: #EF4444; }
-.school-batch-sub-status.none { background: #F8FAFC; color: #94A3B8; }
+.school-batch-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.school-batch-card .sbc-left {
+  flex: 1; padding: 16px 18px; min-width: 0;
+}
+.school-batch-card .sbc-left .batch-card-header { margin-bottom: 8px; }
+.school-batch-card .sbc-left .batch-card-meta { font-size: 11px; color: var(--text-light); display: flex; gap: 16px; }
+.school-batch-card .sbc-right {
+  width: 100px; flex-shrink: 0; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 16px 12px;
+  background: #F8FAFC; border-left: 1px solid var(--border);
+}
+.sbc-status {
+  display: inline-block; padding: 4px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 600; text-align: center; white-space: nowrap;
+}
+.sbc-status.approved { background: #ECFDF5; color: #059669; }
+.sbc-status.reviewing { background: #FFFBEB; color: #D97706; }
+.sbc-status.submitted { background: #EFF6FF; color: #1E40AF; }
+.sbc-status.rejected { background: #FEF2F2; color: #DC2626; }
+.sbc-status.none { background: #F8FAFC; color: #94A3B8; }
+.sbc-right .btn { font-size: 12px; width: 100%; text-align: center; justify-content: center; }
+.sbc-right .btn-primary { padding: 6px 0; }
 
 /* Batch dropdown filter */
 .batch-filter-bar {
@@ -790,19 +809,22 @@ function renderSchoolBatchList() {
     var sub = getSchoolSubmissionForBatch(b.id);
     var hasSubmitted = !!sub;
 
-    h += '<div class="batch-card">';
+    h += '<div class="school-batch-card">';
+    // Left: batch info
+    h += '<div class="sbc-left">';
     h += '<div class="batch-card-header">';
     h += '<span class="batch-card-name" onclick="showBatchDetail(\'' + b.id + '\')">' + b.name + '</span>';
     h += '<span class="batch-card-status ' + (b.status === '进行中' ? 'active' : 'closed') + '">' + b.status + '</span>';
     h += '</div>';
     h += '<div class="batch-card-meta"><span>📅 ' + b.publishDate + ' ~ ' + b.deadline + '</span><span>发布：' + b.org + '</span></div>';
-
-    h += '<div class="batch-card-actions">';
+    h += '</div>';
+    // Right: submit status + action
+    h += '<div class="sbc-right">';
     if (hasSubmitted) {
-      h += '<span class="school-batch-sub-status ' + sub.status + '">' + STATUS_MAP[sub.status] + '</span>';
+      h += '<span class="sbc-status ' + sub.status + '">' + STATUS_MAP[sub.status] + '</span>';
       h += '<button class="btn btn-outline btn-sm" onclick="window.location.href=\'staffing-detail.html?id=' + sub.id + '\'">查看</button>';
     } else {
-      h += '<span class="school-batch-sub-status none">未申报</span>';
+      h += '<span class="sbc-status none">未申报</span>';
       if (b.status === '进行中') {
         h += '<button class="btn btn-primary btn-sm" onclick="window.location.href=\'staffing-form.html?batchId=' + encodeURIComponent(b.id) + '&batchName=' + encodeURIComponent(b.name) + '\'">申报</button>';
       }
