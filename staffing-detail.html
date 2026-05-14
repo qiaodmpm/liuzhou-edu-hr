@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>申报详情 — 编制使用申请 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 240px;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+}
+
+/* ===== TOP NAVBAR ===== */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo {
+  width: 38px; height: 38px; background: rgba(255,255,255,0.18);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+}
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell {
+  position: relative; cursor: pointer; color: rgba(255,255,255,0.85);
+  padding: 6px; border-radius: 6px; transition: var(--transition);
+}
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.topnav-user {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px;
+  transition: var(--transition); font-size: 13px; position: relative;
+}
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+}
+.user-dropdown {
+  display: none; position: absolute; top: 46px; right: 0;
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  min-width: 160px; z-index: 200; overflow: hidden;
+}
+.user-dropdown.show { display: block; }
+.user-dropdown a {
+  display: block; padding: 12px 18px; font-size: 13px; color: var(--text);
+  text-decoration: none; transition: var(--transition);
+}
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w);
+  background: #1E3A8A; z-index: 90; overflow-y: auto;
+  display: flex; flex-direction: column; transition: width var(--transition);
+}
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label,
+.sidebar.collapsed .menu-group,
+.sidebar.collapsed .menu-badge { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group {
+  padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4);
+  letter-spacing: 1px;
+}
+.menu-item {
+  display: flex; align-items: center; padding: 10px 20px; cursor: pointer;
+  font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7);
+  transition: var(--transition); text-decoration: none;
+  border-left: 3px solid transparent;
+}
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active {
+  background: rgba(255,255,255,0.08); color: #fff; font-weight: 500;
+  border-left-color: var(--accent);
+}
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+}
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5);
+  transition: var(--transition);
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px;
+  min-height: calc(100vh - 56px); transition: margin-left var(--transition);
+}
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+
+.page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
+.page-header h1 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.page-header .subtitle { font-size: 12px; color: var(--text-light); }
+.page-header .status-badge {
+  padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;
+}
+.status-badge.submitted { background: #EFF6FF; color: var(--primary); }
+.status-badge.reviewing { background: #FEF3C7; color: #D97706; }
+.status-badge.approved { background: #D1FAE5; color: #059669; }
+.status-badge.rejected { background: #FEE2E2; color: var(--danger); }
+
+/* Card */
+.card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.card-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title .step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary); color: #fff; font-size: 12px; font-weight: 700;
+}
+
+/* Info rows */
+.info-row { display: flex; gap: 24px; margin-bottom: 14px; }
+.info-item { flex: 1; }
+.info-item .info-label { font-size: 12px; color: var(--text-light); margin-bottom: 4px; }
+.info-item .info-value { font-size: 14px; font-weight: 500; color: var(--text); }
+
+/* Detail table */
+.detail-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.detail-table th {
+  padding: 10px 12px; text-align: center; font-weight: 600; font-size: 12px;
+  color: var(--text-secondary); background: #F8FAFC; border: 1px solid var(--border);
+}
+.detail-table td {
+  padding: 10px 12px; border: 1px solid var(--border); text-align: center;
+  color: var(--text); font-size: 13px;
+}
+.detail-table .row-label {
+  text-align: left; font-weight: 500; color: var(--text-secondary);
+  background: #F8FAFC;
+}
+.detail-table .total-row td { font-weight: 600; color: var(--primary); background: #F8FAFC; }
+
+/* Attachment */
+.attachment-item {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+  background: #EFF6FF; border-radius: 6px; font-size: 13px; color: var(--primary);
+  cursor: pointer; text-decoration: none; transition: var(--transition);
+}
+.attachment-item:hover { background: #DBEAFE; }
+
+/* ===== PROGRESS TRACKER ===== */
+.progress-tracker {
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 0 20px;
+}
+.progress-step {
+  display: flex; flex-direction: column; align-items: center; position: relative;
+}
+.progress-dot {
+  width: 32px; height: 32px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+  transition: var(--transition); position: relative; z-index: 1;
+}
+.progress-dot.done { background: var(--success); color: #fff; }
+.progress-dot.current { background: var(--primary); color: #fff; box-shadow: 0 0 0 6px rgba(30,64,175,0.12); }
+.progress-dot.pending { background: var(--gray-bg); color: var(--text-light); border: 2px solid var(--border); }
+.progress-label { font-size: 11px; font-weight: 500; margin-top: 8px; text-align: center; white-space: nowrap; }
+.progress-label.done { color: var(--success); }
+.progress-label.current { color: var(--primary); }
+.progress-label.pending { color: var(--text-light); }
+.progress-line {
+  width: 100px; height: 2px; margin: 0 8px; margin-bottom: 24px;
+  position: relative; z-index: 0;
+}
+.progress-line.done { background: var(--success); }
+.progress-line.pending { background: var(--border); }
+
+/* ===== TIMELINE ===== */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px;
+  width: 2px; background: var(--border);
+}
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot {
+  position: absolute; left: -24px; top: 4px;
+  width: 14px; height: 14px; border-radius: 50%; z-index: 1;
+}
+.timeline-dot.submit { background: var(--accent); }
+.timeline-dot.reject { background: var(--danger); }
+.timeline-dot.resubmit { background: var(--warning); }
+.timeline-dot.approve { background: var(--success); }
+.timeline-dot.upload { background: var(--primary); }
+.timeline-dot.edit { background: #8B5CF6; }
+.timeline-content .tlc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.timeline-content .tlc-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.timeline-content .tlc-time { font-size: 11px; color: var(--text-light); }
+.timeline-content .tlc-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.timeline-content .tlc-op { margin-top: 6px; display: flex; gap: 8px; }
+.timeline-content .tlc-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;
+}
+.tlc-tag.reject-reason { background: #FEE2E2; color: var(--danger); }
+.tlc-tag.resubmit-tag { background: #FEF3C7; color: #D97706; }
+.tlc-tag.approve-tag { background: #D1FAE5; color: #059669; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: var(--transition); border: 1px solid transparent;
+  font-family: inherit; text-decoration: none;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  color: #fff;
+}
+.btn-primary:hover { box-shadow: 0 4px 12px rgba(30,64,175,0.3); transform: translateY(-1px); }
+.btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Summary bar */
+.summary-bar {
+  display: flex; gap: 16px; margin-bottom: 20px;
+}
+.summary-item {
+  flex: 1; background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+}
+.summary-item .s-icon {
+  width: 40px; height: 40px; border-radius: 10px; display: flex;
+  align-items: center; justify-content: center; font-size: 18px;
+}
+.s-icon.blue { background: #EFF6FF; }
+.s-icon.green { background: #D1FAE5; }
+.s-icon.amber { background: #FEF3C7; }
+.summary-item .s-label { font-size: 11px; color: var(--text-light); }
+.summary-item .s-value { font-size: 16px; font-weight: 700; color: var(--text); }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .info-row { flex-direction: column; gap: 12px; }
+  .progress-line { width: 40px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP NAVBAR ===== -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="20" width="8" height="22" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="14" y="14" width="8" height="28" rx="2" fill="rgba(255,255,255,0.85)"/><rect x="24" y="6" width="8" height="36" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="34" y="10" width="8" height="32" rx="2" fill="rgba(255,255,255,0.75)"/><circle cx="38" cy="10" r="6" fill="#fff" opacity="0.5"/><path d="M36.5 8.5L39.5 11.5L42 8" stroke="#1E40AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">3</span>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar">王</div>
+      <span>王玉兰</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="#">👤 个人中心</a>
+        <a href="#">🔑 修改密码</a>
+        <div class="divider"></div>
+        <a href="index.html" class="logout">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu">
+    <a class="menu-item" href="workbench.html">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="menu-label">工作台</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="menu-label">数据概览</span>
+    </a>
+    <div class="menu-group">编制管理</div>
+    <a class="menu-item active" href="staffing-application.html">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span class="menu-label">编制使用申请</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+      <span class="menu-label">入编申请</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+      <span class="menu-label">教师出编管理</span>
+    </a>
+    <div class="menu-group">岗位管理</div>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span class="menu-label">岗位设置申请</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <span class="menu-label">岗位晋升申请</span>
+      <span class="menu-badge">2</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span class="menu-label">招聘岗位申请</span>
+    </a>
+    <div class="menu-group">聘用管理</div>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="menu-label">聘用手续办理</span>
+    </a>
+    <div class="menu-group">人事管理</div>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="menu-label">退休呈报</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span class="menu-label">工资核定申请</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="menu-label">师德师风举报</span>
+    </a>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span class="menu-label">荣誉申请</span>
+    </a>
+    <div class="menu-group">系统设置</div>
+    <a class="menu-item" href="#">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="menu-label">账号管理</span>
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      <span class="menu-label">收起菜单</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp;
+    <a href="staffing-application.html">编制使用申请</a> &nbsp;/&nbsp;
+    <span>申报详情</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>申报详情 — 附件9</h1>
+      <div class="subtitle" id="headerSubtitle">申报编号：S2026-004 &nbsp;|&nbsp; 2026年度第一批 &nbsp;|&nbsp; 柳州市第八中学</div>
+    </div>
+    <div>
+      <span class="status-badge approved" id="headerStatus">已通过</span>
+      <button class="btn btn-outline" style="margin-left:12px;" onclick="window.location.href='staffing-application.html'">← 返回列表</button>
+    </div>
+  </div>
+
+  <!-- Summary bar -->
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="s-icon blue">📋</div>
+      <div>
+        <div class="s-label">申报编号</div>
+        <div class="s-value" id="sumId">S2026-004</div>
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="s-icon green">🏫</div>
+      <div>
+        <div class="s-label">申报单位</div>
+        <div class="s-value" id="sumSchool">柳州市第八中学</div>
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="s-icon amber">📅</div>
+      <div>
+        <div class="s-label">提交日期</div>
+        <div class="s-value" id="sumDate">2026-03-05</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 申报进度 ===== -->
+  <div class="card">
+    <div class="card-title">📌 申报进度</div>
+    <div class="progress-tracker" id="progressTracker"></div>
+  </div>
+
+  <!-- ===== Step 1: 申请单位情况 ===== -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">1</span>申请单位情况</div>
+
+    <div class="info-row">
+      <div class="info-item" style="flex:2;">
+        <div class="info-label">单位全称</div>
+        <div class="info-value" id="unitName">柳州市第八中学</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-item">
+        <div class="info-label">核定编制数（名）</div>
+        <div class="info-value" id="totalStaff">88</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">在编人数（人）</div>
+        <div class="info-value" id="currentStaff">82</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">未使用计划数</div>
+        <div class="info-value" style="color:var(--text-light);" id="unusedPlan">0</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-item">
+        <div class="info-label">核定聘用教师控制数（名）</div>
+        <div class="info-value" id="controlNum">16</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">聘用教师控制数实有数（人）</div>
+        <div class="info-value" id="controlActual">14</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">未使用控制数计划数</div>
+        <div class="info-value" style="color:var(--text-light);" id="unusedControl">1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Step 2: 使用形式及数量 ===== -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">2</span>使用形式及数量</div>
+
+    <table class="detail-table">
+      <thead>
+        <tr>
+          <th style="width:140px;">使用形式</th>
+          <th>使用控制数（名）</th>
+          <th>学历、专业（大类）、从业资格等</th>
+          <th>相关条件</th>
+          <th>备注</th>
+        </tr>
+      </thead>
+      <tbody id="useFormBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ===== Step 3: 附件上传 ===== -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">3</span>附件上传</div>
+    <div id="attachmentsArea"></div>
+  </div>
+
+  <!-- ===== 申报履历 ===== -->
+  <div class="card">
+    <div class="card-title">📜 申报履历</div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</main>
+
+<script>
+// ===== DATA =====
+// Supports multiple detail views via URL param: ?id=S2026-004
+var urlParams = new URLSearchParams(window.location.search);
+var detailId = urlParams.get('id') || 'S2026-004';
+
+var submissions = [
+  { id: 'S2026-001', batchName: '2026年度第一批', school: '柳州市第一中学', schoolType: '市直属',
+    totalStaff: 120, currentStaff: 108, unusedPlan: 3, controlNum: 25, controlActual: 20, unusedControl: 2,
+    useForms: [
+      { type: '统一公开招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
+      { type: '单位自主实施招聘', num: 2, edu: '本科，语文类，高中教师资格证', cond: '40周岁以下', note: '' },
+      { type: '中高级人才招聘', num: 1, edu: '硕士，英语类，高中教师资格证', cond: '45周岁以下', note: '' },
+      { type: '引进高层次人才', num: 0, edu: '', cond: '', note: '' },
+      { type: '调动', num: 0, edu: '', cond: '', note: '' },
+      { type: '其他', num: 0, edu: '', cond: '', note: '' }
+    ],
+    attachment9: true, attachment9Name: '附件9_柳州市第一中学_2026第一批.pdf',
+    followUp: false, followUpName: '',
+    status: 'approved', submitDate: '2026-03-08', approveDate: '2026-03-20',
+    history: [
+      { action: 'submit', title: '提交申报', time: '2026-03-08 14:22', desc: '王玉兰提交了编制使用申报（附件9），使用控制数合计4名。' },
+      { action: 'approve', title: '审批通过', time: '2026-03-20 09:15', desc: '市管理员张建国审核通过。核定编制数120名，在编108人，同意使用控制数4名。' }
+    ]
+  },
+  { id: 'S2026-002', batchName: '2026年度第一批', school: '柳州市第二中学', schoolType: '市直属',
+    totalStaff: 95, currentStaff: 88, unusedPlan: 2, controlNum: 18, controlActual: 15, unusedControl: 1,
+    useForms: [
+      { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '单位自主实施招聘', num: 2, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
+      { type: '中高级人才招聘', num: 2, edu: '本科，物理类，高中教师资格证', cond: '40周岁以下', note: '' },
+      { type: '引进高层次人才', num: 1, edu: '博士，化学类', cond: '', note: '紧缺学科' },
+      { type: '调动', num: 0, edu: '', cond: '', note: '' },
+      { type: '其他', num: 0, edu: '', cond: '', note: '' }
+    ],
+    attachment9: true, attachment9Name: '附件9_柳州市第二中学_2026第一批.pdf',
+    followUp: true, followUpName: '市委编办审批结果_202604.pdf',
+    status: 'approved', submitDate: '2026-03-10', approveDate: '2026-03-22',
+    history: [
+      { action: 'submit', title: '提交申报', time: '2026-03-10 16:30', desc: '校管理员提交了编制使用申报，使用控制数合计5名。' },
+      { action: 'approve', title: '审核通过', time: '2026-03-22 10:45', desc: '市管理员审核通过，同意使用控制数5名。' },
+      { action: 'upload', title: '上传后续材料', time: '2026-04-05 08:12', desc: '上传了市委编办审批结果（线下环节材料）。' }
+    ]
+  },
+  { id: 'S2026-003', batchName: '2026年度第一批', school: '柳州高级中学', schoolType: '市直属',
+    totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: 30, controlActual: 26, unusedControl: 1,
+    useForms: [
+      { type: '统一公开招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
+      { type: '单位自主实施招聘', num: 3, edu: '本科，语文/英语/物理，高中教师资格证', cond: '40周岁以下', note: '' },
+      { type: '中高级人才招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '引进高层次人才', num: 2, edu: '博士/硕士，化学/生物', cond: '', note: '实验室建设需要' },
+      { type: '调动', num: 0, edu: '', cond: '', note: '' },
+      { type: '其他', num: 0, edu: '', cond: '', note: '' }
+    ],
+    attachment9: true, attachment9Name: '附件9_柳州高级中学_2026第一批.pdf',
+    followUp: false, followUpName: '',
+    status: 'reviewing', submitDate: '2026-03-15', approveDate: null,
+    history: [
+      { action: 'submit', title: '提交申报', time: '2026-03-15 11:08', desc: '校管理员提交了编制使用申报，使用控制数合计6名。' }
+    ]
+  },
+  { id: 'S2026-004', batchName: '2026年度第一批', school: '柳州市第八中学', schoolType: '鱼峰区属',
+    totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1,
+    useForms: [
+      { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '单位自主实施招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
+      { type: '中高级人才招聘', num: 1, edu: '本科，语文类，高中教师资格证', cond: '40周岁以下', note: '' },
+      { type: '引进高层次人才', num: 0, edu: '', cond: '', note: '' },
+      { type: '调动', num: 0, edu: '', cond: '', note: '' },
+      { type: '其他', num: 0, edu: '', cond: '', note: '' }
+    ],
+    attachment9: true, attachment9Name: '附件9_柳州市第八中学_2026第一批.pdf',
+    followUp: false, followUpName: '',
+    status: 'approved', submitDate: '2026-03-05', approveDate: '2026-03-18',
+    history: [
+      { action: 'submit', title: '提交申报', time: '2026-03-05 09:20', desc: '王玉兰提交了编制使用申报（附件9），使用控制数合计2名。' },
+      { action: 'reject', title: '审核退回', time: '2026-03-10 15:00', desc: '区管理员退回：控制数实有数与核定数不符，请核实后重新提交。', reason: '控制数实有数与核定数不符' },
+      { action: 'edit', title: '重新编辑', time: '2026-03-11 10:30', desc: '王玉兰核实并修改了控制数实有数为14人，重新提交申报。' },
+      { action: 'resubmit', title: '重新提交', time: '2026-03-12 16:45', desc: '修改后重新提交编制使用申报，使用控制数保持2名不变。' },
+      { action: 'approve', title: '审核通过', time: '2026-03-18 09:30', desc: '区管理员李振华审核通过。核定编制数88名，在编80人，同意使用控制数2名。' }
+    ]
+  },
+  { id: 'S2026-005', batchName: '2026年度第一批', school: '鱼峰区实验小学', schoolType: '鱼峰区属',
+    totalStaff: 60, currentStaff: 55, unusedPlan: 0, controlNum: 10, controlActual: 8, unusedControl: 1,
+    useForms: [
+      { type: '统一公开招聘', num: 2, edu: '本科，语文/数学，小学教师资格证', cond: '35周岁以下', note: '' },
+      { type: '单位自主实施招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '中高级人才招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '引进高层次人才', num: 0, edu: '', cond: '', note: '' },
+      { type: '调动', num: 0, edu: '', cond: '', note: '' },
+      { type: '其他', num: 0, edu: '', cond: '', note: '' }
+    ],
+    attachment9: true, attachment9Name: '附件9_鱼峰区实验小学_2026第一批.pdf',
+    followUp: false, followUpName: '',
+    status: 'submitted', submitDate: '2026-03-20', approveDate: null,
+    history: [
+      { action: 'submit', title: '提交申报', time: '2026-03-20 08:45', desc: '校管理员提交了编制使用申报，使用控制数合计2名。' }
+    ]
+  },
+  { id: 'S2026-006', batchName: '2026年度第一批', school: '柳州市民族高中', schoolType: '市直属',
+    totalStaff: 72, currentStaff: 68, unusedPlan: 1, controlNum: 12, controlActual: 10, unusedControl: 0,
+    useForms: [
+      { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '单位自主实施招聘', num: 1, edu: '本科，历史类，高中教师资格证', cond: '35周岁以下', note: '' },
+      { type: '中高级人才招聘', num: 1, edu: '硕士，政治类，高中教师资格证', cond: '40周岁以下', note: '' },
+      { type: '引进高层次人才', num: 0, edu: '', cond: '', note: '' },
+      { type: '调动', num: 0, edu: '', cond: '', note: '' },
+      { type: '其他', num: 0, edu: '', cond: '', note: '' }
+    ],
+    attachment9: true, attachment9Name: '附件9_柳州市民族高中_2026第一批.pdf',
+    followUp: false, followUpName: '',
+    status: 'rejected', submitDate: '2026-03-12', approveDate: null,
+    history: [
+      { action: 'submit', title: '提交申报', time: '2026-03-12 14:10', desc: '校管理员提交了编制使用申报，使用控制数合计2名。' },
+      { action: 'reject', title: '审核退回', time: '2026-03-19 11:20', desc: '市管理员退回：未使用控制数计划数为0，不符合申报条件，本批次暂不批准。', reason: '无可用控制数计划数' }
+    ]
+  },
+  { id: 'S2026-007', batchName: '2026年度第二批', school: '柳州市第一中学', schoolType: '市直属',
+    totalStaff: 120, currentStaff: 110, unusedPlan: 0, controlNum: 25, controlActual: 22, unusedControl: 0,
+    useForms: [
+      { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '单位自主实施招聘', num: 1, edu: '本科，英语类，高中教师资格证', cond: '35周岁以下', note: '' },
+      { type: '中高级人才招聘', num: 0, edu: '', cond: '', note: '' },
+      { type: '引进高层次人才', num: 1, edu: '博士，信息技术', cond: '', note: '信息化建设需要' },
+      { type: '调动', num: 0, edu: '', cond: '', note: '' },
+      { type: '其他', num: 0, edu: '', cond: '', note: '' }
+    ],
+    attachment9: false, attachment9Name: '',
+    followUp: false, followUpName: '',
+    status: 'draft', submitDate: null, approveDate: null,
+    history: [
+      { action: 'create', title: '创建申报', time: '2026-05-04 15:30', desc: '校管理员开始填写申报表，尚未完成提交。' }
+    ]
+  }
+];
+
+function findById(id) {
+  for (var i = 0; i < submissions.length; i++) {
+    if (submissions[i].id === id) return submissions[i];
+  }
+  return submissions[3]; // default to S2026-004
+}
+
+var s = findById(detailId);
+
+// ===== STATUS MAP =====
+var STATUS_MAP = { draft: '填写中', submitted: '已提交', reviewing: '审核中', approved: '已通过', rejected: '已退回' };
+var STATUS_CSS = { submitted: 'submitted', reviewing: 'reviewing', approved: 'approved', rejected: 'rejected', draft: 'submitted' };
+
+// ===== RENDER HEADER =====
+document.getElementById('headerSubtitle').innerHTML = '申报编号：' + s.id + ' &nbsp;|&nbsp; ' + s.batchName + ' &nbsp;|&nbsp; ' + s.school;
+document.getElementById('headerStatus').textContent = STATUS_MAP[s.status];
+document.getElementById('headerStatus').className = 'status-badge ' + STATUS_CSS[s.status];
+document.getElementById('sumId').textContent = s.id;
+document.getElementById('sumSchool').textContent = s.school;
+document.getElementById('sumDate').textContent = s.submitDate || '—';
+
+// ===== RENDER APPLICATION INFO =====
+document.getElementById('unitName').textContent = s.school;
+document.getElementById('totalStaff').textContent = s.totalStaff;
+document.getElementById('currentStaff').textContent = s.currentStaff;
+document.getElementById('unusedPlan').textContent = s.unusedPlan;
+document.getElementById('controlNum').textContent = s.controlNum;
+document.getElementById('controlActual').textContent = s.controlActual;
+document.getElementById('unusedControl').textContent = s.unusedControl;
+
+// Use forms table
+var totalNum = 0;
+var ufHtml = '';
+for (var i = 0; i < s.useForms.length; i++) {
+  var f = s.useForms[i];
+  totalNum += f.num;
+  ufHtml += '<tr>';
+  ufHtml += '<td class="row-label">' + f.type + '</td>';
+  ufHtml += '<td>' + f.num + '</td>';
+  ufHtml += '<td>' + (f.edu || '—') + '</td>';
+  ufHtml += '<td>' + (f.cond || '—') + '</td>';
+  ufHtml += '<td>' + (f.note || '—') + '</td>';
+  ufHtml += '</tr>';
+}
+ufHtml += '<tr class="total-row"><td class="row-label">合　计</td><td>' + totalNum + '</td><td colspan="3"></td></tr>';
+document.getElementById('useFormBody').innerHTML = ufHtml;
+
+// Attachments
+var attHtml = '';
+if (s.attachment9) {
+  attHtml += '<div style="margin-bottom:12px;">';
+  attHtml += '<div class="info-label" style="margin-bottom:6px;">附件9 — 聘用教师控制数使用申报表（PDF）<span style="color:var(--success);margin-left:8px;font-size:12px;">✅ 已上传</span></div>';
+  attHtml += '<a class="attachment-item" onclick="alert(\'预览PDF: ' + s.attachment9Name + '\')">📎 ' + s.attachment9Name + '</a>';
+  attHtml += '</div>';
+} else {
+  attHtml += '<div style="margin-bottom:12px;"><div class="info-label" style="margin-bottom:6px;">附件9 — 聘用教师控制数使用申报表 <span style="color:var(--text-light);margin-left:8px;font-size:12px;">未上传</span></div></div>';
+}
+if (s.followUp) {
+  attHtml += '<div style="margin-bottom:12px;">';
+  attHtml += '<div class="info-label" style="margin-bottom:6px;">后续材料 — 市委编办审批等线下环节材料 <span style="color:var(--success);margin-left:8px;font-size:12px;">✅ 已上传</span></div>';
+  attHtml += '<a class="attachment-item" onclick="alert(\'预览: ' + s.followUpName + '\')">📎 ' + s.followUpName + '</a>';
+  attHtml += '</div>';
+}
+document.getElementById('attachmentsArea').innerHTML = attHtml;
+
+// ===== RENDER PROGRESS =====
+function renderProgress() {
+  var steps;
+  var currentIdx;
+
+  if (s.status === 'draft') {
+    steps = [{ label: '填写中', state: 'current' }, { label: '已提交', state: 'pending' }, { label: '审核中', state: 'pending' }, { label: '已通过', state: 'pending' }];
+    currentIdx = 0;
+  } else if (s.status === 'submitted') {
+    steps = [{ label: '已提交', state: 'done' }, { label: '审核中', state: 'current' }, { label: '已通过', state: 'pending' }];
+    currentIdx = 1;
+  } else if (s.status === 'reviewing') {
+    steps = [{ label: '已提交', state: 'done' }, { label: '审核中', state: 'current' }, { label: '已通过', state: 'pending' }];
+    currentIdx = 1;
+  } else if (s.status === 'approved') {
+    steps = [{ label: '已提交', state: 'done' }, { label: '审核中', state: 'done' }, { label: '已通过', state: 'done' }];
+    currentIdx = 2;
+  } else if (s.status === 'rejected') {
+    steps = [{ label: '已提交', state: 'done' }, { label: '审核中', state: 'done' }, { label: '已退回', state: 'current' }];
+    currentIdx = 2;
+  }
+
+  var h = '';
+  for (var i = 0; i < steps.length; i++) {
+    var step = steps[i];
+    var dotIcon = step.state === 'done' ? '✓' : (step.state === 'current' && s.status === 'rejected' ? '✕' : (i + 1));
+    var dotClass = step.state === 'done' ? 'done' : (step.state === 'current' && s.status === 'rejected' ? 'rejected' : (step.state === 'current' ? 'current' : 'pending'));
+
+    // For rejected, use a special style
+    if (s.status === 'rejected' && i === 2) {
+      dotClass = 'pending';
+      var rejDot = document.createElement('style');
+    }
+
+    h += '<div class="progress-step">';
+    h += '<div class="progress-dot ' + (s.status === 'rejected' && i === 2 ? 'pending' : dotClass) + '" style="' + (s.status === 'rejected' && i === 2 ? 'background:#FEE2E2;color:var(--danger);border-color:var(--danger);' : '') + '">' + (s.status === 'rejected' && i === 2 ? '✕' : dotIcon) + '</div>';
+    h += '<div class="progress-label ' + (s.status === 'rejected' && i === 2 ? 'pending' : step.state) + '" style="' + (s.status === 'rejected' && i === 2 ? 'color:var(--danger);' : '') + '">' + step.label + '</div>';
+    h += '</div>';
+    if (i < steps.length - 1) {
+      h += '<div class="progress-line ' + (step.state === 'done' ? 'done' : 'pending') + '"></div>';
+    }
+  }
+  document.getElementById('progressTracker').innerHTML = h;
+}
+renderProgress();
+
+// ===== RENDER TIMELINE =====
+function renderTimeline() {
+  var dotClassMap = {
+    submit: 'submit', resubmit: 'resubmit', edit: 'edit',
+    reject: 'reject', approve: 'approve', upload: 'upload', create: 'submit'
+  };
+  var tagMap = {
+    reject: '<span class="tlc-tag reject-reason">退回</span>',
+    resubmit: '<span class="tlc-tag resubmit-tag">重新提交</span>',
+    approve: '<span class="tlc-tag approve-tag">审批通过</span>',
+    upload: '<span class="tlc-tag approve-tag">材料补传</span>',
+    edit: '<span class="tlc-tag resubmit-tag">修改</span>'
+  };
+
+  var h = '';
+  var history = s.history || [];
+  for (var i = 0; i < history.length; i++) {
+    var item = history[i];
+    h += '<div class="timeline-item">';
+    h += '<div class="timeline-dot ' + (dotClassMap[item.action] || 'submit') + '"></div>';
+    h += '<div class="timeline-content">';
+    h += '<div class="tlc-header">';
+    h += '<span class="tlc-title">' + item.title + '</span>';
+    h += '<span class="tlc-time">' + item.time + '</span>';
+    if (tagMap[item.action]) {
+      h += tagMap[item.action];
+    }
+    h += '</div>';
+    h += '<div class="tlc-desc">' + item.desc + '</div>';
+    if (item.reason) {
+      h += '<div class="tlc-desc" style="color:var(--danger);margin-top:4px;">退回原因：' + item.reason + '</div>';
+    }
+    h += '</div>';
+    h += '</div>';
+  }
+
+  // If no history, show empty
+  if (history.length === 0) {
+    h = '<div style="text-align:center;padding:20px;color:var(--text-light);">暂无履历记录</div>';
+  }
+  document.getElementById('timeline').innerHTML = h;
+}
+renderTimeline();
+
+// ===== UTILS =====
+function toggleUserMenu() {
+  document.getElementById('userDropdown').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show');
+});
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+</script>
+</body>
+</html>
