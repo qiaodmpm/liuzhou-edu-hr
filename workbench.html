@@ -790,8 +790,10 @@ function renderMain() {
   } else {
     todoHtml = '<div class="todo-module-list">';
     data.todos.forEach(function(t) {
-      var targetUrl = t.mod === '编制使用申请' ? 'staffing-application.html' : '#';
-      todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (t.mod === '编制使用申请' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
+      var targetUrl = '#';
+      if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
+      else if (t.mod === '入编申请') targetUrl = getEntryUrl();
+      todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (targetUrl !== '#' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += '<div class="todo-module-name">' + t.mod + '<small>' + t.group + '</small></div>';
       todoHtml += '<div class="todo-counts">';
@@ -810,7 +812,8 @@ function renderMain() {
   // Quick actions
   var quickHtml = '';
   data.quickActs.forEach(function(q) {
-    quickHtml += '<div class="quick-card" onclick="showToast(\'跳转至' + q.label + '\')">';
+    var qUrl = getQuickActionUrl(q.label);
+    quickHtml += '<div class="quick-card" onclick="' + (qUrl ? "window.location.href='" + qUrl + "'" : "showToast('跳转至" + q.label + "')") + '">';
     quickHtml += '<div class="qc-icon ' + q.clr + '">' + q.icon + '</div>';
     quickHtml += '<div class="qc-title">' + q.label + '</div>';
     quickHtml += '<div class="qc-desc">' + q.desc + '</div>';
@@ -852,11 +855,22 @@ function switchRole(role) {
 }
 
 // ===== Sidebar menu click =====
+function getEntryUrl() {
+  if (currentRole === 'teacher') return '教师申报入编.html';
+  return '教师入编管理（学校管理员视角）.html';
+}
+
+function getQuickActionUrl(label) {
+  if (label === '入编申请') return getEntryUrl();
+  return null;
+}
+
 function sidebarClick(el, id) {
   document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
   el.classList.add('active');
   if (id === 'workbench') { window.location.href = 'workbench.html'; }
   else if (id === 'staffing') { window.location.href = 'staffing-application.html'; }
+  else if (id === 'entry') { window.location.href = getEntryUrl(); }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
 
