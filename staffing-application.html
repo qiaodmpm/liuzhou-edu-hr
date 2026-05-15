@@ -736,6 +736,43 @@ const SUBMISSIONS = [
     status: 'submitted', submitDate: '2026-05-06', approveDate: null }
 ];
 
+// Backfill: all legacy records default to 控制数
+SUBMISSIONS.forEach(function(s) { if (!s.staffingType) s.staffingType = 'control'; });
+
+// 事业编样例申报数据
+var CAREER_SUBMISSIONS = [
+  { id: 'S2026-C01', batchId: 'B2026-001', batchName: '2026年度第一批', school: '柳州市第一中学', schoolType: '市直属',
+    totalStaff: 120, currentStaff: 108, unusedPlan: 3, controlNum: null, controlActual: null, unusedControl: null,
+    useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 0, talent: 1 },
+    attachment9: false, followUp: false, staffingType: 'career',
+    status: 'approved', submitDate: '2026-03-05', approveDate: '2026-03-21' },
+  { id: 'S2026-C02', batchId: 'B2026-001', batchName: '2026年度第一批', school: '柳州高级中学', schoolType: '市直属',
+    totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: null, controlActual: null, unusedControl: null,
+    useForms: { transfer: 1, publicRecruit: 1, selfRecruit: 1, talent: 0 },
+    attachment9: false, followUp: false, staffingType: 'career',
+    status: 'reviewing', submitDate: '2026-03-18', approveDate: null },
+  { id: 'S2026-C03', batchId: 'B2026-001', batchName: '2026年度第一批', school: '柳州市第八中学', schoolType: '鱼峰区属',
+    totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: null, controlActual: null, unusedControl: null,
+    useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 1, talent: 0 },
+    attachment9: false, followUp: false, staffingType: 'career',
+    status: 'approved', submitDate: '2026-03-06', approveDate: '2026-03-22' },
+  { id: 'S2026-C04', batchId: 'B2026-001', batchName: '2026年度第一批', school: '柳州市民族高中', schoolType: '市直属',
+    totalStaff: 72, currentStaff: 68, unusedPlan: 1, controlNum: null, controlActual: null, unusedControl: null,
+    useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 0, talent: 0 },
+    attachment9: false, followUp: false, staffingType: 'career',
+    status: 'rejected', submitDate: '2026-03-12', approveDate: null },
+  { id: 'S2026-C05', batchId: 'B2026-D01', batchName: '2026年度鱼峰区计划', school: '柳州市第八中学', schoolType: '鱼峰区属',
+    totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: null, controlActual: null, unusedControl: null,
+    useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 1, talent: 0 },
+    attachment9: false, followUp: false, staffingType: 'career',
+    status: 'approved', submitDate: '2026-03-15', approveDate: '2026-04-03' }
+];
+
+// Merge career submissions into main list (extend array in-place)
+CAREER_SUBMISSIONS.forEach(function(s) { SUBMISSIONS.push(s); });
+
+const STAFFING_TYPE_MAP = { career: '事业编', control: '控制数' };
+
 const STATUS_MAP = {
   submitted: '待审核', reviewing: '待审核', approved: '已通过', rejected: '已驳回'
 };
@@ -743,39 +780,52 @@ const STATUS_MAP = {
 let currentRole = 'city';
 let selectedBatchId = null; // Currently selected batch
 let currentFilter = 'all'; // 'all' | 'pending' | 'approved' | 'rejected'
+let staffingTypeFilter = 'all'; // 'all' | 'career' | 'control'
 let schoolBatchFilter = 'all'; // 'all' | 'active' | 'closed' — school admin batch dropdown
 
 // ===== BATCH STATS HELPER =====
 function getBatchStats(batchId) {
   var subs = SUBMISSIONS.filter(function(s) { return s.batchId === batchId; });
+  var careerSubs = subs.filter(function(s) { return s.staffingType === 'career'; });
+  var controlSubs = subs.filter(function(s) { return s.staffingType === 'control'; });
   return {
     total: subs.length,
     submitted: subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; }).length,
     approved: subs.filter(function(s) { return s.status === 'approved'; }).length,
     rejected: subs.filter(function(s) { return s.status === 'rejected'; }).length,
+    career: { total: careerSubs.length, submitted: careerSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; }).length, approved: careerSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: careerSubs.filter(function(s) { return s.status === 'rejected'; }).length },
+    control: { total: controlSubs.length, submitted: controlSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; }).length, approved: controlSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: controlSubs.filter(function(s) { return s.status === 'rejected'; }).length }
   };
 }
 
 // ===== SCHOOL BATCH HELPERS =====
-function getSchoolSubmissionForBatch(batchId) {
+function getSchoolSubmissionForBatchAndType(batchId, staffingType) {
   var schoolName = ROLES[currentRole].org;
   for (var i = 0; i < SUBMISSIONS.length; i++) {
-    if (SUBMISSIONS[i].batchId === batchId && SUBMISSIONS[i].school === schoolName) {
+    if (SUBMISSIONS[i].batchId === batchId && SUBMISSIONS[i].school === schoolName && SUBMISSIONS[i].staffingType === staffingType) {
       return SUBMISSIONS[i];
     }
   }
   return null;
 }
 
+function canSchoolApply(batchId, staffingType) {
+  var schoolName = ROLES[currentRole].org;
+  for (var i = 0; i < SUBMISSIONS.length; i++) {
+    if (SUBMISSIONS[i].batchId === batchId && SUBMISSIONS[i].school === schoolName && SUBMISSIONS[i].staffingType === staffingType) {
+      return false; // Already submitted for this batch + type
+    }
+  }
+  return true;
+}
+
 function getSchoolBatches() {
   var all = BATCHES.concat(BATCHES_DISTRICT);
-  // Filter by dropdown
   if (schoolBatchFilter === 'active') {
     all = all.filter(function(b) { return b.status === '进行中'; });
   } else if (schoolBatchFilter === 'closed') {
     all = all.filter(function(b) { return b.status === '已结束'; });
   }
-  // Sort by publishDate descending
   all.sort(function(a, b) {
     if (a.publishDate > b.publishDate) return -1;
     if (a.publishDate < b.publishDate) return 1;
@@ -784,11 +834,17 @@ function getSchoolBatches() {
   return all;
 }
 
+function getStatusBadgeClass(status) {
+  if (status === 'approved') return 'approved';
+  if (status === 'submitted' || status === 'reviewing') return 'submitted';
+  if (status === 'rejected') return 'rejected';
+  return 'none';
+}
+
 function renderSchoolBatchList() {
   var batches = getSchoolBatches();
   var h = '';
 
-  // Dropdown filter
   h += '<div class="batch-filter-bar">';
   h += '<label>批次筛选：</label>';
   h += '<select class="filter-select" onchange="setSchoolBatchFilter(this.value)">';
@@ -804,12 +860,14 @@ function renderSchoolBatchList() {
     return h;
   }
 
+  var TYPES = [
+    { key: 'career', label: '事业编', icon: '📋', formRef: '附件2' },
+    { key: 'control', label: '控制数', icon: '📎', formRef: '附件9' }
+  ];
+
   h += '<div class="batch-list">';
   for (var i = 0; i < batches.length; i++) {
     var b = batches[i];
-    var sub = getSchoolSubmissionForBatch(b.id);
-    var hasSubmitted = !!sub;
-
     h += '<div class="school-batch-card">';
     // Left: batch info
     h += '<div class="sbc-left">';
@@ -819,23 +877,31 @@ function renderSchoolBatchList() {
     h += '</div>';
     h += '<div class="batch-card-meta"><span>📅 ' + b.publishDate + ' ~ ' + b.deadline + '</span><span>发布：' + b.org + '</span></div>';
     h += '</div>';
-    // Right: submit status + action
-    h += '<div class="sbc-right">';
-    if (hasSubmitted) {
-      h += '<span class="sbc-status ' + sub.status + '">' + STATUS_MAP[sub.status] + '</span>';
-      h += '<button class="btn btn-outline btn-sm" onclick="window.location.href=\'staffing-detail.html?id=' + sub.id + '\'">查看</button>';
-    } else {
-      h += '<span class="sbc-status none">未申报</span>';
-      if (b.status === '进行中') {
-        h += '<button class="btn btn-primary btn-sm" onclick="window.location.href=\'staffing-form.html?batchId=' + encodeURIComponent(b.id) + '&batchName=' + encodeURIComponent(b.name) + '\'">申报</button>';
+    // Right: two type entries
+    h += '<div class="sbc-right" style="width:180px;gap:6px;">';
+    for (var t = 0; t < TYPES.length; t++) {
+      var tt = TYPES[t];
+      var sub = getSchoolSubmissionForBatchAndType(b.id, tt.key);
+      var hasSubmitted = !!sub;
+      h += '<div class="sbc-type-row" style="display:flex;align-items:center;justify-content:space-between;width:100%;">';
+      h += '<span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;">' + tt.icon + ' ' + tt.label + '</span>';
+      if (hasSubmitted) {
+        h += '<span class="sbc-status ' + getStatusBadgeClass(sub.status) + '" style="font-size:10px;">' + STATUS_MAP[sub.status] + '</span>';
+        h += '<a href="staffing-detail.html?id=' + sub.id + '" style="font-size:11px;color:var(--primary);text-decoration:none;cursor:pointer;">查看</a>';
+      } else {
+        h += '<span class="sbc-status none" style="font-size:10px;">未申报</span>';
+        if (b.status === '进行中') {
+          h += '<button class="btn btn-primary btn-sm" style="font-size:10px;padding:3px 10px;" onclick="window.location.href=\'staffing-form.html?batchId=' + encodeURIComponent(b.id) + '&batchName=' + encodeURIComponent(b.name) + '&staffingType=' + tt.key + '\'">申报</button>';
+        } else {
+          h += '<span style="width:40px;"></span>';
+        }
       }
+      h += '</div>';
     }
     h += '</div>';
-
     h += '</div>';
   }
   h += '</div>';
-
   return h;
 }
 
@@ -874,6 +940,11 @@ function renderStatusFilters() {
 
 function setFilter(key) {
   currentFilter = key;
+  renderMain();
+}
+
+function setStaffingTypeFilter(val) {
+  staffingTypeFilter = val;
   renderMain();
 }
 
@@ -986,6 +1057,12 @@ function getFilteredSubmissions() {
   if ((currentRole === 'city' || currentRole === 'district') && selectedBatchId) {
     subs = subs.filter(function(s) { return s.batchId === selectedBatchId; });
   }
+  // Staffing type filter
+  if (staffingTypeFilter === 'career') {
+    subs = subs.filter(function(s) { return s.staffingType === 'career'; });
+  } else if (staffingTypeFilter === 'control') {
+    subs = subs.filter(function(s) { return s.staffingType === 'control'; });
+  }
   // Status filter
   if (currentFilter === 'pending') {
     subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; });
@@ -1013,7 +1090,7 @@ function renderBatchCards(batches) {
     h += '</div>';
     h += '<div class="batch-card-meta"><span>📅 ' + b.publishDate + ' ~ ' + b.deadline + '</span><span>发布：' + b.org + '</span></div>';
     h += '<div class="batch-card-progress">';
-    h += '<div class="batch-card-progress-text">申报进度：' + stats.submitted + '/' + stats.total + '</div>';
+    h += '<div class="batch-card-progress-text">事业编 ' + stats.career.submitted + '/' + stats.career.total + ' | 控制数 ' + stats.control.submitted + '/' + stats.control.total + '</div>';
     h += '<div class="progress-bar">';
     if (approvedPct > 0) h += '<div class="progress-fill approved" style="width:' + approvedPct + '%"></div>';
     if (submittedPct > 0) h += '<div class="progress-fill submitted" style="width:' + submittedPct + '%"></div>';
@@ -1034,6 +1111,7 @@ function renderBatchCards(batches) {
 function selectBatch(id) {
   selectedBatchId = id;
   currentFilter = 'all';
+  staffingTypeFilter = 'all';
   renderMain();
 }
 
@@ -1051,10 +1129,10 @@ function showBatchDetail(id) {
   c += '<div class="batch-detail-row"><span class="bdl">发布时间</span><span class="bdv">' + b.publishDate + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">申报截止</span><span class="bdv">' + b.deadline + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">状态</span><span class="bdv">' + b.status + '</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">申报单位数</span><span class="bdv">' + stats.total + ' 个</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">已通过</span><span class="bdv" style="color:var(--success);">' + stats.approved + '</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">待审批</span><span class="bdv" style="color:var(--accent);">' + stats.submitted + '</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">已退回</span><span class="bdv" style="color:var(--danger);">' + stats.rejected + '</span></div>';
+  c += '<div class="batch-detail-row"><span class="bdl">申报单位数</span><span class="bdv">' + stats.career.total + ' 事业编 + ' + stats.control.total + ' 控制数</span></div>';
+  c += '<div class="batch-detail-row"><span class="bdl">已通过（事业/控制）</span><span class="bdv" style="color:var(--success);">' + stats.career.approved + ' / ' + stats.control.approved + '</span></div>';
+  c += '<div class="batch-detail-row"><span class="bdl">待审批（事业/控制）</span><span class="bdv" style="color:var(--accent);">' + stats.career.submitted + ' / ' + stats.control.submitted + '</span></div>';
+  c += '<div class="batch-detail-row"><span class="bdl">已退回（事业/控制）</span><span class="bdv" style="color:var(--danger);">' + stats.career.rejected + ' / ' + stats.control.rejected + '</span></div>';
   c += '</div>';
   c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">关闭</button></div>';
   openModal(c);
@@ -1120,17 +1198,16 @@ function renderSubmissionsTable(subs) {
   // Action bar — filters
   h += '<div class="filter-bar">';
   if (isSchoolView) {
-    // School admin: filter by batch
     var allBatches = SUBMISSIONS.filter(function(s) { return s.school === '柳州市第八中学'; }).map(function(s) { return s.batchName; }).filter(function(v, i, a) { return a.indexOf(v) === i; });
     h += '<label>批次</label><select class="filter-select"><option>全部</option>';
     allBatches.forEach(function(b) { h += '<option>' + b + '</option>'; });
     h += '</select>';
   } else {
-    // City/district admin: filter by unit
     h += '<label>申请单位</label><select class="filter-select"><option>全部</option>';
     var units = subs.map(function(s) { return s.school; }).filter(function(v, i, a) { return a.indexOf(v) === i; });
     units.forEach(function(u) { h += '<option>' + u + '</option>'; });
     h += '</select>';
+    h += '<label>编制类型</label><select class="filter-select" onchange="setStaffingTypeFilter(this.value)"><option value="all">全部</option><option value="career"' + (staffingTypeFilter === 'career' ? ' selected' : '') + '>事业编</option><option value="control"' + (staffingTypeFilter === 'control' ? ' selected' : '') + '>控制数</option></select>';
   }
   h += '</div>';
 
@@ -1139,23 +1216,30 @@ function renderSubmissionsTable(subs) {
   h += '<thead><tr>';
   h += '<th>申报编号</th>';
   h += '<th>批次</th>';
+  h += '<th>编制类型</th>';
   if (!isSchoolView) h += '<th>申请单位</th>';
   h += '<th>核定编制数</th><th>在编人数</th><th>控制数</th><th>控制数实有</th>';
   h += '<th>申请数(调动/公招/自主/人才)</th>';
-  h += '<th>附件9</th><th>后续材料</th><th>状态</th><th>提交时间</th><th>操作</th>';
+  h += '<th>附件</th><th>后续材料</th><th>状态</th><th>提交时间</th><th>操作</th>';
   h += '</tr></thead><tbody>';
 
   subs.forEach(function(s) {
+    var isCareer = s.staffingType === 'career';
+    var typeLabel = STAFFING_TYPE_MAP[s.staffingType] || '控制数';
+    var typeBadgeColor = isCareer ? 'color:#1456F0;' : 'color:#0E3EC0;';
+    var attachmentLabel = isCareer ? '附件2' : '附件9';
+
     h += '<tr>';
     h += '<td><span class="tb-link">' + s.id + '</span></td>';
     h += '<td>' + s.batchName + '</td>';
+    h += '<td><span style="font-size:11px;' + typeBadgeColor + 'font-weight:500;">' + typeLabel + '</span></td>';
     if (!isSchoolView) h += '<td>' + s.school + '</td>';
-    h += '<td>' + s.totalStaff + '</td>';
-    h += '<td>' + s.currentStaff + '</td>';
-    h += '<td>' + s.controlNum + '</td>';
-    h += '<td>' + s.controlActual + '</td>';
+    h += '<td>' + (s.totalStaff || '—') + '</td>';
+    h += '<td>' + (s.currentStaff || '—') + '</td>';
+    h += '<td>' + (s.controlNum || '—') + '</td>';
+    h += '<td>' + (s.controlActual || '—') + '</td>';
     h += '<td>' + s.useForms.transfer + ' / ' + s.useForms.publicRecruit + ' / ' + s.useForms.selfRecruit + ' / ' + s.useForms.talent + '</td>';
-    h += '<td>' + (s.attachment9 ? '<span style="color:var(--success);">📎 已上传</span>' : '<span style="color:var(--text-light);">—</span>') + '</td>';
+    h += '<td>' + (s.attachment9 || !isCareer ? '<span style="color:var(--success);">📎 已上传</span>' : '<span style="color:var(--success);">📎 已上传</span>') + '</td>';
     h += '<td>' + (s.followUp ? '<span style="color:var(--success);">📎 已上传</span>' : '<span style="color:var(--text-light);">—</span>') + '</td>';
     h += '<td><span class="status ' + s.status + '">' + STATUS_MAP[s.status] + '</span></td>';
     h += '<td>' + (s.submitDate || '—') + '</td>';
@@ -1171,7 +1255,7 @@ function renderSubmissionsTable(subs) {
       h += '<a onclick="showToast(\'上传后续材料\')">上传后续材料</a>';
     }
     if (s.status === 'rejected' && isSchoolView) {
-      h += '<a href="staffing-form.html">修改重提</a>';
+      h += '<a href="staffing-form.html?id=' + s.id + '&staffingType=' + s.staffingType + '">修改重提</a>';
     }
     h += '</div></td>';
     h += '</tr>';
@@ -1187,6 +1271,7 @@ function switchRole(role) {
   currentRole = role;
   selectedBatchId = null;
   currentFilter = 'all';
+  staffingTypeFilter = 'all';
   schoolBatchFilter = 'all';
   document.querySelectorAll('.role-switch-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.role === role);
