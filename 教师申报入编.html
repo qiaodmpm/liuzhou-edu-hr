@@ -171,6 +171,32 @@ body {
 }
 .form-group textarea { resize: vertical; }
 
+/* Materials checklist */
+.materials-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 0 20px 16px; }
+.materials-table th, .materials-table td {
+  border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top;
+}
+.materials-table th { background: #F8FAFC; font-weight: 600; font-size: 11px; }
+.materials-table .mat-num { width: 40px; text-align: center; }
+.materials-table .mat-name { width: 35%; }
+.materials-table .mat-require { width: 30%; font-size: 11px; color: var(--text-secondary); }
+.materials-table .mat-upload { width: 20%; text-align: center; }
+.materials-table .mat-status { width: 10%; text-align: center; }
+.material-upload-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border: 1px dashed var(--accent); border-radius: 6px;
+  font-size: 11px; color: var(--accent); cursor: pointer; background: #fff;
+  font-family: inherit; transition: 0.15s;
+}
+.material-upload-btn:hover { background: var(--primary-light); border-style: solid; }
+.material-upload-btn.uploaded { border-color: var(--success); color: var(--success); border-style: solid; background: #F0FDF4; }
+.material-file-name { font-size: 10px; color: var(--text-secondary); margin-top: 2px; word-break: break-all; }
+.material-status-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+}
+.material-status-dot.ok { background: var(--success); }
+.material-status-dot.wait { background: #CBD5E1; }
+
 .btn-edit {
   background: none; border: none; color: var(--accent); cursor: pointer;
   font-size: 12px; font-family: inherit;
@@ -186,12 +212,6 @@ body {
   border-radius: 30px; cursor: pointer; font-size: 13px; font-family: inherit;
 }
 .btn-cancel:hover { background: #E2E8F0; }
-.btn-draft {
-  background: #E0E7FF; color: var(--primary); border: none;
-  padding: 8px 20px; border-radius: 30px; cursor: pointer; font-size: 13px;
-  font-family: inherit;
-}
-.btn-draft:hover { background: #C7D2FE; }
 .btn-submit {
   background: var(--primary); color: #fff; border: none;
   padding: 8px 24px; border-radius: 30px; cursor: pointer; font-size: 13px;
@@ -378,12 +398,9 @@ function updateUserInfo() {
 }
 
 function switchRole(role) {
-  currentRole = role;
-  renderSidebar();
-  updateUserInfo();
-  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.role === role);
-  });
+  if (role === 'teacher') { return; }
+  if (role === 'city' || role === 'district') { window.location.href = '教师入编管理（主管单位视角）.html'; return; }
+  if (role === 'school') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
 }
 
 function sidebarClick(id) {
@@ -402,11 +419,16 @@ function showToast(message, callback) {
 
 // ==================== APPLICATION FORM DATA & RENDERING ====================
 
-var batch = {
-  id: "EB2026-001", name: "2026年度第一批教师入编申请",
-  publishTime: "2026-03-01", publisher: "市教育局",
-  applyStart: "2026-03-01", applyEnd: "2026-03-20"
-};
+var allBatches = [
+  { id: "EB2026-001", name: "2026年度第一批教师入编申请", year: "2026", createdAt: "2026-03-01", publisher: "市教育局", total: 12, submitted: 10, applyStart: "2026-03-01", applyEnd: "2026-03-20", reviewStart: "2026-03-21", reviewEnd: "2026-04-10" },
+  { id: "EB2026-002", name: "2026年度第二批教师入编申请", year: "2026", createdAt: "2026-04-01", publisher: "市教育局", total: 8, submitted: 5, applyStart: "2026-04-01", applyEnd: "2026-04-20", reviewStart: "2026-04-21", reviewEnd: "2026-05-10" },
+  { id: "EB2026-003", name: "2026年度第三批教师入编申请", year: "2026", createdAt: "2026-05-01", publisher: "市教育局", total: 6, submitted: 2, applyStart: "2026-05-01", applyEnd: "2026-05-20", reviewStart: "2026-05-21", reviewEnd: "2026-06-10" },
+  { id: "EB2026-004", name: "2026年度第四批教师入编申请", year: "2026", createdAt: "2026-06-01", publisher: "市教育局", total: 10, submitted: 8, applyStart: "2026-06-01", applyEnd: "2026-06-20", reviewStart: "2026-06-21", reviewEnd: "2026-07-10" },
+  { id: "EB2025-001", name: "2025年度第一批教师入编申请", year: "2025", createdAt: "2025-03-01", publisher: "市教育局", total: 15, submitted: 15, applyStart: "2025-03-01", applyEnd: "2025-03-20", reviewStart: "2025-03-21", reviewEnd: "2025-04-10" }
+];
+var urlParams = new URLSearchParams(window.location.search);
+var batchIdFromUrl = urlParams.get('batchId');
+var batch = allBatches.find(function(b) { return b.id === batchIdFromUrl; }) || allBatches[0];
 
 var unitInfo = {
   fullName: "柳州高级中学", creditCode: "12450200MB1A12345X",
@@ -432,19 +454,69 @@ var entryData = {
   basisDoc: "柳教人〔2026〕10号", reason: "学科教师紧缺，符合学校发展规划"
 };
 
-function loadDraft() {
-  var draft = localStorage.getItem("teacher_entry_draft");
-  if (draft) { try { entryData = Object.assign({}, entryData, JSON.parse(draft)); } catch(e) {} }
-}
-function saveDraft() {
-  localStorage.setItem("teacher_entry_draft", JSON.stringify({
-    assignPosition: entryData.assignPosition, entryMethod: entryData.entryMethod,
-    basisDoc: entryData.basisDoc, reason: entryData.reason
-  }));
-}
-function clearDraft() { localStorage.removeItem("teacher_entry_draft"); }
+var materialsChecklist = [
+  {
+    num: "一",
+    name: "事业单位控制数人员增人备案表",
+    require: "1份，单位负责人、经办人签字，盖章，主管部门审核盖章",
+    file: null
+  },
+  {
+    num: "二",
+    name: "中小学聘用教师控制数：市人社局下发的岗位增补计划下达通知书" + "\n" +
+         "高职、中职、公立医院控制数：单位或主管部门下发的控制数人员聘用文件",
+    require: "1份，原件或复印件（盖章)",
+    file: null
+  },
+  {
+    num: "三",
+    name: "个人身份证",
+    require: "1份，原件或复印件（盖章)，审核后退回",
+    file: null
+  }
+];
 
-loadDraft();
+function renderMaterialsCard() {
+  var rows = materialsChecklist.map(function(item, idx) {
+    var uploaded = item.file !== null;
+    var btnClass = uploaded ? 'material-upload-btn uploaded' : 'material-upload-btn';
+    var btnIcon = uploaded ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-upload"></i>';
+    var btnText = uploaded ? '重新上传' : '点击上传';
+    var fileNameHtml = uploaded ? '<div class="material-file-name">' + item.file + '</div>' : '';
+    var dotClass = uploaded ? 'material-status-dot ok' : 'material-status-dot wait';
+    return '<tr>' +
+      '<td class="mat-num">' + item.num + '</td>' +
+      '<td class="mat-name">' + item.name.replace(/\n/g, '<br>') + '</td>' +
+      '<td class="mat-require">' + item.require + '</td>' +
+      '<td class="mat-upload">' +
+        '<label class="' + btnClass + '" id="matUploadBtn' + idx + '">' +
+          btnIcon + ' ' + btnText +
+          '<input type="file" style="display:none;" id="matFile' + idx + '" onchange="handleMaterialUpload(' + idx + ', this)">' +
+        '</label>' +
+        fileNameHtml +
+      '</td>' +
+      '<td class="mat-status"><span class="' + dotClass + '"></span> ' + (uploaded ? '已上传' : '待上传') + '</td>' +
+    '</tr>';
+  }).join('');
+
+  return '<div class="card">' +
+    '<div class="card-header">附件12-3 事业单位控制数人员增人材料清单</div>' +
+    '<div style="padding: 16px 20px 4px;">' +
+      '<table class="materials-table">' +
+        '<thead><tr><th class="mat-num">序号</th><th class="mat-name">所需材料</th><th class="mat-require">材料要求</th><th class="mat-upload">上传</th><th class="mat-status">状态</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>' +
+    '</div>' +
+    '</div>';
+}
+
+function handleMaterialUpload(idx, input) {
+  if (input.files && input.files[0]) {
+    materialsChecklist[idx].file = input.files[0].name;
+    renderPage();
+    showToast('材料 "' + materialsChecklist[idx].name.split('\n')[0] + '" 上传成功');
+  }
+}
 
 function renderPage() {
   var mainContent = document.getElementById("mainContent");
@@ -537,6 +609,7 @@ function renderPage() {
         otherFieldsHtml +
       '</div>' +
     '</div>' +
+    renderMaterialsCard() +
     '<div class="card">' +
       '<div class="card-header">入编信息</div>' +
       '<div style="padding-top:16px;">' +
@@ -565,7 +638,6 @@ function renderPage() {
         '</div>' +
         '<div class="form-actions">' +
           '<button class="btn-cancel" id="cancelBtn">取消</button>' +
-          '<button class="btn-draft" id="draftBtn">存草稿</button>' +
           '<button class="btn-submit" id="submitBtn">提交申请</button>' +
         '</div>' +
       '</div>' +
@@ -582,22 +654,19 @@ function renderPage() {
   }
 
   document.getElementById("cancelBtn").addEventListener("click", function() {
-    showConfirm("确定取消吗？未保存的数据将丢失。", function() {
-      window.location.href = 'workbench.html';
-    });
-  });
-  document.getElementById("draftBtn").addEventListener("click", function() {
-    updateEntryData(); saveDraft();
-    showToast("草稿已保存", function() { window.location.href = 'workbench.html'; });
+    window.location.href = '教师入编管理（教师视角）.html';
   });
   document.getElementById("submitBtn").addEventListener("click", function() {
     updateEntryData();
     if (!entryData.assignPosition || !entryData.entryMethod || !entryData.basisDoc || !entryData.reason) {
       showToast("请填写所有必填项"); return;
     }
+    var missing = materialsChecklist.filter(function(m) { return !m.file; });
+    if (missing.length > 0) {
+      showToast("请上传所有必交材料（" + missing.map(function(m) { return m.num; }).join("、") + "）"); return;
+    }
     showConfirm("确定提交申请吗？提交后不可修改。", function() {
-      clearDraft();
-      showToast("申请已提交成功", function() { window.location.href = 'workbench.html'; });
+      showToast("申请已提交成功", function() { window.location.href = '教师入编管理（教师视角）.html'; });
     });
   });
   document.getElementById("editPersonalBtn").addEventListener("click", function() {

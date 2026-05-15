@@ -214,6 +214,7 @@ body {
 .batch-card-meta { font-size: 11px; color: var(--text-light); margin-bottom: 10px; display: flex; gap: 16px; }
 .batch-card-progress { margin-bottom: 10px; }
 .batch-card-progress .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+.batch-card-progress-text { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
 .batch-card-progress .progress-bar {
   height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden;
 }
@@ -736,7 +737,7 @@ const SUBMISSIONS = [
 ];
 
 const STATUS_MAP = {
-  submitted: '已提交', reviewing: '审核中', approved: '已通过', rejected: '已退回'
+  submitted: '待审核', reviewing: '待审核', approved: '已通过', rejected: '已驳回'
 };
 
 let currentRole = 'city';
@@ -859,9 +860,9 @@ document.addEventListener('click', function(e) {
 function renderStatusFilters() {
   var filters = [
     { key: 'all', label: '全部' },
-    { key: 'pending', label: '待审批' },
+    { key: 'pending', label: '待审核' },
     { key: 'approved', label: '已通过' },
-    { key: 'rejected', label: '已退回' },
+    { key: 'rejected', label: '已驳回' },
   ];
   var h = '<div class="status-filters">';
   filters.forEach(function(f) {
@@ -899,11 +900,26 @@ function renderSidebar() {
   document.getElementById('sidebarMenu').innerHTML = html;
 }
 
+function getEntryUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return '教师入编管理（主管单位视角）.html';
+  if (currentRole === 'school') return '教师入编管理（学校管理员视角）.html';
+  return null;
+}
+
+function getExitUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return '教师出编管理（主管单位视角）.html';
+  if (currentRole === 'school') return '教师出编管理（学校管理员视角）.html';
+  return null;
+}
+
 function sidebarClick(el, id) {
   document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
   el.classList.add('active');
   if (id === 'workbench') { window.location.href = 'workbench.html'; }
-  else if (id !== 'staffing') { showToast('跳转至：' + el.textContent.trim()); }
+  else if (id === 'staffing') { return; }
+  else if (id === 'entry') { var url = getEntryUrl(); if (url) window.location.href = url; else showToast('跳转至：入编申请'); }
+  else if (id === 'exit') { var url = getExitUrl(); if (url) window.location.href = url; else showToast('跳转至：教师出编管理'); }
+  else { showToast('跳转至：' + el.textContent.trim()); }
 }
 
 // ===== RENDER MAIN CONTENT =====
@@ -997,7 +1013,7 @@ function renderBatchCards(batches) {
     h += '</div>';
     h += '<div class="batch-card-meta"><span>📅 ' + b.publishDate + ' ~ ' + b.deadline + '</span><span>发布：' + b.org + '</span></div>';
     h += '<div class="batch-card-progress">';
-    h += '<div class="progress-labels"><span>已通过 ' + stats.approved + '</span><span>待审批 ' + stats.submitted + '</span><span>已退回 ' + stats.rejected + '</span></div>';
+    h += '<div class="batch-card-progress-text">申报进度：' + stats.submitted + '/' + stats.total + '</div>';
     h += '<div class="progress-bar">';
     if (approvedPct > 0) h += '<div class="progress-fill approved" style="width:' + approvedPct + '%"></div>';
     if (submittedPct > 0) h += '<div class="progress-fill submitted" style="width:' + submittedPct + '%"></div>';
@@ -1148,7 +1164,7 @@ function renderSubmissionsTable(subs) {
     if (s.status === 'submitted' || s.status === 'reviewing') {
       var canApprove = !isCityAdmin || s.schoolType === '市直属';
       if (canApprove) {
-        h += '<a onclick="showToast(\'进入审核页面 — ' + s.school + '\')" style="color:var(--primary);font-weight:500;">审核</a>';
+        h += '<a href="审核编制使用申请页（主管单位视角）.html?id=' + s.id + '" style="color:var(--primary);font-weight:500;">审核</a>';
       }
     }
     if (s.status === 'approved' && s.school === '柳州市第八中学' && isSchoolView) {

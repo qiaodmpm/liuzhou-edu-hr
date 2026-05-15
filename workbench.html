@@ -796,10 +796,9 @@ function renderMain() {
       todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (targetUrl !== '#' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += '<div class="todo-module-name">' + t.mod + '<small>' + t.group + '</small></div>';
+      var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
       todoHtml += '<div class="todo-counts">';
-      if (t.pending > 0) todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + t.pending + '</div><div class="count-label">待审批</div></div>';
-      if (t.review > 0) todoHtml += '<div class="todo-count-item count-review"><div class="count-num">' + t.review + '</div><div class="count-label">待审核</div></div>';
-      if (t.reject > 0) todoHtml += '<div class="todo-count-item count-reject"><div class="count-num">' + t.reject + '</div><div class="count-label">已退回</div></div>';
+      todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
       todoHtml += '</div><span class="todo-module-arrow">→</span></a>';
     });
     todoHtml += '</div>';
@@ -856,8 +855,15 @@ function switchRole(role) {
 
 // ===== Sidebar menu click =====
 function getEntryUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return '教师入编管理（主管单位视角）.html';
   if (currentRole === 'school') return '教师入编管理（学校管理员视角）.html';
-  if (currentRole === 'teacher') return '教师申报入编.html';
+  if (currentRole === 'teacher') return '教师入编管理（教师视角）.html';
+  return null;
+}
+
+function getExitUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return '教师出编管理（主管单位视角）.html';
+  if (currentRole === 'school') return '教师出编管理（学校管理员视角）.html';
   return null;
 }
 
@@ -872,6 +878,7 @@ function sidebarClick(el, id) {
   if (id === 'workbench') { window.location.href = 'workbench.html'; }
   else if (id === 'staffing') { window.location.href = 'staffing-application.html'; }
   else if (id === 'entry') { var url = getEntryUrl(); if (url) window.location.href = url; else showToast('跳转至：入编申请'); }
+  else if (id === 'exit') { var url = getExitUrl(); if (url) window.location.href = url; else showToast('跳转至：教师出编管理'); }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
 
