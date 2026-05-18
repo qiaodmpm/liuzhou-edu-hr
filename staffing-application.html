@@ -225,6 +225,26 @@ body {
 .batch-card-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
 .batch-card-actions .btn { font-size: 11px; padding: 4px 12px; }
 
+/* Year filter row */
+.year-filter-row { margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.year-filter-row .filter-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+
+/* Batch summary checkbox */
+.batch-summary-checkbox {
+  width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border);
+  cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.batch-summary-checkbox.checked { background: var(--primary); border-color: var(--primary); }
+.batch-summary-checkbox.checked:after {
+  content: '✓'; color: #fff; font-size: 11px; font-weight: 600; line-height: 1;
+}
+
+/* Year summary bar */
+.year-summary-bar {
+  margin-top: 14px; display: flex; gap: 10px; align-items: center;
+}
+
 /* School batch card — two-column layout */
 .school-batch-card {
   display: flex; gap: 0; border-radius: var(--radius-lg);
@@ -643,8 +663,8 @@ const SUBMISSIONS = [
   { id: 'S2026-003', batchId: 'B2026-001', batchName: '2026年度第一批', school: '柳州高级中学', schoolType: '市直属',
     totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: 30, controlActual: 26, unusedControl: 1,
     useForms: { transfer: 1, publicRecruit: 3, selfRecruit: 0, talent: 2 },
-    attachment9: true, followUp: false,
-    status: 'reviewing', submitDate: '2026-03-15', approveDate: null },
+    attachment9: true, followUp: false, finalApprovedCount: null,
+    status: 'first_approved', submitDate: '2026-03-15', approveDate: '2026-03-18' },
   { id: 'S2026-004', batchId: 'B2026-001', batchName: '2026年度第一批', school: '柳州市第八中学', schoolType: '鱼峰区属',
     totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1,
     useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 1, talent: 0 },
@@ -774,14 +794,34 @@ CAREER_SUBMISSIONS.forEach(function(s) { SUBMISSIONS.push(s); });
 const STAFFING_TYPE_MAP = { career: '事业编', control: '控制数' };
 
 const STATUS_MAP = {
-  submitted: '待审核', reviewing: '待审核', approved: '已通过', rejected: '已驳回'
+  submitted: '待审核', reviewing: '待审核', first_approved: '待二审确认', approved: '已通过', rejected: '已驳回'
 };
 
 let currentRole = 'city';
 let selectedBatchId = null; // Currently selected batch
-let currentFilter = 'all'; // 'all' | 'pending' | 'approved' | 'rejected'
+let currentFilter = 'all'; // 'all' | 'pending' | 'approved' | 'rejected' | 'unsubmitted'
 let staffingTypeFilter = 'all'; // 'all' | 'career' | 'control'
 let schoolBatchFilter = 'all'; // 'all' | 'active' | 'closed' — school admin batch dropdown
+let currentBatchYear = null; // null = show all years, otherwise filter to that year
+let isYearSummaryMode = false;
+let selectedBatchIdsForSummary = [];
+
+// ===== ALL SCHOOLS UNDER JURISDICTION =====
+var ALL_SCHOOLS = [
+  { name: '柳州市第一中学', type: '市直属' },
+  { name: '柳州市第二中学', type: '市直属' },
+  { name: '柳州高级中学', type: '市直属' },
+  { name: '柳州市民族高中', type: '市直属' },
+  { name: '柳州市第三中学', type: '市直属' },
+  { name: '柳州市第六中学', type: '市直属' },
+  { name: '柳州市第八中学', type: '鱼峰区属' },
+  { name: '鱼峰区实验小学', type: '鱼峰区属' },
+  { name: '柳州市第十三中学', type: '鱼峰区属' },
+  { name: '柳州市第二十五中学', type: '鱼峰区属' }
+];
+
+// ===== REMINDER LOG =====
+var reminderLog = {}; // key: batchId|schoolName → value: '2026-05-15'
 
 // ===== BATCH STATS HELPER =====
 function getBatchStats(batchId) {
@@ -790,12 +830,52 @@ function getBatchStats(batchId) {
   var controlSubs = subs.filter(function(s) { return s.staffingType === 'control'; });
   return {
     total: subs.length,
-    submitted: subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; }).length,
+    submitted: subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; }).length,
     approved: subs.filter(function(s) { return s.status === 'approved'; }).length,
     rejected: subs.filter(function(s) { return s.status === 'rejected'; }).length,
-    career: { total: careerSubs.length, submitted: careerSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; }).length, approved: careerSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: careerSubs.filter(function(s) { return s.status === 'rejected'; }).length },
-    control: { total: controlSubs.length, submitted: controlSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; }).length, approved: controlSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: controlSubs.filter(function(s) { return s.status === 'rejected'; }).length }
+    career: { total: careerSubs.length, submitted: careerSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; }).length, approved: careerSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: careerSubs.filter(function(s) { return s.status === 'rejected'; }).length },
+    control: { total: controlSubs.length, submitted: controlSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; }).length, approved: controlSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: controlSubs.filter(function(s) { return s.status === 'rejected'; }).length }
   };
+}
+
+// ===== YEAR FILTER =====
+function getBatchYears(batches) {
+  var years = [];
+  batches.forEach(function(b) {
+    if (years.indexOf(b.year) === -1) years.push(b.year);
+  });
+  years.sort(function(a, b) { return b.localeCompare(a); });
+  return years;
+}
+
+function getFilteredBatches(batches) {
+  if (!currentBatchYear) return batches;
+  return batches.filter(function(b) { return b.year === currentBatchYear; });
+}
+
+function renderYearFilter(batches) {
+  var years = getBatchYears(batches);
+  if (years.length <= 1) return '';
+  var h = '<span class="filter-label">年度筛选：</span>';
+  h += '<select class="filter-select" onchange="setBatchYear(this.value)">';
+  h += '<option value="all">全部年度</option>';
+  years.forEach(function(y) {
+    h += '<option value="' + y + '"' + (currentBatchYear === y ? ' selected' : '') + '>' + y + ' 年</option>';
+  });
+  h += '</select>';
+  return h;
+}
+
+function setBatchYear(year) {
+  currentBatchYear = year === 'all' ? null : year;
+  var batches = (currentRole === 'city') ? BATCHES : BATCHES_DISTRICT;
+  var filtered = getFilteredBatches(batches);
+  if (filtered.length > 0 && (!selectedBatchId || !filtered.some(function(b) { return b.id === selectedBatchId; }))) {
+    selectedBatchId = filtered[0].id;
+  }
+  currentFilter = 'all';
+  staffingTypeFilter = 'all';
+  renderMain();
 }
 
 // ===== SCHOOL BATCH HELPERS =====
@@ -836,6 +916,7 @@ function getSchoolBatches() {
 
 function getStatusBadgeClass(status) {
   if (status === 'approved') return 'approved';
+  if (status === 'first_approved') return 'submitted';
   if (status === 'submitted' || status === 'reviewing') return 'submitted';
   if (status === 'rejected') return 'rejected';
   return 'none';
@@ -859,6 +940,11 @@ function renderSchoolBatchList() {
     h += '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无批次</div></div>';
     return h;
   }
+
+  h += '<div style="display:flex;align-items:center;margin-bottom:14px;">';
+  h += '<span class="section-title" style="font-size:14px;">📋 申报批次</span>';
+  h += '<button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="window.location.href=\'staffing-form.html\'">+ 新建申报</button>';
+  h += '</div>';
 
   var TYPES = [
     { key: 'career', label: '事业编', icon: '📋', formRef: '附件2' },
@@ -929,6 +1015,7 @@ function renderStatusFilters() {
     { key: 'pending', label: '待审核' },
     { key: 'approved', label: '已通过' },
     { key: 'rejected', label: '已驳回' },
+    { key: 'unsubmitted', label: '未提交' }
   ];
   var h = '<div class="status-filters">';
   filters.forEach(function(f) {
@@ -1010,6 +1097,11 @@ function renderMain() {
   }
 
   var batches = (currentRole === 'city') ? BATCHES : BATCHES_DISTRICT;
+  // Default to latest year if not set
+  if (!currentBatchYear) {
+    var years = getBatchYears(batches);
+    if (years.length > 0) currentBatchYear = years[0];
+  }
   // Auto-select first batch if none selected
   if (!selectedBatchId || !batches.some(function(b) { return b.id === selectedBatchId; })) {
     selectedBatchId = batches.length > 0 ? batches[0].id : null;
@@ -1026,16 +1118,38 @@ function renderMain() {
     html += '<div class="two-col-row">';
     // Left: batch directory
     html += '<div class="col-left">';
-    html += '<div class="section-header" style="margin-bottom:14px;"><span class="section-title">📋 批次目录</span><span style="font-size:12px;color:var(--text-light);margin-left:8px;">' + batches.length + ' 个批次</span><button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="showCreateBatchModal()">+ 新建批次</button></div>';
-    html += renderBatchCards(batches);
+    html += '<div class="section-header" style="margin-bottom:14px;"><span class="section-title">📋 批次列表</span><span style="font-size:12px;color:var(--text-light);margin-left:8px;">' + getFilteredBatches(batches).length + ' 个批次</span><button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="showCreateBatchModal()">+ 新建批次</button></div>';
+    // Year filter row
+    var yearFilterHtml = renderYearFilter(batches);
+    if (yearFilterHtml) {
+      html += '<div class="year-filter-row">' + yearFilterHtml + '</div>';
+    }
+    html += renderBatchCards(getFilteredBatches(batches));
+    // Year summary bar (only for city/district admin)
+    html += '<div class="year-summary-bar">';
+    if (isYearSummaryMode) {
+      html += '<span style="font-size:12px;color:var(--text-secondary);">已选 ' + selectedBatchIdsForSummary.length + ' 个批次</span>';
+      html += '<button class="btn btn-primary btn-sm" onclick="generateYearSummary()" style="margin-left:auto;">📊 生成汇总</button>';
+      html += '<button class="btn btn-outline btn-sm" onclick="toggleYearSummaryMode()">取消</button>';
+    } else {
+      html += '<button class="btn btn-outline btn-sm" onclick="toggleYearSummaryMode()" style="margin-left:auto;">📊 年度汇总</button>';
+    }
+    html += '</div>';
     html += '</div>';
     // Right: submissions for selected batch
     html += '<div class="col-right">';
     var selectedBatch = batches.find(function(b) { return b.id === selectedBatchId; });
-    var subs = getFilteredSubmissions();
-    html += '<div class="section-header" style="margin-bottom:14px;"><span class="section-title">📝 ' + (selectedBatch ? selectedBatch.name : '申报审核') + '</span></div>';
-    html += renderStatusFilters();
-    html += renderSubmissionsTable(subs);
+    if (currentFilter === 'unsubmitted') {
+      var unsubCount = getUnsubmittedSchools().length;
+      html += '<div class="section-header" style="margin-bottom:14px;"><span class="section-title">📝 ' + (selectedBatch ? selectedBatch.name : '申报审核') + ' — 未提交学校（' + unsubCount + ' 所）</span></div>';
+      html += renderStatusFilters();
+      html += renderUnsubmittedTable();
+    } else {
+      var subs = getFilteredSubmissions();
+      html += '<div class="section-header" style="margin-bottom:14px;"><span class="section-title">📝 ' + (selectedBatch ? selectedBatch.name : '申报审核') + '</span></div>';
+      html += renderStatusFilters();
+      html += renderSubmissionsTable(subs);
+    }
     html += '</div></div>';
   } else {
     // School view: batch list with submit/view actions
@@ -1065,13 +1179,87 @@ function getFilteredSubmissions() {
   }
   // Status filter
   if (currentFilter === 'pending') {
-    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing'; });
+    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; });
   } else if (currentFilter === 'approved') {
     subs = subs.filter(function(s) { return s.status === 'approved'; });
   } else if (currentFilter === 'rejected') {
     subs = subs.filter(function(s) { return s.status === 'rejected'; });
   }
   return subs;
+}
+
+// ===== UNSUBMITTED SCHOOLS =====
+function getJurisdictionSchools() {
+  if (currentRole === 'city') {
+    return ALL_SCHOOLS.filter(function(s) { return s.type === '市直属'; });
+  } else if (currentRole === 'district') {
+    return ALL_SCHOOLS.filter(function(s) { return s.type === '鱼峰区属'; });
+  }
+  return [];
+}
+
+function getUnsubmittedSchools() {
+  var schools = getJurisdictionSchools();
+  var submittedSchools = SUBMISSIONS.filter(function(s) { return s.batchId === selectedBatchId; }).map(function(s) { return s.school; });
+  return schools.filter(function(s) { return submittedSchools.indexOf(s.name) === -1; });
+}
+
+function getReminderKey(batchId, schoolName) {
+  return batchId + '|' + schoolName;
+}
+
+function canRemindToday(batchId, schoolName) {
+  var key = getReminderKey(batchId, schoolName);
+  var lastDate = reminderLog[key];
+  if (!lastDate) return true;
+  var today = new Date().toISOString().slice(0, 10);
+  return lastDate !== today;
+}
+
+function remindSchool(batchId, schoolName, btnEl) {
+  var key = getReminderKey(batchId, schoolName);
+  var today = new Date().toISOString().slice(0, 10);
+  reminderLog[key] = today;
+  showToast('已向「' + schoolName + '」发送申报提醒');
+  btnEl.textContent = '今日已提醒';
+  btnEl.className = 'btn btn-outline btn-sm';
+  btnEl.disabled = true;
+  btnEl.style.opacity = '0.5';
+  btnEl.style.cursor = 'not-allowed';
+  btnEl.onclick = null;
+}
+
+function renderUnsubmittedTable() {
+  var unsubmitted = getUnsubmittedSchools();
+  var h = '';
+  h += '<div class="table-card"><div class="table-wrapper"><table>';
+  h += '<thead><tr><th style="width:50px;">序号</th><th>学校名称</th><th>学校类型</th><th style="width:140px;">最后提醒时间</th><th style="width:120px;">操作</th></tr></thead><tbody>';
+
+  if (unsubmitted.length === 0) {
+    h += '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-light);">🎉 管辖范围内所有学校均已提交申报</td></tr>';
+  } else {
+    unsubmitted.forEach(function(school, idx) {
+      var key = getReminderKey(selectedBatchId, school.name);
+      var lastRemind = reminderLog[key] || '—';
+      var canRemind = canRemindToday(selectedBatchId, school.name);
+
+      h += '<tr>';
+      h += '<td>' + (idx + 1) + '</td>';
+      h += '<td>' + school.name + '</td>';
+      h += '<td><span style="font-size:11px;' + (school.type === '市直属' ? 'color:#1E40AF;' : 'color:#D97706;') + 'font-weight:500;">' + school.type + '</span></td>';
+      h += '<td style="color:var(--text-secondary);">' + lastRemind + '</td>';
+      h += '<td>';
+      if (canRemind) {
+        h += '<button class="btn btn-primary btn-sm" onclick="remindSchool(\'' + selectedBatchId + '\',\'' + school.name + '\',this)">提醒申报</button>';
+      } else {
+        h += '<button class="btn btn-outline btn-sm" disabled style="opacity:0.5;cursor:not-allowed;">今日已提醒</button>';
+      }
+      h += '</td>';
+      h += '</tr>';
+    });
+  }
+  h += '</tbody></table></div></div>';
+  return h;
 }
 
 function renderBatchCards(batches) {
@@ -1082,9 +1270,15 @@ function renderBatchCards(batches) {
     var approvedPct = stats.total > 0 ? Math.round(stats.approved / stats.total * 100) : 0;
     var submittedPct = stats.total > 0 ? Math.round(stats.submitted / stats.total * 100) : 0;
     var rejectedPct = stats.total > 0 ? Math.round(stats.rejected / stats.total * 100) : 0;
+    var isChecked = selectedBatchIdsForSummary.indexOf(b.id) !== -1;
 
-    h += '<div class="batch-card' + (isSelected ? ' selected' : '') + '" onclick="selectBatch(\'' + b.id + '\')">';
+    h += '<div class="batch-card' + (isSelected && !isYearSummaryMode ? ' selected' : '') + '"';
+    h += isYearSummaryMode ? ' onclick="toggleBatchForSummary(\'' + b.id + '\',event)"' : ' onclick="selectBatch(\'' + b.id + '\')"';
+    h += '>';
     h += '<div class="batch-card-header">';
+    if (isYearSummaryMode) {
+      h += '<div class="batch-summary-checkbox' + (isChecked ? ' checked' : '') + '"></div>';
+    }
     h += '<span class="batch-card-name" onclick="event.stopPropagation();showBatchDetail(\'' + b.id + '\')">' + b.name + '</span>';
     h += '<span class="batch-card-status ' + (b.status === '进行中' ? 'active' : 'closed') + '">' + b.status + '</span>';
     h += '</div>';
@@ -1100,7 +1294,7 @@ function renderBatchCards(batches) {
     if (b.status === '进行中') {
       h += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showEditBatchModal(\'' + b.id + '\')">编辑批次</button>';
     }
-    h += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showToast(\'导出汇总数据（附件10）\')">导出（附件10）</button>';
+    h += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();downloadBatchSummary(\'' + b.id + '\')">📥 批次汇总</button>';
     h += '</div>';
     h += '</div>';
   });
@@ -1171,6 +1365,50 @@ function confirmCloseBatch(id) {
   c += '<div class="modal-body"><p style="font-size:14px;">确认关闭批次「' + b.name + '」？</p><p style="font-size:12px;color:var(--text-light);margin-top:8px;">关闭后各单位将无法继续提交申报。</p></div>';
   c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast(\'批次已关闭\')">确认关闭</button></div>';
   openModal(c);
+}
+
+function downloadBatchSummary(batchId) {
+  var subs = SUBMISSIONS.filter(function(s) { return s.batchId === batchId && s.status === 'approved'; });
+  showToast('批次 ' + batchId + ' 终审通过汇总表已生成（' + subs.length + ' 条记录）');
+}
+function downloadYearSummary(year) {
+  var subs = SUBMISSIONS.filter(function(s) { return s.batchId.indexOf(year) === 0 && s.status === 'approved'; });
+  showToast('年度 ' + year + ' 终审通过汇总表已生成（' + subs.length + ' 条记录）');
+}
+
+// ===== YEAR SUMMARY MODE =====
+function toggleYearSummaryMode() {
+  isYearSummaryMode = !isYearSummaryMode;
+  selectedBatchIdsForSummary = [];
+  renderMain();
+}
+
+function toggleBatchForSummary(batchId, event) {
+  event.stopPropagation();
+  var idx = selectedBatchIdsForSummary.indexOf(batchId);
+  if (idx === -1) {
+    selectedBatchIdsForSummary.push(batchId);
+  } else {
+    selectedBatchIdsForSummary.splice(idx, 1);
+  }
+  renderMain();
+}
+
+function generateYearSummary() {
+  if (selectedBatchIdsForSummary.length === 0) {
+    showToast('请至少选择一个批次');
+    return;
+  }
+  var allSubs = [];
+  selectedBatchIdsForSummary.forEach(function(batchId) {
+    var subs = SUBMISSIONS.filter(function(s) { return s.batchId === batchId && s.status === 'approved'; });
+    allSubs = allSubs.concat(subs);
+  });
+  var yearLabel = currentBatchYear || '全部年度';
+  showToast(yearLabel + ' — 已选 ' + selectedBatchIdsForSummary.length + ' 个批次，终审通过 ' + allSubs.length + ' 条记录，汇总表已生成');
+  isYearSummaryMode = false;
+  selectedBatchIdsForSummary = [];
+  renderMain();
 }
 
 function confirmApprove(id, school) {
@@ -1245,7 +1483,7 @@ function renderSubmissionsTable(subs) {
     h += '<td>' + (s.submitDate || '—') + '</td>';
     h += '<td><div class="action-links">';
     h += '<a href="staffing-detail.html?id=' + s.id + '">查看</a>';
-    if (s.status === 'submitted' || s.status === 'reviewing') {
+    if (s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved') {
       var canApprove = !isCityAdmin || s.schoolType === '市直属';
       if (canApprove) {
         h += '<a href="审核编制使用申请页（主管单位视角）.html?id=' + s.id + '" style="color:var(--primary);font-weight:500;">审核</a>';
@@ -1273,6 +1511,7 @@ function switchRole(role) {
   currentFilter = 'all';
   staffingTypeFilter = 'all';
   schoolBatchFilter = 'all';
+  currentBatchYear = null;
   document.querySelectorAll('.role-switch-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.role === role);
   });

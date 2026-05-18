@@ -86,18 +86,20 @@ body {
 .sidebar.collapsed { width: 64px; }
 .sidebar.collapsed .menu-label,
 .sidebar.collapsed .menu-group,
-.sidebar.collapsed .menu-badge { display: none; }
+.sidebar.collapsed .menu-badge,
+.sidebar.collapsed .role-switcher-label,
+.sidebar.collapsed .role-switcher-name { display: none; }
 .sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
 .sidebar.collapsed .menu-icon { margin-right: 0; }
 .sidebar-menu { flex: 1; padding: 8px 0; }
 .menu-group {
   padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4);
-  letter-spacing: 1px;
+  letter-spacing: 1px; text-transform: uppercase;
 }
 .menu-item {
   display: flex; align-items: center; padding: 10px 20px; cursor: pointer;
   font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7);
-  transition: var(--transition); text-decoration: none;
+  transition: var(--transition); position: relative; text-decoration: none;
   border-left: 3px solid transparent;
 }
 .menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
@@ -111,6 +113,7 @@ body {
   margin-left: auto; background: var(--danger); color: #fff;
   font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
 }
+
 .sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
 .sidebar-toggle {
   display: flex; align-items: center; gap: 8px; padding: 10px 20px;
@@ -120,6 +123,29 @@ body {
 .sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
 .sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
 .sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+.role-switcher {
+  padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08);
+}
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  transition: var(--transition); border: 1px solid transparent;
+  background: transparent; font-family: inherit; width: 100%; text-align: left;
+}
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active {
+  background: rgba(59,130,246,0.2); color: #fff;
+  border-color: rgba(59,130,246,0.4); font-weight: 500;
+}
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
 
 /* ===== MAIN CONTENT ===== */
 .main {
@@ -171,6 +197,27 @@ body {
   border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
 }
 .form-group textarea { resize: vertical; min-height: 60px; }
+
+/* Step1 readonly fields grid */
+.step1-fields-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.step1-fields-grid .info-item {
+  padding: 10px 14px; background: #F8FAFC; border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.step1-fields-grid .info-label {
+  font-size: 11px; color: var(--text-light); margin-bottom: 4px; font-weight: 500;
+}
+.step1-fields-grid .info-value {
+  font-size: 14px; font-weight: 600; color: var(--text);
+}
+.step1-fields-grid .info-item-placeholder {
+  background: transparent; border: none; padding: 0;
+}
+.info-value {
+  font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 0;
+}
 .form-group .input-unit { position: relative; }
 .form-group .input-unit input { padding-right: 50px; }
 .form-group .input-unit .unit-label {
@@ -179,6 +226,9 @@ body {
 }
 .form-group .help-text { font-size: 11px; color: var(--text-light); margin-top: 4px; }
 .form-group input[type="file"] { padding: 6px; }
+.form-group .calculated {
+  background: #F8FAFC; color: var(--primary); font-weight: 600;
+}
 
 /* Use forms table */
 .use-form-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -198,6 +248,9 @@ body {
   text-align: left; font-weight: 500; color: var(--text-secondary);
   background: #F8FAFC;
 }
+.use-form-table tr.summary-row td {
+  font-weight: 600; background: #FAFBFC;
+}
 
 /* Upload area */
 .upload-area {
@@ -208,14 +261,39 @@ body {
 .upload-area .upload-icon { font-size: 40px; margin-bottom: 8px; }
 .upload-area .upload-text { font-size: 13px; color: var(--text-secondary); }
 .upload-area .upload-hint { font-size: 11px; color: var(--text-light); margin-top: 4px; }
-.upload-file { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #F0FDF4; border-radius: 6px; margin-top: 12px; font-size: 13px; }
+.upload-file {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: #F0FDF4; border-radius: 6px; margin-top: 12px; font-size: 13px;
+}
 .upload-file .remove { color: var(--danger); cursor: pointer; margin-left: auto; }
+
+/* Type selector */
+.type-selector {
+  display: flex; gap: 12px; margin-bottom: 20px;
+}
+.type-option {
+  flex: 1; padding: 16px; border: 2px solid var(--border); border-radius: var(--radius-lg);
+  cursor: pointer; text-align: center; transition: var(--transition); background: #fff;
+}
+.type-option:hover { border-color: var(--accent); }
+.type-option.selected {
+  border-color: var(--primary); background: var(--primary-light);
+}
+.type-option .type-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.type-option .type-form { font-size: 12px; color: var(--text-secondary); }
+.type-option .type-badge {
+  display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 500;
+}
+.type-badge.career { background: #DBEAFE; color: #1E40AF; }
+.type-badge.control { background: #E0E7FF; color: #3730A3; }
 
 /* Footer actions */
 .form-footer {
-  display: flex; justify-content: flex-end; gap: 12px;
-  padding: 20px 0; position: sticky; bottom: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 0;
 }
+.form-footer-right { display: flex; gap: 12px; }
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 500;
@@ -230,6 +308,9 @@ body {
 .btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
 .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 .btn-lg { padding: 12px 32px; font-size: 15px; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { opacity: 0.9; }
 
 /* Toast */
 .toast {
@@ -243,6 +324,20 @@ body {
 .toast.warning { background: var(--warning); color: #1E293B; }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* Quota summary bar */
+.quota-summary {
+  display: flex; gap: 16px; padding: 12px 16px; background: #F8FAFC;
+  border-radius: var(--radius); margin-top: 16px;
+}
+.quota-item {
+  flex: 1; text-align: center;
+}
+.quota-item .q-label { font-size: 11px; color: var(--text-secondary); }
+.quota-item .q-value { font-size: 18px; font-weight: 700; }
+.quota-item .q-value.ok { color: var(--success); }
+.quota-item .q-value.warn { color: var(--warning); }
+.quota-item .q-value.error { color: var(--danger); }
 
 @media (max-width: 768px) {
   .sidebar { display: none; }
@@ -267,8 +362,8 @@ body {
       <span class="badge">3</span>
     </div>
     <div class="topnav-user" onclick="toggleUserMenu()">
-      <div class="avatar">王</div>
-      <span>王玉兰</span>
+      <div class="avatar" id="userAvatar">王</div>
+      <span id="userName">王玉兰</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="user-dropdown" id="userDropdown">
         <a href="#">👤 个人中心</a>
@@ -282,70 +377,26 @@ body {
 
 <!-- ===== SIDEBAR ===== -->
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-menu">
-    <a class="menu-item" href="workbench.html">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span class="menu-label">工作台</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span class="menu-label">数据概览</span>
-    </a>
-    <div class="menu-group">编制管理</div>
-    <a class="menu-item active" href="staffing-application.html">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      <span class="menu-label">编制使用申请</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
-      <span class="menu-label">入编申请</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
-      <span class="menu-label">教师出编管理</span>
-    </a>
-    <div class="menu-group">岗位管理</div>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      <span class="menu-label">岗位设置申请</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      <span class="menu-label">岗位晋升申请</span>
-      <span class="menu-badge">2</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <span class="menu-label">招聘岗位申请</span>
-    </a>
-    <div class="menu-group">聘用管理</div>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span class="menu-label">聘用手续办理</span>
-    </a>
-    <div class="menu-group">人事管理</div>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span class="menu-label">退休呈报</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span class="menu-label">工资核定申请</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span class="menu-label">师德师风举报</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span class="menu-label">荣誉申请</span>
-    </a>
-    <div class="menu-group">系统设置</div>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span class="menu-label">账号管理</span>
-    </a>
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+
+  <div class="role-switcher" id="roleSwitcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')">
+        <span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span>
+      </button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')">
+        <span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span>
+      </button>
+      <button class="role-switch-btn active" data-role="school" onclick="switchRole('school')">
+        <span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span>
+      </button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')">
+        <span class="role-switch-dot teacher"></span><span class="role-switcher-name">教 师</span>
+      </button>
+    </div>
   </div>
+
   <div class="sidebar-bottom">
     <div class="sidebar-toggle" onclick="toggleSidebar()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
@@ -359,121 +410,51 @@ body {
   <div class="breadcrumb">
     <a href="workbench.html">首页</a> &nbsp;/&nbsp;
     <a href="staffing-application.html">编制使用申请</a> &nbsp;/&nbsp;
-    <span>新建申报</span>
+    <span id="breadcrumbType">新建申报</span>
   </div>
 
   <div class="page-header">
-    <h1 id="formTitle">新建申报 — 附件9</h1>
-    <div class="subtitle" id="formSubtitle">中小学聘用教师控制数使用计划申报表</div>
+    <h1 id="formTitle">新建申报</h1>
+    <div class="subtitle" id="formSubtitle"></div>
   </div>
 
-  <!-- Step 1: 申请单位情况 -->
+  <!-- Step 0: 申报类型选择 -->
+  <div class="form-card" id="typeSelectCard">
+    <div class="form-card-title"><span class="step-num">0</span>选择申报类型</div>
+    <div class="type-selector" id="typeSelector"></div>
+  </div>
+
+  <!-- Step 1: 申请单位情况（系统自动获取，不可编辑） -->
   <div class="form-card">
-    <div class="form-card-title"><span class="step-num">1</span>申请单位情况</div>
+    <div class="form-card-title">申请单位情况</div>
 
     <div class="form-row">
       <div class="form-group" style="flex:2;">
-        <label>单位全称 <span class="required">*</span></label>
-        <input value="柳州市第八中学">
-        <div class="help-text">按规范第一名称填报</div>
+        <label>单位全称</label>
+        <div class="info-value" id="fUnitNameDisplay">—</div>
+        <input type="hidden" id="fUnitName">
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>核定编制数（名） <span class="required">*</span></label>
-        <div class="input-unit"><input type="number" value="88"><span class="unit-label">名</span></div>
-      </div>
-      <div class="form-group">
-        <label>在编人数（人） <span class="required">*</span></label>
-        <div class="input-unit"><input type="number" value="82"><span class="unit-label">人</span></div>
-      </div>
-      <div class="form-group">
-        <label>未使用计划数</label>
-        <div class="input-unit"><input type="number" value="0"><span class="unit-label">名</span></div>
-        <div class="help-text">已批复计划中尚未办理进编的人数</div>
-      </div>
-    </div>
+    <div class="step1-fields-grid" id="step1Fields"></div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>核定聘用教师控制数（名） <span class="required">*</span></label>
-        <div class="input-unit"><input type="number" value="16"><span class="unit-label">名</span></div>
-      </div>
-      <div class="form-group">
-        <label>聘用教师控制数实有数（人） <span class="required">*</span></label>
-        <div class="input-unit"><input type="number" value="14"><span class="unit-label">人</span></div>
-      </div>
-      <div class="form-group">
-        <label>未使用控制数计划数</label>
-        <div class="input-unit"><input type="number" value="1"><span class="unit-label">名</span></div>
-        <div class="help-text">已批复计划中尚未办理增人手续的人数</div>
-      </div>
-    </div>
+    <div class="quota-summary" id="quotaSummary"></div>
   </div>
 
   <!-- Step 2: 使用形式 -->
   <div class="form-card">
     <div class="form-card-title"><span class="step-num">2</span>使用形式及数量</div>
-
     <table class="use-form-table">
       <thead>
         <tr>
           <th style="width:140px;">使用形式</th>
-          <th>使用控制数（名）</th>
+          <th id="thCount">使用控制数（名）</th>
           <th>学历、专业（大类）、从业资格等</th>
           <th>相关条件</th>
           <th>备注</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td class="row-label">统一公开招聘</td>
-          <td><input type="number" value="1" placeholder="0"></td>
-          <td><input type="text" value="本科，数学类，高中教师资格证" placeholder="填写学历、专业、资格要求"></td>
-          <td><input type="text" value="35周岁以下" placeholder="相关条件"></td>
-          <td><input type="text" placeholder="备注"></td>
-        </tr>
-        <tr>
-          <td class="row-label">单位自主实施招聘</td>
-          <td><input type="number" value="1" placeholder="0"></td>
-          <td><input type="text" value="本科，语文类，高中教师资格证" placeholder="填写学历、专业、资格要求"></td>
-          <td><input type="text" value="40周岁以下" placeholder="相关条件"></td>
-          <td><input type="text" placeholder="备注"></td>
-        </tr>
-        <tr>
-          <td class="row-label">中高级人才招聘</td>
-          <td><input type="number" value="0" placeholder="0"></td>
-          <td><input type="text" placeholder="填写学历、专业、资格要求"></td>
-          <td><input type="text" placeholder="相关条件"></td>
-          <td><input type="text" placeholder="备注"></td>
-        </tr>
-        <tr>
-          <td class="row-label">引进高层次人才</td>
-          <td><input type="number" value="0" placeholder="0"></td>
-          <td><input type="text" placeholder="填写学历、专业、资格要求"></td>
-          <td><input type="text" placeholder="相关条件"></td>
-          <td><input type="text" placeholder="备注"></td>
-        </tr>
-        <tr>
-          <td class="row-label">调动</td>
-          <td><input type="number" value="0" placeholder="0"></td>
-          <td><input type="text" placeholder="填写学历、专业、资格要求"></td>
-          <td><input type="text" placeholder="相关条件"></td>
-          <td><input type="text" placeholder="备注"></td>
-        </tr>
-        <tr>
-          <td class="row-label">其他</td>
-          <td><input type="number" value="0" placeholder="0"></td>
-          <td><input type="text" placeholder="填写学历、专业、资格要求"></td>
-          <td><input type="text" placeholder="相关条件"></td>
-          <td><input type="text" placeholder="备注"></td>
-        </tr>
-        <tr>
-          <td class="row-label" style="text-align:center;font-weight:600;">合　计</td>
-          <td style="font-weight:600;color:var(--primary);">2</td>
-          <td colspan="3"></td>
-        </tr>
+      <tbody id="useFormBody">
       </tbody>
     </table>
   </div>
@@ -481,39 +462,488 @@ body {
   <!-- Step 3: 附件上传 -->
   <div class="form-card">
     <div class="form-card-title"><span class="step-num">3</span>附件上传</div>
-
     <div class="form-group">
-      <label>附件9 扫描件（PDF） <span class="required">*</span></label>
+      <label id="attachmentLabel">附件9 扫描件 <span class="required">*</span></label>
       <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
         <div class="upload-icon">📄</div>
-        <div class="upload-text">点击上传或拖拽PDF文件到此处</div>
-        <div class="upload-hint">支持 PDF 格式，单个文件不超过 10MB。正反双面扫描。</div>
+        <div class="upload-text">点击上传或拖拽文件到此处</div>
+        <div class="upload-hint" id="uploadHint">支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB，不支持压缩包</div>
       </div>
-      <input type="file" id="fileInput" accept=".pdf" style="display:none;" onchange="handleFile(event)">
+      <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFile(event)">
       <div id="uploadedFile"></div>
     </div>
   </div>
 
   <!-- Footer -->
   <div class="form-footer">
-    <button class="btn btn-outline btn-lg" onclick="window.location.href='staffing-application.html'">取消</button>
-    <button class="btn btn-primary btn-lg" onclick="submitForm()">提交申报</button>
+    <button class="btn btn-outline btn-lg" onclick="goBack()">取消</button>
+    <div class="form-footer-right">
+      <button class="btn btn-primary btn-lg" onclick="submitForm()">提交申报</button>
+    </div>
   </div>
 </main>
 
 <div id="toastContainer"></div>
 
 <script>
-// Read batch params from URL
+// ===== SVG ICONS =====
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 16 16 12 12 8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
+};
+var MENU_ICONS = {
+  workbench: 'home', dashboard: 'chart',
+  entry: 'userp', staffing: 'monitor', exit: 'userx',
+  promote: 'arrowup', postset: 'shield', recruit: 'search',
+  employ: 'file',
+  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  account: 'users', org: 'building', perm: 'key', log: 'list'
+};
+
+var ROLES = {
+  city: {
+    name: '张建国', short: '张', org: '柳州市教育局', role: '市管理员',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请', badge: 3 },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请', badge: 5 },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [
+          { id: 'account', label: '账号管理' },
+          { id: 'org', label: '机构管理' },
+          { id: 'perm', label: '角色权限' },
+          { id: 'log', label: '操作日志' }
+        ]}
+      ]
+    }
+  },
+  district: {
+    name: '李振华', short: '李', org: '鱼峰区教育局', role: '区管理员',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请', badge: 1 },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请', badge: 3 },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+      ]
+    }
+  },
+  school: {
+    name: '王玉兰', short: '王', org: '柳州市第八中学', role: '校管理员',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请', active: true },
+          { id: 'entry', label: '入编申请' },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请', badge: 2 },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+      ]
+    }
+  },
+  teacher: {
+    name: '陈明辉', short: '陈', org: '柳州市第八中学', role: '教师',
+    sidebar: {
+      top: [{ id: 'workbench', icon: 'home', label: '工作台' }],
+      groups: [
+        { name: '业务申请', items: [
+          { id: 'entry', label: '入编申请' },
+          { id: 'promote', label: '岗位晋升申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]}
+      ]
+    }
+  }
+};
+
+// ===== STATE =====
+var currentRole = 'school';
+var staffingType = 'control'; // 'career' | 'control'
+var uploadedFile = null;
+
+// URL params
 var urlParams = new URLSearchParams(window.location.search);
 var formBatchId = urlParams.get('batchId') || '';
 var formBatchName = urlParams.get('batchName') || '';
+var urlType = urlParams.get('staffingType'); // 'career' | 'control'
 
-if (formBatchName) {
-  document.getElementById('formTitle').textContent = '新建申报 — 附件9';
-  document.getElementById('formSubtitle').textContent = formBatchName + ' — 中小学聘用教师控制数使用计划申报表';
+// Set type from URL, default to control
+if (urlType === 'career' || urlType === 'control') {
+  staffingType = urlType;
 }
 
+// Use form rows
+var USE_FORM_ROWS = [
+  { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
+  { type: '单位自主实施招聘', num: 0, edu: '', cond: '', note: '' },
+  { type: '中高级人才招聘', num: 0, edu: '', cond: '', note: '' },
+  { type: '引进高层次人才', num: 0, edu: '', cond: '', note: '' },
+  { type: '调动', num: 0, edu: '', cond: '', note: '' },
+  { type: '其他', num: 0, edu: '', cond: '', note: '' }
+];
+
+// ===== SCHOOL PROFILE (system auto-provided, read-only) =====
+var SCHOOL_PROFILE = {
+  '柳州市第八中学': {
+    unitName: '柳州市第八中学',
+    fOrgLevel: '正科级',
+    fOrgNature: '全额拨款事业单位',
+    fAuthStaff: 88, fCurrentStaff: 80, fUnusedPlan: 1,
+    fControlQuota: 16, fControlActual: 14, fUnusedControl: 5,
+    fAuthLeader: 5, fActualLeader: 4, fActualOtherLeader: 3
+  }
+};
+var currentSchoolName = '柳州市第八中学';
+
+var TYPE_CONFIG = {
+  career: {
+    label: '事业编',
+    formName: '附件2',
+    formDesc: '中小学事业编制使用计划申报表',
+    badgeClass: 'career',
+    icon: '📋',
+    step1Title: '事业编制情况',
+    fields: [
+      { id: 'fOrgLevel', label: '机构级别', unit: '', help: '机构编制部门确定的机构级别' },
+      { id: 'fOrgNature', label: '单位性质', unit: '', help: '事业单位分类，如全额拨款事业单位' },
+      { id: 'fAuthStaff', label: '核定事业编制数（名）', unit: '名', help: '机构编制部门核定的本单位事业编制总数' },
+      { id: 'fCurrentStaff', label: '在编人数（人）', unit: '人', help: '当前实际在编的事业编制人数' },
+      { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '已批复计划中尚未办理进编的人数' },
+      { id: 'fAuthLeader', label: '核定单位领导职数', unit: '名', help: '编制部门核定的单位领导职数' },
+      { id: 'fActualLeader', label: '实配单位领导人数', unit: '人', help: '当前实际配备的领导人数' },
+      { id: 'fActualOtherLeader', label: '实配单位其他领导人数', unit: '人', help: '非领导职务的其他管理岗位人数' }
+    ],
+    countLabel: '使用事业编制（名）',
+    countField: '使用事业编制',
+    attachmentName: '附件2',
+    attachmentHints: ['支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB', '不支持压缩包（zip/rar/7z）', '正反双面扫描，单位负责人签字盖章'],
+    validation: function() {
+      var auth = parseInt(document.getElementById('fAuthStaffVal').textContent) || 0;
+      var current = parseInt(document.getElementById('fCurrentStaffVal').textContent) || 0;
+      var unused = parseInt(document.getElementById('fUnusedPlanVal').textContent) || 0;
+      var totalApply = getApplyTotal();
+      var vacancy = auth - current + unused;
+      return { quota: vacancy, label: '空编数', apply: totalApply, ok: totalApply <= vacancy };
+    }
+  },
+  control: {
+    label: '控制数',
+    formName: '附件9',
+    formDesc: '中小学聘用教师控制数使用计划申报表',
+    badgeClass: 'control',
+    icon: '📎',
+    step1Title: '控制数情况',
+    fields: [
+      { id: 'fAuthStaff', label: '核定编制数（名）', unit: '名', help: '机构编制部门核定的本单位编制总数' },
+      { id: 'fCurrentStaff', label: '在编人数（人）', unit: '人', help: '当前实际在编的总人数' },
+      { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' },
+      { id: 'fControlQuota', label: '核定聘用教师控制数（名）', unit: '名', help: '机构编制部门核定的聘用教师控制数' },
+      { id: 'fControlActual', label: '聘用教师控制数实有数（人）', unit: '人', help: '当前实际聘用的控制数教师人数' },
+      { id: 'fUnusedControl', label: '未使用控制数计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' }
+    ],
+    countLabel: '使用控制数（名）',
+    countField: '使用控制数',
+    attachmentName: '附件9',
+    attachmentHints: ['支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB', '不支持压缩包（zip/rar/7z）', '正反双面扫描，单位负责人签字盖章'],
+    validation: function() {
+      var quota = parseInt(document.getElementById('fControlQuotaVal').textContent) || 0;
+      var actual = parseInt(document.getElementById('fControlActualVal').textContent) || 0;
+      var unused = parseInt(document.getElementById('fUnusedControlVal').textContent) || 0;
+      var totalApply = getApplyTotal();
+      var available = quota - actual + unused;
+      return { quota: available, label: '可用控制数', apply: totalApply, ok: totalApply <= available };
+    }
+  }
+};
+
+// ===== RENDER SIDEBAR =====
+function renderSidebar() {
+  var data = ROLES[currentRole].sidebar;
+  var html = '';
+  data.top.forEach(function(item) {
+    html += '<a class="menu-item' + (item.active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">';
+    html += ICONS[item.icon];
+    html += '<span class="menu-label">' + item.label + '</span>';
+    html += '</a>';
+  });
+  data.groups.forEach(function(group) {
+    html += '<div class="menu-group">' + group.name + '</div>';
+    group.items.forEach(function(item) {
+      html += '<a class="menu-item' + (item.active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">';
+      html += ICONS[MENU_ICONS[item.id] || 'file'];
+      html += '<span class="menu-label">' + item.label + '</span>';
+      if (item.badge) html += '<span class="menu-badge">' + item.badge + '</span>';
+      html += '</a>';
+    });
+  });
+  document.getElementById('sidebarMenu').innerHTML = html;
+}
+
+function updateUserInfo() {
+  var data = ROLES[currentRole];
+  document.getElementById('userName').textContent = data.name;
+  document.getElementById('userAvatar').textContent = data.short;
+}
+
+function sidebarClick(el, id) {
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'entry') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
+  if (id === 'exit') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
+  showToast('跳转至：' + (el.textContent || id));
+}
+
+// ===== ROLE SWITCH =====
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.role === role);
+  });
+  updateUserInfo();
+  renderSidebar();
+  showToast('已切换至：' + ROLES[role].role + ' — ' + ROLES[role].name);
+}
+
+// ===== TYPE SELECTION =====
+function renderTypeSelector() {
+  var types = [
+    { key: 'career', config: TYPE_CONFIG.career },
+    { key: 'control', config: TYPE_CONFIG.control }
+  ];
+  var html = '';
+  types.forEach(function(t) {
+    var isSelected = t.key === staffingType;
+    html += '<div class="type-option' + (isSelected ? ' selected' : '') + '" onclick="selectType(\'' + t.key + '\')">';
+    html += '<div class="type-name">' + t.config.icon + ' ' + t.config.label + '</div>';
+    html += '<div class="type-form">' + t.config.formName + ' — ' + t.config.formDesc + '</div>';
+    html += '<span class="type-badge ' + t.config.badgeClass + '">' + t.config.formName + '</span>';
+    html += '</div>';
+  });
+  document.getElementById('typeSelector').innerHTML = html;
+}
+
+function selectType(type) {
+  staffingType = type;
+  renderTypeSelector();
+  renderForm();
+}
+
+// ===== RENDER FORM =====
+function getApplyTotal() {
+  var total = 0;
+  USE_FORM_ROWS.forEach(function(row) { total += row.num; });
+  return total;
+}
+
+function renderForm() {
+  var cfg = TYPE_CONFIG[staffingType];
+
+  // Title
+  document.getElementById('formTitle').textContent = '新建申报 — ' + cfg.formName;
+  document.getElementById('formSubtitle').textContent = (formBatchName || '编制使用计划') + ' — ' + cfg.formDesc;
+  document.getElementById('breadcrumbType').textContent = '新建申报 (' + cfg.label + ')';
+
+  // Step 1: unit info (system auto-provided, read-only)
+  var profile = SCHOOL_PROFILE[currentSchoolName] || {};
+  document.getElementById('fUnitNameDisplay').textContent = profile.unitName || currentSchoolName;
+  document.getElementById('fUnitName').value = profile.unitName || currentSchoolName;
+
+  var fieldsHtml = '';
+  cfg.fields.forEach(function(f, i) {
+    var val = profile[f.id] !== undefined ? profile[f.id] : '—';
+    var unitSuffix = f.unit ? ' <span style="font-size:11px;color:var(--text-light);font-weight:400;">' + f.unit + '</span>' : '';
+    fieldsHtml += '<div class="info-item">';
+    fieldsHtml += '<div class="info-label">' + f.label + '</div>';
+    fieldsHtml += '<div class="info-value" id="' + f.id + 'Val">' + val + unitSuffix + '</div>';
+    fieldsHtml += '</div>';
+    // Career: blank placeholder after first 2 fields for 2+3+3 layout
+    if (staffingType === 'career' && i === 1) {
+      fieldsHtml += '<div class="info-item info-item-placeholder"></div>';
+    }
+  });
+  document.getElementById('step1Fields').innerHTML = fieldsHtml;
+
+  // Step 2 table header
+  document.getElementById('thCount').textContent = cfg.countLabel;
+
+  // Step 2 table body
+  var rowsHtml = '';
+  USE_FORM_ROWS.forEach(function(row, i) {
+    rowsHtml += '<tr>';
+    rowsHtml += '<td class="row-label">' + row.type + '</td>';
+    rowsHtml += '<td><input type="number" value="' + row.num + '" placeholder="0" oninput="onRowChange(' + i + ', this.value)" id="rowNum_' + i + '"></td>';
+    rowsHtml += '<td><input type="text" value="' + (row.edu || '') + '" placeholder="填写学历、专业、资格要求" oninput="onRowTextChange(' + i + ', \'edu\', this.value)"></td>';
+    rowsHtml += '<td><input type="text" value="' + (row.cond || '') + '" placeholder="相关条件" oninput="onRowTextChange(' + i + ', \'cond\', this.value)"></td>';
+    rowsHtml += '<td><input type="text" value="' + (row.note || '') + '" placeholder="备注" oninput="onRowTextChange(' + i + ', \'note\', this.value)"></td>';
+    rowsHtml += '</tr>';
+  });
+  // Summary row
+  rowsHtml += '<tr class="summary-row">';
+  rowsHtml += '<td class="row-label" style="text-align:center;font-weight:600;">合　计</td>';
+  rowsHtml += '<td style="font-weight:600;color:var(--primary);" id="totalApply">' + getApplyTotal() + '</td>';
+  rowsHtml += '<td colspan="3"></td>';
+  rowsHtml += '</tr>';
+  document.getElementById('useFormBody').innerHTML = rowsHtml;
+
+  // Step 3 attachment
+  document.getElementById('attachmentLabel').innerHTML = cfg.formName + ' 扫描件 <span class="required">*</span>';
+  document.getElementById('uploadHint').innerHTML = cfg.attachmentHints.join('。');
+
+  // Quota summary
+  updateQuotaSummary();
+}
+
+function updateQuotaSummary() {
+  var valid = TYPE_CONFIG[staffingType].validation();
+  var applyTotalEl = document.getElementById('totalApply');
+  if (applyTotalEl) applyTotalEl.textContent = getApplyTotal();
+
+  var summaryEl = document.getElementById('quotaSummary');
+  summaryEl.innerHTML =
+    '<div class="quota-item"><div class="q-label">' + valid.label + '</div><div class="q-value ok">' + valid.quota + ' 名</div></div>' +
+    '<div class="quota-item"><div class="q-label">+ 本次申请合计</div><div class="q-value ok">' + valid.apply + ' 名</div></div>' +
+    '<div class="quota-item"><div class="q-label">= 全部可用</div><div class="q-value ok">' + (valid.quota + valid.apply) + ' 名</div></div>';
+}
+
+function onRowChange(idx, val) {
+  USE_FORM_ROWS[idx].num = parseInt(val) || 0;
+  updateQuotaSummary();
+}
+
+function onRowTextChange(idx, field, val) {
+  USE_FORM_ROWS[idx][field] = val;
+}
+
+// ===== FILE UPLOAD =====
+var ALLOWED_EXTS = ['.pdf','.jpg','.jpeg','.png','.doc','.docx','.xls','.xlsx'];
+var BLOCKED_EXTS = ['.zip','.rar','.7z','.tar','.gz','.bz2','.xz','.tgz'];
+var MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+function validateFile(file) {
+  var ext = '.' + file.name.split('.').pop().toLowerCase();
+  if (BLOCKED_EXTS.indexOf(ext) !== -1) {
+    return '不支持压缩包格式（' + ext + '），请上传 PDF、Word、Excel 或图片文件';
+  }
+  if (ALLOWED_EXTS.indexOf(ext) === -1) {
+    return '不支持的文件格式（' + ext + '），仅支持 PDF、Word、Excel、图片';
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return '文件大小 ' + (file.size / 1024 / 1024).toFixed(1) + ' MB 超过 10MB 上限，请压缩后重新上传';
+  }
+  return null;
+}
+
+function handleFile(e) {
+  var f = e.target.files[0];
+  if (!f) return;
+  var err = validateFile(f);
+  if (err) { showToast(err, 'warning'); e.target.value = ''; return; }
+  uploadedFile = f;
+  document.getElementById('uploadArea').style.display = 'none';
+  document.getElementById('uploadedFile').innerHTML =
+    '<div class="upload-file">📎 ' + f.name + ' (' + (f.size / 1024 / 1024).toFixed(1) + ' MB)<span class="remove" onclick="removeFile()">✕ 移除</span></div>';
+}
+
+function removeFile() {
+  uploadedFile = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('uploadArea').style.display = '';
+  document.getElementById('uploadedFile').innerHTML = '';
+}
+
+// ===== SUBMIT =====
+function submitForm() {
+  var cfg = TYPE_CONFIG[staffingType];
+
+  // Check unit name
+  var unitName = document.getElementById('fUnitName').value.trim();
+  if (!unitName) { showToast('单位信息未加载，请刷新页面', 'warning'); return; }
+
+  var totalApply = getApplyTotal();
+  if (totalApply <= 0) { showToast('请填写使用形式及数量（合计必须大于0）', 'warning'); return; }
+
+  if (!uploadedFile) {
+    showToast('请上传' + cfg.formName + ' 扫描件', 'warning');
+    return;
+  }
+
+  showToast('申报已提交，待主管单位审核');
+  setTimeout(function() { window.location.href = 'staffing-application.html'; }, 1500);
+}
+
+function goBack() {
+  window.location.href = 'staffing-application.html';
+}
+
+// ===== UI HELPERS =====
 function toggleUserMenu() {
   document.getElementById('userDropdown').classList.toggle('show');
 }
@@ -525,39 +955,6 @@ function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('collapsed');
 }
 
-function handleFile(e) {
-  var f = e.target.files[0];
-  if (!f) return;
-  document.getElementById('uploadArea').style.display = 'none';
-  document.getElementById('uploadedFile').innerHTML =
-    '<div class="upload-file">📎 ' + f.name + ' (' + (f.size / 1024 / 1024).toFixed(1) + ' MB)<span class="remove" onclick="removeFile()">✕ 移除</span></div>';
-}
-
-function removeFile() {
-  document.getElementById('fileInput').value = '';
-  document.getElementById('uploadArea').style.display = '';
-  document.getElementById('uploadedFile').innerHTML = '';
-}
-
-function isValid() {
-  var inputs = document.querySelectorAll('input[type="text"]:not([placeholder]), input[type="number"]:not([placeholder])');
-  for (var i = 0; i < inputs.length; i++) {
-    if (!inputs[i].value.trim() && inputs[i].closest('.form-group').querySelector('.required')) {
-      showToast('请填写所有必填字段', 'warning'); return false;
-    }
-  }
-  return true;
-}
-
-function submitForm() {
-  if (!isValid()) return;
-  if (!document.getElementById('fileInput').files.length) {
-    showToast('请上传附件9 扫描件（PDF）', 'warning'); return;
-  }
-  showToast('申报已提交，待主管单位审核');
-  setTimeout(function() { window.location.href = 'staffing-application.html'; }, 1500);
-}
-
 function showToast(msg, type) {
   type = type || 'success';
   var c = document.getElementById('toastContainer');
@@ -566,5 +963,11 @@ function showToast(msg, type) {
   c.appendChild(t);
   setTimeout(function() { t.remove(); }, 2200);
 }
+
+// ===== INIT =====
+renderSidebar();
+updateUserInfo();
+renderTypeSelector();
+renderForm();
 </script>
 </body></html>
