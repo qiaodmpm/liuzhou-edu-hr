@@ -172,7 +172,7 @@ body {
 .status-stamp.pending { color: #F59E0B; border-color: #F59E0B; }
 
 /* Unit info */
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .info-item { background: #F8FAFC; padding: 12px; border-radius: var(--radius); }
 .info-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
 .info-value { font-size: 13px; font-weight: 500; }
@@ -216,8 +216,6 @@ body {
 }
 .three-col-table th { background: #FAFBFC; font-weight: 600; width: 33%; }
 .three-col-table tr:last-child td { border-bottom: none; }
-
-
 /* Attachment table */
 .form-table { padding: 0 20px 20px 20px; overflow-x: auto; }
 .form-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -225,8 +223,6 @@ body {
   text-align: center; padding: 10px 6px; border: 1px solid var(--border);
 }
 .form-table th { color: var(--text-secondary); font-weight: 600; background-color: #FAFBFC; white-space: nowrap; }
-.form-table .opinion-cell { height: 60px; vertical-align: middle; color: var(--text-secondary); font-size: 11px; }
-
 /* Materials list */
 .material-list { padding: 0 20px 20px 20px; }
 .material-list-item {
@@ -296,18 +292,10 @@ body {
 .btn-download:hover { background: var(--primary-light); }
 
 /* Final confirm */
-.final-count-row { display: flex; gap: 16px; align-items: center; }
-.final-count-row input {
-  width: 120px; padding: 10px 16px; font-size: 18px; font-weight: 700;
-  text-align: center; border: 2px solid var(--border); border-radius: var(--radius);
-  font-family: inherit; outline: none;
-}
-.final-count-row input:focus { border-color: var(--primary); }
-.final-count-row .fc-hint { font-size: 13px; color: var(--text-secondary); }
 .final-upload-area {
-  border: 2px dashed var(--border); border-radius: var(--radius);
-  padding: 20px; text-align: center; cursor: pointer; transition: var(--transition);
-  margin-top: 8px;
+border: 2px dashed var(--border); border-radius: var(--radius);
+padding: 20px; text-align: center; cursor: pointer; transition: var(--transition);
+margin-top: 8px;
 }
 .final-upload-area:hover { border-color: var(--accent); background: #F8FAFC; }
 .final-upload-file { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 8px 12px; background: #F0FDF4; border-radius: 6px; font-size: 12px; }
@@ -428,12 +416,12 @@ var ICONS = {
   list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 16 16 12 12 8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
 };
 var MENU_ICONS = {
-  workbench: 'home', dashboard: 'chart',
-  entry: 'userp', staffing: 'monitor', exit: 'userx',
-  promote: 'arrowup', postset: 'shield', recruit: 'search',
-  employ: 'file',
-  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
-  account: 'users'
+workbench: 'home', dashboard: 'chart',
+entry: 'userp', staffing: 'monitor', exit: 'userx',
+promote: 'arrowup', postset: 'shield', recruit: 'search',
+employ: 'file',
+retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
 var currentRole = 'district';
@@ -536,7 +524,11 @@ var allApps = {
     attachment9Name: '附件9_柳州市第八中学_2026第一批.pdf',
     status: '已通过', submitTime: '2026-03-05 09:20:00', rejectReason: null,
     firstApproveTime: '2026-03-17 10:00:00', finalApprovedCount: 2, finalConfirmTime: '2026-03-25 14:30:00',
-    materials: ['聘用教师控制数使用申报表（附件9）'],
+    finalApprovedDetails: [
+	      { type: '单位自主实施招聘', schoolNum: 1, finalNum: 1 },
+	      { type: '中高级人才招聘', schoolNum: 1, finalNum: 1 }
+	    ],
+	    materials: ['聘用教师控制数使用申报表（附件9）'],
     schoolInfo: {
       fullName: '柳州市第八中学', creditCode: '12450200MB1E66778B',
       institutionLevel: '正科级', fundingSource: '财政全额拨款',
@@ -551,7 +543,7 @@ var allApps = {
       { time: '2026-03-10 15:00:00', operator: '李振华', action: '主管单位审核退回', opinion: '控制数实有数与核定数不符，请核实后重新提交', result: '驳回' },
       { time: '2026-03-11 10:30:00', operator: '王玉兰', action: '学校修改后重新提交', opinion: '已核实控制数实有数为14人，重新提交申报' },
       { time: '2026-03-17 10:00:00', operator: '李振华', action: '主管单位一审通过', opinion: '核定编制数88名，在编80人，同意使用控制数2名', result: '一审通过' },
-      { time: '2026-03-25 14:30:00', operator: '李振华', action: '编办终审确认', opinion: '编办核定最终通过 2 名（申请 2 名）', result: '通过' }
+      { time: '2026-03-25 14:30:00', operator: '李振华', action: '编办终审确认', opinion: '编办终审确认：单位自主实施招聘 1→1 名，中高级人才招聘 1→1 名，合计通过 2 名（申请 2 名）', result: '通过' }
     ]
   },
   'S2026-005': {
@@ -694,7 +686,11 @@ var allApps = {
     attachment2Name: '附件2_鱼峰区实验小学_2026第一批.pdf',
     status: '已通过', submitTime: '2026-03-06 10:30:00', rejectReason: null,
     firstApproveTime: '2026-03-18 09:00:00', finalApprovedCount: 2, finalConfirmTime: '2026-03-28 16:00:00',
-    materials: ['中小学事业编制使用计划申报表（附件2）'],
+    finalApprovedDetails: [
+	      { type: '中高级人才招聘', schoolNum: 1, finalNum: 1 },
+	      { type: '其他', schoolNum: 1, finalNum: 1 }
+	    ],
+	    materials: ['中小学事业编制使用计划申报表（附件2）'],
     schoolInfo: {
       fullName: '鱼峰区实验小学', creditCode: '12450200MB1F88990C',
       institutionLevel: '副科级', orgNature: '全额拨款事业单位',
@@ -708,7 +704,7 @@ var allApps = {
     timeline: [
       { time: '2026-03-06 10:30:00', operator: '王玉兰', action: '学校提交编制使用申请', opinion: '使用事业编制合计2名' },
       { time: '2026-03-18 09:00:00', operator: '李振华', action: '主管单位一审通过', opinion: '核定事业编制数60名，在编55人，同意使用事业编制2名', result: '一审通过' },
-      { time: '2026-03-28 16:00:00', operator: '李振华', action: '编办终审确认', opinion: '编办核定最终通过 2 名（申请 2 名）', result: '通过' }
+      { time: '2026-03-28 16:00:00', operator: '李振华', action: '编办终审确认', opinion: '编办终审确认：中高级人才招聘 1→1 名，其他 1→1 名，合计通过 2 名（申请 2 名）', result: '通过' }
     ]
   }
 };
@@ -1171,49 +1167,63 @@ function renderPage() {
   var formLabel = isCareer ? '中小学事业编制使用计划申报表（附件2）' : '聘用教师控制数使用申报表（附件9）';
   var countLabel = isCareer ? '使用事业编制（名）' : '使用控制数（名）';
   var countDetailLabel = isCareer ? '使用事业编制详情' : '使用控制数详情';
+  var isApproved = app.status === '已通过' && app.finalApprovedDetails;
+
+  // Build final approved lookup map
+  var finalMap = {};
+  if (isApproved) {
+  app.finalApprovedDetails.forEach(function(d) { finalMap[d.type] = d.finalNum; });
+  }
+
   var useFormRows = '';
+  var totalFinal = 0;
   app.useForms.forEach(function(f) {
     if (f.num > 0) {
-      useFormRows += '<tr>' +
-        '<td>' + f.type + '</td>' +
-        '<td>' + f.num + '</td>' +
-        '<td>' + (f.edu || '—') + '</td>' +
-        '<td>' + (f.cond || '—') + '</td>' +
-        '<td>' + (f.note || '—') + '</td>' +
-      '</tr>';
-    }
+      var fn = isApproved ? (finalMap[f.type] !== undefined ? finalMap[f.type] : 0) : null;
+    if (fn !== null) totalFinal += fn;
+  useFormRows += '<tr>' +
+    '<td>' + f.type + '</td>' +
+  '<td>' + f.num + '</td>' +
+  (isApproved ? '<td>' + fn + '</td>' : '') +
+  '<td>' + (f.edu || '—') + '</td>' +
+  '<td>' + (f.cond || '—') + '</td>' +
+  '<td>' + (f.note || '—') + '</td>' +
+  '</tr>';
+  }
   });
   var formTableHtml =
-    '<div class="card">' +
-      '<div class="card-header">' + formLabel + '</div>' +
-      '<div class="form-table">' +
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>单位名称</th>' +
-              '<th colspan="5">' + countDetailLabel + '</th>' +
-            '</tr>' +
-            '<tr>' +
-              '<th>' + app.schoolName + '</th>' +
-              '<th>使用形式</th>' +
-              '<th>' + countLabel + '</th>' +
-              '<th>学历、专业（大类）、从业资格等</th>' +
-              '<th>相关条件</th>' +
-              '<th>备注</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-            useFormRows +
-            '<tr style="font-weight:600;background:#FAFBFC;">' +
-              '<td></td>' +
-              '<td>合计</td>' +
-              '<td>' + totalApplyNum + '</td>' +
-              '<td colspan="3"></td>' +
-            '</tr>' +
-          '</tbody>' +
-        '</table>' +
-      '</div>' +
-    '</div>';
+  '<div class="card">' +
+  '<div class="card-header">' + formLabel + '</div>' +
+  '<div class="form-table">' +
+  '<table>' +
+  '<thead>' +
+    '<tr>' +
+      '<th>单位名称</th>' +
+    '<th colspan="' + (isApproved ? '6' : '5') + '">' + countDetailLabel + '</th>' +
+  '</tr>' +
+  '<tr>' +
+  '<th>' + app.schoolName + '</th>' +
+  '<th>使用形式</th>' +
+  '<th>' + countLabel + '</th>' +
+    (isApproved ? '<th>编办确认数（名）</th>' : '') +
+      '<th>学历、专业（大类）、从业资格等</th>' +
+        '<th>相关条件</th>' +
+          '<th>备注</th>' +
+          '</tr>' +
+	          '</thead>' +
+	          '<tbody>' +
+	            useFormRows +
+	            '<tr style="font-weight:600;background:#FAFBFC;">' +
+	              '<td></td>' +
+	              '<td>合计</td>' +
+	              '<td>' + totalApplyNum + '</td>' +
+	              (isApproved ? '<td>' + totalFinal + '</td>' : '') +
+	              '<td colspan="3"></td>' +
+	            '</tr>' +
+	          '</tbody>' +
+	        '</table>' +
+	      '</div>' +
+	    '</div>';
 
   // Materials list
   var materialItemsHtml = app.materials.map(function(m, i) {
