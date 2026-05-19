@@ -491,7 +491,7 @@ function renderMaterialsCard() {
       '<td class="mat-upload">' +
         '<label class="' + btnClass + '" id="matUploadBtn' + idx + '">' +
           btnIcon + ' ' + btnText +
-          '<input type="file" style="display:none;" id="matFile' + idx + '" onchange="handleMaterialUpload(' + idx + ', this)">' +
+          '<input type="file" style="display:none;" id="matFile' + idx + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="handleMaterialUpload(' + idx + ', this)">' +
         '</label>' +
         fileNameHtml +
       '</td>' +
@@ -506,13 +506,35 @@ function renderMaterialsCard() {
         '<thead><tr><th class="mat-num">序号</th><th class="mat-name">所需材料</th><th class="mat-require">材料要求</th><th class="mat-upload">上传</th><th class="mat-status">状态</th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
       '</table>' +
+      '<div style="font-size:11px;color:var(--text-light);padding:8px 0 0;">支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB，不支持压缩包</div>' +
     '</div>' +
     '</div>';
 }
 
+var MAT_ALLOWED_EXTS = ['.pdf','.jpg','.jpeg','.png','.doc','.docx','.xls','.xlsx'];
+var MAT_BLOCKED_EXTS = ['.zip','.rar','.7z','.tar','.gz','.bz2','.xz','.tgz'];
+var MAT_MAX_SIZE = 10 * 1024 * 1024;
+
+function validateMaterialFile(file) {
+  var ext = '.' + file.name.split('.').pop().toLowerCase();
+  if (MAT_BLOCKED_EXTS.indexOf(ext) !== -1) {
+    return '不支持压缩包格式（' + ext + '），请上传 PDF、Word、Excel 或图片文件';
+  }
+  if (MAT_ALLOWED_EXTS.indexOf(ext) === -1) {
+    return '不支持的文件格式（' + ext + '），仅支持 PDF、Word、Excel、图片';
+  }
+  if (file.size > MAT_MAX_SIZE) {
+    return '文件大小 ' + (file.size / 1024 / 1024).toFixed(1) + ' MB 超过 10MB 上限';
+  }
+  return null;
+}
+
 function handleMaterialUpload(idx, input) {
   if (input.files && input.files[0]) {
-    materialsChecklist[idx].file = input.files[0].name;
+    var f = input.files[0];
+    var err = validateMaterialFile(f);
+    if (err) { showToast(err); input.value = ''; return; }
+    materialsChecklist[idx].file = f.name;
     renderPage();
     showToast('材料 "' + materialsChecklist[idx].name.split('\n')[0] + '" 上传成功');
   }

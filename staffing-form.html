@@ -258,6 +258,7 @@ body {
   padding: 32px; text-align: center; cursor: pointer; transition: var(--transition);
 }
 .upload-area:hover { border-color: var(--accent); background: #F8FAFC; }
+.upload-area.drag-over { border-color: var(--primary); background: var(--primary-light); }
 .upload-area .upload-icon { font-size: 40px; margin-bottom: 8px; }
 .upload-area .upload-text { font-size: 13px; color: var(--text-secondary); }
 .upload-area .upload-hint { font-size: 11px; color: var(--text-light); margin-top: 4px; }
@@ -339,6 +340,18 @@ body {
 .quota-item .q-value.warn { color: var(--warning); }
 .quota-item .q-value.error { color: var(--danger); }
 
+/* Step progress bar */
+.step-progress {
+  background: #fff; border-radius: var(--radius-lg); padding: 18px 24px;
+  margin-bottom: 16px; box-shadow: var(--shadow-sm);
+}
+.step-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 12px; }
+.step-bar-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s; width: 33%; }
+.step-labels { display: flex; justify-content: space-around; }
+.step-label { font-size: 12px; color: var(--text-light); font-weight: 500; }
+.step-label.active { color: var(--primary); font-weight: 600; }
+.step-label.done { color: var(--success); }
+
 @media (max-width: 768px) {
   .sidebar { display: none; }
   .main { margin-left: 0; }
@@ -418,9 +431,19 @@ body {
     <div class="subtitle" id="formSubtitle"></div>
   </div>
 
+  <!-- Progress indicator -->
+  <div class="step-progress" id="stepProgress">
+    <div class="step-bar"><div class="step-bar-fill" id="stepBarFill"></div></div>
+    <div class="step-labels">
+      <span class="step-label active" data-step="0">填写申报信息</span>
+      <span class="step-label" data-step="1">上传附件</span>
+      <span class="step-label" data-step="2">确认提交</span>
+    </div>
+  </div>
+
   <!-- Step 0: 申报类型选择 -->
   <div class="form-card" id="typeSelectCard">
-    <div class="form-card-title"><span class="step-num">0</span>选择申报类型</div>
+    <div class="form-card-title">选择申报类型</div>
     <div class="type-selector" id="typeSelector"></div>
   </div>
 
@@ -443,7 +466,7 @@ body {
 
   <!-- Step 2: 使用形式 -->
   <div class="form-card">
-    <div class="form-card-title"><span class="step-num">2</span>使用形式及数量</div>
+    <div class="form-card-title"><span class="step-num">1</span>使用形式及数量</div>
     <table class="use-form-table">
       <thead>
         <tr>
@@ -461,10 +484,13 @@ body {
 
   <!-- Step 3: 附件上传 -->
   <div class="form-card">
-    <div class="form-card-title"><span class="step-num">3</span>附件上传</div>
+    <div class="form-card-title"><span class="step-num">2</span>附件上传</div>
     <div class="form-group">
-      <label id="attachmentLabel">附件9 扫描件 <span class="required">*</span></label>
-      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+      <label id="attachmentLabel">附件 扫描件 <span class="required">*</span></label>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()"
+           ondragover="event.preventDefault(); this.classList.add('drag-over');"
+           ondragleave="this.classList.remove('drag-over');"
+           ondrop="event.preventDefault(); this.classList.remove('drag-over'); handleDrop(event);">
         <div class="upload-icon">📄</div>
         <div class="upload-text">点击上传或拖拽文件到此处</div>
         <div class="upload-hint" id="uploadHint">支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB，不支持压缩包</div>
@@ -478,7 +504,7 @@ body {
   <div class="form-footer">
     <button class="btn btn-outline btn-lg" onclick="goBack()">取消</button>
     <div class="form-footer-right">
-      <button class="btn btn-primary btn-lg" onclick="submitForm()">提交申报</button>
+      <button class="btn btn-primary btn-lg" id="submitBtn" onclick="submitForm()">提交申报</button>
     </div>
   </div>
 </main>
@@ -634,6 +660,9 @@ var urlParams = new URLSearchParams(window.location.search);
 var formBatchId = urlParams.get('batchId') || '';
 var formBatchName = urlParams.get('batchName') || '';
 var urlType = urlParams.get('staffingType'); // 'career' | 'control'
+var formId = urlParams.get('id') || '';
+var isEditMode = formId !== '';
+var isAutoBatch = formBatchId && formBatchId.indexOf('AUTO-') === 0;
 
 // Set type from URL, default to control
 if (urlType === 'career' || urlType === 'control') {
@@ -642,12 +671,12 @@ if (urlType === 'career' || urlType === 'control') {
 
 // Use form rows
 var USE_FORM_ROWS = [
-  { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
-  { type: '单位自主实施招聘', num: 0, edu: '', cond: '', note: '' },
-  { type: '中高级人才招聘', num: 0, edu: '', cond: '', note: '' },
-  { type: '引进高层次人才', num: 0, edu: '', cond: '', note: '' },
-  { type: '调动', num: 0, edu: '', cond: '', note: '' },
-  { type: '其他', num: 0, edu: '', cond: '', note: '' }
+  { type: '统一公开招聘', code: 'publicRecruit', num: 0, edu: '', cond: '', note: '' },
+  { type: '单位自主实施招聘', code: 'selfRecruit', num: 0, edu: '', cond: '', note: '' },
+  { type: '中高级人才招聘', code: 'talentMid', num: 0, edu: '', cond: '', note: '' },
+  { type: '引进高层次人才', code: 'talentHigh', num: 0, edu: '', cond: '', note: '' },
+  { type: '调动', code: 'transfer', num: 0, edu: '', cond: '', note: '' },
+  { type: '其他', code: 'other', num: 0, edu: '', cond: '', note: '' }
 ];
 
 // ===== SCHOOL PROFILE (system auto-provided, read-only) =====
@@ -806,10 +835,25 @@ function getApplyTotal() {
 function renderForm() {
   var cfg = TYPE_CONFIG[staffingType];
 
-  // Title
-  document.getElementById('formTitle').textContent = '新建申报 — ' + cfg.formName;
-  document.getElementById('formSubtitle').textContent = (formBatchName || '编制使用计划') + ' — ' + cfg.formDesc;
-  document.getElementById('breadcrumbType').textContent = '新建申报 (' + cfg.label + ')';
+  // Title & breadcrumb — distinguish create vs edit
+  var modeLabel = isEditMode ? '修改申报' : '新建申报';
+  document.getElementById('formTitle').textContent = modeLabel + ' — ' + cfg.label;
+  var subtitleHtml = (formBatchName || '编制使用计划') + ' — ' + cfg.formDesc;
+  if (isAutoBatch) {
+    subtitleHtml += ' <span style="font-size:11px;background:#EFF6FF;color:#1E40AF;padding:2px 10px;border-radius:10px;margin-left:8px;">自主申报</span>';
+  }
+  document.getElementById('formSubtitle').innerHTML = subtitleHtml;
+  document.getElementById('breadcrumbType').textContent = isEditMode ? ('修改重提 (' + cfg.label + ')') : ('新建申报 (' + cfg.label + ')');
+
+  // Managed batch: if submission exists for this batch+type and not edit mode, deny duplicate
+  if (!isAutoBatch && !isEditMode) {
+    var existingSub = findExistingSubmission(formBatchId, staffingType);
+    if (existingSub) {
+      showToast('该批次已存在' + cfg.label + '申报记录，定向批次每类型只能申报一次', 'warning');
+      setTimeout(function() { window.location.href = 'staffing-application.html'; }, 1500);
+      return;
+    }
+  }
 
   // Step 1: unit info (system auto-provided, read-only)
   var profile = SCHOOL_PROFILE[currentSchoolName] || {};
@@ -859,6 +903,9 @@ function renderForm() {
 
   // Quota summary
   updateQuotaSummary();
+
+  // Submit button text
+  document.getElementById('submitBtn').textContent = isEditMode ? '重新提交' : '提交申报';
 }
 
 function updateQuotaSummary() {
@@ -870,7 +917,7 @@ function updateQuotaSummary() {
   summaryEl.innerHTML =
     '<div class="quota-item"><div class="q-label">' + valid.label + '</div><div class="q-value ok">' + valid.quota + ' 名</div></div>' +
     '<div class="quota-item"><div class="q-label">+ 本次申请合计</div><div class="q-value ok">' + valid.apply + ' 名</div></div>' +
-    '<div class="quota-item"><div class="q-label">= 全部可用</div><div class="q-value ok">' + (valid.quota + valid.apply) + ' 名</div></div>';
+    '<div class="quota-item"><div class="q-label">= 全部可用</div><div class="q-value ' + (valid.ok ? 'ok' : 'error') + '">' + (valid.quota + valid.apply) + ' 名</div></div>';
 }
 
 function onRowChange(idx, val) {
@@ -904,8 +951,18 @@ function validateFile(file) {
 function handleFile(e) {
   var f = e.target.files[0];
   if (!f) return;
+  processUploadFile(f);
+  e.target.value = '';
+}
+
+function handleDrop(e) {
+  var files = e.dataTransfer.files;
+  if (files.length > 0) processUploadFile(files[0]);
+}
+
+function processUploadFile(f) {
   var err = validateFile(f);
-  if (err) { showToast(err, 'warning'); e.target.value = ''; return; }
+  if (err) { showToast(err, 'warning'); return; }
   uploadedFile = f;
   document.getElementById('uploadArea').style.display = 'none';
   document.getElementById('uploadedFile').innerHTML =
@@ -930,17 +987,63 @@ function submitForm() {
   var totalApply = getApplyTotal();
   if (totalApply <= 0) { showToast('请填写使用形式及数量（合计必须大于0）', 'warning'); return; }
 
+  // Quota validation per type
+  var valid = cfg.validation();
+  if (!valid.ok) {
+    showToast('申请数量(' + valid.apply + ')超过' + valid.label + '(' + valid.quota + ')，请调整', 'warning');
+    return;
+  }
+
+  // Completeness: each positive row must have education filled
+  for (var i = 0; i < USE_FORM_ROWS.length; i++) {
+    var row = USE_FORM_ROWS[i];
+    if (row.num > 0 && !row.edu.trim()) {
+      showToast('"' + row.type + '" 人数 > 0，请填写学历、专业、资格要求', 'warning');
+      return;
+    }
+  }
+
   if (!uploadedFile) {
     showToast('请上传' + cfg.formName + ' 扫描件', 'warning');
     return;
   }
 
-  showToast('申报已提交，待主管单位审核');
+  // Build submission payload
+  var submissionId = formId || ('S' + new Date().getFullYear() + '-A' + String(Math.floor(Math.random() * 1000)).padStart(3, '0'));
+  var payload = {
+    id: submissionId,
+    batchId: formBatchId,
+    batchName: formBatchName,
+    school: currentSchoolName,
+    staffingType: staffingType,
+    useForms: {},
+    status: 'submitted',
+    submitDate: new Date().toISOString().replace('T', ' ').substring(0, 19)
+  };
+  USE_FORM_ROWS.forEach(function(row) {
+    payload.useForms[row.code] = row.num;
+  });
+
+  // Track submission for duplicate check
+  saveSubmissionRecord(formBatchId, staffingType, submissionId);
+
+  var msg = isEditMode ? '修改重提已提交，待主管单位审核' : '申报已提交，待主管单位审核';
+  showToast(msg);
   setTimeout(function() { window.location.href = 'staffing-application.html'; }, 1500);
 }
 
 function goBack() {
   window.location.href = 'staffing-application.html';
+}
+
+// ===== SUBMISSION TRACKER (demo: localStorage for cross-page duplicate check) =====
+function findExistingSubmission(batchId, type) {
+  var key = 'sub_' + batchId + '_' + type;
+  return localStorage.getItem(key) || null;
+}
+
+function saveSubmissionRecord(batchId, type, submissionId) {
+  localStorage.setItem('sub_' + batchId + '_' + type, submissionId);
 }
 
 // ===== UI HELPERS =====

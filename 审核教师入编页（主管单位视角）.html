@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>柳州教育人事管理平台 — 审核教师入编（主管单位）</title>
+<title>审核教师入编 — 柳州教育人事管理平台</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
 
@@ -78,16 +78,34 @@ body {
 }
 .menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
 .menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+}
 
-/* Role Switcher */
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label,
+.sidebar.collapsed .menu-group,
+.sidebar.collapsed .menu-badge,
+.sidebar.collapsed .role-switcher-label,
+.sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5);
+  transition: var(--transition);
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
 .role-switcher {
   padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08);
-  margin-top: auto;
 }
-.role-switcher-label {
-  font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px;
-  margin-bottom: 8px; padding: 0 4px;
-}
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
 .role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
 .role-switch-btn {
   display: flex; align-items: center; gap: 8px;
@@ -101,9 +119,7 @@ body {
   background: rgba(59,130,246,0.2); color: #fff;
   border-color: rgba(59,130,246,0.4); font-weight: 500;
 }
-.role-switch-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-}
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .role-switch-dot.city { background: #3B82F6; }
 .role-switch-dot.district { background: #F59E0B; }
 .role-switch-dot.school { background: #10B981; }
@@ -112,159 +128,166 @@ body {
 /* ===== MAIN CONTENT ===== */
 .main {
   margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - 56px); transition: margin-left var(--transition);
 }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
 .breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
 .breadcrumb a { color: var(--text-light); text-decoration: none; cursor: pointer; }
 .breadcrumb a:hover { color: var(--primary); }
 .breadcrumb span { color: var(--text-secondary); }
 
-/* ===== CONTENT STYLES ===== */
-.two-columns { display: flex; gap: 24px; }
-.main-col { flex: 1; min-width: 0; }
-.side-col { width: 360px; flex-shrink: 0; }
+/* Two-column layout */
+.review-layout { display: flex; gap: 24px; }
+.review-main { flex: 1; min-width: 0; }
+.review-side { width: 360px; flex-shrink: 0; }
 
+/* Card */
 .card {
   background: #fff; border-radius: var(--radius-lg);
-  border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  margin-bottom: 20px; overflow: hidden;
 }
 .card-header {
-  padding: 16px 20px; border-bottom: 1px solid #f0f2f5;
-  font-weight: 600; font-size: 14px;
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 8px; background-color: #FAFBFC;
+  padding: 14px 20px; font-size: 14px; font-weight: 600; color: var(--text);
+  background: #FAFBFC; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; justify-content: space-between;
 }
+.card-body { padding: 20px; }
 
-/* Progress bar */
-.progress-container { padding: 20px; }
-.progress-steps { display: flex; justify-content: space-between; align-items: flex-start; }
-.progress-node { flex: 1; text-align: center; }
-.progress-node .node-dot {
-  width: 36px; height: 36px; background: #e2e8f0; border-radius: 50%;
-  margin: 0 auto 8px; line-height: 36px; font-size: 14px;
-  font-weight: 600; color: #64748B;
-}
-.progress-node.completed .node-dot { background: #10B981; color: white; }
-.progress-node.active .node-dot { background: var(--primary); color: white; }
-.progress-node .node-title { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
-.progress-node .node-detail { font-size: 10px; color: var(--text-secondary); }
-/* Timeline */
-.timeline { position: relative; padding-left: 30px; }
-.timeline-item {
-  position: relative; padding-bottom: 20px;
-  border-left: 2px solid #e2e8f0; margin-left: 12px; padding-left: 20px;
-}
-.timeline-item:last-child { border-left-color: transparent; padding-bottom: 0; }
-.timeline-dot {
-  position: absolute; left: -9px; top: 0;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: white; border: 2px solid #cbd5e1;
-}
-.timeline-item.completed .timeline-dot { background: #10B981; border-color: #10B981; }
-.timeline-time { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-.timeline-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-.timeline-desc { font-size: 11px; color: #475569; }
-
-/* Stamp */
+/* Status stamp */
 .status-stamp {
   display: inline-block; padding: 6px 16px; border: 2px solid;
-  transform: rotate(-5deg); font-weight: 700; font-size: 14px; background: white;
+  transform: rotate(-5deg); font-weight: 700; font-size: 14px; background: #fff;
 }
 .status-stamp.approved { color: #10B981; border-color: #10B981; }
 .status-stamp.rejected { color: #EF4444; border-color: #EF4444; }
 .status-stamp.pending { color: #F59E0B; border-color: #F59E0B; }
 
-/* Unit info */
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
-.info-item { background: #F8FAFC; padding: 12px; border-radius: var(--radius); }
-.info-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-.info-value { font-size: 13px; font-weight: 500; }
+/* Progress tracker */
+.progress-tracker {
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 0 20px;
+}
+.progress-step {
+  display: flex; flex-direction: column; align-items: center; position: relative;
+}
+.progress-dot {
+  width: 32px; height: 32px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+  transition: var(--transition); position: relative; z-index: 1;
+}
+.progress-dot.done { background: var(--success); color: #fff; }
+.progress-dot.current { background: var(--primary); color: #fff; box-shadow: 0 0 0 6px rgba(30,64,175,0.12); }
+.progress-dot.pending { background: var(--gray-bg); color: var(--text-light); border: 2px solid var(--border); }
+.progress-dot.rejected { background: #FEE2E2; color: var(--danger); border-color: var(--danger); }
+.progress-label { font-size: 11px; font-weight: 500; margin-top: 8px; text-align: center; white-space: nowrap; }
+.progress-label.done { color: var(--success); }
+.progress-label.current { color: var(--primary); }
+.progress-label.pending { color: var(--text-light); }
+.progress-line {
+  width: 100px; height: 2px; margin: 0 8px; margin-bottom: 24px;
+  position: relative; z-index: 0;
+}
+.progress-line.done { background: var(--success); }
+.progress-line.pending { background: var(--border); }
 
-/* Stats cards */
-.stats-row { display: flex; gap: 20px; margin: 0 20px 20px 20px; }
-.stats-card {
-  flex: 1; border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+/* Info grid */
+.info-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
 }
-.stats-card-header {
-  background: #F8FAFC; padding: 12px 16px; font-weight: 700; font-size: 13px;
-  border-bottom: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center;
+.info-item {
+  background: #F8FAFC; padding: 10px 14px; border-radius: 8px;
 }
-.stats-card-header .total-number { font-size: 18px; color: var(--primary); }
-.three-col-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.three-col-table th, .three-col-table td {
-  border-bottom: 1px solid var(--border); padding: 8px 10px;
-  text-align: left; vertical-align: top;
-}
-.three-col-table th { background: #FAFBFC; font-weight: 600; width: 33%; }
-.three-col-table tr:last-child td { border-bottom: none; }
+.info-item.full { grid-column: 1 / -1; }
+.info-label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
+.info-value { font-size: 13px; font-weight: 500; color: var(--text); }
 
-/* Control quota stats */
-.control-stats {
-  display: flex; gap: 16px; padding: 0 20px 20px 20px;
+.section-label {
+  grid-column: 1 / -1; padding: 8px 0 4px;
+  font-size: 12px; font-weight: 600; color: var(--primary);
+  border-bottom: 1px solid var(--primary-light); margin-bottom: 4px;
 }
-.control-item {
-  flex: 1; text-align: center; background: #F8FAFC;
-  padding: 12px; border-radius: var(--radius); border: 1px solid var(--border);
-}
-.control-label { font-size: 11px; color: var(--text-secondary); }
-.control-number { font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px; }
 
 /* Data table */
-.data-table { padding: 0 20px 20px 20px; overflow-x: auto; }
-.data-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.data-table th, .data-table td {
-  text-align: center; padding: 10px 8px; border-bottom: 1px solid var(--border);
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  padding: 8px 12px; text-align: left; font-weight: 600; font-size: 12px;
+  color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border);
 }
-.data-table th { color: var(--text-secondary); font-weight: 600; background-color: #FAFBFC; }
+.data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
 
-/* Pagination */
-.pagination { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 20px; border-top: 1px solid #f0f2f5; }
-.page-btn {
-  padding: 6px 12px; border: 1px solid var(--border);
-  background: #fff; border-radius: 6px; cursor: pointer;
-  font-size: 12px; font-family: inherit;
+/* Materials */
+.material-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: #F8FAFC; border-radius: 8px; margin-bottom: 8px;
 }
-.page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.material-item:last-child { margin-bottom: 0; }
+.material-name { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.material-tag {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+}
+.material-tag.required { background: #FEF2F2; color: #EF4444; }
+.material-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.file-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; background: #fff; border: 1px solid var(--border);
+  border-radius: 4px; font-size: 12px; cursor: pointer;
+}
+.file-chip:hover { border-color: var(--accent); color: var(--primary); }
 
-/* Materials table (view-only) */
-.materials-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.materials-table th, .materials-table td {
-  border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top;
+/* Timeline */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px;
+  width: 2px; background: var(--border);
 }
-.materials-table th { background: #F8FAFC; font-weight: 600; font-size: 11px; }
-.materials-table .mat-num { width: 40px; text-align: center; }
-.materials-table .mat-name { width: 35%; }
-.materials-table .mat-require { width: 30%; font-size: 11px; color: var(--text-secondary); }
-.materials-table .mat-file { width: 20%; font-size: 11px; }
-.materials-table .mat-status { width: 10%; text-align: center; }
-.material-view-link { color: var(--accent); cursor: pointer; font-size: 11px; }
-.material-view-link:hover { text-decoration: underline; }
-.material-status-badge {
-  display: inline-block; padding: 2px 8px; border-radius: 10px;
-  font-size: 10px; font-weight: 500;
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot {
+  position: absolute; left: -24px; top: 4px;
+  width: 14px; height: 14px; border-radius: 50%; z-index: 1;
 }
-.material-status-badge.ok { background: #D1FAE5; color: #065F46; }
+.timeline-dot.submit { background: var(--accent); }
+.timeline-dot.reject { background: var(--danger); }
+.timeline-dot.resubmit { background: var(--warning); }
+.timeline-dot.approve { background: var(--success); }
+.timeline-content .tlc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.timeline-content .tlc-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.timeline-content .tlc-time { font-size: 11px; color: var(--text-light); }
+.timeline-content .tlc-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.timeline-content .tlc-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;
+}
+.tlc-tag.reject-reason { background: #FEE2E2; color: var(--danger); }
+.tlc-tag.resubmit-tag { background: #FEF3C7; color: #D97706; }
+.tlc-tag.approve-tag { background: #D1FAE5; color: #059669; }
 
-/* Action buttons */
-.action-buttons {
-  display: flex; justify-content: flex-end; gap: 16px;
-  padding: 0 20px 20px 20px; margin-top: 8px;
+/* Warning banner */
+.warning-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: #FFFBEB; border: 1px solid #FDE68A;
+  border-radius: var(--radius); margin-bottom: 16px; font-size: 13px; color: #92400E;
 }
-.btn-approve {
-  background: #10B981; color: white; border: none;
-  padding: 10px 28px; border-radius: 40px; font-weight: 600;
-  cursor: pointer; font-size: 13px; font-family: inherit;
+
+/* Action bar */
+.action-bar {
+  display: flex; gap: 12px; padding: 20px;
+  border-top: 1px solid var(--border); background: #FAFBFC;
 }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 24px; font-size: 14px; font-weight: 600;
+  border-radius: 8px; cursor: pointer; font-family: inherit; transition: var(--transition);
+  border: none; text-decoration: none;
+}
+.btn-approve { background: #10B981; color: #fff; }
 .btn-approve:hover { background: #059669; }
-.btn-reject {
-  background: #EF4444; color: white; border: none;
-  padding: 10px 28px; border-radius: 40px; font-weight: 600;
-  cursor: pointer; font-size: 13px; font-family: inherit;
-}
+.btn-reject { background: #EF4444; color: #fff; }
 .btn-reject:hover { background: #DC2626; }
+.btn-warning { background: #F59E0B; color: #fff; }
+.btn-warning:hover { background: #D97706; }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); font-weight: 500; }
+.btn-outline:hover { background: var(--gray-bg); }
 
 /* Modal */
 .modal-overlay {
@@ -273,39 +296,69 @@ body {
   justify-content: center; z-index: 1000;
 }
 .modal-container {
-  background: #fff; border-radius: 16px; width: 450px;
+  background: #fff; border-radius: 16px; width: 480px;
   max-width: 90%; padding: 24px; box-shadow: var(--shadow-lg);
 }
-.modal-container h3 { margin-bottom: 16px; font-size: 16px; }
+.modal-container h3 { margin-bottom: 12px; font-size: 16px; }
 .modal-container textarea {
   width: 100%; padding: 12px; border: 1px solid var(--border);
   border-radius: var(--radius); font-size: 13px; font-family: inherit;
-  margin-bottom: 20px; resize: vertical;
+  margin-bottom: 16px; resize: vertical; min-height: 80px;
 }
+.modal-container .form-group { margin-bottom: 12px; }
+.modal-container .form-group label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; color: var(--text); }
+.modal-container textarea.optional { border-color: #D1D5DB; }
 .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; }
 .btn-cancel {
   background: var(--gray-bg); border: none; padding: 8px 20px;
-  border-radius: 30px; cursor: pointer; font-size: 13px; font-family: inherit;
+  border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit;
 }
 .btn-confirm {
-  background: #EF4444; color: white; border: none;
-  padding: 8px 20px; border-radius: 30px; cursor: pointer;
-  font-size: 13px; font-family: inherit;
+  color: #fff; border: none; padding: 8px 20px;
+  border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600;
 }
+.btn-confirm.danger { background: #EF4444; }
+.btn-confirm.danger:hover { background: #DC2626; }
+.btn-confirm.success { background: #10B981; }
+.btn-confirm.success:hover { background: #059669; }
+.btn-confirm.warning { background: #F59E0B; }
+.btn-confirm.warning:hover { background: #D97706; }
 
 /* Toast */
-.toast-msg {
-  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-  background: #1E293B; color: #fff; padding: 12px 24px;
-  border-radius: 40px; z-index: 2000; font-size: 13px;
-  animation: toastAnim 1.8s ease forwards;
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px;
+  font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease;
+  box-shadow: var(--shadow-lg);
 }
-@keyframes toastAnim {
-  0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  85% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+.toast.success { background: #10B981; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+@media (max-width: 1024px) {
+  .review-layout { flex-direction: column; }
+  .review-side { width: 100%; }
+  .info-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Back link */
+.back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+.back-link:hover { color: var(--primary); }
+
+/* Unit info detail table */
+.info-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.info-table td { padding: 8px 14px; border: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+.info-table .ilabel { background: var(--gray-bg); color: var(--text-secondary); font-weight: 500; width: 180px; white-space: nowrap; }
+.info-table .ivalue { background: #fff; color: var(--text); font-weight: 600; }
+.info-section-label { font-size: 13px; font-weight: 600; color: var(--primary); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px dashed var(--border); }
+.info-subtable { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+.info-subtable > tbody > tr > td { vertical-align: top; padding: 0; }
+.isub-left { width: 50%; padding-right: 8px !important; }
+.isub-right { width: 50%; padding-left: 8px !important; }
+.info-mini { width: 100%; border-collapse: collapse; }
+.info-mini td, .info-mini th { padding: 6px 10px; border: 1px solid var(--border); font-size: 12px; text-align: left; }
+.info-mini th { background: var(--gray-bg); color: var(--text-secondary); font-weight: 500; }
+.info-mini td { background: #fff; }
+.info-mini td:last-child, .info-mini th:last-child { text-align: center; width: 120px; }
 </style>
 </head>
 <body>
@@ -314,14 +367,18 @@ body {
 <nav class="topnav">
   <div class="topnav-left">
     <div class="topnav-logo">
-      <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="20" width="8" height="22" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="14" y="14" width="8" height="28" rx="2" fill="rgba(255,255,255,0.85)"/><rect x="24" y="6" width="8" height="36" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="34" y="10" width="8" height="32" rx="2" fill="rgba(255,255,255,0.75)"/><circle cx="38" cy="10" r="6" fill="#fff" opacity="0.5"/><path d="M36.5 8.5L39.5 11.5L42 8" stroke="#1E40AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/>
+        <line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/>
+        <line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/>
+      </svg>
     </div>
     <span class="topnav-title">柳州教育人事管理平台</span>
   </div>
   <div class="topnav-right">
     <div class="topnav-user">
-      <div class="avatar">李</div>
-      <span>李振华 · 区管理员</span>
+      <div class="avatar" id="userAvatar">李</div>
+      <span id="userName">李振华</span>
     </div>
   </div>
 </nav>
@@ -332,22 +389,16 @@ body {
   <div class="role-switcher" id="roleSwitcher">
     <div class="role-switcher-label">切换演示角色</div>
     <div class="role-switcher-options">
-      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')">
-        <span class="role-switch-dot city"></span>市管理员
-        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">张建国</span>
-      </button>
-      <button class="role-switch-btn active" data-role="district" onclick="switchRole('district')">
-        <span class="role-switch-dot district"></span>区管理员
-        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">李振华</span>
-      </button>
-      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')">
-        <span class="role-switch-dot school"></span>校管理员
-        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">王玉兰</span>
-      </button>
-      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')">
-        <span class="role-switch-dot teacher"></span>教 师
-        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">陈明辉</span>
-      </button>
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span>市管理员<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">张建国</span></button>
+      <button class="role-switch-btn active" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span>区管理员<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">李振华</span></button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span>校管理员<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">王玉兰</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span>教&emsp;师<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">陈明辉</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 19l-7-7 7-7"/><path d="M18 19l-7-7 7-7"/></svg>
+      <span>收起菜单</span>
     </div>
   </div>
 </aside>
@@ -355,380 +406,713 @@ body {
 <!-- ===== MAIN CONTENT ===== -->
 <main class="main">
   <div class="breadcrumb">
-    <a onclick="window.location.href='workbench.html'">工作台</a> &nbsp;/&nbsp; <a onclick="window.location.href='教师入编管理（主管单位视角）.html'">编制管理</a> &nbsp;/&nbsp; <span>教师入编审核</span>
+    <a onclick="goBack()">入编管理</a> &nbsp;/&nbsp;
+    <span>审核入编申请</span>
   </div>
   <div id="mainContent"></div>
 </main>
 
+<div id="toastContainer"></div>
+
 <script>
-// ===== SVG Icons =====
+// ===== SVG ICONS =====
 var ICONS = {
   home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
   chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
   userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
-  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
   userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
-  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
-  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
-  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
   file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
   clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
   warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
   star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
   users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
   key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
-  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 16 16 12 12 8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>'
 };
+
 var MENU_ICONS = {
   workbench: 'home', dashboard: 'chart',
   entry: 'userp', staffing: 'monitor', exit: 'userx',
   promote: 'arrowup', postset: 'shield', recruit: 'search',
   employ: 'file',
   retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
-  account: 'users'
+  account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
+// ===== STATE =====
 var currentRole = 'district';
+var currentRecord = null;
+var isModifyMode = false;  // true when coming from "修改结果" action
 
-var ROLES = {
-  city: {
-    name: '张建国', short: '张',
-    sidebar: {
-      top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }],
-      groups: [
-        { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
-        { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请' }, { id: 'recruit', label: '招聘岗位申请' }] },
-        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
-      ]
-    }
-  },
-  district: {
-    name: '李振华', short: '李',
-    sidebar: {
-      top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }],
-      groups: [
-        { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
-        { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请' }, { id: 'recruit', label: '招聘岗位申请' }] },
-        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
-      ]
-    }
-  },
-  school: {
-    name: '王玉兰', short: '王',
-    sidebar: {
-      top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }],
-      groups: [
-        { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
-        { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请' }, { id: 'recruit', label: '招聘岗位申请' }] },
-        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
-      ]
-    }
-  },
-  teacher: {
-    name: '陈明辉', short: '陈',
-    sidebar: {
-      top: [{ id: 'workbench', icon: 'home', label: '工作台' }],
-      groups: [
-        { name: '业务申请', items: [{ id: 'entry', label: '入编申请' }, { id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] }
-      ]
+var STATUS_MAP = { pending: '待审批', approved: '已通过', rejected: '已驳回' };
+var TYPE_MAP = { career: '事业编', control: '控制数' };
+
+// ===== ROLE CONFIG =====
+	var ROLES = {
+	  city: {
+	    name: '张建国', short: '张', org: '柳州市教育局', role: 'city',
+	    sidebar: {
+	      top: [
+	        { id: 'workbench', icon: 'home', label: '工作台' },
+	        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+	      ],
+	      groups: [
+	        { name: '编制管理', items: [
+	          { id: 'staffing', label: '编制使用申请' },
+	          { id: 'entry', label: '入编申请' },
+	          { id: 'exit', label: '教师出编管理' }
+	        ]},
+	        { name: '岗位管理', items: [
+	          { id: 'postset', label: '岗位设置申请' },
+	          { id: 'promote', label: '岗位晋升申请' },
+	          { id: 'recruit', label: '招聘岗位申请' }
+	        ]},
+	        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+	        { name: '人事管理', items: [
+	          { id: 'retire', label: '退休呈报' },
+	          { id: 'salary', label: '工资核定申请' },
+	          { id: 'ethics', label: '师德师风举报' },
+	          { id: 'honor', label: '荣誉申请' }
+	        ]},
+	        { name: '系统设置', items: [
+	          { id: 'account', label: '账号管理' },
+	          { id: 'org', label: '机构管理' },
+	          { id: 'perm', label: '角色权限' },
+	          { id: 'log', label: '操作日志' }
+	        ]}
+	      ]
+	    }
+	  },
+	  district: {
+	    name: '李振华', short: '李', org: '鱼峰区教育局', role: 'district',
+	    sidebar: {
+	      top: [
+	        { id: 'workbench', icon: 'home', label: '工作台' },
+	        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+	      ],
+	      groups: [
+	        { name: '编制管理', items: [
+	          { id: 'staffing', label: '编制使用申请' },
+	          { id: 'entry', label: '入编申请' },
+	          { id: 'exit', label: '教师出编管理' }
+	        ]},
+	        { name: '岗位管理', items: [
+	          { id: 'postset', label: '岗位设置申请' },
+	          { id: 'promote', label: '岗位晋升申请' },
+	          { id: 'recruit', label: '招聘岗位申请' }
+	        ]},
+	        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+	        { name: '人事管理', items: [
+	          { id: 'retire', label: '退休呈报' },
+	          { id: 'salary', label: '工资核定申请' },
+	          { id: 'ethics', label: '师德师风举报' },
+	          { id: 'honor', label: '荣誉申请' }
+	        ]},
+	        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+	      ]
+	    }
+	  },
+	  school: {
+	    name: '王玉兰', short: '王', org: '柳州市第八中学', role: 'school',
+	    sidebar: {
+	      top: [
+	        { id: 'workbench', icon: 'home', label: '工作台' },
+	        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+	      ],
+	      groups: [
+	        { name: '编制管理', items: [
+	          { id: 'staffing', label: '编制使用申请' },
+	          { id: 'entry', label: '入编申请' },
+	          { id: 'exit', label: '教师出编管理' }
+	        ]},
+	        { name: '岗位管理', items: [
+	          { id: 'postset', label: '岗位设置申请' },
+	          { id: 'promote', label: '岗位晋升申请' },
+	          { id: 'recruit', label: '招聘岗位申请' }
+	        ]},
+	        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+	        { name: '人事管理', items: [
+	          { id: 'retire', label: '退休呈报' },
+	          { id: 'salary', label: '工资核定申请' },
+	          { id: 'ethics', label: '师德师风举报' },
+	          { id: 'honor', label: '荣誉申请' }
+	        ]},
+	        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+	      ]
+	    }
+	  },
+	  teacher: {
+	    name: '陈明辉', short: '陈', org: '柳州市第八中学', role: 'teacher',
+	    sidebar: {
+	      top: [{ id: 'workbench', icon: 'home', label: '工作台' }],
+	      groups: [
+	        { name: '业务申请', items: [
+	          { id: 'entry', label: '入编申请' }
+	        ]},
+	        { name: '个人管理', items: [
+	          { id: 'promote', label: '岗位晋升' },
+	          { id: 'ethics', label: '师德师风举报' },
+	          { id: 'honor', label: '荣誉申请' }
+	        ]}
+	      ]
+	    }
+	  }
+	};
+
+// ===== DEMO DATA =====
+var DEMO_RECORDS = [
+  { id: 'RN20260510001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'career',
+    status: 'pending', submitTime: '2026-05-10 09:30:00', approveTime: null, approverRole: null,
+    unitName: '柳州市第八中学', orgLevel: '正科级', orgNature: '全额拨款事业单位',
+    authCareerStaff: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
+    authLeader: 5, actualLeader: 4, actualOtherLeader: 3,
+    applicants: [{ name: '张雅琴', gender: '女', politics: '中共党员', ethnicity: '汉族', nativePlace: '广西柳州',
+      education: '硕士研究生', graduateInfo: '广西师范大学 汉语言文学',
+      spouseName: '李伟', spouseWorkUnit: '柳州银行',
+      previousJob: '某中学语文教师', orgNature: '事业单位', fundingSource: '财政全额拨款', cadreOrWorker: '干部', title: '一级教师',
+      assignPosition: '语文教师', entryMethod: '统一公开招聘', docNumber: '柳教人〔2026〕10号',
+      reason: '学科教师紧缺，符合学校发展规划' }],
+    materials: { notice: ['岗位增补计划下达通知书.pdf'], idCard: ['身份证_张雅琴.pdf'] } },
+  { id: 'RN20260511001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'control',
+    status: 'approved', submitTime: '2026-05-11 10:00:00', approveTime: '2026-05-13 14:30:00', approverRole: 'district',
+    approver: '李振华', opinion: '材料齐全，同意入编',
+    controlType: '中小学校聘用教师控制数', authControlNo: 16, currentControlStaff: 14,
+    applicants: [{ name: '李思思', gender: '女', idCard: '450201199105156788', docNumber: '柳教人〔2026〕11号', entryMethod: '统一公开招聘' },
+      { name: '王明', gender: '男', idCard: '450201198912014567', docNumber: '柳教人〔2026〕12号', entryMethod: '单位自主实施招聘' },
+      { name: '赵丽颖', gender: '女', idCard: '450201199308201234', docNumber: '柳教人〔2026〕13号', entryMethod: '中高级人才招聘' }],
+    materials: { notice: ['岗位增补计划下达通知书.pdf'], idCards: [['id1.pdf'], ['id2.pdf'], ['id3.pdf']] } },
+  { id: 'RN20260512001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'career',
+    status: 'rejected', submitTime: '2026-05-12 11:20:00', approveTime: null, approverRole: 'district',
+    rejectReason: '材料不齐全，缺少通知书扫描件', approver: '李振华',
+    unitName: '柳州市第八中学', orgLevel: '正科级', orgNature: '全额拨款事业单位',
+    authCareerStaff: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
+    authLeader: 5, actualLeader: 4, actualOtherLeader: 3,
+    applicants: [{ name: '刘强', gender: '男', politics: '群众', ethnicity: '汉族', nativePlace: '湖南长沙',
+      education: '本科', graduateInfo: '湖南师范大学 数学与应用数学',
+      spouseName: '无', spouseWorkUnit: '无',
+      previousJob: '无', orgNature: '事业单位', fundingSource: '财政全额拨款', cadreOrWorker: '干部', title: '二级教师',
+      assignPosition: '数学教师', entryMethod: '统一公开招聘', docNumber: '柳教人〔2026〕14号',
+      reason: '数学学科教师紧缺' }],
+    materials: { notice: [], idCard: ['身份证_刘强.pdf'] } },
+  { id: 'RN20260513001', schoolName: '鱼峰区实验小学', schoolType: '鱼峰区属', staffingType: 'career',
+    status: 'pending', submitTime: '2026-05-13 08:15:00', approveTime: null, approverRole: null,
+    unitName: '鱼峰区实验小学', orgLevel: '副科级', orgNature: '全额拨款事业单位',
+    authCareerStaff: 65, currentCareerStaff: 60, unusedCareerPlan: 2,
+    authLeader: 3, actualLeader: 2, actualOtherLeader: 1,
+    applicants: [{ name: '陈晓霞', gender: '女', politics: '共青团员', ethnicity: '壮族', nativePlace: '广西南宁',
+      education: '本科', graduateInfo: '广西民族大学 小学教育',
+      spouseName: '无', spouseWorkUnit: '无',
+      previousJob: '某培训机构教师', orgNature: '企业', fundingSource: '自收自支', cadreOrWorker: '工人', title: '无',
+      assignPosition: '语文教师', entryMethod: '单位自主实施招聘', docNumber: '鱼教人〔2026〕5号',
+      reason: '扩班需求，语文教师不足' }],
+    materials: { notice: ['通知书.pdf'], idCard: ['身份证_陈晓霞.pdf'] } },
+  { id: 'RN20260514001', schoolName: '柳州高级中学', schoolType: '市直属', staffingType: 'career',
+    status: 'pending', submitTime: '2026-05-14 09:00:00', approveTime: null, approverRole: null,
+    unitName: '柳州高级中学', orgLevel: '正处级', orgNature: '全额拨款事业单位',
+    authCareerStaff: 186, currentCareerStaff: 175, unusedCareerPlan: 3,
+    authLeader: 8, actualLeader: 7, actualOtherLeader: 5,
+    applicants: [{ name: '周明远', gender: '男', politics: '中共党员', ethnicity: '汉族', nativePlace: '湖北武汉',
+      education: '博士', graduateInfo: '华中师范大学 教育学',
+      spouseName: '林芳', spouseWorkUnit: '柳州市人民医院',
+      previousJob: '某高校讲师', orgNature: '事业单位', fundingSource: '财政全额拨款', cadreOrWorker: '干部', title: '讲师',
+      assignPosition: '教育科研', entryMethod: '引进高层次人才', docNumber: '柳教人〔2026〕15号',
+      reason: '引进高层次教育研究人才' }],
+    materials: { notice: ['通知书.pdf'], idCard: ['身份证_周明远.pdf'] } },
+  { id: 'RN20260515001', schoolName: '柳州铁一中学', schoolType: '市直属', staffingType: 'control',
+    status: 'approved', submitTime: '2026-05-15 14:00:00', approveTime: '2026-05-17 10:00:00', approverRole: 'city',
+    approver: '张建国', opinion: '同意',
+    creditCode: '12450200498597851Y', orgLevel: '其他未定级', fundingSource: '全额拨款', orgNature: '全额拨款事业单位',
+    authCareerStaff: 628, currentCareerStaff: 584, unusedCareerPlan: 44,
+    postBreakdown: { adminAuth: 0, adminActual: 4, techAuth: 0, techActual: 580, logisticsAuth: 0, logisticsActual: 0 },
+    leaderBreakdown: { deptLevel: { auth: 0, actual: 0 }, divisionLevel: { auth: 0, actual: 5 }, sectionLevel: { auth: 0, actual: 0 } },
+    authLeader: 0, actualLeader: 5, actualOtherLeader: 0,
+    unitName: '柳州铁一中学',
+    controlType: '中小学校聘用教师控制数', authControlNo: 30, currentControlStaff: 25,
+    applicants: [{ name: '赵志华', gender: '男', idCard: '450201199006151234', docNumber: '柳教人〔2026〕16号', entryMethod: '统一公开招聘' },
+      { name: '孙丽', gender: '女', idCard: '450201199212018901', docNumber: '柳教人〔2026〕17号', entryMethod: '调动' }],
+    materials: { notice: ['通知书.pdf'], idCards: [['id1.pdf'], ['id2.pdf']] } },
+  { id: 'RN20260516001', schoolName: '柳州市一中', schoolType: '市直属', staffingType: 'career',
+    status: 'rejected', submitTime: '2026-05-16 16:30:00', approveTime: null, approverRole: 'city',
+    rejectReason: '申请理由不充分', approver: '张建国',
+    unitName: '柳州市第一中学', orgLevel: '正处级', orgNature: '全额拨款事业单位',
+    authCareerStaff: 150, currentCareerStaff: 140, unusedCareerPlan: 5,
+    authLeader: 6, actualLeader: 5, actualOtherLeader: 4,
+    applicants: [{ name: '吴芳', gender: '女', politics: '群众', ethnicity: '汉族', nativePlace: '广西桂林',
+      education: '硕士', graduateInfo: '广西师范大学 英语',
+      spouseName: '无', spouseWorkUnit: '无',
+      previousJob: '某培训机构教师', orgNature: '企业', fundingSource: '自收自支', cadreOrWorker: '工人', title: '无',
+      assignPosition: '英语教师', entryMethod: '统一公开招聘', docNumber: '柳教人〔2026〕18号',
+      reason: '英语学科教师不足' }],
+    materials: { notice: ['通知书.pdf'], idCard: ['身份证_吴芳.pdf'] } },
+  { id: 'RN20260517001', schoolName: '柳州高级中学', schoolType: '市直属', staffingType: 'control',
+    status: 'approved', submitTime: '2026-05-10 08:00:00', approveTime: '2026-05-12 16:00:00', approverRole: 'city',
+    approver: '张建国', opinion: '同意入编',
+    controlType: '中小学校聘用教师控制数', authControlNo: 20, currentControlStaff: 12,
+    applicants: [{ name: '黄志远', gender: '男', idCard: '450201198803201111', docNumber: '柳教人〔2026〕19号', entryMethod: '统一公开招聘' },
+      { name: '郑爽', gender: '女', idCard: '450201199505101222', docNumber: '柳教人〔2026〕20号', entryMethod: '中高级人才招聘' },
+      { name: '杨帆', gender: '男', idCard: '450201199102281333', docNumber: '柳教人〔2026〕21号', entryMethod: '调动' },
+      { name: '钱进', gender: '男', idCard: '450201199011151444', docNumber: '柳教人〔2026〕22号', entryMethod: '单位自主实施招聘' }],
+    materials: { notice: ['通知书.pdf'], idCards: [['id1.pdf'],['id2.pdf'],['id3.pdf'],['id4.pdf']] } },
+  { id: 'RN20260518001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'control',
+    status: 'approved', submitTime: '2026-05-18 08:00:00', approveTime: '2026-05-19 16:00:00', approverRole: 'district',
+    approver: '李振华', opinion: '同意入编',
+    controlType: '中小学校聘用教师控制数', authControlNo: 16, currentControlStaff: 12,
+    applicants: [{ name: '周杰', gender: '男', idCard: '450201199307151555', docNumber: '柳教人〔2026〕23号', entryMethod: '统一公开招聘' },
+      { name: '吴倩', gender: '女', idCard: '450201199410011666', docNumber: '柳教人〔2026〕24号', entryMethod: '单位自主实施招聘' }],
+    materials: { notice: ['通知书.pdf'], idCards: [['id1.pdf'], ['id2.pdf']] } }
+];
+
+// ===== DATA =====
+function loadRecords() {
+  var stored = JSON.parse(localStorage.getItem('entry_records') || '[]');
+  var ids = {};
+  stored.forEach(function(r) { ids[r.id] = true; });
+  var merged = stored.slice();
+  DEMO_RECORDS.forEach(function(r) { if (!ids[r.id]) { merged.push(r); ids[r.id] = true; } });
+  return merged;
+}
+
+function saveRecords(records) {
+  localStorage.setItem('entry_records', JSON.stringify(records));
+}
+
+function findRecord(id) {
+  return loadRecords().find(function(r) { return r.id === id; }) || null;
+}
+
+function getApproverName() {
+  var roleData = ROLES[currentRole];
+  return roleData ? roleData.name : '';
+}
+
+// ===== PERMISSION CHECKS =====
+function checkPermission() {
+  if (!currentRecord) return false;
+  if (isModifyMode) {
+    // Must be approved, approverRole must match, within 30 days
+    if (currentRecord.status !== 'approved') return false;
+    if (currentRecord.approverRole !== currentRole) return false;
+    if (!currentRecord.approveTime) return false;
+    var days = (Date.now() - new Date(currentRecord.approveTime).getTime()) / 86400000;
+    return days < 30;
+  }
+  // Normal approval: must be pending, and role-scope match
+  if (currentRecord.status !== 'pending') return false;
+  if (currentRole === 'district') return currentRecord.schoolType === '鱼峰区属';
+  if (currentRole === 'city') return currentRecord.schoolType === '市直属';
+  return false;
+}
+
+// ===== RENDER =====
+function renderProgress() {
+  var r = currentRecord;
+  var steps;
+  if (isModifyMode) {
+    steps = [
+      { label: '提交申请', state: 'done' },
+      { label: '教育局审批', state: 'current' },
+      { label: '审核完成', state: 'pending' }
+    ];
+  } else if (r.status === 'approved') {
+    steps = [
+      { label: '提交申请', state: 'done' },
+      { label: '教育局审批', state: 'done' },
+      { label: '审核完成', state: 'done' }
+    ];
+  } else if (r.status === 'rejected') {
+    steps = [
+      { label: '提交申请', state: 'done' },
+      { label: '教育局审批', state: 'done' },
+      { label: '审核驳回', state: 'rejected' }
+    ];
+  } else {
+    steps = [
+      { label: '提交申请', state: 'done' },
+      { label: '教育局审批', state: 'current' },
+      { label: '审核完成', state: 'pending' }
+    ];
+  }
+
+  var h = '';
+  for (var i = 0; i < steps.length; i++) {
+    var step = steps[i];
+    var isRejected = step.state === 'rejected';
+    var dotIcon = step.state === 'done' ? '✓' : (isRejected ? '✕' : (i + 1));
+    var dotClass = step.state === 'done' ? 'done' : (step.state === 'current' ? 'current' : (isRejected ? 'rejected' : 'pending'));
+
+    h += '<div class="progress-step">';
+    h += '<div class="progress-dot ' + dotClass + '">' + dotIcon + '</div>';
+    h += '<div class="progress-label ' + dotClass + '">' + step.label + '</div>';
+    h += '</div>';
+    if (i < steps.length - 1) {
+      h += '<div class="progress-line ' + (step.state === 'done' ? 'done' : 'pending') + '"></div>';
     }
   }
-};
 
-function renderSidebar() {
-  var data = ROLES[currentRole].sidebar;
+  return '<div class="card"><div class="card-header">审批进度</div><div class="card-body">' +
+    '<div class="progress-tracker">' + h + '</div></div></div>';
+}
+
+function renderUnitInfo() {
+  var r = currentRecord;
+  var hasDetail = !!(r.postBreakdown || r.creditCode);
+
+  if (hasDetail) {
+    return renderDetailedUnitInfo(r);
+  }
+  return renderLegacyUnitInfo(r);
+}
+
+function renderDetailedUnitInfo(r) {
   var html = '';
-  data.top.forEach(function(item) {
-    html += '<a class="menu-item" onclick="sidebarClick(\'' + item.id + '\')">';
-    html += ICONS[item.icon];
-    html += '<span>' + item.label + '</span></a>';
-  });
-  data.groups.forEach(function(group) {
-    html += '<div class="menu-group">' + group.name + '</div>';
-    group.items.forEach(function(item) {
-      var isActive = item.id === 'entry';
-      html += '<a class="menu-item' + (isActive ? ' active' : '') + '" onclick="sidebarClick(\'' + item.id + '\')">';
-      html += ICONS[MENU_ICONS[item.id] || 'file'];
-      html += '<span>' + item.label + '</span></a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = html;
-}
+  var cardTitle = r.staffingType === 'control' ? '单位信息（控制数）' : '单位信息（事业编）';
+  html += '<div class="card"><div class="card-header">' + cardTitle + '</div><div class="card-body">';
 
-function updateUserInfo() {
-  var role = ROLES[currentRole];
-  var roleLabel = currentRole === 'city' ? '市管理员' : currentRole === 'district' ? '区管理员' : currentRole === 'school' ? '校管理员' : '教师';
-  var avatarEl = document.querySelector('.topnav-user .avatar');
-  var nameEl = document.querySelector('.topnav-user span');
-  if (avatarEl) avatarEl.textContent = role.short;
-  if (nameEl) nameEl.textContent = role.name + ' · ' + roleLabel;
-}
+  html += '<table class="info-table">';
+  html += '<tr><td class="ilabel">单位全称</td><td class="ivalue" colspan="3">' + (r.unitName || r.schoolName) + '</td></tr>';
+  html += '<tr><td class="ilabel">统一社会信用代码(或事登证号)</td><td class="ivalue" colspan="3">' + (r.creditCode || '—') + '</td></tr>';
+  html += '<tr><td class="ilabel">机构级别</td><td class="ivalue">' + (r.orgLevel || '—') + '</td>';
+  html += '<td class="ilabel">经费来源</td><td class="ivalue">' + (r.fundingSource || r.orgNature || '—') + '</td></tr>';
+  html += '<tr><td class="ilabel">核定编制数(名)</td><td class="ivalue">' + (r.authCareerStaff != null ? r.authCareerStaff : '—') + '</td>';
+  html += '<td class="ilabel">现有人数(人)</td><td class="ivalue">' + (r.currentCareerStaff != null ? r.currentCareerStaff : '—') + '</td></tr>';
+  html += '</table>';
 
-function updateRoleUI() {
-  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.role === currentRole);
-  });
-  updateUserInfo();
-  renderSidebar();
-}
-
-function switchRole(role) {
-  if (role === 'city' || role === 'district') {
-    if (currentRole !== role) {
-      currentRole = role;
-      updateRoleUI();
-    }
-    return;
+  if (r.postBreakdown) {
+    var pb = r.postBreakdown;
+    html += '<div class="info-section-label">岗位分类</div>';
+    html += '<table class="info-subtable"><tr>';
+    html += '<td class="isub-left"><table class="info-mini">';
+    html += '<tr><th>岗位类别</th><th>核定岗位</th></tr>';
+    html += '<tr><td>行政管理</td><td>' + pb.adminAuth + '</td></tr>';
+    html += '<tr><td>专业技术</td><td>' + pb.techAuth + '</td></tr>';
+    html += '<tr><td>后勤服务</td><td>' + pb.logisticsAuth + '</td></tr>';
+    html += '</table></td>';
+    html += '<td class="isub-right"><table class="info-mini">';
+    html += '<tr><th>岗位类别</th><th>实有人员</th></tr>';
+    html += '<tr><td>行政管理岗位人数</td><td>' + pb.adminActual + '</td></tr>';
+    html += '<tr><td>专业技术岗位人数</td><td>' + pb.techActual + '</td></tr>';
+    html += '<tr><td>后勤服务岗位人数</td><td>' + pb.logisticsActual + '</td></tr>';
+    html += '</table></td>';
+    html += '</tr></table>';
   }
-  if (role === 'school') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
-  if (role === 'teacher') { window.location.href = '教师入编管理（教师视角）.html'; return; }
+
+  if (r.leaderBreakdown) {
+    var lb = r.leaderBreakdown;
+    html += '<div class="info-section-label">领导职数</div>';
+    html += '<table class="info-subtable"><tr>';
+    html += '<td class="isub-left"><table class="info-mini">';
+    html += '<tr><th>职级</th><th>核定职数</th></tr>';
+    html += '<tr><td>厅级</td><td>' + lb.deptLevel.auth + '</td></tr>';
+    html += '<tr><td>处级</td><td>' + lb.divisionLevel.auth + '</td></tr>';
+    html += '<tr><td>科级</td><td>' + lb.sectionLevel.auth + '</td></tr>';
+    html += '</table></td>';
+    html += '<td class="isub-right"><table class="info-mini">';
+    html += '<tr><th>职级</th><th>实配人数</th></tr>';
+    html += '<tr><td>厅级</td><td>' + lb.deptLevel.actual + '</td></tr>';
+    html += '<tr><td>处级</td><td>' + lb.divisionLevel.actual + '</td></tr>';
+    html += '<tr><td>科级</td><td>' + lb.sectionLevel.actual + '</td></tr>';
+    html += '</table></td>';
+    html += '</tr></table>';
+  }
+
+  if (r.staffingType === 'control') {
+    var thisCount = r.applicants ? r.applicants.length : 0;
+    var currentControl = r.currentControlStaff || 0;
+    var afterControl = currentControl + thisCount;
+    html += '<div style="margin-top:16px;font-size:15px;font-weight:600;color:var(--text);padding-bottom:10px;border-bottom:1px solid var(--border);">控制数信息</div>';
+    html += '<div class="info-grid" style="margin-top:12px;">';
+    html += '<div class="info-item full"><div class="info-label">控制数类型</div><div class="info-value">' + (r.controlType || '中小学校聘用教师控制数') + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">核定控制数</div><div class="info-value">' + (r.authControlNo != null ? r.authControlNo : '—') + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">现有控制数人员</div><div class="info-value">' + currentControl + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">本次备案控制数人员</div><div class="info-value">' + thisCount + '</div></div>';
+    html += '<div class="info-item full"><div class="info-label">备案后控制数人员</div><div class="info-value" style="font-size:15px;font-weight:700;color:var(--primary);">' + afterControl + '</div></div>';
+    html += '</div>';
+  }
+
+  html += '</div></div>';
+  return html;
 }
 
-function sidebarClick(id) {
-  if (id === 'workbench') { window.location.href = 'workbench.html'; }
-  else if (id === 'staffing') { window.location.href = 'staffing-application.html'; }
-  else if (id === 'entry') { window.location.href = '教师入编管理（主管单位视角）.html'; }
-  else if (id === 'exit') { window.location.href = '教师出编管理（主管单位视角）.html'; }
-  else { showToast('跳转至：' + id); }
+function renderLegacyUnitInfo(r) {
+  if (r.staffingType === 'career') {
+    return '<div class="card"><div class="card-header">单位信息（事业编）</div><div class="card-body">' +
+      '<div class="info-grid">' +
+      '<div class="info-item full"><div class="info-label">单位全称</div><div class="info-value">' + (r.unitName || r.schoolName) + '</div></div>' +
+      '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + (r.orgLevel || '正科级') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (r.orgNature || '全额拨款事业单位') + '</div></div>' +
+      '<div class="info-item"><div class="info-label"></div><div class="info-value"></div></div>' +
+      '<div class="info-item"><div class="info-label">核定编制数</div><div class="info-value">' + (r.authCareerStaff || 88) + '</div></div>' +
+      '<div class="info-item"><div class="info-label">在编人数</div><div class="info-value">' + (r.currentCareerStaff || 80) + '</div></div>' +
+      '<div class="info-item"><div class="info-label">未使用计划数</div><div class="info-value">' + (r.unusedCareerPlan != null ? r.unusedCareerPlan : 1) + '</div></div>' +
+      '<div class="info-item"><div class="info-label">核定领导职数</div><div class="info-value">' + (r.authLeader || 5) + '</div></div>' +
+      '<div class="info-item"><div class="info-label">实配领导</div><div class="info-value">' + (r.actualLeader || 4) + '</div></div>' +
+      '<div class="info-item"><div class="info-label">实配其他领导</div><div class="info-value">' + (r.actualOtherLeader || 3) + '</div></div>' +
+      '</div></div></div>';
+  }
+  var thisCount2 = r.applicants ? r.applicants.length : 0;
+  var currentControl2 = r.currentControlStaff || 14;
+  return '<div class="card"><div class="card-header">单位信息（控制数）</div><div class="card-body">' +
+    '<div class="info-grid">' +
+    '<div class="info-item full"><div class="info-label">单位名称</div><div class="info-value">' + r.schoolName + '</div></div>' +
+    '<div class="info-item full"><div class="info-label">控制数类型</div><div class="info-value">' + (r.controlType || '中小学校聘用教师控制数') + '</div></div>' +
+    '<div class="info-item"><div class="info-label">核定控制数</div><div class="info-value">' + (r.authControlNo || 16) + '</div></div>' +
+    '<div class="info-item"><div class="info-label">现有控制数人员</div><div class="info-value">' + currentControl2 + '</div></div>' +
+    '<div class="info-item"><div class="info-label">本次备案控制数人员</div><div class="info-value">' + thisCount2 + '</div></div>' +
+    '<div class="info-item full"><div class="info-label">备案后控制数人员</div><div class="info-value" style="font-size:15px;font-weight:700;color:var(--primary);">' + (currentControl2 + thisCount2) + '</div></div>' +
+    '</div></div></div>';
 }
 
-function showToast(message, callback) {
-  var toast = document.createElement('div');
-  toast.className = 'toast-msg';
-  toast.innerText = message;
-  document.body.appendChild(toast);
-  setTimeout(function() { toast.remove(); if (callback) callback(); }, 1500);
+function renderCareerApplicants() {
+  var applicants = currentRecord.applicants || [];
+  var html = '';
+  for (var i = 0; i < applicants.length; i++) {
+    var a = applicants[i];
+    html += '<div class="info-grid">' +
+      '<div class="section-label">身份信息</div>' +
+      '<div class="info-item"><div class="info-label">姓名</div><div class="info-value">' + (a.name || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">性别</div><div class="info-value">' + (a.gender || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">政治面貌</div><div class="info-value">' + (a.politics || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">民族</div><div class="info-value">' + (a.ethnicity || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">籍贯</div><div class="info-value">' + (a.nativePlace || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label"></div><div class="info-value"></div></div>' +
+      '<div class="section-label">教育背景</div>' +
+      '<div class="info-item"><div class="info-label">文化程度</div><div class="info-value">' + (a.education || '—') + '</div></div>' +
+      '<div class="info-item full" style="grid-column:2/4;"><div class="info-label">毕业院校及专业</div><div class="info-value">' + (a.graduateInfo || '—') + '</div></div>' +
+      '<div class="section-label">家庭信息</div>' +
+      '<div class="info-item"><div class="info-label">配偶姓名</div><div class="info-value">' + (a.spouseName || '无') + '</div></div>' +
+      '<div class="info-item" style="grid-column:2/4;"><div class="info-label">配偶工作单位</div><div class="info-value">' + (a.spouseWorkUnit || '无') + '</div></div>' +
+      '<div class="section-label">原单位信息</div>' +
+      '<div class="info-item full"><div class="info-label">原工作单位</div><div class="info-value">' + (a.previousJob || '无') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (a.orgNature || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">经费来源</div><div class="info-value">' + (a.fundingSource || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">干部或工人</div><div class="info-value">' + (a.cadreOrWorker || '—') + '</div></div>' +
+      '<div class="info-item" style="grid-column:2/4;"><div class="info-label">职务职称</div><div class="info-value">' + (a.title || '—') + '</div></div>' +
+      '<div class="section-label">入编信息</div>' +
+      '<div class="info-item full"><div class="info-label">拟分配岗位</div><div class="info-value">' + (a.assignPosition || '—') + '</div></div>' +
+      '<div class="info-item"><div class="info-label">入编方式</div><div class="info-value">' + (a.entryMethod || '—') + '</div></div>' +
+      '<div class="info-item" style="grid-column:2/4;"><div class="info-label">依据文号</div><div class="info-value">' + (a.docNumber || '—') + '</div></div>' +
+      '<div class="section-label">申请理由</div>' +
+      '<div class="info-item full"><div class="info-value">' + (a.reason || '—') + '</div></div>' +
+      '</div>';
+    if (i < applicants.length - 1) html += '<hr style="margin:20px 0;border-color:var(--border);">';
+  }
+  return html;
 }
 
-// ==================== REVIEW DATA & RENDERING ====================
-
-var unitInfo = {
-  fullName: "柳州高级中学", creditCode: "12450200MB1A12345X",
-  institutionLevel: "正处级", fundingSource: "财政全额拨款",
-  authorizedStaff: 186,
-  authorizedDetail: { admin: 32, tech: 142, logistic: 12, leadership: { deptLevel: 1, divisionLevel: 4, sectionLevel: 8 } },
-  currentStaff: 175,
-  currentDetail: { admin: 30, tech: 138, logistic: 7, leadership: { deptLevel: 1, divisionLevel: 4, sectionLevel: 7 } },
-  controlQuota: 186,
-  currentControl: 175,
-  thisApply: 3,
-  afterControl: 178
-};
-
-var progressData = {
-  submit: { user: "陈志远（学校管理员）", time: "2026-03-10 09:30:00", status: "completed" },
-  schoolAudit: { user: "陈志远（学校管理员）", time: "2026-03-12 14:20:00", status: "completed" },
-  eduAudit: { user: null, time: null, status: "active" },
-  complete: { result: null, reason: null, status: "pending" }
-};
-var currentStatus = "pending";
-
-var timelineRecords = [
-  { time: "2026-03-12 14:20:00", operator: "陈志远", action: "学校审核通过", opinion: "材料齐全，同意上报", result: "通过" },
-  { time: "2026-03-10 09:30:00", operator: "陈志远", action: "提交申请", opinion: "申请入编", result: "提交" }
-];
-
-var applicants = [
-  { id: 1, name: "张雅琴", gender: "女", idCard: "450201199003150022", position: "语文教师", docNumber: "柳教人〔2026〕10号", method: "统一公开招聘", reason: "学科教师紧缺" },
-  { id: 2, name: "李思思", gender: "女", idCard: "450201199105156788", position: "数学教师", docNumber: "柳教人〔2026〕11号", method: "统一公开招聘", reason: "扩班需求" },
-  { id: 3, name: "王明", gender: "男", idCard: "450201198912014567", position: "英语教师", docNumber: "柳教人〔2026〕12号", method: "中高级人才招聘", reason: "骨干教师引进" }
-];
-
-var currentPage = 1;
-var pageSize = 3;
-
-var materialsChecklist = [
-  { num: "一", name: "事业单位控制数人员增人备案表", require: "1份，单位负责人、经办人签字，盖章，主管部门审核盖章", file: "增人备案表_张雅琴.pdf" },
-  { num: "二", name: "中小学聘用教师控制数：市人社局下发的岗位增补计划下达通知书\n高职、中职、公立医院控制数：单位或主管部门下发的控制数人员聘用文件", require: "1份，原件或复印件（盖章)", file: "岗位增补计划下达通知书.pdf" },
-  { num: "三", name: "个人身份证", require: "1份，原件或复印件（盖章)，审核后退回", file: "身份证_张雅琴.jpg" }
-];
-
-function renderMaterialsCard() {
-  var rows = materialsChecklist.map(function(item) {
-    return '<tr>' +
-      '<td class="mat-num">' + item.num + '</td>' +
-      '<td class="mat-name">' + item.name.replace(/\n/g, '<br>') + '</td>' +
-      '<td class="mat-require">' + item.require + '</td>' +
-      '<td class="mat-file"><span class="material-view-link" onclick="showToast(\'预览：' + item.file + '\')">' + item.file + '</span></td>' +
-      '<td class="mat-status"><span class="material-status-badge ok">已上传</span></td>' +
-    '</tr>';
-  }).join('');
-  return '<div class="card"><div class="card-header">附件12-3 事业单位控制数人员增人材料清单</div>' +
-    '<div style="padding: 16px 20px;"><table class="materials-table">' +
-    '<thead><tr><th class="mat-num">序号</th><th class="mat-name">所需材料</th><th class="mat-require">材料要求</th><th class="mat-file">上传文件</th><th class="mat-status">状态</th></tr></thead>' +
-    '<tbody>' + rows + '</tbody></table></div></div>';
+function renderControlApplicants() {
+  var applicants = currentRecord.applicants || [];
+  var rows = '';
+  for (var i = 0; i < applicants.length; i++) {
+    var a = applicants[i];
+    rows += '<tr><td>' + (i + 1) + '</td><td>' + (a.name || '') + '</td><td>' + (a.gender || '') + '</td><td>' + (a.idCard || '') + '</td><td>' + (a.docNumber || '') + '</td><td>' + (a.entryMethod || '') + '</td></tr>';
+  }
+  return '<table class="data-table"><thead><tr><th>序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>依据文号</th><th>增人形式</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
-function renderThreeColTable(details, leadership, category1, category2) {
-  return '<table class="three-col-table"><tbody>' +
-    '<tr><td rowspan="3">' + category1 + '</td><td>行政管理岗位</td><td>' + details.admin + '</td></tr>' +
-    '<tr><td>专业技术岗位</td><td>' + details.tech + '</td></tr>' +
-    '<tr><td>后勤服务岗位</td><td>' + details.logistic + '</td></tr>' +
-    '<tr style="border-top:1px solid var(--border);"><td rowspan="3">' + category2 + '</td><td>厅级</td><td>' + leadership.deptLevel + '</td></tr>' +
-    '<tr><td>处级</td><td>' + leadership.divisionLevel + '</td></tr>' +
-    '<tr><td>科级</td><td>' + leadership.sectionLevel + '</td></tr>' +
-  '</tbody></table>';
+function renderApplicants() {
+  var count = currentRecord.applicants ? currentRecord.applicants.length : 0;
+  var title = '申请人信息' + (count > 1 ? '（共 ' + count + ' 人）' : '');
+  var body = currentRecord.staffingType === 'career' ? renderCareerApplicants() : renderControlApplicants();
+  return '<div class="card"><div class="card-header">' + title + '</div><div class="card-body">' + body + '</div></div>';
+}
+
+function renderMaterials() {
+  var r = currentRecord;
+  var items = [];
+  if (r.staffingType === 'career') {
+    items.push({ name: '柳州市事业单位岗位增补计划下达通知书', required: true, files: (r.materials && r.materials.notice) || [] });
+    items.push({ name: '个人身份证', required: true, files: (r.materials && r.materials.idCard) || [] });
+  } else {
+    items.push({ name: '市人社局下发的岗位增补计划下达通知书', required: true, files: (r.materials && r.materials.notice) || [] });
+    var idCards = (r.materials && r.materials.idCards) || [];
+    for (var i = 0; i < idCards.length; i++) {
+      var name = r.applicants && r.applicants[i] ? r.applicants[i].name : '申请人' + (i + 1);
+      items.push({ name: '个人身份证（' + name + '）', required: true, files: idCards[i] || [] });
+    }
+  }
+  var html = '';
+  for (var j = 0; j < items.length; j++) {
+    var item = items[j];
+    var filesHtml = (item.files || []).map(function(f) {
+      return '<span class="file-chip" onclick="showToast(\'预览: ' + f + '（模拟）\')">📄 ' + f + '</span>';
+    }).join('');
+    html += '<div class="material-item">' +
+      '<div style="flex:1;"><div class="material-name">' +
+        '<span class="material-tag ' + (item.required ? 'required' : 'optional') + '">' + (item.required ? '必传' : '选传') + '</span>' +
+        item.name +
+      '</div>' +
+      (filesHtml ? '<div class="material-files">' + filesHtml + '</div>' : '<div style="font-size:11px;color:var(--text-light);margin-top:4px;">未上传</div>') +
+      '</div></div>';
+  }
+  return '<div class="card"><div class="card-header">材料附件</div><div class="card-body">' + html + '</div></div>';
+}
+
+function renderTimeline() {
+  var r = currentRecord;
+  var dotClassMap = { submit: 'submit', approve: 'approve', reject: 'reject', resubmit: 'resubmit' };
+  var items = [{ time: r.submitTime || '', title: '提交申请', desc: '校管理员提交入编申请', action: 'submit' }];
+  if (r.status === 'approved') {
+    items.push({ time: r.approveTime || '', title: '审批通过', desc: (r.approver || '') + ' 审批通过' + (r.opinion ? '，意见：' + r.opinion : ''), action: 'approve' });
+  } else if (r.status === 'rejected') {
+    items.push({ time: r.approveTime || r.submitTime || '', title: '审批驳回', desc: (r.rejectReason || ''), action: 'reject', reason: r.rejectReason || '' });
+  }
+  if (r.timeline) {
+    for (var i = 0; i < r.timeline.length; i++) {
+      var t = r.timeline[i];
+      items.push({ time: t.time || '', title: t.action || '', desc: t.desc || (t.operator || '') + ' ' + (t.opinion || ''), action: 'resubmit' });
+    }
+  }
+  var tagMap = {
+    approve: '<span class="tlc-tag approve-tag">审批通过</span>',
+    reject: '<span class="tlc-tag reject-reason">驳回</span>',
+    resubmit: '<span class="tlc-tag resubmit-tag">修改重提</span>'
+  };
+
+  var html = '<div class="card"><div class="card-header">申报履历</div><div class="card-body"><div class="timeline">';
+  for (var j = 0; j < items.length; j++) {
+    var item = items[j];
+    html += '<div class="timeline-item">' +
+      '<div class="timeline-dot ' + (dotClassMap[item.action] || 'submit') + '"></div>' +
+      '<div class="timeline-content">' +
+      '<div class="tlc-header">' +
+      '<span class="tlc-title">' + item.title + '</span>' +
+      '<span class="tlc-time">' + (item.time ? item.time.substring(0, 16) : '') + '</span>' +
+      (tagMap[item.action] ? tagMap[item.action] : '') +
+      '</div>' +
+      '<div class="tlc-desc">' + item.desc + '</div>' +
+      (item.reason ? '<div class="tlc-desc" style="color:var(--danger);margin-top:4px;">驳回原因：' + item.reason + '</div>' : '') +
+      '</div></div>';
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function renderActionBar() {
+  if (!checkPermission()) return '';
+
+  if (isModifyMode) {
+    var daysSince = Math.floor((Date.now() - new Date(currentRecord.approveTime).getTime()) / 86400000);
+    return '<div class="card">' +
+      '<div class="warning-banner" style="margin:16px;">⚠ 该申请已审批通过 ' + daysSince + ' 天（剩余 ' + (30 - daysSince) + ' 天可修改）。修改后申请将退回学校重新审批。</div>' +
+      '<div class="action-bar">' +
+        '<button class="btn btn-warning" onclick="showModifyModal()">修改审核结果为驳回</button>' +
+      '</div></div>';
+  }
+
+  return '<div class="card">' +
+    '<div class="action-bar">' +
+      '<button class="btn btn-approve" onclick="showApproveModal()">审批通过</button>' +
+      '<button class="btn btn-reject" onclick="showRejectModal()">审批驳回</button>' +
+    '</div></div>';
 }
 
 function renderPage() {
-  var mainContent = document.getElementById("mainContent");
-
-  // Progress bar
-  var getNodeClass = function(status) { return status === 'completed' ? 'completed' : (status === 'active' ? 'active' : ''); };
-  var getNodeIcon = function(status) { return status === 'completed' ? '✓' : (status === 'active' ? '●' : '○'); };
-  var progressNodes = [
-    { status: progressData.submit.status, title: "提交申请", detail: progressData.submit.user + ' ' + progressData.submit.time },
-    { status: progressData.schoolAudit.status, title: "学校审核", detail: progressData.schoolAudit.user ? progressData.schoolAudit.user + ' ' + progressData.schoolAudit.time : '待审核' },
-    { status: progressData.eduAudit.status, title: "市/区教育局审核", detail: progressData.eduAudit.user ? progressData.eduAudit.user + ' ' + progressData.eduAudit.time : '待审核' },
-    { status: progressData.complete.status, title: "审核完成", detail: progressData.complete.result || (progressData.complete.reason ? '驳回原因：' + progressData.complete.reason : '待审核') }
-  ];
-  var progressStepsHtml = progressNodes.map(function(node) {
-    return '<div class="progress-node ' + getNodeClass(node.status) + '">' +
-      '<div class="node-dot">' + getNodeIcon(node.status) + '</div>' +
-      '<div class="node-title">' + node.title + '</div>' +
-      '<div class="node-detail">' + node.detail + '</div>' +
-    '</div>';
-  }).join('');
-
-  // Stamp
-  var stampHtml = '';
-  if (currentStatus === 'approved') stampHtml = '<div class="status-stamp approved">审批通过</div>';
-  else if (currentStatus === 'rejected') stampHtml = '<div class="status-stamp rejected">审批驳回</div>';
-  else stampHtml = '<div class="status-stamp pending">待审核</div>';
-
-  // Timeline
-  var timelineHtml = timelineRecords.map(function(record) {
-    return '<div class="timeline-item completed">' +
-      '<div class="timeline-dot"></div>' +
-      '<div class="timeline-time">' + record.time + '</div>' +
-      '<div class="timeline-title">' + record.action + '</div>' +
-      '<div class="timeline-desc">' + record.operator + '</div>' +
-      '<div class="timeline-desc" style="margin-top:4px; color:#64748B;">意见：' + record.opinion + '</div>' +
-    '</div>';
-  }).join('');
-
-  // Unit info with stats
-  var statsRowHtml =
-    '<div class="stats-row">' +
-      '<div class="stats-card">' +
-        '<div class="stats-card-header"><span>核定编制数</span><span class="total-number">' + unitInfo.authorizedStaff + '名</span></div>' +
-        '<div style="padding:12px;">' + renderThreeColTable(unitInfo.authorizedDetail, unitInfo.authorizedDetail.leadership, "其中", "领导职数") + '</div>' +
-      '</div>' +
-      '<div class="stats-card">' +
-        '<div class="stats-card-header"><span>现有人数</span><span class="total-number">' + unitInfo.currentStaff + '人</span></div>' +
-        '<div style="padding:12px;">' + renderThreeColTable(unitInfo.currentDetail, unitInfo.currentDetail.leadership, "其中", "领导人数") + '</div>' +
-      '</div>' +
-    '</div>';
-
-  var controlStatsHtml =
-    '<div class="control-stats">' +
-      '<div class="control-item"><div class="control-label">核定控制数</div><div class="control-number">' + unitInfo.controlQuota + '名</div></div>' +
-      '<div class="control-item"><div class="control-label">现有控制数人员</div><div class="control-number">' + unitInfo.currentControl + '人</div></div>' +
-      '<div class="control-item"><div class="control-label">本次备案控制数</div><div class="control-number">' + unitInfo.thisApply + '人</div></div>' +
-      '<div class="control-item"><div class="control-label">备案后控制数人员</div><div class="control-number">' + unitInfo.afterControl + '人</div></div>' +
-    '</div>';
-
-  // Applicant table with pagination
-  var start = (currentPage - 1) * pageSize;
-  var pageApps = applicants.slice(start, start + pageSize);
-  var totalPages = Math.ceil(applicants.length / pageSize);
-
-  var tableRows = pageApps.map(function(app, idx) {
-    return '<tr>' +
-      '<td>' + (start + idx + 1) + '</td>' +
-      '<td>' + app.name + '</td>' +
-      '<td>' + app.gender + '</td>' +
-      '<td>' + app.idCard + '</td>' +
-      '<td>' + app.position + '</td>' +
-      '<td>' + app.docNumber + '</td>' +
-      '<td>' + app.method + '</td>' +
-      '<td>' + app.reason + '</td>' +
-    '</tr>';
-  }).join('');
-
-  var paginationHtml = '';
-  if (totalPages > 1) {
-    var pagesHtml = '';
-    for (var i = 1; i <= totalPages; i++) {
-      pagesHtml += '<button class="page-btn' + (currentPage === i ? ' active' : '') + '" data-page="' + i + '">' + i + '</button>';
-    }
-    paginationHtml =
-      '<div class="pagination">' +
-        '<button class="page-btn" ' + (currentPage === 1 ? 'disabled' : '') + ' id="prevPage">上一页</button>' +
-        pagesHtml +
-        '<button class="page-btn" ' + (currentPage === totalPages ? 'disabled' : '') + ' id="nextPage">下一页</button>' +
-      '</div>';
+  if (!currentRecord) {
+    document.getElementById('mainContent').innerHTML =
+      '<div class="back-link" onclick="goBack()">← 返回列表</div>' +
+      '<div class="card"><div class="card-body" style="text-align:center;padding:60px;">' +
+      '<div style="font-size:48px;margin-bottom:16px;">📋</div>' +
+      '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">未找到申请记录</div></div></div>';
+    return;
   }
 
-  var fullHtml =
-    '<div class="two-columns">' +
-      '<div class="main-col">' +
-        '<div class="card">' +
-          '<div class="card-header">审批进度</div>' +
-          '<div class="progress-container"><div class="progress-steps">' + progressStepsHtml + '</div></div>' +
-        '</div>' +
-        '<div class="card">' +
-          '<div class="card-header">单位信息</div>' +
-          '<div class="info-grid" style="padding-bottom:0;">' +
-            '<div class="info-item"><div class="info-label">单位全称</div><div class="info-value">' + unitInfo.fullName + '</div></div>' +
-            '<div class="info-item"><div class="info-label">统一社会信用代码</div><div class="info-value">' + unitInfo.creditCode + '</div></div>' +
-            '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + unitInfo.institutionLevel + '</div></div>' +
-            '<div class="info-item"><div class="info-label">经费来源</div><div class="info-value">' + unitInfo.fundingSource + '</div></div>' +
-          '</div>' +
-          statsRowHtml +
-          controlStatsHtml +
-        '</div>' +
-        '<div class="card">' +
-          '<div class="card-header">申报列表</div>' +
-          '<div class="data-table">' +
-            '<table>' +
-              '<thead><tr><th>序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>拟分配岗位</th><th>依据文号</th><th>入编方式</th><th>申请理由</th></tr></thead>' +
-              '<tbody>' + (tableRows || '<tr><td colspan="8" style="text-align:center;">暂无数据</td></tr>') + '</tbody>' +
-            '</table>' +
-          '</div>' +
-          paginationHtml +
-        '</div>' +
-      '</div>' +
-      '<div class="side-col">' +
-        '<div class="card">' +
-          '<div class="card-header">申报履历 ' + stampHtml + '</div>' +
-          '<div style="padding:20px;"><div class="timeline">' + timelineHtml + '</div></div>' +
-        '</div>' +
-      '</div>' +
+  if (!checkPermission()) {
+    var reason = '';
+    if (isModifyMode) {
+      if (currentRecord.status !== 'approved') reason = '该申请当前状态不允许修改结果';
+      else if (currentRecord.approverRole !== currentRole) reason = '只有原审批人才可以修改审核结果';
+      else reason = '已超过 30 天修改期限';
+    } else {
+      if (currentRecord.status !== 'pending') reason = '该申请已审批，无需重复操作';
+      else reason = '您没有权限审批该申请（仅限本辖区/市直属学校）';
+    }
+    document.getElementById('mainContent').innerHTML =
+      '<div class="back-link" onclick="goBack()">← 返回列表</div>' +
+      '<div class="card"><div class="card-body" style="text-align:center;padding:60px;">' +
+      '<div style="font-size:48px;margin-bottom:16px;">🔒</div>' +
+      '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">无操作权限</div>' +
+      '<div style="color:var(--text-light);">' + reason + '</div></div></div>';
+    return;
+  }
+
+  var r = currentRecord;
+  var typeLabel = TYPE_MAP[r.staffingType] || r.staffingType;
+  var pageTitle = isModifyMode ? '修改审核结果' : '审核入编申请';
+
+  var html = '<div class="back-link" onclick="goBack()">← 返回列表</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">' +
+    '<div><h1 style="font-size:20px;font-weight:700;">' + pageTitle + ' — ' + r.schoolName + '</h1>' +
+    '<div style="font-size:12px;color:var(--text-light);margin-top:4px;">' + typeLabel + ' | 申请编号：' + r.id + ' | 提交时间：' + (r.submitTime ? r.submitTime.substring(0,16) : '') + ' | ' + ((r.applicants||[]).length) + ' 人</div></div>' +
+    '<span class="status-stamp ' + r.status + '">' + (STATUS_MAP[r.status]||r.status) + '</span>' +
     '</div>' +
-    renderMaterialsCard() +
-    '<div class="action-buttons">' +
-      '<button class="btn-approve" id="approveBtn">审批通过</button>' +
-      '<button class="btn-reject" id="rejectBtn">审批驳回</button>' +
+    '<div class="review-layout">' +
+    '<div class="review-main">' +
+    renderProgress() +
+    renderUnitInfo() +
+    renderApplicants() +
+    renderMaterials() +
+    renderActionBar() +
+    '</div>' +
+    '<div class="review-side">' +
+    renderTimeline() +
+    '</div>' +
     '</div>';
 
-  mainContent.innerHTML = fullHtml;
+  document.getElementById('mainContent').innerHTML = html;
+}
 
-  // Pagination events
-  document.querySelectorAll('[data-page]').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      currentPage = parseInt(e.target.dataset.page);
-      renderPage();
-    });
-  });
-  var prevBtn = document.getElementById("prevPage");
-  if (prevBtn) prevBtn.addEventListener('click', function() { if (currentPage > 1) { currentPage--; renderPage(); } });
-  var nextBtn = document.getElementById("nextPage");
-  if (nextBtn) nextBtn.addEventListener('click', function() { if (currentPage < totalPages) { currentPage++; renderPage(); } });
+// ===== APPROVAL ACTIONS =====
+function showApproveModal() {
+  var modalHtml =
+    '<div class="modal-overlay" id="approveModal">' +
+      '<div class="modal-container">' +
+        '<h3>审批通过</h3>' +
+        '<div class="form-group"><label>审批意见（可选）</label>' +
+        '<textarea id="approveOpinion" class="optional" rows="3" placeholder="输入审批意见..."></textarea></div>' +
+        '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">' +
+          '确认通过后，申请状态变更为"已通过"，本学校可用编制数/控制数将自动减去对应人数。' +
+        '</div>' +
+        '<div class="modal-buttons">' +
+          '<button class="btn-cancel" id="cancelApprove">取消</button>' +
+          '<button class="btn-confirm success" id="confirmApprove">确认通过</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.getElementById('cancelApprove').onclick = function() { document.getElementById('approveModal').remove(); };
+  document.getElementById('confirmApprove').onclick = doApprove;
+}
 
-  // Action buttons
-  document.getElementById("approveBtn").addEventListener("click", function() {
-    showToast("审批已通过", function() { window.location.href = '教师入编管理（主管单位视角）.html'; });
+function doApprove() {
+  var opinion = document.getElementById('approveOpinion').value.trim();
+  document.getElementById('approveModal').remove();
+
+  var records = loadRecords();
+  var idx = records.findIndex(function(r) { return r.id === currentRecord.id; });
+  if (idx === -1) { showToast('记录不存在'); return; }
+
+  records[idx].status = 'approved';
+  records[idx].approveTime = new Date().toISOString();
+  records[idx].approver = getApproverName();
+  records[idx].approverRole = currentRole;
+  records[idx].opinion = opinion || '同意入编';
+  records[idx].timeline = records[idx].timeline || [];
+  records[idx].timeline.push({
+    time: new Date().toISOString(),
+    action: '审批通过',
+    operator: getApproverName(),
+    opinion: opinion || '同意入编'
   });
-  document.getElementById("rejectBtn").addEventListener("click", showRejectModal);
+
+  saveRecords(records);
+  showToast('审批通过', 'success');
+  setTimeout(function() { goBack(); }, 800);
 }
 
 function showRejectModal() {
@@ -736,26 +1120,186 @@ function showRejectModal() {
     '<div class="modal-overlay" id="rejectModal">' +
       '<div class="modal-container">' +
         '<h3>审批驳回</h3>' +
-        '<textarea id="rejectReason" rows="4" placeholder="请输入驳回原因（必填）"></textarea>' +
+        '<div class="form-group"><label>驳回原因（必填）</label>' +
+        '<textarea id="rejectReason" rows="4" placeholder="请填写驳回原因..."></textarea></div>' +
         '<div class="modal-buttons">' +
           '<button class="btn-cancel" id="cancelReject">取消</button>' +
-          '<button class="btn-confirm" id="confirmReject">确定驳回</button>' +
+          '<button class="btn-confirm danger" id="confirmReject">确认驳回</button>' +
         '</div>' +
       '</div>' +
     '</div>';
   document.body.insertAdjacentHTML('beforeend', modalHtml);
-  document.getElementById("cancelReject").onclick = function() { document.getElementById("rejectModal").remove(); };
-  document.getElementById("confirmReject").onclick = function() {
-    var reason = document.getElementById("rejectReason").value.trim();
-    if (!reason) { alert("请填写驳回原因"); return; }
-    document.getElementById("rejectModal").remove();
-    showToast("审批已驳回", function() { window.location.href = '教师入编管理（主管单位视角）.html'; });
-  };
+  document.getElementById('cancelReject').onclick = function() { document.getElementById('rejectModal').remove(); };
+  document.getElementById('confirmReject').onclick = doReject;
 }
 
-// ===== Init =====
-renderSidebar();
-renderPage();
+function doReject() {
+  var reason = document.getElementById('rejectReason').value.trim();
+  if (!reason) { showToast('请填写驳回原因'); return; }
+  document.getElementById('rejectModal').remove();
+
+  var records = loadRecords();
+  var idx = records.findIndex(function(r) { return r.id === currentRecord.id; });
+  if (idx === -1) { showToast('记录不存在'); return; }
+
+  records[idx].status = 'rejected';
+  records[idx].rejectReason = reason;
+  records[idx].timeline = records[idx].timeline || [];
+  records[idx].timeline.push({
+    time: new Date().toISOString(),
+    action: '审批驳回',
+    operator: getApproverName(),
+    opinion: reason
+  });
+
+  saveRecords(records);
+  showToast('已驳回');
+  setTimeout(function() { goBack(); }, 800);
+}
+
+function showModifyModal() {
+  var modalHtml =
+    '<div class="modal-overlay" id="modifyModal">' +
+      '<div class="modal-container">' +
+        '<h3>修改审核结果为驳回</h3>' +
+        '<div class="form-group"><label>驳回原因（必填）</label>' +
+        '<textarea id="modifyReason" rows="4" placeholder="请填写驳回原因..."></textarea></div>' +
+        '<div style="font-size:12px;color:var(--danger);margin-bottom:16px;">' +
+          '⚠ 此操作将撤销原审批结果，申请退回学校，需重新审批。' +
+        '</div>' +
+        '<div class="modal-buttons">' +
+          '<button class="btn-cancel" id="cancelModify">取消</button>' +
+          '<button class="btn-confirm warning" id="confirmModify">确认修改</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.getElementById('cancelModify').onclick = function() { document.getElementById('modifyModal').remove(); };
+  document.getElementById('confirmModify').onclick = doModifyResult;
+}
+
+function doModifyResult() {
+  var reason = document.getElementById('modifyReason').value.trim();
+  if (!reason) { showToast('请填写驳回原因'); return; }
+  document.getElementById('modifyModal').remove();
+
+  var records = loadRecords();
+  var idx = records.findIndex(function(r) { return r.id === currentRecord.id; });
+  if (idx === -1) { showToast('记录不存在'); return; }
+
+  // Save old state as version history
+  records[idx].versionHistory = records[idx].versionHistory || [];
+  records[idx].versionHistory.push({
+    status: records[idx].status,
+    approveTime: records[idx].approveTime,
+    approver: records[idx].approver,
+    opinion: records[idx].opinion,
+    modifiedAt: new Date().toISOString()
+  });
+
+  records[idx].status = 'pending';
+  records[idx].rejectReason = reason;
+  records[idx].approveTime = null;
+  records[idx].opinion = null;
+  records[idx].timeline = records[idx].timeline || [];
+  records[idx].timeline.push({
+    time: new Date().toISOString(),
+    action: '修改审核结果',
+    operator: getApproverName(),
+    opinion: '修改审批结果为驳回，原因：' + reason
+  });
+
+  saveRecords(records);
+  showToast('已退回学校重新审批', 'success');
+  setTimeout(function() { goBack(); }, 800);
+}
+
+// ===== NAVIGATION =====
+function goBack() {
+  window.location.href = '教师入编管理（主管单位视角）.html?role=' + currentRole;
+}
+
+// ===== SIDEBAR =====
+function switchRole(role) {
+  if (role === currentRole) return;
+  if (role === 'school') {
+    window.location.href = '教师入编管理（学校管理员视角）.html?role=school';
+  } else if (role === 'city' || role === 'district') {
+    window.location.href = '教师入编管理（主管单位视角）.html?role=' + role;
+  } else {
+    showToast('教师角色无操作权限');
+  }
+}
+
+function updateRoleUI() {
+  var roleData = ROLES[currentRole];
+  document.getElementById('userAvatar').textContent = roleData.short;
+  document.getElementById('userName').textContent = roleData.name;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.role === currentRole);
+  });
+}
+
+function renderSidebar() {
+  var roleData = ROLES[currentRole];
+  if (!roleData) { document.getElementById('sidebarMenu').innerHTML = ''; return; }
+  var sidebar = roleData.sidebar;
+  var html = '';
+  (sidebar.top || []).forEach(function(item) {
+    html += '<a class="menu-item" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[item.icon] || '') + '<span class="menu-label">' + item.label + '</span></a>';
+  });
+  (sidebar.groups || []).forEach(function(group) {
+    html += '<div class="menu-group">' + group.name + '</div>';
+    group.items.forEach(function(item) {
+      html += '<a class="menu-item' + (item.id === 'entry' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span></a>';
+    });
+  });
+  document.getElementById('sidebarMenu').innerHTML = html;
+}
+
+function sidebarClick(el, id) {
+  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
+  el.classList.add('active');
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'entry') { goBack(); return; }
+  if (id === 'exit') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = '教师出编管理（主管单位视角）.html'; return; }
+    if (currentRole === 'school') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
+  }
+  showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function showToast(msg, type) {
+  type = type || '';
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(function() { el.remove(); }, 2000);
+}
+
+// ===== INIT =====
+(function init() {
+  var params = new URLSearchParams(window.location.search);
+  var urlRole = params.get('role');
+  if (urlRole === 'city' || urlRole === 'district' || urlRole === 'school') {
+    currentRole = urlRole;
+  }
+  isModifyMode = params.get('action') === 'modify';
+  updateRoleUI();
+  renderSidebar();
+
+  var recordId = params.get('id') || 'RN20260515001';
+  currentRecord = findRecord(recordId);
+  if (!currentRecord) { var all = loadRecords(); currentRecord = all.length > 0 ? all[0] : null; }
+  renderPage();
+})();
 </script>
+
 </body>
 </html>
