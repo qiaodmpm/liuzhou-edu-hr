@@ -316,6 +316,8 @@ body {
   background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
   width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto;
 }
+.modal-wide { width: 680px; }
+.modal-xwide { width: 95vw; max-width: 1200px; }
 .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .modal-header h3 { font-size: 16px; font-weight: 600; }
 .modal-close { cursor: pointer; color: var(--text-light); font-size: 20px; padding: 4px; border: none; background: none; }
@@ -329,6 +331,40 @@ body {
 }
 .modal-body .form-group input:focus, .modal-body .form-group textarea:focus, .modal-body .form-group select:focus { border-color: var(--accent); }
 .modal-body .form-group textarea { resize: vertical; min-height: 80px; }
+
+/* Upload area (shared with modal) */
+.upload-area {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 32px; text-align: center; cursor: pointer; transition: var(--transition);
+}
+.upload-area:hover { border-color: var(--accent); background: #F8FAFC; }
+.upload-area.drag-over { border-color: var(--primary); background: var(--primary-light); }
+.upload-area .upload-icon { font-size: 40px; margin-bottom: 8px; }
+.upload-area .upload-text { font-size: 13px; color: var(--text-secondary); }
+.upload-area .upload-hint { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+.upload-file {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: #F0FDF4; border-radius: 6px; margin-top: 12px; font-size: 13px;
+  word-break: break-all;
+}
+.upload-file .remove { color: var(--danger); cursor: pointer; margin-left: auto; flex-shrink: 0; }
+
+/* Confirm table */
+.confirm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+.confirm-table thead th {
+  padding: 10px 12px; text-align: left; font-weight: 600; font-size: 11px;
+  color: var(--text-secondary); background: #F8FAFC; border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.confirm-table tbody td {
+  padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: middle;
+}
+.confirm-table .num-input {
+  width: 80px; padding: 6px 10px; border: 1px solid var(--border);
+  border-radius: 4px; text-align: center; font-size: 13px; font-family: inherit; outline: none;
+}
+.confirm-table .num-input:focus { border-color: var(--accent); }
+.confirm-table .num-input.error { border-color: var(--danger); background: #FEF2F2; }
 .modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 .modal-footer .btn-cancel { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
 .modal-footer .btn-cancel:hover { border-color: var(--text-light); }
@@ -690,7 +726,8 @@ const SUBMISSIONS = [
     totalStaff: 60, currentStaff: 55, unusedPlan: 0, controlNum: 10, controlActual: 8, unusedControl: 1,
     useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 0, talent: 0 },
     attachment9: true, followUp: false,
-    status: 'submitted', submitDate: '2026-03-20', approveDate: null },
+    status: 'final_submitted', submitDate: '2026-03-20', approveDate: '2026-03-25',
+    schoolFinalConfirm: { document: { name: '编办确认批复.pdf', size: 245760 }, submitTime: '2026-03-25 14:30:00', submitter: '王玉兰' } },
   { id: 'S2026-006', batchId: 'B2026-001', batchName: '2026年度第一批', school: '柳州市民族高中', schoolType: '市直属',
     totalStaff: 72, currentStaff: 68, unusedPlan: 1, controlNum: 12, controlActual: 10, unusedControl: 0,
     useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 1, talent: 0 },
@@ -828,12 +865,12 @@ var AUTO_SUBMISSIONS = [
     totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1,
     useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 0, talent: 0 },
     attachment9: true, followUp: false, staffingType: 'control',
-    status: 'first_approved', submitDate: '2026-05-06', approveDate: '2026-05-14' },
+    status: 'final_submitted', submitDate: '2026-05-06', approveDate: '2026-05-14' },
   { id: 'S2026-A03', batchId: 'AUTO-2026', batchName: '2026年度自主申报', school: '柳州市第八中学', schoolType: '鱼峰区属',
     totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: null, controlActual: null, unusedControl: null,
-    useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 1, talent: 0 },
+    useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 1, talentMid: 0, talentHigh: 0, other: 0 },
     attachment9: false, followUp: false, staffingType: 'career',
-    status: 'submitted', submitDate: '2026-05-15', approveDate: null },
+    status: 'first_approved', submitDate: '2026-05-15', approveDate: '2026-05-16' },
   { id: 'S2026-A04', batchId: 'AUTO-2026', batchName: '2026年度自主申报', school: '柳州市第八中学', schoolType: '鱼峰区属',
     totalStaff: 88, currentStaff: 81, unusedPlan: 0, controlNum: 16, controlActual: 14, unusedControl: 1,
     useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 0, talent: 0 },
@@ -845,7 +882,7 @@ AUTO_SUBMISSIONS.forEach(function(s) { SUBMISSIONS.push(s); });
 const STAFFING_TYPE_MAP = { career: '事业编', control: '控制数' };
 
 const STATUS_MAP = {
-  submitted: '待审核', reviewing: '待审核', first_approved: '待二审确认', approved: '已通过', rejected: '已驳回'
+  submitted: '待审核', reviewing: '待审核', first_approved: '一审通过', final_submitted: '待二审确认', approved: '已通过', rejected: '已驳回'
 };
 
 let currentRole = 'city';
@@ -881,11 +918,11 @@ function getBatchStats(batchId) {
   var controlSubs = subs.filter(function(s) { return s.staffingType === 'control'; });
   return {
     total: subs.length,
-    submitted: subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; }).length,
+    submitted: subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved' || s.status === 'final_submitted'; }).length,
     approved: subs.filter(function(s) { return s.status === 'approved'; }).length,
     rejected: subs.filter(function(s) { return s.status === 'rejected'; }).length,
-    career: { total: careerSubs.length, submitted: careerSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; }).length, approved: careerSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: careerSubs.filter(function(s) { return s.status === 'rejected'; }).length },
-    control: { total: controlSubs.length, submitted: controlSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; }).length, approved: controlSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: controlSubs.filter(function(s) { return s.status === 'rejected'; }).length }
+    career: { total: careerSubs.length, submitted: careerSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved' || s.status === 'final_submitted'; }).length, approved: careerSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: careerSubs.filter(function(s) { return s.status === 'rejected'; }).length },
+    control: { total: controlSubs.length, submitted: controlSubs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved' || s.status === 'final_submitted'; }).length, approved: controlSubs.filter(function(s) { return s.status === 'approved'; }).length, rejected: controlSubs.filter(function(s) { return s.status === 'rejected'; }).length }
   };
 }
 
@@ -974,6 +1011,7 @@ function getAllBatches() {
 function getStatusBadgeClass(status) {
   if (status === 'approved') return 'approved';
   if (status === 'first_approved') return 'submitted';
+  if (status === 'final_submitted') return 'submitted';
   if (status === 'submitted' || status === 'reviewing') return 'submitted';
   if (status === 'rejected') return 'rejected';
   return 'none';
@@ -1150,6 +1188,9 @@ function renderSchoolBatchList() {
       h += '<td class="action-col">';
       if (rr.count > 0) {
         h += '<a href="staffing-detail.html?id=' + rr.sub.id + '">' + (rr.count > 1 && grp.isAuto ? '最新' : '查看') + '</a>';
+        if (rr.sub.status === 'first_approved') {
+          h += '<button class="btn btn-primary btn-sm" onclick="openFinalConfirmModal(\'' + rr.sub.id + '\')" style="margin-left:6px;">提交编办确认</button>';
+        }
         if (rr.sub.status === 'rejected') {
           h += '<a href="staffing-form.html?id=' + rr.sub.id + '&staffingType=' + rr.sub.staffingType + '" class="danger">修改重提</a>';
         }
@@ -1173,8 +1214,10 @@ function setSchoolYearFilter(val) {
 }
 
 // ===== MODAL =====
-function openModal(content) {
-  document.getElementById('modalBox').innerHTML = content;
+function openModal(content, extraClass) {
+  var box = document.getElementById('modalBox');
+  box.innerHTML = content;
+  box.className = 'modal' + (extraClass ? ' ' + extraClass : '');
   document.getElementById('modalOverlay').classList.add('show');
 }
 function closeModal() {
@@ -1210,6 +1253,9 @@ function showSubmissionHistory(batchId, staffingType) {
       c += '<div style="display:flex;align-items:center;gap:10px;">';
       c += '<span class="sbc-status ' + getStatusBadgeClass(s.status) + '" style="font-size:10px;">' + (STATUS_MAP[s.status] || s.status) + '</span>';
       c += '<a href="staffing-detail.html?id=' + s.id + '" style="font-size:12px;color:var(--primary);text-decoration:none;" class="tb-link">查看</a>';
+      if (s.status === 'first_approved') {
+        c += '<button class="btn btn-primary btn-sm" onclick="closeModal();openFinalConfirmModal(\'' + s.id + '\')" style="margin-left:6px;font-size:11px;">提交编办确认</button>';
+      }
       if (s.status === 'rejected') {
         c += '<a href="staffing-form.html?id=' + s.id + '&staffingType=' + s.staffingType + '" style="font-size:12px;color:#DC2626;text-decoration:none;">修改重提</a>';
       }
@@ -1364,7 +1410,7 @@ function renderMain() {
       html += renderUnsubmittedTable();
     } else {
       var subs = getFilteredSubmissions();
-      html += '<div class="section-header" style="margin-bottom:14px;"><span class="section-title">📝 ' + (selectedBatch ? selectedBatch.name : '申报审核') + '</span></div>';
+      html += '<div class="section-header" style="margin-bottom:14px;"><span class="section-title">📝 ' + (selectedBatch ? selectedBatch.name : '申报审核') + '</span><button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="downloadBatchSummary(\'' + (selectedBatch ? selectedBatch.id : '') + '\')">📥 导出数据</button></div>';
       html += renderStatusFilters();
       html += renderSubmissionsTable(subs);
     }
@@ -1398,7 +1444,7 @@ function getFilteredSubmissions() {
   }
   // Status filter
   if (currentFilter === 'pending') {
-    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved'; });
+    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved' || s.status === 'final_submitted'; });
   } else if (currentFilter === 'approved') {
     subs = subs.filter(function(s) { return s.status === 'approved'; });
   } else if (currentFilter === 'rejected') {
@@ -1518,7 +1564,6 @@ function renderBatchCards(batches) {
     if (b.status === '进行中' && !isAuto) {
       h += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showEditBatchModal(\'' + b.id + '\')">编辑批次</button>';
     }
-    h += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();downloadBatchSummary(\'' + b.id + '\')">📥 批次汇总</button>';
     h += '</div>';
     h += '</div>';
   });
@@ -1597,13 +1642,365 @@ function confirmCloseBatch(id) {
   openModal(c);
 }
 
+// ===== 编办确认提交 Modal =====
+// Use form types — must match staffing-form.html USE_FORM_ROWS
+var FINAL_CONFIRM_FORM_TYPES = [
+  { type: '统一公开招聘', code: 'publicRecruit' },
+  { type: '单位自主实施招聘', code: 'selfRecruit' },
+  { type: '中高级人才招聘', code: 'talentMid' },
+  { type: '引进高层次人才', code: 'talentHigh' },
+  { type: '调动', code: 'transfer' },
+  { type: '其他', code: 'other' }
+];
+
+var _finalDocFile = null;
+
+function openFinalConfirmModal(subId) {
+  var s = null;
+  for (var i = 0; i < SUBMISSIONS.length; i++) {
+    if (SUBMISSIONS[i].id === subId) { s = SUBMISSIONS[i]; break; }
+  }
+  if (!s) { showToast('未找到申报记录'); return; }
+
+  _finalDocFile = null;
+  var isCareer = s.staffingType === 'career';
+  var typeLabel = isCareer ? '事业编' : '控制数';
+  var countLabel = isCareer ? '使用事业编制（名）' : '使用控制数（名）';
+
+  var c = '<div class="modal-header"><h3>提交编办确认</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  c += '<div class="modal-body">';
+  c += '<p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">' + s.school + ' · ' + typeLabel + ' · ' + s.id + '</p>';
+
+  // Per-item confirmation table
+  c += '<table class="confirm-table"><thead><tr>';
+  c += '<th>使用形式</th>';
+  c += '<th style="text-align:center;width:90px;">' + countLabel + '</th>';
+  c += '<th style="text-align:center;width:100px;">编办核定数 <span style="color:var(--danger);">*</span></th>';
+  c += '</tr></thead><tbody>';
+
+  for (var t = 0; t < FINAL_CONFIRM_FORM_TYPES.length; t++) {
+    var ft = FINAL_CONFIRM_FORM_TYPES[t];
+    var schoolNum = (s.useForms && s.useForms[ft.code]) || 0;
+    c += '<tr>';
+    c += '<td>' + ft.type + '</td>';
+    c += '<td style="text-align:center;color:' + (schoolNum > 0 ? 'var(--text)' : 'var(--text-light)') + ';">' + (schoolNum > 0 ? schoolNum : '—') + '</td>';
+    c += '<td style="text-align:center;">';
+    if (schoolNum > 0) {
+      c += '<input type="number" class="num-input final-num-input" data-type="' + ft.type + '" data-code="' + ft.code + '" data-school-num="' + schoolNum + '" value="' + schoolNum + '" min="0" max="' + schoolNum + '">';
+    } else {
+      c += '<span style="color:var(--text-light);">—</span>';
+    }
+    c += '</td></tr>';
+  }
+  c += '</tbody></table>';
+
+  // Validity period
+  var today = new Date().toISOString().slice(0, 10);
+  var nextYear = (new Date().getFullYear() + 1) + today.slice(4);
+  c += '<div style="display:flex;gap:16px;margin-bottom:12px;">';
+  c += '<div class="form-group" style="flex:1;margin-bottom:0;"><label>编制有效期起 <span style="color:var(--danger);">*</span></label>';
+  c += '<input type="date" id="finalValidityStart" value="' + today + '"></div>';
+  c += '<div class="form-group" style="flex:1;margin-bottom:0;"><label>编制有效期止 <span style="color:var(--danger);">*</span></label>';
+  c += '<input type="date" id="finalValidityEnd" value="' + nextYear + '"></div>';
+  c += '</div>';
+  c += '<p style="font-size:10px;color:var(--text-light);margin-bottom:16px;">有效期起止时间精度到日，起始日 00:00:00 至截止日 23:59:59</p>';
+
+  // Document upload — project-standard upload pattern
+  c += '<div class="form-group">';
+  c += '<label>编办确认文档 <span style="color:var(--danger);">*</span></label>';
+  c += '<div class="upload-area" id="finalDocArea" onclick="document.getElementById(\'finalDocInput\').click()"';
+  c += ' ondragover="event.preventDefault();this.classList.add(\'drag-over\');"';
+  c += ' ondragleave="this.classList.remove(\'drag-over\');"';
+  c += ' ondrop="event.preventDefault();this.classList.remove(\'drag-over\');handleFinalDocDrop(event);">';
+  c += '<div class="upload-icon">📄</div>';
+  c += '<div class="upload-text">点击上传或拖拽文件到此处</div>';
+  c += '<div class="upload-hint">支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB，不支持压缩包</div>';
+  c += '</div>';
+  c += '<input type="file" id="finalDocInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFinalDocSelect(event)">';
+  c += '<div id="finalUploadedFile"></div>';
+  c += '</div>';
+
+  c += '</div>';
+  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="submitFinalConfirm(\'' + s.id + '\')">确认提交</button></div>';
+  openModal(c, 'modal-wide');
+
+  window._currentFinalSubId = s.id;
+}
+
+function handleFinalDocSelect(e) {
+  var f = e.target.files[0];
+  if (!f) return;
+  processFinalDoc(f);
+  e.target.value = '';
+}
+
+function handleFinalDocDrop(e) {
+  var files = e.dataTransfer.files;
+  if (files.length > 0) processFinalDoc(files[0]);
+}
+
+function processFinalDoc(f) {
+  // Validate file type
+  var ext = '.' + f.name.split('.').pop().toLowerCase();
+  var allowedExts = ['.pdf','.jpg','.jpeg','.png','.doc','.docx','.xls','.xlsx'];
+  if (allowedExts.indexOf(ext) === -1) {
+    showToast('不支持的文件格式（' + ext + '），请上传 PDF、Word、Excel 或图片文件');
+    return;
+  }
+  // Block compressed archives
+  if (['.zip','.rar','.7z','.gz','.tar'].indexOf(ext) !== -1) {
+    showToast('不支持压缩包格式，请解压后上传原文件');
+    return;
+  }
+  // Validate size
+  if (f.size > 10 * 1024 * 1024) {
+    showToast('文件大小 ' + (f.size / 1024 / 1024).toFixed(1) + ' MB 超过 10MB 上限，请压缩后重新上传');
+    return;
+  }
+
+  _finalDocFile = f;
+  var area = document.getElementById('finalDocArea');
+  if (area) area.style.display = 'none';
+  var display = document.getElementById('finalUploadedFile');
+  if (display) {
+    display.innerHTML = '<div class="upload-file">📎 ' + f.name + ' (' + (f.size / 1024 / 1024).toFixed(1) + ' MB)<span class="remove" onclick="removeFinalDoc()">✕ 移除</span></div>';
+  }
+}
+
+function removeFinalDoc() {
+  _finalDocFile = null;
+  var inp = document.getElementById('finalDocInput');
+  if (inp) inp.value = '';
+  var area = document.getElementById('finalDocArea');
+  if (area) area.style.display = '';
+  var display = document.getElementById('finalUploadedFile');
+  if (display) display.innerHTML = '';
+}
+
+function submitFinalConfirm(subId) {
+  var s = null;
+  for (var i = 0; i < SUBMISSIONS.length; i++) {
+    if (SUBMISSIONS[i].id === subId) { s = SUBMISSIONS[i]; break; }
+  }
+  if (!s) return;
+
+  // Validate per-item counts
+  var inputs = document.querySelectorAll('.final-num-input');
+  var details = [];
+  var totalCount = 0;
+  var valid = true;
+  inputs.forEach(function(inp) {
+    var val = parseInt(inp.value);
+    var max = parseInt(inp.dataset.schoolNum);
+    if (isNaN(val) || val < 0 || val > max) {
+      inp.classList.add('error');
+      valid = false;
+    } else {
+      inp.classList.remove('error');
+      details.push({ type: inp.dataset.type, code: inp.dataset.code, schoolNum: max, finalNum: val });
+      totalCount += val;
+    }
+  });
+  if (!valid) { showToast('请正确填写编办核定数（0 ≤ 核定数 ≤ 学校申请数）'); return; }
+
+  // Validate validity period
+  var vStart = document.getElementById('finalValidityStart').value;
+  var vEnd = document.getElementById('finalValidityEnd').value;
+  if (!vStart || !vEnd) { showToast('请选择编制有效期起止日期'); return; }
+  if (vEnd < vStart) { showToast('有效期结束日期不能早于开始日期'); return; }
+
+  // Validate document
+  if (!_finalDocFile) { showToast('请上传编办确认文档（必填）'); return; }
+
+  // Update submission
+  s.schoolFinalConfirm = {
+    details: details,
+    totalFinalCount: totalCount,
+    validityStart: vStart,
+    validityEnd: vEnd,
+    document: { name: _finalDocFile.name, size: _finalDocFile.size },
+    submitTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+    submitter: ROLES[currentRole].name
+  };
+  s.status = 'final_submitted';
+
+  saveData();
+  closeModal();
+  showToast('编办确认已提交，待主管单位二审确认');
+  renderMain();
+}
+function downloadMockFile(subId, type) {
+  var sub = SUBMISSIONS.find(function(s) { return s.id === subId; });
+  var fileName = subId + '_' + (type === 'attachment' ? (sub && sub.staffingType === 'career' ? '附件2' : '附件9') : '编办确认材料') + '.txt';
+  var content = '这是 ' + subId + ' 的' + (type === 'attachment' ? '附件' : '编办确认材料') + '文件（模拟下载）\n';
+  content += '申报单位：' + (sub ? sub.school : '—') + '\n';
+  content += '生成时间：' + new Date().toISOString().slice(0, 19).replace('T', ' ') + '\n';
+  var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('正在下载 ' + fileName);
+}
+function saveData() {
+  // Save SUBMISSIONS to localStorage for persistence
+  try { localStorage.setItem('staffing_submissions', JSON.stringify(SUBMISSIONS)); } catch(e) {}
+}
+
 function downloadBatchSummary(batchId) {
-  var subs = SUBMISSIONS.filter(function(s) { return s.batchId === batchId && s.status === 'approved'; });
-  showToast('批次 ' + batchId + ' 终审通过汇总表已生成（' + subs.length + ' 条记录）');
+  openExportModal(batchId, 'batch');
 }
 function downloadYearSummary(year) {
-  var subs = SUBMISSIONS.filter(function(s) { return s.batchId.indexOf(year) === 0 && s.status === 'approved'; });
-  showToast('年度 ' + year + ' 终审通过汇总表已生成（' + subs.length + ' 条记录）');
+  openExportModal(null, 'year');
+}
+function openExportModal(batchId, mode) {
+  // Collect submissions for this batch
+  var subs = batchId
+    ? SUBMISSIONS.filter(function(s) { return s.batchId === batchId; })
+    : SUBMISSIONS;
+
+  // Collect filter options
+  var types = [];
+  var regions = [];
+  var seenType = {}, seenRegion = {};
+  subs.forEach(function(s) {
+    var t = STAFFING_TYPE_MAP[s.staffingType] || s.staffingType;
+    if (!seenType[t]) { seenType[t] = true; types.push(t); }
+    var r = s.schoolType || '未知';
+    if (!seenRegion[r]) { seenRegion[r] = true; regions.push(r); }
+  });
+
+  var c = '<div class="modal-header"><h3>' + (mode === 'batch' ? '批次汇总导出' : '年度汇总导出') + ' — 共 ' + subs.length + ' 条</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  c += '<div class="modal-body" style="padding:16px 20px;">';
+
+  // Filter row
+  c += '<div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end;">';
+  c += '<div class="form-group" style="margin-bottom:0;min-width:120px;"><label style="font-size:11px;">所属区域</label><select id="expRegion" onchange="filterExportTable()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;width:100%;">';
+  c += '<option value="all">全部</option>';
+  regions.forEach(function(r) { c += '<option value="' + r + '">' + r + '</option>'; });
+  c += '</select></div>';
+  c += '<div class="form-group" style="margin-bottom:0;min-width:110px;"><label style="font-size:11px;">编制类型</label><select id="expType" onchange="filterExportTable()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;width:100%;">';
+  c += '<option value="all">全部</option>';
+  types.forEach(function(t) { c += '<option value="' + t + '">' + t + '</option>'; });
+  c += '</select></div>';
+  c += '<div class="form-group" style="margin-bottom:0;min-width:100px;"><label style="font-size:11px;">审核状态</label><select id="expStatus" onchange="filterExportTable()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;width:100%;">';
+  c += '<option value="all">全部</option>';
+  c += '<option value="submitted">待审核</option><option value="first_approved">一审通过</option><option value="final_submitted">待二审确认</option><option value="approved">已通过</option><option value="rejected">已驳回</option>';
+  c += '</select></div>';
+  c += '<div style="flex:1;text-align:right;"><span style="font-size:11px;color:var(--text-light);" id="expFilteredCount"></span></div>';
+  c += '</div>';
+
+  // Table
+  c += '<div style="max-height:45vh;overflow:auto;border:1px solid var(--border);border-radius:6px;">';
+  c += '<table style="font-size:12px;min-width:1000px;">';
+  c += '<thead><tr style="background:#F8FAFC;">';
+  c += '<th style="width:32px;text-align:center;"><input type="checkbox" id="expSelectAll" onchange="toggleExportSelectAll(this)" style="cursor:pointer;"></th>';
+  c += '<th>申报编号</th><th>编制类型</th><th>申请单位</th><th>所属区域</th>';
+  c += '<th style="text-align:right;">核定编制数</th><th style="text-align:right;">在编人数</th>';
+  c += '<th style="text-align:right;">控制数</th><th style="text-align:right;">控制数实有</th>';
+  c += '<th style="text-align:right;">申请数</th><th>审核状态</th><th>提交时间</th>';
+  c += '</tr></thead><tbody id="expTableBody">';
+  c += '</tbody></table></div>';
+
+  c += '</div>';
+  c += '<div class="modal-footer"><span style="font-size:12px;color:var(--text-secondary);margin-right:auto;" id="expSelCount">已选 0 条</span><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doExportChecked(\'' + (batchId || '') + '\',\'' + mode + '\')">📥 导出选中</button></div>';
+  openModal(c, 'modal-xwide');
+
+  // Store data for filtering
+  window._expData = subs;
+  window._expBatchId = batchId;
+  window._expMode = mode;
+  renderExportTable();
+}
+
+function renderExportTable() {
+  var subs = window._expData || [];
+  var region = document.getElementById('expRegion') ? document.getElementById('expRegion').value : 'all';
+  var type = document.getElementById('expType') ? document.getElementById('expType').value : 'all';
+  var status = document.getElementById('expStatus') ? document.getElementById('expStatus').value : 'all';
+
+  var filtered = subs.filter(function(s) {
+    if (region !== 'all' && s.schoolType !== region) return false;
+    if (type !== 'all' && (STAFFING_TYPE_MAP[s.staffingType] || s.staffingType) !== type) return false;
+    if (status !== 'all' && s.status !== status) return false;
+    return true;
+  });
+
+  var tbody = document.getElementById('expTableBody');
+  var h = '';
+  filtered.forEach(function(s, idx) {
+    var useCount = s.useForms ? Object.values(s.useForms).reduce(function(a,b){return a+(b||0);},0) : 0;
+    var totalStaff = s.totalStaff || '—';
+    var currentStaff = s.currentStaff || '—';
+    var controlNum = s.controlNum || '—';
+    var controlActual = s.controlActual || '—';
+    h += '<tr style="border-bottom:1px solid #F1F5F9;">';
+    h += '<td style="text-align:center;"><input type="checkbox" class="exp-row-cb" data-id="' + s.id + '" onchange="updateExportSelCount()"></td>';
+    h += '<td>' + s.id + '</td>';
+    h += '<td>' + (STAFFING_TYPE_MAP[s.staffingType] || s.staffingType) + '</td>';
+    h += '<td>' + s.school + '</td>';
+    h += '<td>' + (s.schoolType || '—') + '</td>';
+    h += '<td style="text-align:right;">' + totalStaff + '</td>';
+    h += '<td style="text-align:right;">' + currentStaff + '</td>';
+    h += '<td style="text-align:right;">' + controlNum + '</td>';
+    h += '<td style="text-align:right;">' + controlActual + '</td>';
+    h += '<td style="text-align:right;">' + useCount + '</td>';
+    h += '<td><span class="sbc-status ' + getStatusBadgeClass(s.status) + '" style="font-size:10px;">' + (STATUS_MAP[s.status] || s.status) + '</span></td>';
+    h += '<td>' + (s.submitDate || '—') + '</td>';
+    h += '</tr>';
+  });
+  tbody.innerHTML = h || '<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text-light);">无匹配数据</td></tr>';
+
+  document.getElementById('expSelectAll').checked = false;
+  var fc = document.getElementById('expFilteredCount');
+  if (fc) fc.textContent = '显示 ' + filtered.length + ' 条';
+  updateExportSelCount();
+}
+
+function filterExportTable() { renderExportTable(); }
+
+function toggleExportSelectAll(cb) {
+  var cbs = document.querySelectorAll('.exp-row-cb');
+  cbs.forEach(function(c) { c.checked = cb.checked; });
+  updateExportSelCount();
+}
+
+function updateExportSelCount() {
+  var cbs = document.querySelectorAll('.exp-row-cb');
+  var count = 0;
+  var total = cbs.length;
+  cbs.forEach(function(c) { if (c.checked) count++; });
+  var el = document.getElementById('expSelCount');
+  if (el) el.textContent = '已选 ' + count + ' 条 / 共 ' + total + ' 条';
+  var sa = document.getElementById('expSelectAll');
+  if (sa) sa.checked = (count > 0 && count === total);
+}
+
+function doExportChecked(batchId, mode) {
+  var cbs = document.querySelectorAll('.exp-row-cb:checked');
+  var ids = [];
+  cbs.forEach(function(c) { ids.push(c.dataset.id); });
+  if (ids.length === 0) { showToast('请至少勾选一条数据'); return; }
+
+  var subs = SUBMISSIONS.filter(function(s) { return ids.indexOf(s.id) !== -1; });
+
+  var csv = '﻿申报编号,编制类型,申请单位,所属区域,核定编制数,在编人数,控制数,控制数实有,申请数,审核状态,提交时间\n';
+  subs.forEach(function(s) {
+    var useCount = s.useForms ? Object.values(s.useForms).reduce(function(a,b){return a+(b||0);},0) : 0;
+    csv += s.id + ',' + (STAFFING_TYPE_MAP[s.staffingType] || '') + ',' + s.school + ',' + (s.schoolType || '') + ',' + (s.totalStaff || '') + ',' + (s.currentStaff || '') + ',' + (s.controlNum || '') + ',' + (s.controlActual || '') + ',' + useCount + ',' + (STATUS_MAP[s.status] || '') + ',' + (s.submitDate || '') + '\n';
+  });
+
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (batchId || 'year_summary') + '_export_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  closeModal();
+  showToast('已导出 ' + subs.length + ' 条记录');
 }
 
 // ===== YEAR SUMMARY MODE =====
@@ -1687,8 +2084,9 @@ function renderSubmissionsTable(subs) {
   h += '<th>编制类型</th>';
   if (!isSchoolView) h += '<th>申请单位</th><th>学校属性</th>';
   h += '<th>核定编制数</th><th>在编人数</th><th>控制数</th><th>控制数实有</th>';
-  h += '<th>申请数(调动/公招/自主/人才)</th>';
-  h += '<th>附件</th><th>后续材料</th><th>状态</th><th>提交时间</th><th>操作</th>';
+  h += '<th>申请数</th>';
+  h += '<th>统一公开招聘</th><th>单位自主实施招聘</th><th>中高级人才招聘</th><th>引进高层次人才</th><th>调动</th><th>其他</th>';
+  h += '<th>附件</th><th>编办确认材料</th><th>审核状态</th><th>提交时间</th><th>操作</th>';
   h += '</tr></thead><tbody>';
 
   subs.forEach(function(s) {
@@ -1706,9 +2104,18 @@ function renderSubmissionsTable(subs) {
     h += '<td>' + (s.currentStaff || '—') + '</td>';
     h += '<td>' + (s.controlNum || '—') + '</td>';
     h += '<td>' + (s.controlActual || '—') + '</td>';
-    h += '<td>' + s.useForms.transfer + ' / ' + s.useForms.publicRecruit + ' / ' + s.useForms.selfRecruit + ' / ' + s.useForms.talent + '</td>';
-    h += '<td>' + (s.attachment9 || !isCareer ? '<span style="color:var(--success);">📎 已上传</span>' : '<span style="color:var(--success);">📎 已上传</span>') + '</td>';
-    h += '<td>' + (s.followUp ? '<span style="color:var(--success);">📎 已上传</span>' : '<span style="color:var(--text-light);">—</span>') + '</td>';
+    var uf = s.useForms || {};
+    var useCount = Object.values(uf).reduce(function(a,b){return a+(b||0);},0);
+    h += '<td>' + (useCount || '—') + '</td>';
+    h += '<td>' + (uf.publicRecruit || 0) + '</td>';
+    h += '<td>' + (uf.selfRecruit || 0) + '</td>';
+    h += '<td>' + (uf.talentMid || 0) + '</td>';
+    h += '<td>' + (uf.talentHigh || 0) + '</td>';
+    h += '<td>' + (uf.transfer || 0) + '</td>';
+    h += '<td>' + (uf.other || 0) + '</td>';
+    h += '<td>' + (s.attachment9 ? '<a onclick="downloadMockFile(\'' + s.id + '\',\'attachment\')" style="color:var(--primary);cursor:pointer;font-size:12px;">📥 下载</a>' : '<span style="color:var(--text-light);">——</span>') + '</td>';
+    var hasFinalDoc = (s.schoolFinalConfirm && s.schoolFinalConfirm.document) || s.followUp;
+    h += '<td>' + (hasFinalDoc ? '<a onclick="downloadMockFile(\'' + s.id + '\',\'finalConfirm\')" style="color:var(--primary);cursor:pointer;font-size:12px;">📥 下载</a>' : '<span style="color:var(--text-light);">——</span>') + '</td>';
     h += '<td><span class="status ' + s.status + '">' + STATUS_MAP[s.status] + '</span></td>';
     h += '<td>' + (s.submitDate || '—') + '</td>';
     h += '<td><div class="action-links">';
