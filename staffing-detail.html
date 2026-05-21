@@ -143,6 +143,8 @@ body {
 .status-badge.reviewing { background: #FEF3C7; color: #D97706; }
 .status-badge.approved { background: #D1FAE5; color: #059669; }
 .status-badge.rejected { background: #FEE2E2; color: var(--danger); }
+	.status-badge.final_submitted { background: #FFF7ED; color: #EA580C; }
+	.status-badge.first_approved { background: #DBEAFE; color: #2563EB; }
 
 /* ===== STATUS SEAL STAMP ===== */
 .status-seal {
@@ -173,6 +175,9 @@ body {
 }
 .status-seal.first_approved {
   color: #2563EB; border-color: #2563EB; background: rgba(219,234,254,0.3);
+}
+.status-seal.final_submitted {
+  color: #EA580C; border-color: #EA580C; background: rgba(255,247,237,0.3);
 }
 /* ===== TWO-COLUMN LAYOUT ===== */
 .detail-layout {
@@ -594,18 +599,19 @@ grid-column: 1 / -1;
         </table>
       </div>
 
+      <!-- ===== 编办确认 ===== -->
+      <div class="card" id="staffingConfirmCard" style="display:none;">
+        <div class="card-title">📋 编办确认</div>
+        <div class="card-body" id="staffingConfirmBody"></div>
+      </div>
+
       <!-- ===== Step 3: 附件上传 ===== -->
       <div class="card">
         <div class="card-title"><span class="step-num">3</span>附件上传</div>
         <div id="attachmentsArea"></div>
       </div>
 
-      <!-- ===== Actions Card ===== -->
-      <div class="card" id="actionCard" style="display:none;">
-        <div style="padding:20px; text-align:center;" id="actionCardContent"></div>
-      </div>
-
-    </div><!-- /detail-col-left -->
+	    </div><!-- /detail-col-left -->
 
     <!-- Right: timeline -->
     <div class="detail-col-right">
@@ -616,20 +622,6 @@ grid-column: 1 / -1;
     </div><!-- /detail-col-right -->
   </div><!-- /detail-layout -->
 
-<!-- 二审逐项确认 Modal -->
-<div class="modal-overlay" id="finalConfirmModal">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3>二审逐项确认</h3>
-      <button class="modal-close" onclick="closeFinalConfirmModal()">×</button>
-    </div>
-    <div class="modal-body" id="finalConfirmBody"></div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeFinalConfirmModal()">取消</button>
-      <button class="btn btn-primary" onclick="confirmFinalSubmit()">确认提交</button>
-    </div>
-  </div>
-</div>
 </main>
 
 <script>
@@ -759,7 +751,7 @@ var submissions = [
     status: 'rejected', submitDate: '2026-03-12', approveDate: null,
     history: [
       { action: 'submit', title: '提交申报', time: '2026-03-12 14:10', desc: '校管理员提交了编制使用申报，使用控制数合计2名。' },
-      { action: 'reject', title: '审核退回', time: '2026-03-19 11:20', desc: '市管理员退回：未使用控制数计划数为0，不符合申报条件，本批次暂不批准。', reason: '无可用控制数计划数' }
+      { action: 'reject', title: '审核退回', time: '2026-03-19 11:20', desc: '市管理员退回：剩余可用控制数计划数为0，不符合申报条件，本批次暂不批准。', reason: '无可用控制数计划数' }
     ]
   },
   { id: 'S2026-007', batchName: '2026年度第二批', school: '柳州市第一中学', schoolType: '市直属',
@@ -833,14 +825,14 @@ var submissions = [
 
 // School profile lookup for fallback generation
 var SCHOOL_DATA = {
-  '柳州市第一中学':     { schoolType:'市直属', totalStaff:120, currentStaff:108, unusedPlan:3, controlNum:25, controlActual:20, unusedControl:2, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
-  '柳州市第二中学':     { schoolType:'市直属', totalStaff:95,  currentStaff:88,  unusedPlan:2, controlNum:18, controlActual:15, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
-  '柳州高级中学':       { schoolType:'市直属', totalStaff:150, currentStaff:142, unusedPlan:0, controlNum:30, controlActual:26, unusedControl:1, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:6, actualLeader:5, actualOtherLeader:4 },
-  '柳州市民族高中':     { schoolType:'市直属', totalStaff:72,  currentStaff:68,  unusedPlan:1, controlNum:12, controlActual:10, unusedControl:0, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
-  '柳州市第八中学':     { schoolType:'鱼峰区属', totalStaff:88,  currentStaff:80,  unusedPlan:1, controlNum:16, controlActual:14, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
-  '鱼峰区实验小学':     { schoolType:'鱼峰区属', totalStaff:60,  currentStaff:55,  unusedPlan:0, controlNum:10, controlActual:8,  unusedControl:1, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 },
-  '柳州市第十三中学':   { schoolType:'鱼峰区属', totalStaff:70,  currentStaff:65,  unusedPlan:1, controlNum:12, controlActual:10, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
-  '柳州市第二十五中学': { schoolType:'鱼峰区属', totalStaff:55,  currentStaff:50,  unusedPlan:0, controlNum:8,  controlActual:7,  unusedControl:0, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 }
+  '柳州市第一中学':     { schoolType:'市直属', totalStaff:120, currentStaff:108, approvedPlan:8, usedPlan:5, unusedPlan:3, availablePlan:4, controlNum:25, controlActual:20, unusedControl:2, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
+  '柳州市第二中学':     { schoolType:'市直属', totalStaff:95,  currentStaff:88,  approvedPlan:6, usedPlan:4, unusedPlan:2, availablePlan:1, controlNum:18, controlActual:15, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
+  '柳州高级中学':       { schoolType:'市直属', totalStaff:150, currentStaff:142, approvedPlan:8, usedPlan:8, unusedPlan:0, availablePlan:0, controlNum:30, controlActual:26, unusedControl:1, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:6, actualLeader:5, actualOtherLeader:4 },
+  '柳州市民族高中':     { schoolType:'市直属', totalStaff:72,  currentStaff:68,  approvedPlan:4, usedPlan:3, unusedPlan:1, availablePlan:0, controlNum:12, controlActual:10, unusedControl:0, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
+  '柳州市第八中学':     { schoolType:'鱼峰区属', totalStaff:88,  currentStaff:80,  approvedPlan:5, usedPlan:4, unusedPlan:1, availablePlan:3, controlNum:16, controlActual:14, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
+  '鱼峰区实验小学':     { schoolType:'鱼峰区属', totalStaff:60,  currentStaff:55,  approvedPlan:5, usedPlan:5, unusedPlan:0, availablePlan:0, controlNum:10, controlActual:8,  unusedControl:1, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 },
+  '柳州市第十三中学':   { schoolType:'鱼峰区属', totalStaff:70,  currentStaff:65,  approvedPlan:4, usedPlan:3, unusedPlan:1, availablePlan:1, controlNum:12, controlActual:10, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
+  '柳州市第二十五中学': { schoolType:'鱼峰区属', totalStaff:55,  currentStaff:50,  approvedPlan:4, usedPlan:4, unusedPlan:0, availablePlan:1, controlNum:8,  controlActual:7,  unusedControl:0, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 }
 };
 
 function findById(id) {
@@ -889,7 +881,7 @@ function generateFallback(id) {
     'S2025-001':'approved','S2025-002':'approved','S2025-003':'approved','S2025-004':'rejected',
     'S2025-D01':'approved','S2025-D02':'approved',
     'S2026-D01':'submitted','S2026-D02':'reviewing','S2026-D03':'first_approved','S2026-D04':'submitted','S2026-D05':'submitted','S2026-D06':'submitted',
-    'S2026-A01':'submitted','S2026-A02':'reviewing','S2026-A03':'approved','S2026-A04':'rejected'
+    'S2026-A01':'submitted','S2026-A02':'final_submitted','S2026-A03':'approved','S2026-A04':'rejected'
   };
   status = statusMap[id] || 'submitted';
 
@@ -920,6 +912,9 @@ function generateFallback(id) {
     history.push({ action:'review', title:'进入审核', time:submitDate + ' 10:30:00', desc:'主管单位已接收申报，进入审核流程。' });
   } else if (status === 'first_approved') {
     history.push({ action:'first_approve', title:'一审通过', time:submitDate + ' 10:00:00', desc:'主管单位一审通过，待编办终审确认。' });
+  } else if (status === 'final_submitted') {
+    history.push({ action:'first_approve', title:'一审通过', time:submitDate + ' 10:00:00', desc:'主管单位一审通过。' });
+    history.push({ action:'final_submit', title:'提交编办确认', time:submitDate + ' 14:00:00', desc:'学校已提交编办确认材料，待主管单位二审确认。' });
   } else if (status === 'approved') {
     history.push({ action:'first_approve', title:'一审通过', time:submitDate + ' 10:00:00', desc:'主管单位一审通过。' });
     history.push({ action:'approve', title:'终审通过', time:submitDate + ' 15:00:00', desc:'编办终审确认通过。' });
@@ -930,7 +925,7 @@ function generateFallback(id) {
   var formName = isCareer ? '附件2' : '附件9';
   var attName = isCareer ? (formName + '_' + school + '_2026.pdf') : (formName + '_' + school + '_2026.pdf');
 
-  return {
+  var obj = {
     id: id, batchName: batchName, school: school, schoolType: sd.schoolType,
     staffingType: staffingType, formName: formName,
     status: status, submitDate: submitDate,
@@ -942,11 +937,26 @@ function generateFallback(id) {
     attachment9Name: isCareer ? '' : attName, attachment2Name: isCareer ? attName : '',
     attachment9: !isCareer, attachment2: isCareer,
     followUp: status === 'approved', followUpName: status === 'approved' ? '后续材料_' + school + '.pdf' : '',
-    firstApproveTime: (status === 'first_approved' || status === 'approved') ? submitDate + ' 10:00:00' : null,
+    firstApproveTime: (status === 'first_approved' || status === 'approved' || status === 'final_submitted') ? submitDate + ' 10:00:00' : null,
     finalConfirmTime: status === 'approved' ? submitDate + ' 15:00:00' : null,
     finalApprovedDetails: status === 'approved' ? useForms.filter(function(f){return f.num>0;}).map(function(f){return {type:f.type, schoolNum:f.num, finalNum:f.num};}) : null,
     history: history
   };
+  if (status === 'final_submitted') {
+    obj.schoolFinalConfirm = {
+      details: [
+        { type: '单位自主实施招聘', schoolNum: 1, finalNum: 1 },
+        { type: '中高级人才招聘', schoolNum: 1, finalNum: 1 }
+      ],
+      totalFinalCount: 2,
+      validityStart: '2026-04-01',
+      validityEnd: '2026-12-31',
+      document: { name: '编办批复文件2026-03号.pdf', size: 234000 },
+      submitTime: '2026-03-26 10:00:00',
+      submitter: '王玉兰'
+    };
+  }
+  return obj;
 }
 
 var s = findById(detailId);
@@ -958,8 +968,8 @@ if (!s) {
 if (s) {
 
 // ===== STATUS MAP =====
-var STATUS_MAP = { submitted: '已提交', reviewing: '审核中', first_approved: '一审已通过', approved: '已通过', rejected: '已退回' };
-var STATUS_CSS = { submitted: 'submitted', reviewing: 'reviewing', first_approved: 'first_approved', approved: 'approved', rejected: 'rejected' };
+var STATUS_MAP = { submitted: '已提交', reviewing: '审核中', first_approved: '一审通过', final_submitted: '待二审确认', approved: '已通过', rejected: '已退回' };
+var STATUS_CSS = { submitted: 'submitted', reviewing: 'reviewing', first_approved: 'first_approved', final_submitted: 'final_submitted', approved: 'approved', rejected: 'rejected' };
 
 // ===== RENDER HEADER =====
 var detailTypeLabel = s.staffingType === 'career' ? '事业编' : '控制数';
@@ -972,6 +982,7 @@ var SEAL_MAP = {
   submitted:{ css: 'submitted',label: '审核', text: '已提交' },
   reviewing:{ css: 'reviewing',label: '审核', text: '审核中' },
   first_approved:{ css: 'first_approved',label: '一审', text: '已通过' },
+  final_submitted:{ css: 'final_submitted',label: '待二审', text: '确认' },
   approved: { css: 'approved', label: '终审', text: '通过' },
   rejected: { css: 'rejected', label: '审核', text: '退回' }
 };
@@ -1000,20 +1011,20 @@ function renderUnitInfo() {
   h += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
   h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || '—') + '</div></div>';
   h += '<div class="info-item-placeholder"></div>';
-  h += '<div class="info-item"><div class="info-label">核定事业编制数（名）</div><div class="info-value">' + (s.totalStaff || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">在编人数（人）</div><div class="info-value">' + (s.currentStaff || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">未使用计划数</div><div class="info-value">' + (s.unusedPlan || '0') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">核定单位领导职数</div><div class="info-value">' + (s.authLeader || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">实配单位领导人数</div><div class="info-value">' + (s.actualLeader || '—') + '</div></div>';
-	    h += '<div class="info-item"><div class="info-label">实配单位其他领导人数</div><div class="info-value">' + (s.actualOtherLeader || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">核定编制数</div><div class="info-value">' + (s.totalStaff || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">实有在编人数</div><div class="info-value">' + (s.currentStaff || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">已批复计划数</div><div class="info-value">' + (s.approvedPlan || '0') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">已使用计划数</div><div class="info-value">' + (s.usedPlan || '0') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">未使用计划数</div><div class="info-value">' + (s.unusedPlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">未使用计划数 = 已批复计划数 − 已使用计划数</div></div>';
+  h += '<div class="info-item"><div class="info-label">可申请计划数</div><div class="info-value">' + (s.availablePlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请计划数 = 核定编制数 − 实有在编人数 − 已批复计划数</div></div>';
   } else {
     // Control / 附件9: 6 fields
     h += '<div class="info-item"><div class="info-label">核定编制数（名）</div><div class="info-value">' + (s.totalStaff || '—') + '</div></div>';
     h += '<div class="info-item"><div class="info-label">在编人数（人）</div><div class="info-value">' + (s.currentStaff || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">未使用计划数</div><div class="info-value">' + (s.unusedPlan || '0') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">剩余可用计划数</div><div class="info-value">' + (s.unusedPlan || '0') + '</div></div>';
     h += '<div class="info-item"><div class="info-label">核定聘用教师控制数（名）</div><div class="info-value">' + (s.controlNum || '—') + '</div></div>';
     h += '<div class="info-item"><div class="info-label">聘用教师控制数实有数（人）</div><div class="info-value">' + (s.controlActual || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">未使用控制数计划数</div><div class="info-value">' + (s.unusedControl || '0') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">剩余可用控制数计划数</div><div class="info-value">' + (s.unusedControl || '0') + '</div></div>';
   }
 
   document.getElementById('unitInfoArea').innerHTML = h;
@@ -1029,15 +1040,15 @@ var totalApply = 0;
 
 var quota, label;
 if (isCareer) {
-quota = (s.totalStaff || 0) - (s.currentStaff || 0) + (s.unusedPlan || 0);
-  label = '空编数';
+quota = (s.totalStaff || 0) - (s.currentStaff || 0) - (s.approvedPlan || 0);
+label = '可申请编制数';
 } else {
 quota = (s.controlNum || 0) - (s.controlActual || 0) + (s.unusedControl || 0);
   label = '可用控制数';
 }
 
 // For approved records, base on final confirmed count
-var effectiveNum, allAvailable;
+var effectiveNum, remaining;
 if (isApproved && s.finalApprovedDetails) {
   var totalFinal = 0;
   s.finalApprovedDetails.forEach(function(d) { totalFinal += d.finalNum; });
@@ -1045,14 +1056,17 @@ if (isApproved && s.finalApprovedDetails) {
 } else {
   effectiveNum = totalApply;
 }
-allAvailable = quota + effectiveNum;
+remaining = quota - effectiveNum;
+var resultLabel = isCareer ? '剩余可用编制数' : '剩余可用控制数';
+var resultBg = remaining >= 0 ? '#D1FAE5' : '#FEE2E2';
+var resultColor = remaining >= 0 ? '#059669' : '#DC2626';
 
 var h = '<div style="display:flex;gap:12px;align-items:center;font-size:14px;">';
 h += '<div style="flex:1;text-align:center;padding:14px;background:#F8FAFC;border-radius:8px;">';
 h += '<div style="font-size:11px;color:var(--text-light);">' + label + '</div>';
 h += '<div style="font-size:22px;font-weight:700;color:var(--text);">' + quota + '</div>';
 h += '</div>';
-	  h += '<div style="font-size:20px;color:var(--text-light);">+</div>';
+		  h += '<div style="font-size:20px;color:var(--text-light);">−</div>';
 
 	  if (isApproved && s.finalApprovedDetails) {
 	    // Approved: show school apply → final confirm → available
@@ -1076,9 +1090,9 @@ h += '</div>';
 	  }
 
 	  h += '<div style="font-size:20px;color:var(--text-light);">=</div>';
-	  h += '<div style="flex:1;text-align:center;padding:14px;background:#D1FAE5;border-radius:8px;">';
-	  h += '<div style="font-size:11px;color:#059669;">全部可用</div>';
-	  h += '<div style="font-size:22px;font-weight:700;color:#059669;">' + allAvailable + '</div>';
+          h += '<div style="flex:1;text-align:center;padding:14px;background:' + resultBg + ';border-radius:8px;">';
+          h += '<div style="font-size:11px;color:' + resultColor + ';">' + resultLabel + '</div>';
+          h += '<div style="font-size:22px;font-weight:700;color:' + resultColor + ';">' + remaining + '</div>';
 	  h += '</div>';
 	  h += '</div>';
 
@@ -1123,6 +1137,82 @@ if (isApproved) ufHtml += '<td>' + totalFinal + '</td>';
 ufHtml += '<td colspan="3"></td></tr>';
 document.getElementById('useFormBody').innerHTML = ufHtml;
 
+	// ===== 编办确认 =====
+	function formatDate(dateStr) {
+	  if (!dateStr) return '—';
+	  var parts = dateStr.split('-');
+	  if (parts.length === 3) return parts[0] + '年' + parts[1] + '月' + parts[2] + '日';
+	  return dateStr;
+	}
+	(function renderStaffingConfirm() {
+	  var card = document.getElementById('staffingConfirmCard');
+	  var body = document.getElementById('staffingConfirmBody');
+	  if (s.status === 'first_approved') {
+	    card.style.display = '';
+	    body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);">请返回列表页提交编办确认</div>';
+	  } else if (s.status === 'final_submitted' && s.schoolFinalConfirm) {
+	    card.style.display = '';
+	    var sc = s.schoolFinalConfirm;
+	    var h = '';
+	    // Details table
+	    h += '<table class="detail-table" style="margin-bottom:16px;"><thead><tr>';
+	    h += '<th style="width:140px;">使用形式</th><th>学校申请数</th><th>最终核定数</th>';
+	    h += '</tr></thead><tbody>';
+	    var details = sc.details || [];
+	    for (var d = 0; d < details.length; d++) {
+	      var item = details[d];
+	      h += '<tr>';
+	      h += '<td class="row-label">' + item.type + '</td>';
+	      h += '<td>' + item.schoolNum + '</td>';
+	      h += '<td>' + item.finalNum + '</td>';
+	      h += '</tr>';
+	    }
+	    h += '<tr class="total-row"><td class="row-label">合　计</td>';
+	    h += '<td>' + (sc.totalFinalCount || 0) + '</td>';
+	    h += '<td>' + (sc.totalFinalCount || 0) + '</td>';
+	    h += '</tr></tbody></table>';
+	    // Validity period
+	    if (sc.validityStart && sc.validityEnd) {
+	      h += '<div class="info-row"><div class="info-item">';
+	      h += '<div class="info-label">有效期限</div>';
+	      h += '<div class="info-value">' + formatDate(sc.validityStart) + ' — ' + formatDate(sc.validityEnd) + '</div>';
+	      h += '</div></div>';
+	    }
+	    // Document
+	    if (sc.document) {
+	      h += '<div class="info-row"><div class="info-item">';
+	      h += '<div class="info-label">编办批复文件</div>';
+	      h += '<a class="attachment-item" href="#" onclick="event.preventDefault();showToast(\'文件预览: ' + sc.document.name + '\')">📎 ' + sc.document.name + '</a>';
+	      h += '</div></div>';
+	    }
+	    body.innerHTML = h;
+	  } else if (s.status === 'approved' && s.finalApprovedDetails) {
+	    card.style.display = '';
+	    var fd = s.finalApprovedDetails;
+	    var h2 = '';
+	    h2 += '<table class="detail-table" style="margin-bottom:16px;"><thead><tr>';
+	    h2 += '<th style="width:140px;">使用形式</th><th>学校申请数</th><th>最终核定数</th>';
+	    h2 += '</tr></thead><tbody>';
+	    var totalF = 0;
+	    var totalS = 0;
+	    for (var dd = 0; dd < fd.length; dd++) {
+	      var row = fd[dd];
+	      h2 += '<tr>';
+	      h2 += '<td class="row-label">' + row.type + '</td>';
+	      h2 += '<td>' + row.schoolNum + '</td>';
+	      h2 += '<td>' + row.finalNum + '</td>';
+	      h2 += '</tr>';
+	      totalS += row.schoolNum;
+	      totalF += row.finalNum;
+	    }
+	    h2 += '<tr class="total-row"><td class="row-label">合　计</td>';
+	    h2 += '<td>' + totalS + '</td>';
+	    h2 += '<td>' + totalF + '</td>';
+	    h2 += '</tr></tbody></table>';
+	    body.innerHTML = h2;
+	  }
+	})();
+
 // Attachments
 var formLabel = s.staffingType === 'career' ? '附件2 — 中小学事业编制使用计划申报表' : '附件9 — 中小学聘用教师控制数使用计划申报表';
 var formFileName = s.staffingType === 'career' ? (s.attachment2Name || '') : (s.attachment9Name || '');
@@ -1145,83 +1235,6 @@ if (s.followUp) {
 }
 document.getElementById('attachmentsArea').innerHTML = attHtml;
 
-// Show action card based on status
-if (s.status === 'first_approved') {
-document.getElementById('actionCard').style.display = '';
-document.getElementById('actionCardContent').innerHTML =
-'<div style="font-size:14px; font-weight:600; margin-bottom:8px;">一审已通过，待编办终审确认</div>' +
-'<button class="btn btn-outline" onclick="handleDownloadSummary()">📥 下载审核通过汇总表</button>' +
-'<div style="font-size:11px;color:var(--text-light);margin-top:8px;">下载汇总表后盖章线下送交主管单位</div>';
-} else if (s.status === 'approved') {
-document.getElementById('actionCard').style.display = '';
-document.getElementById('actionCardContent').innerHTML =
-'<div style="font-size:16px; font-weight:600; margin-bottom:4px; color:#10B981;">终审已通过</div>' +
-(s.finalConfirmTime ? '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">确认时间：' + s.finalConfirmTime + '</div>' : '') +
-'<button class="btn btn-primary" onclick="handleDownloadSummary()" style="padding:10px 32px;">📥 下载终审通过汇总表</button>';
-}
-
-function handleDownloadSummary() {
-  showToast('汇总表下载功能将在后端集成后启用');
-}
-
-// ===== 二审逐项确认 Modal =====
-function openFinalConfirmModal() {
-  var h = '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">逐项核对并确认编制使用数量，确认数不可超过学校申请数。</p>';
-  h += '<table class="final-confirm-table"><thead><tr>';
-  h += '<th>使用形式</th><th style="text-align:center;">学校申请数</th><th style="text-align:center;">编办确认数</th><th>备注</th>';
-  h += '</tr></thead><tbody>';
-
-  for (var i = 0; i < s.useForms.length; i++) {
-    var f = s.useForms[i];
-    if (f.num === 0) continue;
-    h += '<tr>';
-    h += '<td>' + f.type + '</td>';
-    h += '<td style="text-align:center;font-weight:500;">' + f.num + '</td>';
-    h += '<td style="text-align:center;"><input type="number" class="count-input" id="finalNum_' + i + '" value="' + f.num + '" min="0" max="' + f.num + '" oninput="validateFinalNum(this,' + f.num + ')"></td>';
-    h += '<td style="font-size:11px;color:var(--text-light);">' + (f.edu || '—') + '</td>';
-    h += '</tr>';
-  }
-  h += '</tbody></table>';
-
-  document.getElementById('finalConfirmBody').innerHTML = h;
-  document.getElementById('finalConfirmModal').classList.add('show');
-}
-
-function closeFinalConfirmModal() {
-  document.getElementById('finalConfirmModal').classList.remove('show');
-}
-
-function validateFinalNum(input, max) {
-  var v = parseInt(input.value) || 0;
-  if (v < 0) input.value = 0;
-  if (v > max) input.value = max;
-}
-
-function confirmFinalSubmit() {
-  var details = [];
-  for (var i = 0; i < s.useForms.length; i++) {
-    var f = s.useForms[i];
-    if (f.num === 0) continue;
-    var input = document.getElementById('finalNum_' + i);
-    var finalNum = input ? (parseInt(input.value) || 0) : 0;
-    details.push({ type: f.type, schoolNum: f.num, finalNum: finalNum });
-  }
-  s.finalApprovedDetails = details;
-  s.finalConfirmTime = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  s.status = 'approved';
-
-  // Add history entry
-  if (!s.history) s.history = [];
-  s.history.push({
-    action: 'final_confirm', title: '二审确认完成', time: s.finalConfirmTime,
-    desc: '完成二审逐项确认，编办核定使用' + (s.staffingType === 'career' ? '事业编制' : '控制数') + '合计' + details.reduce(function(a,b){return a+b.finalNum;},0) + '名。'
-  });
-
-  closeFinalConfirmModal();
-  showToast('二审确认完成，申报已终审通过');
-  setTimeout(function() { location.reload(); }, 1000);
-}
-
 function showToast(msg, type) {
   type = type || 'success';
   var c = document.getElementById('toastContainer');
@@ -1236,36 +1249,66 @@ function showToast(msg, type) {
 
 // ===== RENDER PROGRESS =====
 function renderProgress() {
+  var isRejected = s.status === 'rejected';
+  var isApproved = s.status === 'approved';
+  var isFinalSubmitted = s.status === 'final_submitted';
+  var isFirstApproved = s.status === 'first_approved';
   var steps;
-
-  if (s.status === 'submitted') {
-    steps = [{ label: '已提交', state: 'done' }, { label: '一审审核', state: 'current' }, { label: '二审确认', state: 'pending' }, { label: '已通过', state: 'pending' }];
-  } else if (s.status === 'reviewing') {
-    steps = [{ label: '已提交', state: 'done' }, { label: '一审审核中…', state: 'current' }, { label: '二审确认', state: 'pending' }, { label: '已通过', state: 'pending' }];
-  } else if (s.status === 'first_approved') {
-    steps = [{ label: '已提交', state: 'done' }, { label: '一审通过', state: 'done' }, { label: '二审确认', state: 'current' }, { label: '已通过', state: 'pending' }];
-  } else if (s.status === 'approved') {
-    steps = [{ label: '已提交', state: 'done' }, { label: '一审通过', state: 'done' }, { label: '二审确认', state: 'done' }, { label: '已通过', state: 'done' }];
-  } else if (s.status === 'rejected') {
-    steps = [{ label: '已提交', state: 'done' }, { label: '一审退回', state: 'done' }, { label: '已退回', state: 'rejected' }];
+  if (isApproved) {
+    steps = [
+      { label: '学校提交', state: 'done' },
+      { label: '一审：材料审核', state: 'done' },
+      { label: '学校提交编办确认', state: 'done' },
+      { label: '二审：编办确认', state: 'done' },
+      { label: '审核完成', state: 'done' }
+    ];
+  } else if (isRejected) {
+    steps = [
+      { label: '学校提交', state: 'done' },
+      { label: '一审：材料审核', state: 'done' },
+      { label: '一审退回', state: 'rejected' },
+      { label: '二审：编办确认', state: 'pending' },
+      { label: '审核完成', state: 'pending' }
+    ];
+  } else if (isFinalSubmitted) {
+    steps = [
+      { label: '学校提交', state: 'done' },
+      { label: '一审：材料审核', state: 'done' },
+      { label: '学校提交编办确认', state: 'done' },
+      { label: '二审：编办确认', state: 'current' },
+      { label: '审核完成', state: 'pending' }
+    ];
+  } else if (isFirstApproved) {
+    steps = [
+      { label: '学校提交', state: 'done' },
+      { label: '一审：材料审核', state: 'done' },
+      { label: '学校提交编办确认', state: 'current' },
+      { label: '二审：编办确认', state: 'pending' },
+      { label: '审核完成', state: 'pending' }
+    ];
+  } else {
+    steps = [
+      { label: '学校提交', state: 'done' },
+      { label: '一审：材料审核', state: 'current' },
+      { label: '学校提交编办确认', state: 'pending' },
+      { label: '二审：编办确认', state: 'pending' },
+      { label: '审核完成', state: 'pending' }
+    ];
   }
-
-  var h = '';
-  for (var i = 0; i < steps.length; i++) {
-    var step = steps[i];
+  var html = '';
+  steps.forEach(function(step, i) {
     var isRejectedStep = step.state === 'rejected';
     var dotIcon = step.state === 'done' ? '✓' : (isRejectedStep ? '✕' : (i + 1));
     var dotClass = step.state === 'done' ? 'done' : (step.state === 'current' ? 'current' : (isRejectedStep ? 'rejected' : 'pending'));
-
-    h += '<div class="progress-step">';
-    h += '<div class="progress-dot ' + dotClass + '">' + dotIcon + '</div>';
-    h += '<div class="progress-label ' + dotClass + '">' + step.label + '</div>';
-    h += '</div>';
+    html += '<div class="progress-step">';
+    html += '<div class="progress-dot ' + dotClass + '">' + dotIcon + '</div>';
+    html += '<div class="progress-label ' + dotClass + '">' + step.label + '</div>';
+    html += '</div>';
     if (i < steps.length - 1) {
-      h += '<div class="progress-line ' + (step.state === 'done' ? 'done' : 'pending') + '"></div>';
+      html += '<div class="progress-line ' + (step.state === 'done' ? 'done' : 'pending') + '"></div>';
     }
-  }
-  document.getElementById('progressTracker').innerHTML = h;
+  });
+  document.getElementById('progressTracker').innerHTML = html;
 }
 renderProgress();
 
@@ -1273,7 +1316,7 @@ renderProgress();
 function renderTimeline() {
   var dotClassMap = {
     submit: 'submit', resubmit: 'resubmit',
-    reject: 'reject', approve: 'approve', first_approve: 'first_approve', final_confirm: 'approve', upload: 'upload', create: 'submit'
+    reject: 'reject', approve: 'approve', first_approve: 'first_approve', final_confirm: 'approve', final_submit: 'upload', upload: 'upload', create: 'submit'
   };
   var tagMap = {
     reject: '<span class="tlc-tag reject-reason">退回</span>',
@@ -1281,6 +1324,7 @@ function renderTimeline() {
     approve: '<span class="tlc-tag approve-tag">审批通过</span>',
     first_approve: '<span class="tlc-tag approve-tag">一审通过</span>',
     final_confirm: '<span class="tlc-tag approve-tag">终审确认</span>',
+    final_submit: '<span class="tlc-tag approve-tag">学校确认</span>',
     upload: '<span class="tlc-tag approve-tag">材料补传</span>',
   };
 

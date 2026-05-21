@@ -340,18 +340,6 @@ body {
 .quota-item .q-value.warn { color: var(--warning); }
 .quota-item .q-value.error { color: var(--danger); }
 
-/* Step progress bar */
-.step-progress {
-  background: #fff; border-radius: var(--radius-lg); padding: 18px 24px;
-  margin-bottom: 16px; box-shadow: var(--shadow-sm);
-}
-.step-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 12px; }
-.step-bar-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s; width: 33%; }
-.step-labels { display: flex; justify-content: space-around; }
-.step-label { font-size: 12px; color: var(--text-light); font-weight: 500; }
-.step-label.active { color: var(--primary); font-weight: 600; }
-.step-label.done { color: var(--success); }
-
 @media (max-width: 768px) {
   .sidebar { display: none; }
   .main { margin-left: 0; }
@@ -429,16 +417,6 @@ body {
   <div class="page-header">
     <h1 id="formTitle">新建申报</h1>
     <div class="subtitle" id="formSubtitle"></div>
-  </div>
-
-  <!-- Progress indicator -->
-  <div class="step-progress" id="stepProgress">
-    <div class="step-bar"><div class="step-bar-fill" id="stepBarFill"></div></div>
-    <div class="step-labels">
-      <span class="step-label active" data-step="0">填写申报信息</span>
-      <span class="step-label" data-step="1">上传附件</span>
-      <span class="step-label" data-step="2">确认提交</span>
-    </div>
   </div>
 
   <!-- Step 0: 申报类型选择 -->
@@ -684,7 +662,8 @@ var SCHOOL_PROFILE = {
     unitName: '柳州市第八中学',
     fOrgLevel: '正科级',
     fOrgNature: '全额拨款事业单位',
-    fAuthStaff: 88, fCurrentStaff: 80, fUnusedPlan: 1,
+    fAuthStaff: 88, fCurrentStaff: 80,
+    fApprovedPlan: 5, fUsedPlan: 4, fUnusedPlan: 1, fAvailablePlan: 3,
     fControlQuota: 16, fControlActual: 14, fUnusedControl: 5,
     fAuthLeader: 5, fActualLeader: 4, fActualOtherLeader: 3
   }
@@ -702,12 +681,12 @@ var TYPE_CONFIG = {
     fields: [
       { id: 'fOrgLevel', label: '机构级别', unit: '', help: '机构编制部门确定的机构级别' },
       { id: 'fOrgNature', label: '单位性质', unit: '', help: '事业单位分类，如全额拨款事业单位' },
-      { id: 'fAuthStaff', label: '核定事业编制数（名）', unit: '名', help: '机构编制部门核定的本单位事业编制总数' },
-      { id: 'fCurrentStaff', label: '在编人数（人）', unit: '人', help: '当前实际在编的事业编制人数' },
-      { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '已批复计划中尚未办理进编的人数' },
-      { id: 'fAuthLeader', label: '核定单位领导职数', unit: '名', help: '编制部门核定的单位领导职数' },
-      { id: 'fActualLeader', label: '实配单位领导人数', unit: '人', help: '当前实际配备的领导人数' },
-      { id: 'fActualOtherLeader', label: '实配单位其他领导人数', unit: '人', help: '非领导职务的其他管理岗位人数' }
+      { id: 'fAuthStaff', label: '核定编制数', unit: '名', help: '机构编制部门核定的本单位事业编制总数' },
+      { id: 'fCurrentStaff', label: '实有在编人数', unit: '人', help: '当前实际在编的事业编制人数' },
+      { id: 'fApprovedPlan', label: '已批复计划数', unit: '名', help: '已获批复的事业编制使用计划总数' },
+      { id: 'fUsedPlan', label: '已使用计划数', unit: '名', help: '已办理进编手续的人数' },
+      { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '未使用计划数 = 已批复计划数 − 已使用计划数', formula: '未使用计划数 = 已批复计划数 − 已使用计划数' },
+      { id: 'fAvailablePlan', label: '可申请计划数', unit: '名', help: '可申请计划数 = 核定编制数 − 实有在编人数 − 已批复计划数', formula: '可申请计划数 = 核定编制数 − 实有在编人数 − 已批复计划数' }
     ],
     countLabel: '使用事业编制（名）',
     countField: '使用事业编制',
@@ -716,10 +695,10 @@ var TYPE_CONFIG = {
     validation: function() {
       var auth = parseInt(document.getElementById('fAuthStaffVal').textContent) || 0;
       var current = parseInt(document.getElementById('fCurrentStaffVal').textContent) || 0;
-      var unused = parseInt(document.getElementById('fUnusedPlanVal').textContent) || 0;
+      var approved = parseInt(document.getElementById('fApprovedPlanVal').textContent) || 0;
+      var available = auth - current - approved;
       var totalApply = getApplyTotal();
-      var vacancy = auth - current + unused;
-      return { quota: vacancy, label: '空编数', apply: totalApply, ok: totalApply <= vacancy };
+      return { quota: available, label: '可申请编制数', apply: totalApply, ok: totalApply <= available };
     }
   },
   control: {
@@ -732,10 +711,10 @@ var TYPE_CONFIG = {
     fields: [
       { id: 'fAuthStaff', label: '核定编制数（名）', unit: '名', help: '机构编制部门核定的本单位编制总数' },
       { id: 'fCurrentStaff', label: '在编人数（人）', unit: '人', help: '当前实际在编的总人数' },
-      { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' },
+      { id: 'fUnusedPlan', label: '剩余可用计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' },
       { id: 'fControlQuota', label: '核定聘用教师控制数（名）', unit: '名', help: '机构编制部门核定的聘用教师控制数' },
       { id: 'fControlActual', label: '聘用教师控制数实有数（人）', unit: '人', help: '当前实际聘用的控制数教师人数' },
-      { id: 'fUnusedControl', label: '未使用控制数计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' }
+      { id: 'fUnusedControl', label: '剩余可用控制数计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' }
     ],
     countLabel: '使用控制数（名）',
     countField: '使用控制数',
@@ -866,6 +845,9 @@ function renderForm() {
     fieldsHtml += '<div class="info-item">';
     fieldsHtml += '<div class="info-label">' + f.label + '</div>';
     fieldsHtml += '<div class="info-value" id="' + f.id + 'Val">' + val + unitSuffix + '</div>';
+    if (f.formula) {
+      fieldsHtml += '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">' + f.formula + '</div>';
+    }
     fieldsHtml += '</div>';
     // Career: blank placeholder after first 2 fields for 2+3+3 layout
     if (staffingType === 'career' && i === 1) {
@@ -913,10 +895,13 @@ function updateQuotaSummary() {
   if (applyTotalEl) applyTotalEl.textContent = getApplyTotal();
 
   var summaryEl = document.getElementById('quotaSummary');
+  var remaining = valid.quota - valid.apply;
+  var resultLabel = staffingType === 'career' ? '剩余可用编制数' : '剩余可用控制数';
+  var resultClass = remaining >= 0 ? 'ok' : 'error';
   summaryEl.innerHTML =
     '<div class="quota-item"><div class="q-label">' + valid.label + '</div><div class="q-value ok">' + valid.quota + ' 名</div></div>' +
-    '<div class="quota-item"><div class="q-label">+ 本次申请合计</div><div class="q-value ok">' + valid.apply + ' 名</div></div>' +
-    '<div class="quota-item"><div class="q-label">= 全部可用</div><div class="q-value ' + (valid.ok ? 'ok' : 'error') + '">' + (valid.quota + valid.apply) + ' 名</div></div>';
+    '<div class="quota-item"><div class="q-label">− 本次申请合计</div><div class="q-value ok">' + valid.apply + ' 名</div></div>' +
+    '<div class="quota-item"><div class="q-label">= ' + resultLabel + '</div><div class="q-value ' + resultClass + '">' + remaining + ' 名</div></div>';
 }
 
 function onRowChange(idx, val) {
