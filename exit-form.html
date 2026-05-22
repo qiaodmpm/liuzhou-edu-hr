@@ -203,6 +203,7 @@ body {
 .unit-grid .info-label { font-size: 11px; color: var(--text-light); margin-bottom: 4px; font-weight: 500; }
 .unit-grid .info-value { font-size: 14px; font-weight: 600; color: var(--text); }
 .unit-grid .info-value.calculated { color: var(--primary); }
+.unit-grid .info-label-note { font-size: 11px; color: #9298A1; font-weight: 400; }
 .unit-grid select {
   width: 100%; padding: 4px 8px; font-size: 13px;
   border: 1px solid var(--border); border-radius: 4px; font-family: inherit;
@@ -264,6 +265,23 @@ body {
 }
 .row-materials-section .file-remove {
   color: var(--danger); cursor: pointer; margin-left: 2px; font-size: 12px;
+}
+.checklist-container { display: flex; flex-direction: column; gap: 4px; }
+.checklist-item {
+  display: flex; align-items: center; gap: 4px; font-size: 11px;
+  padding: 3px 0;
+}
+.checklist-icon { font-size: 12px; flex-shrink: 0; }
+.checklist-name { flex-shrink: 0; color: var(--text-secondary); min-width: 80px; }
+.checklist-upload-btn {
+  font-size: 10px; padding: 2px 8px; background: #F8FAFC;
+  border: 1px solid var(--border); border-radius: 3px; cursor: pointer;
+  color: var(--primary); font-family: inherit; flex-shrink: 0;
+}
+.checklist-upload-btn:hover { background: var(--primary-light); }
+.checklist-file-name {
+  font-size: 10px; color: #10B981; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 80px; cursor: default;
 }
 
 /* Buttons */
@@ -577,10 +595,31 @@ var SCHOOL_DATA = {
 
 // ===== ENUMS =====
 var CAREER_EXIT_FORMS = ['调动', '退休', '辞职', '辞退', '解除聘用合同', '开除', '在职人员亡故', '离退休人员亡故核减'];
-var CONTROL_EXIT_FORMS = ['辞职', '退休', '解除控制数聘用关系', '亡故'];
+var CONTROL_EXIT_FORMS = ['辞职', '退休', '解除控制数聘用关系', '亡故', '调动'];
 var DOC_NUMBER_OPTIONAL = ['在职人员亡故', '离退休人员亡故核减', '亡故'];
 var CAREER_STAFF_TYPES = ['行政编制', '事业编制', '机关工勤"老办法"人员'];
 var CONTROL_TYPE_OPTIONS = ['中小学校聘用教师控制数', '中职中专学校教职人员控制数', '高等职业学校教职人员控制数', '公立医院聘用人员控制数'];
+
+// Material checklist per exit form (career versions with 编制本名册)
+var MATERIAL_CHECKLIST_BASE = {
+  '调动': ['调动审批表', '调入单位同意接收函', '调出单位同意调出函', '编制本人员名册复印件'],
+  '退休': ['退休审批表', '退休待遇核定表', '编制本人员名册复印件'],
+  '辞职': ['辞职申请书', '单位同意辞职批复', '编制本人员名册复印件'],
+  '辞退': ['辞退审批表', '辞退决定书', '编制本人员名册复印件'],
+  '解除聘用合同': ['解除聘用合同协议书', '解除聘用合同审批表', '编制本人员名册复印件'],
+  '开除': ['开除处分决定书', '开除审批表', '编制本人员名册复印件'],
+  '在职人员亡故': ['死亡医学证明', '户口注销证明', '编制本人员名册复印件'],
+  '离退休人员亡故核减': ['死亡医学证明', '户口注销证明', '离退休证复印件', '编制本人员名册复印件'],
+  '解除控制数聘用关系': ['解除聘用关系协议书', '解除聘用关系审批表']
+};
+
+function getMaterialChecklist(exitForm, staffingType) {
+  var list = MATERIAL_CHECKLIST_BASE[exitForm] || [];
+  if (staffingType === 'control') {
+    list = list.filter(function(item) { return item !== '编制本人员名册复印件'; });
+  }
+  return list;
+}
 
 var STATUS_MAP = { pending: '待审批', approved: '已通过', rejected: '已驳回' };
 
@@ -607,8 +646,9 @@ var controlType = '中小学校聘用教师控制数';
 var isEditMode = false;
 var editRecordId = null;
 
-// exitRows: [{ name, gender, idCard, docNumber, exitForm, rosterBook, materials: [] }]
-var exitRows = [{ name: '', gender: '男', idCard: '', docNumber: '', exitForm: '调动', rosterBook: '', materials: [] }];
+// exitRows: [{ name, gender, idCard, docNumber, exitForm, rosterBook, checklistFiles: {} }]
+var exitRows = [{ name: '', gender: '男', idCard: '', docNumber: '', exitForm: '调动', rosterBook: '', checklistFiles: {} }];
+var pendingChecklistUpload = null; // {rowIdx, checklistItem}
 
 // ===== TOAST =====
 function showToast(msg, type) {
@@ -685,6 +725,12 @@ function sidebarClick(el, id) {
     else { showToast('无权限访问', 'warning'); }
     return;
   }
+  if (id === 'postset') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'post-list-admin.html?role=' + currentRole; }
+    else if (currentRole === 'school') { window.location.href = 'post-list-school.html'; }
+    else { showToast('无权限访问', 'warning'); }
+    return;
+  }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -709,7 +755,7 @@ function selectType(type) {
   if (isEditMode) { showToast('编辑模式下不可切换编制类型', 'warning'); return; }
   staffingType = type;
   // reset exit form default for new type
-  exitRows = [{ name: '', gender: '男', idCard: '', docNumber: '', exitForm: type === 'career' ? '调动' : '辞职', rosterBook: '', materials: [] }];
+  exitRows = [{ name: '', gender: '男', idCard: '', docNumber: '', exitForm: type === 'career' ? '调动' : '辞职', rosterBook: '', checklistFiles: {} }];
   renderTypeSelector();
   renderUnitInfo();
   renderExitTable();
@@ -730,8 +776,8 @@ function renderUnitInfo() {
     });
     html += '</select></div>';
     html += '<div class="info-item"><div class="info-label">核定编制数（名）</div><div class="info-value">' + sd.authCareerStaff + '</div></div>';
-    html += '<div class="info-item"><div class="info-label">在编人数（人）</div><div class="info-value">' + sd.currentCareerStaff + '</div></div>';
-    html += '<div class="info-item"><div class="info-label">剩余可用编制数</div><div class="info-value calculated">' + sd.unusedCareerPlan + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">实有在编人数（人）</div><div class="info-value">' + sd.currentCareerStaff + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">剩余编制数 <span class="info-label-note">（剩余编制数=核定编制数-实有在编人数）</span></div><div class="info-value calculated">' + sd.unusedCareerPlan + '</div></div>';
     html += '</div>';
     document.getElementById('unitInfoContent').innerHTML = html;
 
@@ -822,17 +868,23 @@ function buildExitRowHtml(row, idx) {
     html += '<td><input type="text" value="' + escapeHtml(row.rosterBook || '') + '" oninput="exitRows[' + idx + '].rosterBook=this.value;" placeholder="如：第5页第3行"></td>';
   }
 
-  // materials per-row upload
-  html += '<td class="row-materials-section">';
-  html += '<button class="row-upload-btn" onclick="triggerRowUpload(' + idx + ')">上传</button>';
-  if (row.materials && row.materials.length > 0) {
-    html += '<div class="file-list">';
-    row.materials.forEach(function(f, fi) {
-      html += '<span class="file-tag" title="' + escapeHtml(f.name) + '">' + escapeHtml(f.name.substring(0, 10)) + '...<span class="file-remove" onclick="event.stopPropagation();removeRowFile(' + idx + ',' + fi + ')">×</span></span>';
-    });
+  // materials per-row upload — checklist style
+  html += '<td class="row-materials-section"><div class="checklist-container">';
+  var checklist = getMaterialChecklist(row.exitForm, staffingType);
+  var cf = row.checklistFiles || {};
+  checklist.forEach(function(item) {
+    var uploaded = cf[item];
+    html += '<div class="checklist-item">';
+    html += '<span class="checklist-icon">' + (uploaded ? '&#9745;' : '&#9744;') + '</span>';
+    html += '<span class="checklist-name">' + escapeHtml(item) + '</span>';
+    html += '<button class="checklist-upload-btn" onclick="triggerChecklistUpload(event,' + idx + ',\'' + escapeHtml(item) + '\')">上传</button>';
+    if (uploaded) {
+      html += '<span class="checklist-file-name" title="' + escapeHtml(uploaded.name) + '">' + escapeHtml(uploaded.name.substring(0, 8)) + '...<span class="file-remove" onclick="event.stopPropagation();removeChecklistFile(' + idx + ',\'' + escapeHtml(item) + '\')">×</span></span>';
+    }
     html += '</div>';
-  }
-  html += '<input type="file" id="rowFileInput_' + idx + '" accept=".pdf,.jpg,.jpeg,.png,.bmp,.gif,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleRowFiles(' + idx + ', event)">';
+  });
+  html += '</div>';
+  html += '<input type="file" id="rowFileInput_' + idx + '" accept=".pdf,.jpg,.jpeg,.png,.bmp,.gif,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleChecklistFile(' + idx + ', event)">';
   html += '</td>';
 
   html += '<td class="row-actions"><button class="btn-delete-row" onclick="deleteExitRow(' + idx + ')">×</button></td>';
@@ -842,12 +894,13 @@ function buildExitRowHtml(row, idx) {
 
 function onExitFormChange(idx, newForm) {
   exitRows[idx].exitForm = newForm;
+  exitRows[idx].checklistFiles = {};
   renderExitTable();
 }
 
 function addExitRow() {
   var defaultForm = staffingType === 'career' ? '调动' : '辞职';
-  exitRows.push({ name: '', gender: '男', idCard: '', docNumber: '', exitForm: defaultForm, rosterBook: '', materials: [] });
+  exitRows.push({ name: '', gender: '男', idCard: '', docNumber: '', exitForm: defaultForm, rosterBook: '', checklistFiles: {} });
   renderExitTable();
   updateQuotaSummary();
 }
@@ -859,26 +912,30 @@ function deleteExitRow(idx) {
   updateQuotaSummary();
 }
 
-function triggerRowUpload(idx) {
+function triggerChecklistUpload(e, idx, itemName) {
+  e.stopPropagation();
+  pendingChecklistUpload = {rowIdx: idx, checklistItem: itemName};
   document.getElementById('rowFileInput_' + idx).click();
 }
 
-function handleRowFiles(idx, event) {
-  if (!event.target.files || !event.target.files[0]) return;
+function handleChecklistFile(idx, event) {
+  if (!event.target.files || !event.target.files[0]) { pendingChecklistUpload = null; return; }
   var file = event.target.files[0];
   var err = validateFile(file);
-  if (err) { showToast(err, 'warning'); return; }
-  if (!exitRows[idx].materials) exitRows[idx].materials = [];
-  if (exitRows[idx].materials.length >= MAX_FILES_PER_ROW) {
-    showToast('每人最多上传' + MAX_FILES_PER_ROW + '个文件', 'warning'); return;
-  }
-  exitRows[idx].materials.push(file);
+  if (err) { showToast(err, 'warning'); pendingChecklistUpload = null; return; }
+  if (!pendingChecklistUpload || pendingChecklistUpload.rowIdx !== idx) { pendingChecklistUpload = null; return; }
+  var itemName = pendingChecklistUpload.checklistItem;
+  pendingChecklistUpload = null;
+  if (!exitRows[idx].checklistFiles) exitRows[idx].checklistFiles = {};
+  exitRows[idx].checklistFiles[itemName] = file;
   renderExitTable();
   event.target.value = '';
 }
 
-function removeRowFile(rowIdx, fileIdx) {
-  exitRows[rowIdx].materials.splice(fileIdx, 1);
+function removeChecklistFile(rowIdx, itemName) {
+  if (exitRows[rowIdx].checklistFiles) {
+    delete exitRows[rowIdx].checklistFiles[itemName];
+  }
   renderExitTable();
 }
 
@@ -902,8 +959,13 @@ function submitForm() {
     }
     // roster book required for career
     if (staffingType === 'career' && !r.rosterBook) { showToast('第' + (i+1) + '行：请填写编制本人员名册序号', 'warning'); return; }
-    // materials required
-    if (!r.materials || r.materials.length === 0) { showToast('第' + (i+1) + '行：请上传证明材料', 'warning'); return; }
+    // materials checklist — all items required
+    var checklist = getMaterialChecklist(r.exitForm, staffingType);
+    for (var c = 0; c < checklist.length; c++) {
+      if (!r.checklistFiles || !r.checklistFiles[checklist[c]]) {
+        showToast('第' + (i+1) + '行：请上传"' + checklist[c] + '"', 'warning'); return;
+      }
+    }
   }
 
   // Generate ID
@@ -944,6 +1006,12 @@ function submitForm() {
 
   // Applicants
   record.applicants = exitRows.map(function(r) {
+    var materials = [];
+    var cf = r.checklistFiles || {};
+    Object.keys(cf).forEach(function(itemName) {
+      var f = cf[itemName];
+      if (f) materials.push({ checklistItem: itemName, name: f.name, size: f.size });
+    });
     return {
       seq: exitRows.indexOf(r) + 1,
       name: r.name,
@@ -952,18 +1020,9 @@ function submitForm() {
       docNumber: r.docNumber,
       exitForm: r.exitForm,
       rosterBook: staffingType === 'career' ? (r.rosterBook || '') : undefined,
-      materials: (r.materials || []).map(function(f) { return { name: f.name, size: f.size }; })
+      materials: materials
     };
   });
-
-  // Timeline
-  record.timeline = [{
-    time: record.submitTime,
-    operator: ROLES[currentRole].name,
-    action: '学校提交出编申请',
-    opinion: (staffingType === 'career' ? '事业编出编' : '控制数出编') + '合计' + exitRows.length + '人（' + exitRows.map(function(r){return r.name;}).join('、') + '）'
-  }];
-  record.versionHistory = [];
 
   // Save
   if (isEditMode) {
@@ -974,11 +1033,24 @@ function submitForm() {
       record.versionHistory = (all[idx].versionHistory || []).concat([{
         time: record.submitTime, previous: JSON.parse(JSON.stringify(all[idx]))
       }]);
+      record.timeline = (all[idx].timeline || []).concat([{
+        time: record.submitTime,
+        operator: ROLES[currentRole].name,
+        action: '修改重提',
+        opinion: (staffingType === 'career' ? '事业编出编' : '控制数出编') + '合计' + exitRows.length + '人（' + exitRows.map(function(r){return r.name;}).join('、') + '）'
+      }]);
       record.id = editRecordId;
       all[idx] = record;
     } else { all.push(record); }
     localStorage.setItem('exit_records', JSON.stringify(all));
   } else {
+    record.timeline = [{
+      time: record.submitTime,
+      operator: ROLES[currentRole].name,
+      action: '学校提交出编申请',
+      opinion: (staffingType === 'career' ? '事业编出编' : '控制数出编') + '合计' + exitRows.length + '人（' + exitRows.map(function(r){return r.name;}).join('、') + '）'
+    }];
+    record.versionHistory = [];
     var allRecords = JSON.parse(localStorage.getItem('exit_records') || '[]');
     allRecords.push(record);
     localStorage.setItem('exit_records', JSON.stringify(allRecords));
@@ -1010,11 +1082,29 @@ function loadForEdit(id) {
   if (found.controlType) controlType = found.controlType;
 
   exitRows = found.applicants.map(function(a) {
+    var cf = {};
+    // backward compat: old flat materials array → new checklist format
+    if (a.materials && a.materials.length > 0) {
+      if (a.materials[0].checklistItem) {
+        // new format: each material has checklistItem
+        a.materials.forEach(function(m) {
+          cf[m.checklistItem] = { name: m.name, size: m.size };
+        });
+      } else {
+        // old format: flat file list — map sequentially to checklist
+        var oldChecklist = getMaterialChecklist(a.exitForm || staffingType, staffingType);
+        a.materials.forEach(function(m, mi) {
+          if (mi < oldChecklist.length) {
+            cf[oldChecklist[mi]] = { name: m.name || '', size: m.size || 0 };
+          }
+        });
+      }
+    }
     return {
       name: a.name || '', gender: a.gender || '男', idCard: a.idCard || '',
       docNumber: a.docNumber || '', exitForm: a.exitForm || (staffingType === 'career' ? '调动' : '辞职'),
       rosterBook: a.rosterBook || '',
-      materials: []
+      checklistFiles: cf
     };
   });
 

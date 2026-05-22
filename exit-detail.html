@@ -249,6 +249,55 @@ body {
 }
 .file-chip:hover { border-color: var(--accent); color: var(--primary); }
 
+/* Person section (merged personnel + materials) */
+.person-section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fff;
+}
+.person-section:last-child { margin-bottom: 0; }
+.person-section-header {
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 12px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.person-seq { font-size: 12px; color: var(--text-light); font-weight: 500; }
+.person-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.person-form-badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 10px;
+  background: var(--primary-light); color: var(--primary); font-weight: 500;
+}
+.person-info-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.person-info-item {
+  background: #F8FAFC; padding: 6px 10px; border-radius: 6px;
+}
+.person-info-label { font-size: 10px; color: var(--text-light); margin-bottom: 1px; }
+.person-info-value { font-size: 12px; font-weight: 500; color: var(--text); }
+.person-materials { border-top: 1px dashed var(--border); padding-top: 12px; }
+.person-materials-title {
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.checklist-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0; font-size: 12px;
+}
+.checklist-icon-done { color: #10B981; font-size: 13px; flex-shrink: 0; }
+.checklist-icon-missing { color: #94A3B8; font-size: 13px; flex-shrink: 0; }
+.checklist-item-name { color: var(--text-secondary); min-width: 120px; flex-shrink: 0; }
+.checklist-file-chip {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px 8px; background: #fff; border: 1px solid var(--border);
+  border-radius: 4px; font-size: 11px; cursor: pointer; color: var(--primary);
+}
+.checklist-file-chip:hover { border-color: var(--accent); }
+.checklist-missing-label { font-size: 11px; color: #F59E0B; }
+
 /* Timeline */
 .timeline { position: relative; padding-left: 28px; }
 .timeline::before {
@@ -407,12 +456,6 @@ body {
         <div class="card-body" id="exitTable"></div>
       </div>
 
-      <!-- Materials -->
-      <div class="card">
-        <div class="card-header">证明材料</div>
-        <div class="card-body" id="materialsSection"></div>
-      </div>
-
     </div>
 
     <!-- Sidebar: Timeline -->
@@ -508,6 +551,34 @@ var recordId = null;
 var STATUS_MAP = { pending: '待审批', approved: '已通过', rejected: '已驳回' };
 var TYPE_MAP = { career: '事业编', control: '控制数' };
 
+var MATERIAL_CHECKLIST_BASE = {
+  '调动': ['调动审批表', '调入单位同意接收函', '调出单位同意调出函', '编制本人员名册复印件'],
+  '退休': ['退休审批表', '退休待遇核定表', '编制本人员名册复印件'],
+  '辞职': ['辞职申请书', '单位同意辞职批复', '编制本人员名册复印件'],
+  '辞退': ['辞退审批表', '辞退决定书', '编制本人员名册复印件'],
+  '解除聘用合同': ['解除聘用合同协议书', '解除聘用合同审批表', '编制本人员名册复印件'],
+  '开除': ['开除处分决定书', '开除审批表', '编制本人员名册复印件'],
+  '在职人员亡故': ['死亡医学证明', '户口注销证明', '编制本人员名册复印件'],
+  '离退休人员亡故核减': ['死亡医学证明', '户口注销证明', '离退休证复印件', '编制本人员名册复印件'],
+  '解除控制数聘用关系': ['解除聘用关系协议书', '解除聘用关系审批表']
+};
+
+function getMaterialChecklist(exitForm, staffingType) {
+  var list = MATERIAL_CHECKLIST_BASE[exitForm] || [];
+  if (staffingType === 'control') {
+    list = list.filter(function(item) { return item !== '编制本人员名册复印件'; });
+  }
+  return list;
+}
+
+function findMaterialByChecklistItem(materials, itemName) {
+  if (!materials || !materials.length) return null;
+  for (var i = 0; i < materials.length; i++) {
+    if (materials[i].checklistItem === itemName) return materials[i];
+  }
+  return null;
+}
+
 var DEMO_RECORDS = [
   { id: 'OC20260510001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'career',
     careerStaffType: '事业编制', unitName: '柳州市第八中学',
@@ -541,14 +612,21 @@ var DEMO_RECORDS = [
     timeline: [{ time: '2026-05-12 11:20:00', action: '审批驳回', operator: '李振华', opinion: '材料不齐全，缺少出编申请表' }] },
   { id: 'OC20260513001', schoolName: '鱼峰区实验小学', schoolType: '鱼峰区属', staffingType: 'career',
     careerStaffType: '事业编制', unitName: '鱼峰区实验小学',
-    authCareerStaff: 65, currentCareerStaff: 60, unusedCareerPlan: 5,
-    status: 'pending', submitTime: '2026-05-13 08:15:00', approveTime: null, approverRole: null,
+    authCareerStaff: 65, currentCareerStaff: 59, unusedCareerPlan: 6,
+    status: 'approved', submitTime: '2026-05-13 08:15:00', approveTime: '2026-05-18 14:30:00',
+    approver: '李振华', approverRole: 'district', opinion: '材料齐全，同意出编',
     applicants: [
       { seq: 1, name: '郑海龙', gender: '男', idCard: '450201198502110055', docNumber: '鱼教人〔2026〕6号', exitForm: '开除', rosterBook: '第1页第5行', materials: [{ name: '开除处分决定.pdf', size: 245000 }] },
       { seq: 2, name: '林美芳', gender: '女', idCard: '450201196603150066', docNumber: '', exitForm: '在职人员亡故', rosterBook: '第3页第9行', materials: [{ name: '死亡证明.pdf', size: 178000 }] },
       { seq: 3, name: '何国栋', gender: '男', idCard: '450201195808220077', docNumber: '', exitForm: '离退休人员亡故核减', rosterBook: '第6页第2行', materials: [{ name: '死亡证明.pdf', size: 201000 }] }
     ],
-    timeline: [] },
+    timeline: [
+      { time: '2026-05-13 08:15:00', action: '学校提交出编申请', operator: '王玉兰', opinion: '事业编出编合计3人（郑海龙、林美芳、何国栋）' },
+      { time: '2026-05-14 10:30:00', action: '审批驳回', operator: '李振华', opinion: '开除处分决定文件不清晰，请重新上传清晰版本' },
+      { time: '2026-05-15 16:00:00', action: '修改重提', operator: '王玉兰', opinion: '事业编出编合计3人（郑海龙、林美芳、何国栋）——已重新上传开除处分决定' },
+      { time: '2026-05-18 14:30:00', action: '审批通过', operator: '李振华', opinion: '材料齐全，同意出编' }
+    ],
+    versionHistory: [{ time: '2026-05-14 10:30:00', previousStatus: 'rejected', reason: '开除处分决定文件不清晰' }] },
   { id: 'OC20260514001', schoolName: '柳州高级中学', schoolType: '市直属', staffingType: 'career',
     careerStaffType: '事业编制', unitName: '柳州高级中学',
     authCareerStaff: 186, currentCareerStaff: 175, unusedCareerPlan: 11,
@@ -595,12 +673,18 @@ var DEMO_RECORDS = [
 ];
 
 function loadRecords() {
-  var stored = JSON.parse(localStorage.getItem('exit_records') || '[]');
-  var ids = {};
-  stored.forEach(function(r) { ids[r.id] = true; });
-  var merged = stored.slice();
-  DEMO_RECORDS.forEach(function(r) { if (!ids[r.id]) { merged.push(r); ids[r.id] = true; } });
-  return merged;
+  try {
+    var stored = JSON.parse(localStorage.getItem('exit_records') || '[]');
+    var ids = {};
+    stored.forEach(function(r) { ids[r.id] = true; });
+    var merged = stored.slice();
+    DEMO_RECORDS.forEach(function(r) { if (!ids[r.id]) { merged.push(r); ids[r.id] = true; } });
+    return merged;
+  } catch(e) {
+    console.error('loadRecords error:', e);
+    localStorage.removeItem('exit_records');
+    return DEMO_RECORDS.slice();
+  }
 }
 
 function findRecord(id) {
@@ -622,7 +706,6 @@ function renderAll() {
   renderProgress();
   renderUnitInfo();
   renderExitTable();
-  renderMaterials();
   renderTimeline();
 }
 
@@ -673,8 +756,8 @@ function renderUnitInfo() {
     html += '<div class="info-item"><div class="info-label">编制类型</div><div class="info-value">' + (record.careerStaffType || '事业编制') + '</div></div>';
     html += '<div class="info-item"><div class="info-label">学校类型</div><div class="info-value">' + (record.schoolType || '—') + '</div></div>';
     html += '<div class="info-item"><div class="info-label">核定编制数（名）</div><div class="info-value">' + (record.authCareerStaff || '—') + '</div></div>';
-    html += '<div class="info-item"><div class="info-label">在编人数（人）</div><div class="info-value">' + (record.currentCareerStaff || '—') + '</div></div>';
-    html += '<div class="info-item"><div class="info-label">剩余可用编制数</div><div class="info-value">' + (record.unusedCareerPlan || '—') + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">实有在编人数（人）</div><div class="info-value">' + (record.currentCareerStaff || '—') + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">剩余编制数</div><div class="info-value">' + (record.unusedCareerPlan || '—') + '</div></div>';
   } else {
     html += '<div class="info-item"><div class="info-label">控制数类型</div><div class="info-value">' + (record.controlType || '—') + '</div></div>';
     html += '<div class="info-item"><div class="info-label">学校类型</div><div class="info-value">' + (record.schoolType || '—') + '</div></div>';
@@ -689,93 +772,131 @@ function renderUnitInfo() {
 function renderExitTable() {
   var applicants = record.applicants || [];
   var isCareer = record.staffingType === 'career';
-  var html = '<table class="data-table"><thead><tr>';
-  html += '<th>序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>依据文号</th>';
-  html += '<th>' + (isCareer ? '出编形式' : '减员形式') + '</th>';
-  if (isCareer) html += '<th>编制本人员名册序号</th>';
-  html += '</tr></thead><tbody>';
+  var html = '<div class="person-list">';
 
   applicants.forEach(function(a, i) {
-    html += '<tr>';
-    html += '<td>' + (a.seq || i + 1) + '</td>';
-    html += '<td>' + escapeHtml(a.name) + '</td>';
-    html += '<td>' + (a.gender || '—') + '</td>';
-    html += '<td>' + (a.idCard || '—') + '</td>';
-    html += '<td>' + (a.docNumber || '—') + '</td>';
-    html += '<td>' + (a.exitForm || '—') + '</td>';
-    if (isCareer) html += '<td>' + (a.rosterBook || '—') + '</td>';
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  document.getElementById('exitTable').innerHTML = html;
-}
+    var checklist = getMaterialChecklist(a.exitForm, record.staffingType);
+    var materials = a.materials || [];
+    var formLabel = isCareer ? '出编形式' : '减员形式';
+    var docLabel = '依据文号';
+    var isDocOptional = (a.exitForm === '在职人员亡故' || a.exitForm === '离退休人员亡故核减' || a.exitForm === '亡故');
+    var docValue = a.docNumber || (isDocOptional ? '（免填—亡故类）' : '—');
 
-function renderMaterials() {
-  var applicants = record.applicants || [];
-  var html = '';
-  applicants.forEach(function(a, i) {
-    html += '<div class="material-item">';
-    html += '<div class="material-name">' + (i + 1) + '. ' + escapeHtml(a.name) + '</div>';
-    html += '<div>';
-    if (a.materials && a.materials.length > 0) {
-      html += '<div class="material-files">';
-      a.materials.forEach(function(f) {
-        html += '<span class="file-chip" onclick="showToast(\'预览: ' + escapeHtml(f.name) + '（模拟）\')">📄 ' + escapeHtml(f.name) + '</span>';
-      });
-      html += '</div>';
-    } else {
-      html += '<div style="font-size:11px;color:var(--text-light);">未上传</div>';
+    html += '<div class="person-section">';
+    // Header
+    html += '<div class="person-section-header">';
+    html += '<span class="person-seq">人员 ' + (a.seq || i + 1) + '</span>';
+    html += '<span class="person-name">' + escapeHtml(a.name) + '</span>';
+    html += '<span class="person-form-badge">' + escapeHtml(a.exitForm || '—') + '</span>';
+    html += '</div>';
+
+    // Info grid
+    html += '<div class="person-info-grid">';
+    html += '<div class="person-info-item"><div class="person-info-label">姓名</div><div class="person-info-value">' + escapeHtml(a.name) + '</div></div>';
+    html += '<div class="person-info-item"><div class="person-info-label">性别</div><div class="person-info-value">' + (a.gender || '—') + '</div></div>';
+    html += '<div class="person-info-item"><div class="person-info-label">身份证号</div><div class="person-info-value">' + (a.idCard || '—') + '</div></div>';
+    html += '<div class="person-info-item"><div class="person-info-label">' + formLabel + '</div><div class="person-info-value">' + escapeHtml(a.exitForm || '—') + '</div></div>';
+    html += '<div class="person-info-item"><div class="person-info-label">' + docLabel + '</div><div class="person-info-value">' + docValue + '</div></div>';
+    if (isCareer) {
+      html += '<div class="person-info-item"><div class="person-info-label">编制本人员名册序号</div><div class="person-info-value">' + (a.rosterBook || '—') + '</div></div>';
     }
-    html += '</div></div>';
+    html += '</div>';
+
+    // Materials checklist
+    html += '<div class="person-materials">';
+    html += '<div class="person-materials-title">材料清单</div>';
+    checklist.forEach(function(item) {
+      var uploaded = findMaterialByChecklistItem(materials, item);
+      // Fallback: try old flat format by name prefix match
+      if (!uploaded) {
+        for (var k = 0; k < materials.length; k++) {
+          if (!materials[k].checklistItem && materials[k].name && materials[k].name.indexOf(item) === 0) {
+            uploaded = materials[k]; break;
+          }
+        }
+      }
+      if (uploaded) {
+        html += '<div class="checklist-row done">';
+        html += '<span class="checklist-icon-done">☑</span>';
+        html += '<span class="checklist-item-name">' + escapeHtml(item) + '</span>';
+        html += '<span class="checklist-file-chip" onclick="showToast(\'预览: ' + escapeHtml(uploaded.name) + '（模拟）\')">📄 ' + escapeHtml(uploaded.name) + '</span>';
+        html += '</div>';
+      } else {
+        html += '<div class="checklist-row missing">';
+        html += '<span class="checklist-icon-missing">☐</span>';
+        html += '<span class="checklist-item-name">' + escapeHtml(item) + '</span>';
+        html += '<span class="checklist-missing-label">未上传</span>';
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+
+    html += '</div>';
   });
-  document.getElementById('materialsSection').innerHTML = html || '<div style="color:var(--text-light);">暂无材料</div>';
+
+  html += '</div>';
+  document.getElementById('exitTable').innerHTML = html || '<div style="color:var(--text-light);text-align:center;padding:20px;">暂无出编人员信息</div>';
 }
 
-function renderTimeline() {
-  var r = record;
-  var dotClassMap = { submit: 'submit', approve: 'approve', reject: 'reject', resubmit: 'resubmit' };
-  var items = [{ time: r.submitTime || '', title: '提交申请', desc: '校管理员提交出编申请', action: 'submit' }];
+	function renderTimeline() {
+	  var r = record;
+	  var dotClassMap = { submit: 'submit', approve: 'approve', reject: 'reject', resubmit: 'resubmit' };
+	  var items = [];
 
-  if (r.status === 'approved') {
-    items.push({ time: r.approveTime || '', title: '审批通过', desc: (r.approver || '') + ' 审批通过' + (r.opinion ? '，意见：' + r.opinion : ''), action: 'approve' });
-  } else if (r.status === 'rejected') {
-    items.push({ time: r.approveTime || r.submitTime || '', title: '审批驳回', desc: (r.rejectReason || ''), action: 'reject', reason: r.rejectReason || '' });
-  }
+	  items.push({ time: r.submitTime || '', title: '提交申请', desc: '校管理员提交出编申请', action: 'submit' });
 
-  if (r.timeline) {
-    for (var i = 0; i < r.timeline.length; i++) {
-      var t = r.timeline[i];
-      items.push({ time: t.time || '', title: t.action || '', desc: t.desc || (t.operator || '') + ' ' + (t.opinion || ''), action: t.action === '审批通过' ? 'approve' : (t.action === '审批驳回' ? 'reject' : 'resubmit') });
-    }
-  }
+	  if (r.timeline && r.timeline.length > 0) {
+	    for (var i = 0; i < r.timeline.length; i++) {
+	      var t = r.timeline[i];
+	      if (t.action === '学校提交出编申请') continue;
+	      var actionType = 'submit';
+	      if (t.action === '审批通过') actionType = 'approve';
+	      else if (t.action === '审批驳回') actionType = 'reject';
+	      else if (t.action.indexOf('修改重提') >= 0 || t.action.indexOf('重提') >= 0) actionType = 'resubmit';
 
-  var tagMap = {
-    approve: '<span class="tlc-tag approve-tag">审批通过</span>',
-    reject: '<span class="tlc-tag reject-reason">驳回</span>',
-    resubmit: '<span class="tlc-tag resubmit-tag">修改重提</span>'
-  };
+	      items.push({
+	        time: t.time || '',
+	        title: t.action || '',
+	        desc: (t.operator || '') + (t.opinion ? '，意见：' + t.opinion : ''),
+	        action: actionType
+	      });
+	    }
+	  } else {
+	    if (r.status === 'approved') {
+	      items.push({ time: r.approveTime || '', title: '审批通过', desc: (r.approver || '') + ' 审批通过' + (r.opinion ? '，意见：' + r.opinion : ''), action: 'approve' });
+	    } else if (r.status === 'rejected') {
+	      items.push({ time: r.approveTime || r.submitTime || '', title: '审批驳回', desc: (r.rejectReason || ''), action: 'reject', reason: r.rejectReason || '' });
+	    }
+	  }
 
-  var html = '';
-  for (var j = 0; j < items.length; j++) {
-    var item = items[j];
-    html += '<div class="timeline-item">' +
-      '<div class="timeline-dot ' + (dotClassMap[item.action] || 'submit') + '"></div>' +
-      '<div class="timeline-content">' +
-      '<div class="tlc-header">' +
-      '<span class="tlc-title">' + item.title + '</span>' +
-      '<span class="tlc-time">' + (item.time ? item.time.substring(0, 16) : '') + '</span>' +
-      (tagMap[item.action] ? tagMap[item.action] : '') +
-      '</div>' +
-      '<div class="tlc-desc">' + item.desc + '</div>' +
-      (item.reason ? '<div class="tlc-desc" style="color:var(--danger);margin-top:4px;">驳回原因：' + item.reason + '</div>' : '') +
-      '</div></div>';
-  }
+	  var tagMap = {
+	    approve: '<span class="tlc-tag approve-tag">审批通过</span>',
+	    reject: '<span class="tlc-tag reject-reason">驳回</span>',
+	    resubmit: '<span class="tlc-tag resubmit-tag">修改重提</span>'
+	  };
 
-  if (!items.length) html += '<div style="color:var(--text-light);">暂无记录</div>';
-  document.getElementById('timeline').innerHTML = html;
-}
+	  var html = '';
+	  for (var j = 0; j < items.length; j++) {
+	    var item = items[j];
+	    html += '<div class="timeline-item">' +
+	      '<div class="timeline-dot ' + (dotClassMap[item.action] || 'submit') + '"></div>' +
+	      '<div class="timeline-content">' +
+	      '<div class="tlc-header">' +
+	      '<span class="tlc-title">' + item.title + '</span>' +
+	      '<span class="tlc-time">' + (item.time ? item.time.substring(0, 16) : '') + '</span>' +
+	      (tagMap[item.action] ? tagMap[item.action] : '') +
+	      '</div>' +
+	      '<div class="tlc-desc">' + item.desc + '</div>' +
+	      (item.reason ? '<div class="tlc-desc" style="color:var(--danger);margin-top:4px;">驳回原因：' + item.reason + '</div>' : '') +
+	      '</div></div>';
+	  }
 
-function goBack() {
+	  if (!items.length) html += '<div style="color:var(--text-light);">暂无记录</div>';
+	  document.getElementById('timeline').innerHTML = html;
+	}
+
+
+	function goBack() {
   if (currentRole === 'school') {
     window.location.href = '教师出编管理（学校管理员视角）.html?role=school';
   } else {
@@ -861,6 +982,12 @@ function sidebarClick(el, id) {
     return;
   }
   if (id === 'exit') { return; }
+  if (id === 'postset') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'post-list-admin.html?role=' + currentRole; }
+    else if (currentRole === 'school') { window.location.href = 'post-list-school.html'; }
+    else { showToast('无权限访问', 'warning'); }
+    return;
+  }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

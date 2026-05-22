@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗位设置申请 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 240px;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+}
+
+/* ===== TOP NAVBAR ===== */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo {
+  width: 38px; height: 38px; background: rgba(255,255,255,0.18);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+}
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell {
+  position: relative; cursor: pointer; color: rgba(255,255,255,0.85);
+  padding: 6px; border-radius: 6px; transition: var(--transition);
+}
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.topnav-user {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px;
+  transition: var(--transition); font-size: 13px; position: relative;
+}
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+}
+.user-dropdown {
+  display: none; position: absolute; top: 46px; right: 0;
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  min-width: 160px; z-index: 200; overflow: hidden;
+}
+.user-dropdown.show { display: block; }
+.user-dropdown a {
+  display: block; padding: 12px 18px; font-size: 13px; color: var(--text);
+  text-decoration: none; transition: var(--transition);
+}
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w);
+  background: #1E3A8A; z-index: 90; overflow-y: auto;
+  display: flex; flex-direction: column; transition: width var(--transition);
+}
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label,
+.sidebar.collapsed .menu-group,
+.sidebar.collapsed .menu-badge,
+.sidebar.collapsed .role-switcher-label,
+.sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group {
+  padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.menu-item {
+  display: flex; align-items: center; padding: 10px 20px; cursor: pointer;
+  font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7);
+  transition: var(--transition); position: relative; text-decoration: none;
+  border-left: 3px solid transparent;
+}
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active {
+  background: rgba(255,255,255,0.08); color: #fff; font-weight: 500;
+  border-left-color: var(--accent);
+}
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+}
+
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5);
+  transition: var(--transition);
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+.role-switcher {
+  padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08);
+}
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  transition: var(--transition); border: 1px solid transparent;
+  background: transparent; font-family: inherit; width: 100%; text-align: left;
+}
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active {
+  background: rgba(59,130,246,0.2); color: #fff;
+  border-color: rgba(59,130,246,0.4); font-weight: 500;
+}
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px;
+  min-height: calc(100vh - 56px); transition: margin-left var(--transition);
+}
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+
+.page-header { margin-bottom: 24px; display: flex; align-items: flex-start; justify-content: space-between; }
+.page-header h1 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.page-header .subtitle { font-size: 12px; color: var(--text-light); }
+
+/* Form card */
+.form-card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.form-card-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* Form grid */
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.form-grid .form-item { display: flex; flex-direction: column; }
+.form-grid .form-item.full-width { grid-column: 1 / -1; }
+.form-grid .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.form-grid .form-label .required { color: var(--danger); margin-right: 2px; }
+.form-grid .form-value { font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 12px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border); }
+.form-grid .form-value.calculated { color: var(--primary); }
+.form-grid select, .form-grid input[type="number"], .form-grid input[type="text"] {
+  width: 100%; padding: 8px 12px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 6px; font-family: inherit;
+  background: #fff; color: var(--text); transition: var(--transition);
+}
+.form-grid select:focus, .form-grid input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+
+/* Total table */
+.total-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.total-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 12px; color: var(--text-secondary); background: #F8FAFC; border: 1px solid var(--border); }
+.total-table td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
+.total-table td input {
+  width: 80px; padding: 6px 8px; font-size: 13px; text-align: center;
+  border: 1px solid var(--border); border-radius: 4px; font-family: inherit;
+}
+.total-table td input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.total-table .auto-val { font-weight: 600; color: var(--primary); }
+.total-table .ratio-val { font-size: 12px; color: var(--text-secondary); }
+
+/* Grade table (matrix) */
+.grade-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.grade-table th { padding: 8px 10px; text-align: center; font-weight: 600; font-size: 12px; color: var(--text-secondary); background: #F8FAFC; border: 1px solid var(--border); }
+.grade-table th:first-child { text-align: left; width: 100px; }
+.grade-table td { padding: 6px; border: 1px solid var(--border); text-align: center; }
+.grade-table td input {
+  width: 100%; padding: 6px 8px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 4px; text-align: center; font-family: inherit;
+}
+.grade-table td input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.grade-table .ratio-cell { background: #F8FAFC; color: var(--text-secondary); font-size: 12px; font-weight: 500; }
+.grade-table .error-cell input { border-color: var(--danger); background: #FFF5F5; }
+.grade-table .error-hint { font-size: 10px; color: var(--danger); margin-top: 2px; }
+.grade-table .layer-header { background: #EFF6FF; color: var(--primary); font-weight: 600; }
+.grade-table .sub-total { font-weight: 600; color: var(--primary); }
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px;
+  text-align: center; cursor: pointer; transition: var(--transition);
+}
+.upload-area:hover { border-color: var(--accent); background: var(--primary-light); }
+.upload-area .upload-icon { font-size: 24px; color: var(--text-light); margin-bottom: 8px; }
+.upload-area .upload-text { font-size: 13px; color: var(--text-secondary); }
+.upload-area .upload-hint { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+.file-list { margin-top: 12px; }
+.file-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: #F8FAFC; border-radius: 6px; margin-bottom: 6px; font-size: 12px;
+}
+.file-item .file-name { flex: 1; color: var(--text); }
+.file-item .file-size { color: var(--text-light); }
+.file-item .file-remove { color: var(--danger); cursor: pointer; font-size: 14px; }
+
+/* Summary preview */
+.summary-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 12px 0; cursor: pointer;
+  font-size: 13px; color: var(--primary); font-weight: 500;
+}
+.summary-toggle svg { width: 16px; height: 16px; transition: transform 0.3s; }
+.summary-toggle.open svg { transform: rotate(180deg); }
+.summary-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.summary-content.open { max-height: 2000px; }
+
+.summary-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+.summary-table th { padding: 6px 8px; text-align: center; font-weight: 600; font-size: 11px; background: #F8FAFC; border: 1px solid var(--border); }
+.summary-table th.group-th { background: #EFF6FF; color: var(--primary); }
+.summary-table td { padding: 6px 8px; border: 1px solid var(--border); text-align: center; font-size: 12px; }
+.summary-table .sub-label { background: #F8FAFC; font-weight: 500; color: var(--text-secondary); text-align: left; }
+.summary-table .highlight { background: #FFF7ED; font-weight: 600; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; font-size: 13px; font-weight: 500;
+  border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition);
+  border: 1px solid transparent; text-decoration: none;
+}
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+.btn-lg { padding: 10px 28px; font-size: 14px; }
+.form-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0; margin-top: 8px;
+}
+
+/* Validation hints */
+.validation-box {
+  background: #FFF5F5; border: 1px solid #FECACA; border-radius: var(--radius);
+  padding: 16px 20px; margin-bottom: 20px; display: none;
+}
+.validation-box.show { display: block; }
+.validation-box h4 { font-size: 13px; color: var(--danger); margin-bottom: 8px; font-weight: 600; }
+.validation-box ul { list-style: none; }
+.validation-box li { font-size: 12px; color: #991B1B; padding: 3px 0; padding-left: 16px; position: relative; }
+.validation-box li::before { content: '•'; position: absolute; left: 0; color: var(--danger); }
+
+/* HR mode banner */
+.hr-banner {
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius);
+  padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+}
+.hr-banner .hr-icon { font-size: 20px; }
+.hr-banner .hr-text { font-size: 13px; color: #92400E; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px;
+  font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease;
+  box-shadow: var(--shadow-lg);
+}
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.success { background: var(--success); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+.field-error { border-color: var(--danger) !important; }
+
+/* Limit hint */
+.limit-hint { font-size: 11px; color: var(--text-light); font-weight: 400; margin-left: 6px; }
+.limit-hint.warn { color: var(--warning); }
+.limit-hint.error { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP NAVBAR ===== -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/>
+        <line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/>
+        <line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/>
+      </svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">3</span>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar">王</div>
+      <span>王玉兰</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="#">个人中心</a>
+        <a href="#">修改密码</a>
+        <div class="divider"></div>
+        <a href="login-demo.html" class="logout">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher" id="roleSwitcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')">
+        <span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span>
+      </button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')">
+        <span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span>
+      </button>
+      <button class="role-switch-btn active" data-role="school" onclick="switchRole('school')">
+        <span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span>
+      </button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')">
+        <span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span>
+      </button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      <span class="menu-label">收起菜单</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp;
+    <a href="post-list-school.html">岗位设置申请</a> &nbsp;/&nbsp;
+    <span id="breadcrumbPage">新建申请</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1 id="pageTitle">岗位设置审核表</h1>
+      <div class="subtitle" id="pageSubtitle">请填写岗位设置审核表，系统将自动生成汇总表</div>
+    </div>
+  </div>
+
+  <div id="hrBanner"></div>
+  <div class="validation-box" id="validationBox">
+    <h4>请修正以下问题后再提交</h4>
+    <ul id="validationList"></ul>
+  </div>
+
+  <div id="mainContent"></div>
+
+  <div class="form-footer" id="formFooter"></div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script>
+// ===== SVG ICONS =====
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+};
+
+var MENU_ICONS = {
+  workbench: 'home', dashboard: 'chart',
+  entry: 'userp', staffing: 'monitor', exit: 'userx',
+  promote: 'arrowup', postset: 'shield', recruit: 'search',
+  employ: 'file',
+  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  account: 'users', org: 'building', perm: 'key', log: 'list'
+};
+
+// ===== ROLES =====
+var ROLES = {
+  city: {
+    name: '张建国', short: '市', org: '柳州市教育局', role: 'city',
+    sidebar: {
+      top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }],
+      groups: [
+        { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请', badge: 3 }, { id: 'exit', label: '教师出编管理' }] },
+        { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 5 }, { id: 'recruit', label: '招聘岗位申请' }] },
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
+        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
+      ]
+    }
+  },
+  district: {
+    name: '李振华', short: '区', org: '鱼峰区教育局', role: 'district',
+    sidebar: {
+      top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }],
+      groups: [
+        { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请', badge: 1 }, { id: 'exit', label: '教师出编管理' }] },
+        { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 3 }, { id: 'recruit', label: '招聘岗位申请' }] },
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
+        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+      ]
+    }
+  },
+  school: {
+    name: '王玉兰', short: '校', org: '柳州市第八中学', role: 'school',
+    sidebar: {
+      top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }],
+      groups: [
+        { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
+        { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 2 }, { id: 'recruit', label: '招聘岗位申请' }] },
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
+        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+      ]
+    }
+  },
+  teacher: {
+    name: '陈明辉', short: '师', org: '柳州市第八中学', role: 'teacher',
+    sidebar: {
+      top: [{ id: 'workbench', icon: 'home', label: '工作台' }],
+      groups: [{ name: '业务申请', items: [{ id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] }]
+    }
+  }
+};
+
+// ===== SCHOOL DATA =====
+var POST_SCHOOL_DATA = {
+  '柳州市第八中学': { schoolType: '初中', orgLevel: '正科级', fundType: '全额拨款', authCareerStaff: 88, authControlNo: 16, schoolCategory: '鱼峰区属' },
+  '鱼峰区实验小学': { schoolType: '小学', orgLevel: '副科级', fundType: '全额拨款', authCareerStaff: 65, authControlNo: 0, schoolCategory: '鱼峰区属' },
+  '柳州高级中学': { schoolType: '自治区示范高中', orgLevel: '正处级', fundType: '全额拨款', authCareerStaff: 186, authControlNo: 0, schoolCategory: '市直属' },
+  '柳州市第一中学': { schoolType: '普通高中', orgLevel: '正科级', fundType: '全额拨款', authCareerStaff: 150, authControlNo: 0, schoolCategory: '市直属' }
+};
+
+// ===== ENUMS =====
+var ORG_LEVELS = ['正处级', '副处级', '正科级', '副科级', '股级'];
+var FUND_TYPES = ['全额拨款', '差额拨款', '自收自支'];
+var SCHOOL_TYPES = ['自治区示范高中', '自治区特色高中', '普通高中', '初中', '小学', '幼儿园'];
+
+var PROF_RATIO_LIMITS = {
+  '自治区示范高中': { senior: 3, vice: 30, middle: 52, junior: 15 },
+  '自治区特色高中': { senior: 2.5, vice: 25.5, middle: 52, junior: 20 },
+  '普通高中': { senior: 2, vice: 25, middle: 52, junior: 21 },
+  '初中': { senior: 1.5, vice: 21.5, middle: 54, junior: 23 },
+  '小学': { senior: 1, vice: 12, middle: 56, junior: 31 },
+  '幼儿园': { senior: 1, vice: 12, middle: 56, junior: 31 }
+};
+
+var LEVEL_INTERNAL_RATIOS = {
+  senior: { '3': 30, '4': 70 },
+  vice: { '5': 20, '6': 40, '7': 40 },
+  middle: { '8': 30, '9': 40, '10': 30 },
+  junior: { '11': 50, '12': 50 }
+};
+
+var LABOR_RATIO_LIMITS = { total_1_2: 10, level_1: 4, level_2: 6, level_3: 20, level_4: 40, level_5_min: 30 };
+
+var MGMT_GRADES = ['5', '6', '7', '8', '9', '10'];
+var MGMT_GRADE_LABELS = { '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
+var PROF_LAYER_CONFIG = [
+  { key: 'senior', label: '正高级', grades: ['3', '4'], gradeLabels: { '3': '三级', '4': '四级' } },
+  { key: 'vice', label: '副高级', grades: ['5', '6', '7'], gradeLabels: { '5': '五级', '6': '六级', '7': '七级' } },
+  { key: 'middle', label: '中级', grades: ['8', '9', '10'], gradeLabels: { '8': '八级', '9': '九级', '10': '十级' } },
+  { key: 'junior', label: '初级', grades: ['11', '12', '13'], gradeLabels: { '11': '十一级', '12': '十二级', '13': '十三级' } }
+];
+var LABOR_GRADES = ['1', '2', '3', '4', '5', 'common'];
+var LABOR_GRADE_LABELS = { '1': '一级', '2': '二级', '3': '三级', '4': '四级', '5': '五级', 'common': '普通工' };
+
+var STATUS_MAP = {
+  first_review: '一审待审核', first_approved: '一审通过',
+  first_rejected: '一审驳回', second_review: '二审待审核', completed: '已完成'
+};
+
+// ===== STATE =====
+var currentRole = 'school';
+var schoolName = '柳州市第八中学';
+var pageMode = 'new'; // 'new' | 'edit' | 'hr'
+var editRecordId = null;
+
+var formData = {
+  orgLevel: '', fundType: '', schoolType: '', totalQuota: 0, highlandPosts: 0,
+  authCareerStaff: 0, authControlNo: 0,
+  mgmtPosts: 0, profPosts: 0, laborPosts: 0,
+  mgmtLevels: { '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0 },
+  profLevels: {
+    senior: { total: 0, levels: { '3': 0, '4': 0 } },
+    vice: { total: 0, levels: { '5': 0, '6': 0, '7': 0 } },
+    middle: { total: 0, levels: { '8': 0, '9': 0, '10': 0 } },
+    junior: { total: 0, levels: { '11': 0, '12': 0, '13': 0 } }
+  },
+  laborLevels: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'common': 0 },
+  attachments: []
+};
+
+// HR mode data
+var hrData = {
+  mgmtPosts: 0, profPosts: 0, laborPosts: 0,
+  mgmtLevels: { '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0 },
+  profLevels: {
+    senior: { total: 0, levels: { '3': 0, '4': 0 } },
+    vice: { total: 0, levels: { '5': 0, '6': 0, '7': 0 } },
+    middle: { total: 0, levels: { '8': 0, '9': 0, '10': 0 } },
+    junior: { total: 0, levels: { '11': 0, '12': 0, '13': 0 } }
+  },
+  laborLevels: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'common': 0 },
+  hrApprovalAttachment: null
+};
+
+// ===== PERSISTENCE =====
+function loadRecords() {
+  var stored = localStorage.getItem('post_records');
+  if (stored) { try { return JSON.parse(stored); } catch(e) {} }
+  return JSON.parse(JSON.stringify(DEMO_RECORDS));
+}
+function saveRecords(records) { localStorage.setItem('post_records', JSON.stringify(records)); }
+function getNextId() {
+  var seq = parseInt(localStorage.getItem('post_seq') || '0') + 1;
+  localStorage.setItem('post_seq', String(seq));
+  var d = new Date();
+  var ds = '' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate());
+  return 'PS' + ds + pad(seq, 3);
+}
+function pad(n, len) { len = len || 2; var s = '' + n; while(s.length < len) s = '0' + s; return s; }
+
+// ===== DEMO DATA =====
+var DEMO_RECORDS = [
+  {
+    id: 'PS20260522001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_review',
+    orgLevel: '正科级', fundType: '全额拨款', totalQuota: 104, highlandPosts: 0,
+    authCareerStaff: 88, authControlNo: 16,
+    totalPosts: 104, mgmtPosts: 8, profPosts: 80, laborPosts: 16,
+    mgmtLevels: { '5': 1, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
+    profLevels: {
+      senior: { total: 0, levels: { '3': 0, '4': 0 } },
+      vice: { total: 15, levels: { '5': 3, '6': 6, '7': 6 } },
+      middle: { total: 45, levels: { '8': 14, '9': 18, '10': 13 } },
+      junior: { total: 20, levels: { '11': 8, '12': 8, '13': 4 } }
+    },
+    laborLevels: { '1': 0, '2': 1, '3': 2, '4': 5, '5': 6, 'common': 2 },
+    attachments: [],
+    timeline: [{ time: '2026-05-22 09:00:00', action: '学校提交一审', operator: '周敏' }],
+    submitTime: '2026-05-22 09:00:00',
+    firstReviewOpinion: null, firstReviewer: null, firstReviewTime: null, firstRejectReason: null,
+    hrResult: null, hrApprovalAttachment: null,
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
+    completeTime: null
+  },
+  {
+    id: 'PS20260520001', schoolName: '柳州高级中学', schoolType: '自治区示范高中', status: 'first_review',
+    orgLevel: '正处级', fundType: '全额拨款', totalQuota: 186, highlandPosts: 0,
+    authCareerStaff: 186, authControlNo: 0,
+    totalPosts: 186, mgmtPosts: 10, profPosts: 160, laborPosts: 16,
+    mgmtLevels: { '5': 1, '6': 2, '7': 3, '8': 2, '9': 1, '10': 1 },
+    profLevels: {
+      senior: { total: 5, levels: { '3': 1, '4': 4 } },
+      vice: { total: 48, levels: { '5': 10, '6': 19, '7': 19 } },
+      middle: { total: 83, levels: { '8': 25, '9': 33, '10': 25 } },
+      junior: { total: 24, levels: { '11': 10, '12': 10, '13': 4 } }
+    },
+    laborLevels: { '1': 0, '2': 1, '3': 2, '4': 5, '5': 6, 'common': 2 },
+    attachments: [{ name: '柳高岗位设置方案.pdf', size: 345000 }],
+    timeline: [{ time: '2026-05-20 10:00:00', action: '学校提交一审', operator: '陈丽华' }],
+    submitTime: '2026-05-20 10:00:00',
+    firstReviewOpinion: null, firstReviewer: null, firstReviewTime: null, firstRejectReason: null,
+    hrResult: null, hrApprovalAttachment: null,
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
+    completeTime: null
+  },
+  {
+    id: 'PS20260518001', schoolName: '鱼峰区实验小学', schoolType: '小学', status: 'first_approved',
+    orgLevel: '副科级', fundType: '全额拨款', totalQuota: 65, highlandPosts: 0,
+    authCareerStaff: 65, authControlNo: 0,
+    totalPosts: 65, mgmtPosts: 5, profPosts: 54, laborPosts: 6,
+    mgmtLevels: { '5': 0, '6': 0, '7': 1, '8': 2, '9': 1, '10': 1 },
+    profLevels: {
+      senior: { total: 0, levels: { '3': 0, '4': 0 } },
+      vice: { total: 6, levels: { '5': 1, '6': 3, '7': 2 } },
+      middle: { total: 30, levels: { '8': 9, '9': 12, '10': 9 } },
+      junior: { total: 18, levels: { '11': 8, '12': 8, '13': 2 } }
+    },
+    laborLevels: { '1': 0, '2': 0, '3': 1, '4': 2, '5': 2, 'common': 1 },
+    attachments: [],
+    firstReviewOpinion: '同意申报方案', firstReviewer: '李振华', firstReviewTime: '2026-05-19 15:00:00', firstRejectReason: null,
+    timeline: [
+      { time: '2026-05-18 14:00:00', action: '学校提交一审', operator: '王玉兰' },
+      { time: '2026-05-19 15:00:00', action: '一审通过', operator: '李振华', opinion: '同意申报方案' }
+    ],
+    submitTime: '2026-05-18 14:00:00',
+    hrResult: null, hrApprovalAttachment: null,
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
+    completeTime: null
+  },
+  {
+    id: 'PS20260515001', schoolName: '鱼峰区实验小学', schoolType: '小学', status: 'second_review',
+    orgLevel: '副科级', fundType: '全额拨款', totalQuota: 65, highlandPosts: 0,
+    authCareerStaff: 65, authControlNo: 0,
+    totalPosts: 65, mgmtPosts: 5, profPosts: 54, laborPosts: 6,
+    mgmtLevels: { '5': 0, '6': 0, '7': 1, '8': 2, '9': 1, '10': 1 },
+    profLevels: {
+      senior: { total: 0, levels: { '3': 0, '4': 0 } },
+      vice: { total: 6, levels: { '5': 1, '6': 3, '7': 2 } },
+      middle: { total: 30, levels: { '8': 9, '9': 12, '10': 9 } },
+      junior: { total: 18, levels: { '11': 8, '12': 8, '13': 2 } }
+    },
+    laborLevels: { '1': 0, '2': 0, '3': 1, '4': 2, '5': 2, 'common': 1 },
+    hrResult: {
+      totalPosts: 66, mgmtPosts: 5, profPosts: 55, laborPosts: 6,
+      mgmtLevels: { '5': 0, '6': 0, '7': 1, '8': 2, '9': 1, '10': 1 },
+      profLevels: {
+        senior: { total: 0, levels: { '3': 0, '4': 0 } },
+        vice: { total: 7, levels: { '5': 2, '6': 3, '7': 2 } },
+        middle: { total: 30, levels: { '8': 9, '9': 12, '10': 9 } },
+        junior: { total: 18, levels: { '11': 8, '12': 8, '13': 2 } }
+      },
+      laborLevels: { '1': 0, '2': 0, '3': 1, '4': 2, '5': 2, 'common': 1 }
+    },
+    hrApprovalAttachment: { name: '人社批复_鱼峰实小.pdf', size: 567000 },
+    attachments: [],
+    firstReviewOpinion: '同意申报方案', firstReviewer: '李振华', firstReviewTime: '2026-05-19 15:00:00', firstRejectReason: null,
+    timeline: [
+      { time: '2026-05-15 08:00:00', action: '学校提交一审', operator: '王玉兰' },
+      { time: '2026-05-16 10:00:00', action: '一审通过', operator: '李振华', opinion: '同意申报方案' },
+      { time: '2026-05-20 16:00:00', action: '录入人社结果并提交二审', operator: '王玉兰' }
+    ],
+    submitTime: '2026-05-15 08:00:00',
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
+    completeTime: null
+  },
+  {
+    id: 'PS20260510001', schoolName: '柳州市第一中学', schoolType: '普通高中', status: 'completed',
+    orgLevel: '正科级', fundType: '全额拨款', totalQuota: 150, highlandPosts: 0,
+    authCareerStaff: 150, authControlNo: 0,
+    totalPosts: 150, mgmtPosts: 10, profPosts: 125, laborPosts: 15,
+    mgmtLevels: { '5': 1, '6': 2, '7': 3, '8': 2, '9': 1, '10': 1 },
+    profLevels: {
+      senior: { total: 3, levels: { '3': 1, '4': 2 } },
+      vice: { total: 31, levels: { '5': 6, '6': 13, '7': 12 } },
+      middle: { total: 65, levels: { '8': 20, '9': 26, '10': 19 } },
+      junior: { total: 26, levels: { '11': 12, '12': 12, '13': 2 } }
+    },
+    laborLevels: { '1': 0, '2': 1, '3': 2, '4': 5, '5': 5, 'common': 2 },
+    hrResult: {
+      totalPosts: 150, mgmtPosts: 10, profPosts: 125, laborPosts: 15,
+      mgmtLevels: { '5': 1, '6': 2, '7': 3, '8': 2, '9': 1, '10': 1 },
+      profLevels: {
+        senior: { total: 3, levels: { '3': 1, '4': 2 } },
+        vice: { total: 31, levels: { '5': 6, '6': 13, '7': 12 } },
+        middle: { total: 65, levels: { '8': 20, '9': 26, '10': 19 } },
+        junior: { total: 26, levels: { '11': 12, '12': 12, '13': 2 } }
+      },
+      laborLevels: { '1': 0, '2': 1, '3': 2, '4': 5, '5': 5, 'common': 2 }
+    },
+    hrApprovalAttachment: { name: '人社批复_柳州一中.pdf', size: 678000 },
+    attachments: [{ name: '柳州一中岗位设置会议纪要.pdf', size: 234000 }],
+    firstReviewOpinion: '同意', firstReviewer: '张建国', firstReviewTime: '2026-05-11 14:00:00', firstRejectReason: null,
+    secondReviewer: '张建国', secondReviewTime: '2026-05-15 09:00:00',
+    secondReviewModifications: [
+      { time: '2026-05-15 08:30:00', field: 'profLevels.vice.levels.5', oldValue: 5, newValue: 6, operator: '张建国' }
+    ],
+    timeline: [
+      { time: '2026-05-10 10:00:00', action: '学校提交一审', operator: '徐志明' },
+      { time: '2026-05-11 14:00:00', action: '一审通过', operator: '张建国', opinion: '同意' },
+      { time: '2026-05-13 09:00:00', action: '录入人社结果并提交二审', operator: '徐志明' },
+      { time: '2026-05-15 09:00:00', action: '二审确认通过', operator: '张建国' }
+    ],
+    completeTime: '2026-05-15 09:00:00', submitTime: '2026-05-10 10:00:00'
+  }
+];
+
+// ===== TOAST =====
+function showToast(msg, type) {
+  type = type || '';
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(function() { el.remove(); }, 2000);
+}
+
+// ===== SIDEBAR =====
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show');
+});
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function switchRole(role) {
+  currentRole = role;
+  if (role === 'school') {
+    window.location.href = 'post-list-school.html';
+  } else if (role === 'city' || role === 'district') {
+    window.location.href = 'post-list-admin.html?role=' + role;
+  } else {
+    showToast('教师角色无此功能权限', 'warning');
+  }
+}
+
+function renderSidebar() {
+  var roleData = ROLES[currentRole];
+  if (!roleData) return;
+  var sidebar = roleData.sidebar;
+  var html = '';
+  (sidebar.top || []).forEach(function(item) {
+    html += '<a class="menu-item' + (item.id === 'postset' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[item.icon] || '') + '<span class="menu-label">' + item.label + '</span></a>';
+  });
+  (sidebar.groups || []).forEach(function(group) {
+    html += '<div class="menu-group">' + group.name + '</div>';
+    group.items.forEach(function(item) {
+      html += '<a class="menu-item' + (item.id === 'postset' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span>' + (item.badge ? '<span class="menu-badge">' + item.badge + '</span>' : '') + '</a>';
+    });
+  });
+  document.getElementById('sidebarMenu').innerHTML = html;
+  var btns = document.querySelectorAll('.role-switch-btn');
+  btns.forEach(function(b) { b.classList.toggle('active', b.dataset.role === currentRole); });
+  var nameEl = document.querySelector('.topnav-user span');
+  if (nameEl) nameEl.textContent = roleData.name;
+  var avatarEl = document.querySelector('.topnav-user .avatar');
+  if (avatarEl) avatarEl.textContent = roleData.short;
+}
+
+function sidebarClick(el, id) {
+  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
+  el.classList.add('active');
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'entry') {
+    window.location.href = currentRole === 'school' ? '教师入编管理（学校管理员视角）.html' : '教师入编管理（主管单位视角）.html';
+    return;
+  }
+  if (id === 'exit') {
+    window.location.href = currentRole === 'school' ? '教师出编管理（学校管理员视角）.html' : '教师出编管理（主管单位视角）.html';
+    return;
+  }
+  if (id === 'postset') {
+    window.location.href = currentRole === 'school' ? 'post-list-school.html' : 'post-list-admin.html?role=' + currentRole;
+    return;
+  }
+  showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
+}
+
+// ===== HELPERS =====
+function sumObj(obj) { var s = 0; for (var k in obj) { if (obj.hasOwnProperty(k)) s += (parseInt(obj[k]) || 0); } return s; }
+function pct(n, total) { return total > 0 ? (n / total * 100).toFixed(1) : '0.0'; }
+function formatSize(bytes) { if (bytes < 1024) return bytes + 'B'; if (bytes < 1048576) return (bytes/1024).toFixed(1) + 'KB'; return (bytes/1048576).toFixed(1) + 'MB'; }
+
+// ===== RENDER PAGE =====
+function renderPage() {
+  var html = '';
+
+  if (pageMode === 'hr') {
+    document.getElementById('hrBanner').innerHTML =
+      '<div class="hr-banner"><span class="hr-icon">📋</span><span class="hr-text">当前为人社核准结果录入模式。请根据人社批复文件逐项录入核准数据，并上传批复PDF。</span></div>';
+    html += renderHrForm();
+  } else {
+    html += renderBasicInfo();
+    html += renderTotalSection();
+    html += renderMgmtTable();
+    html += renderProfTable();
+    html += renderLaborTable();
+    html += renderAttachmentArea();
+    html += renderSummaryPreview();
+  }
+
+  document.getElementById('mainContent').innerHTML = html;
+  renderFooter();
+  bindEvents();
+}
+
+function renderBasicInfo() {
+  var sd = POST_SCHOOL_DATA[schoolName] || POST_SCHOOL_DATA['柳州市第八中学'];
+  var h = '<div class="form-card"><div class="form-card-title">单位基本信息</div><div class="form-grid">';
+  h += '<div class="form-item full-width"><div class="form-label">单位全称</div><div class="form-value">' + schoolName + '</div></div>';
+  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>机构规格</div><select id="fOrgLevel" onchange="formData.orgLevel=this.value"><option value="">请选择</option>';
+  ORG_LEVELS.forEach(function(o) { h += '<option value="' + o + '"' + (formData.orgLevel === o ? ' selected' : '') + '>' + o + '</option>'; });
+  h += '</select></div>';
+  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>经费形式</div><select id="fFundType" onchange="formData.fundType=this.value"><option value="">请选择</option>';
+  FUND_TYPES.forEach(function(o) { h += '<option value="' + o + '"' + (formData.fundType === o ? ' selected' : '') + '>' + o + '</option>'; });
+  h += '</select></div>';
+  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>学校类型</div><select id="fSchoolType" onchange="onSchoolTypeChange(this.value)"><option value="">请选择</option>';
+  SCHOOL_TYPES.forEach(function(o) { h += '<option value="' + o + '"' + (formData.schoolType === o ? ' selected' : '') + '>' + o + '</option>'; });
+  h += '</select></div>';
+  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>总量控制数</div><input type="number" id="fTotalQuota" value="' + (formData.totalQuota || '') + '" min="0" onchange="formData.totalQuota=parseInt(this.value)||0;autoCalc()"></div>';
+  h += '<div class="form-item"><div class="form-label">小高地岗位数</div><input type="number" id="fHighland" value="' + (formData.highlandPosts || 0) + '" min="0" onchange="formData.highlandPosts=parseInt(this.value)||0;autoCalc()"></div>';
+  h += '<div class="form-item"><div class="form-label">实名编制数</div><input type="number" id="fAuthCareer" value="' + (formData.authCareerStaff || '') + '" min="0" onchange="formData.authCareerStaff=parseInt(this.value)||0"></div>';
+  h += '<div class="form-item"><div class="form-label">聘用控制数</div><input type="number" id="fAuthControl" value="' + (formData.authControlNo || '') + '" min="0" onchange="formData.authControlNo=parseInt(this.value)||0"></div>';
+  h += '</div></div>';
+  return h;
+}
+
+function renderTotalSection() {
+  var tp = (parseInt(formData.mgmtPosts) || 0) + (parseInt(formData.profPosts) || 0) + (parseInt(formData.laborPosts) || 0);
+  var maxTotal = (formData.totalQuota || 0) - (formData.highlandPosts || 0);
+  var totalClass = tp > maxTotal && maxTotal > 0 ? ' style="color:var(--danger)"' : '';
+  var h = '<div class="form-card"><div class="form-card-title">岗位总量<span class="limit-hint" id="totalLimit">（上限：' + maxTotal + '）</span></div>';
+  h += '<table class="total-table"><thead><tr><th>岗位总量</th><th>管理岗位数量</th><th>占比</th><th>专技岗位数量</th><th>占比</th><th>工勤技能岗位数量</th><th>占比</th></tr></thead>';
+  h += '<tbody><tr>';
+  h += '<td><span class="auto-val" id="totalPosts"' + totalClass + '>' + tp + '</span></td>';
+  h += '<td><input type="number" id="fMgmtPosts" value="' + (formData.mgmtPosts || 0) + '" min="0" onchange="formData.mgmtPosts=parseInt(this.value)||0;autoCalc()"></td>';
+  h += '<td class="ratio-val" id="mgmtRatio">' + pct(formData.mgmtPosts, tp) + '%</td>';
+  h += '<td><input type="number" id="fProfPosts" value="' + (formData.profPosts || 0) + '" min="0" onchange="formData.profPosts=parseInt(this.value)||0;autoCalc()"></td>';
+  h += '<td class="ratio-val" id="profRatio">' + pct(formData.profPosts, tp) + '%</td>';
+  h += '<td><input type="number" id="fLaborPosts" value="' + (formData.laborPosts || 0) + '" min="0" onchange="formData.laborPosts=parseInt(this.value)||0;autoCalc()"></td>';
+  h += '<td class="ratio-val" id="laborRatio">' + pct(formData.laborPosts, tp) + '%</td>';
+  h += '</tr></tbody></table></div>';
+  return h;
+}
+
+function renderMgmtTable() {
+  var h = '<div class="form-card"><div class="form-card-title">管理岗位明细<span class="limit-hint">（合计应等于管理岗位数量：<span id="mgmtTarget">' + (formData.mgmtPosts || 0) + '</span>）</span></div>';
+  h += '<table class="grade-table"><thead><tr><th></th>';
+  MGMT_GRADES.forEach(function(g) { h += '<th>' + MGMT_GRADE_LABELS[g] + '</th>'; });
+  h += '<th>合计</th></tr></thead><tbody>';
+  h += '<tr><td class="ratio-cell">比例</td>';
+  MGMT_GRADES.forEach(function(g) {
+    h += '<td class="ratio-cell" id="mgmtRatio_' + g + '">' + pct(formData.mgmtLevels[g], formData.mgmtPosts) + '%</td>';
+  });
+  h += '<td class="ratio-cell">100%</td></tr>';
+  h += '<tr><td>数量</td>';
+  MGMT_GRADES.forEach(function(g) {
+    h += '<td><input type="number" id="mgmt_' + g + '" value="' + (formData.mgmtLevels[g] || 0) + '" min="0" onchange="updateMgmt(\'' + g + '\',this.value)"></td>';
+  });
+  h += '<td class="sub-total" id="mgmtSum">' + sumObj(formData.mgmtLevels) + '</td></tr>';
+  h += '</tbody></table></div>';
+  return h;
+}
+
+function renderProfTable() {
+  var h = '<div class="form-card"><div class="form-card-title">专业技术岗位明细<span class="limit-hint">（合计应等于专技岗位数量：<span id="profTarget">' + (formData.profPosts || 0) + '</span>）</span></div>';
+
+  var limits = formData.schoolType ? PROF_RATIO_LIMITS[formData.schoolType] : null;
+
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = formData.profLevels[layer.key];
+    var limitPct = limits ? limits[layer.key] : null;
+    var actualPct = formData.profPosts > 0 ? (ld.total / formData.profPosts * 100).toFixed(1) : '0.0';
+    var limitHint = limitPct !== null ? '（上限 ' + limitPct + '%，当前 ' + actualPct + '%）' : '';
+    var limitClass = limitPct !== null && parseFloat(actualPct) > limitPct ? ' error' : '';
+
+    h += '<table class="grade-table" style="margin-bottom:16px"><thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '<span class="limit-hint' + limitClass + '">' + limitHint + '</span></th></tr>';
+    h += '<tr><th></th>';
+    layer.grades.forEach(function(g) { h += '<th>' + layer.gradeLabels[g] + '</th>'; });
+    h += '<th>合计</th></tr></thead><tbody>';
+
+    h += '<tr><td class="ratio-cell">比例</td>';
+    layer.grades.forEach(function(g) {
+      var r = ld.total > 0 ? (ld.levels[g] / ld.total * 100).toFixed(1) : '0.0';
+      h += '<td class="ratio-cell" id="profR_' + layer.key + '_' + g + '">' + r + '%</td>';
+    });
+    h += '<td class="ratio-cell">100%</td></tr>';
+
+    h += '<tr><td>数量</td>';
+    layer.grades.forEach(function(g) {
+      h += '<td><input type="number" id="prof_' + layer.key + '_' + g + '" value="' + (ld.levels[g] || 0) + '" min="0" onchange="updateProf(\'' + layer.key + '\',\'' + g + '\',this.value)"></td>';
+    });
+    h += '<td class="sub-total" id="profSum_' + layer.key + '">' + ld.total + '</td></tr>';
+    h += '</tbody></table>';
+  });
+
+  var profTotal = 0;
+  PROF_LAYER_CONFIG.forEach(function(l) { profTotal += formData.profLevels[l.key].total; });
+  h += '<div style="text-align:right;font-size:13px;color:var(--text-secondary);margin-top:4px">专技合计：<strong id="profGrandTotal" style="color:var(--primary)">' + profTotal + '</strong> / ' + (formData.profPosts || 0) + '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderLaborTable() {
+  var h = '<div class="form-card"><div class="form-card-title">工勤技能岗位明细<span class="limit-hint">（合计应等于工勤技能岗位数量：<span id="laborTarget">' + (formData.laborPosts || 0) + '</span>）</span></div>';
+  h += '<table class="grade-table"><thead><tr><th></th>';
+  LABOR_GRADES.forEach(function(g) { h += '<th>' + LABOR_GRADE_LABELS[g] + '</th>'; });
+  h += '<th>合计</th></tr></thead><tbody>';
+  h += '<tr><td class="ratio-cell">比例</td>';
+  LABOR_GRADES.forEach(function(g) {
+    h += '<td class="ratio-cell" id="laborRatio_' + g + '">' + pct(formData.laborLevels[g], formData.laborPosts) + '%</td>';
+  });
+  h += '<td class="ratio-cell">100%</td></tr>';
+  h += '<tr><td>数量</td>';
+  LABOR_GRADES.forEach(function(g) {
+    h += '<td><input type="number" id="labor_' + g + '" value="' + (formData.laborLevels[g] || 0) + '" min="0" onchange="updateLabor(\'' + g + '\',this.value)"></td>';
+  });
+  h += '<td class="sub-total" id="laborSum">' + sumObj(formData.laborLevels) + '</td></tr>';
+  h += '</tbody></table></div>';
+  return h;
+}
+
+function renderAttachmentArea() {
+  var h = '<div class="form-card"><div class="form-card-title">补充材料（选填）</div>';
+  h += '<div class="upload-area" onclick="document.getElementById(\'fileInput\').click()">';
+  h += '<div class="upload-icon">📎</div>';
+  h += '<div class="upload-text">点击或拖拽文件到此处上传</div>';
+  h += '<div class="upload-hint">支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB</div>';
+  h += '</div>';
+  h += '<input type="file" id="fileInput" multiple style="display:none" onchange="handleFileUpload(this)">';
+  h += '<div class="file-list" id="fileList">';
+  formData.attachments.forEach(function(f, i) {
+    h += '<div class="file-item"><span class="file-name">' + f.name + '</span><span class="file-size">' + formatSize(f.size) + '</span><span class="file-remove" onclick="removeFile(' + i + ')">✕</span></div>';
+  });
+  h += '</div></div>';
+  return h;
+}
+
+function renderSummaryPreview() {
+  var h = '<div class="form-card">';
+  h += '<div class="summary-toggle" id="summaryToggle" onclick="toggleSummary()">';
+  h += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+  h += '预览汇总表';
+  h += '</div>';
+  h += '<div class="summary-content" id="summaryContent">';
+  h += buildSummaryTable();
+  h += '</div></div>';
+  return h;
+}
+
+function buildSummaryTable() {
+  var h = '<table class="summary-table"><thead>';
+  h += '<tr><th rowspan="2">岗位类别</th><th rowspan="2">等级</th><th colspan="2">核定</th><th colspan="2">实聘</th></tr>';
+  h += '<tr><th>数量</th><th>比例(%)</th><th>数量</th><th>比例(%)</th></tr></thead><tbody>';
+
+  var tp = (formData.mgmtPosts||0) + (formData.profPosts||0) + (formData.laborPosts||0);
+
+  h += '<tr class="highlight"><td rowspan="' + (MGMT_GRADES.length + 1) + '">管理岗位</td><td>合计</td><td>' + (formData.mgmtPosts||0) + '</td><td>' + pct(formData.mgmtPosts, tp) + '</td><td>—</td><td>—</td></tr>';
+  MGMT_GRADES.forEach(function(g) {
+    h += '<tr><td class="sub-label">' + MGMT_GRADE_LABELS[g] + '</td><td>' + (formData.mgmtLevels[g]||0) + '</td><td>' + pct(formData.mgmtLevels[g], formData.mgmtPosts) + '</td><td>—</td><td>—</td></tr>';
+  });
+
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = formData.profLevels[layer.key];
+    h += '<tr class="highlight"><td rowspan="' + (layer.grades.length + 1) + '">' + layer.label + '</td><td>合计</td><td>' + ld.total + '</td><td>' + pct(ld.total, formData.profPosts) + '</td><td>—</td><td>—</td></tr>';
+    layer.grades.forEach(function(g) {
+      h += '<tr><td class="sub-label">' + layer.gradeLabels[g] + '</td><td>' + (ld.levels[g]||0) + '</td><td>' + pct(ld.levels[g], ld.total) + '</td><td>—</td><td>—</td></tr>';
+    });
+  });
+
+  h += '<tr class="highlight"><td rowspan="' + (LABOR_GRADES.length + 1) + '">工勤技能岗位</td><td>合计</td><td>' + (formData.laborPosts||0) + '</td><td>' + pct(formData.laborPosts, tp) + '</td><td>—</td><td>—</td></tr>';
+  LABOR_GRADES.forEach(function(g) {
+    h += '<tr><td class="sub-label">' + LABOR_GRADE_LABELS[g] + '</td><td>' + (formData.laborLevels[g]||0) + '</td><td>' + pct(formData.laborLevels[g], formData.laborPosts) + '</td><td>—</td><td>—</td></tr>';
+  });
+
+  h += '</tbody></table>';
+  return h;
+}
+
+// ===== HR RESULT FORM =====
+function renderHrForm() {
+  var rec = loadRecords().filter(function(r) { return r.id === editRecordId; })[0];
+  if (!rec) return '<div class="form-card"><p>未找到记录</p></div>';
+
+  var h = '';
+  h += '<div class="form-card"><div class="form-card-title">原始申报数据（只读）</div>';
+  h += '<table class="grade-table"><thead><tr><th>项目</th><th>管理岗位</th><th>专技岗位</th><th>工勤技能岗位</th><th>合计</th></tr></thead><tbody>';
+  h += '<tr><td>数量</td><td>' + rec.mgmtPosts + '</td><td>' + rec.profPosts + '</td><td>' + rec.laborPosts + '</td><td><strong>' + rec.totalPosts + '</strong></td></tr>';
+  h += '</tbody></table></div>';
+
+  h += '<div class="form-card"><div class="form-card-title">人社核准结果</div>';
+  h += '<table class="total-table"><thead><tr><th>岗位总量</th><th>管理岗位</th><th>专技岗位</th><th>工勤技能岗位</th></tr></thead><tbody><tr>';
+  var hrTp = (hrData.mgmtPosts||0) + (hrData.profPosts||0) + (hrData.laborPosts||0);
+  h += '<td><span class="auto-val" id="hrTotal">' + hrTp + '</span></td>';
+  h += '<td><input type="number" id="hrMgmt" value="' + (hrData.mgmtPosts||0) + '" min="0" onchange="hrData.mgmtPosts=parseInt(this.value)||0;autoCalcHr()"></td>';
+  h += '<td><input type="number" id="hrProf" value="' + (hrData.profPosts||0) + '" min="0" onchange="hrData.profPosts=parseInt(this.value)||0;autoCalcHr()"></td>';
+  h += '<td><input type="number" id="hrLabor" value="' + (hrData.laborPosts||0) + '" min="0" onchange="hrData.laborPosts=parseInt(this.value)||0;autoCalcHr()"></td>';
+  h += '</tr></tbody></table></div>';
+
+  h += '<div class="form-card"><div class="form-card-title">管理岗位核准明细</div>';
+  h += '<table class="grade-table"><thead><tr><th></th>';
+  MGMT_GRADES.forEach(function(g) { h += '<th>' + MGMT_GRADE_LABELS[g] + '</th>'; });
+  h += '<th>合计</th></tr></thead><tbody><tr><td>核准数</td>';
+  MGMT_GRADES.forEach(function(g) {
+    h += '<td><input type="number" id="hrMgmt_' + g + '" value="' + (hrData.mgmtLevels[g]||0) + '" min="0" onchange="hrData.mgmtLevels[\'' + g + '\']=parseInt(this.value)||0;autoCalcHr()"></td>';
+  });
+  h += '<td class="sub-total" id="hrMgmtSum">' + sumObj(hrData.mgmtLevels) + '</td></tr></tbody></table></div>';
+
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = hrData.profLevels[layer.key];
+    h += '<div class="form-card"><div class="form-card-title">' + layer.label + '核准明细</div>';
+    h += '<table class="grade-table"><thead><tr><th></th>';
+    layer.grades.forEach(function(g) { h += '<th>' + layer.gradeLabels[g] + '</th>'; });
+    h += '<th>合计</th></tr></thead><tbody><tr><td>核准数</td>';
+    layer.grades.forEach(function(g) {
+      h += '<td><input type="number" id="hrProf_' + layer.key + '_' + g + '" value="' + (ld.levels[g]||0) + '" min="0" onchange="updateHrProf(\'' + layer.key + '\',\'' + g + '\',this.value)"></td>';
+    });
+    h += '<td class="sub-total" id="hrProfSum_' + layer.key + '">' + sumObj(ld.levels) + '</td></tr></tbody></table></div>';
+  });
+
+  h += '<div class="form-card"><div class="form-card-title">工勤技能岗位核准明细</div>';
+  h += '<table class="grade-table"><thead><tr><th></th>';
+  LABOR_GRADES.forEach(function(g) { h += '<th>' + LABOR_GRADE_LABELS[g] + '</th>'; });
+  h += '<th>合计</th></tr></thead><tbody><tr><td>核准数</td>';
+  LABOR_GRADES.forEach(function(g) {
+    h += '<td><input type="number" id="hrLabor_' + g + '" value="' + (hrData.laborLevels[g]||0) + '" min="0" onchange="hrData.laborLevels[\'' + g + '\']=parseInt(this.value)||0;autoCalcHr()"></td>';
+  });
+  h += '<td class="sub-total" id="hrLaborSum">' + sumObj(hrData.laborLevels) + '</td></tr></tbody></table></div>';
+
+  h += '<div class="form-card"><div class="form-card-title"><span class="required">*</span>人社批复文件</div>';
+  h += '<div class="upload-area" onclick="document.getElementById(\'hrFileInput\').click()">';
+  h += '<div class="upload-icon">📄</div>';
+  h += '<div class="upload-text">点击上传人社批复 PDF</div>';
+  h += '<div class="upload-hint">仅支持 PDF 格式，必传</div>';
+  h += '</div>';
+  h += '<input type="file" id="hrFileInput" accept=".pdf" style="display:none" onchange="handleHrFileUpload(this)">';
+  if (hrData.hrApprovalAttachment) {
+    h += '<div class="file-list"><div class="file-item"><span class="file-name">' + hrData.hrApprovalAttachment.name + '</span><span class="file-size">' + formatSize(hrData.hrApprovalAttachment.size) + '</span><span class="file-remove" onclick="hrData.hrApprovalAttachment=null;renderPage()">✕</span></div></div>';
+  }
+  h += '</div>';
+
+  return h;
+}
+
+// ===== UPDATE HANDLERS =====
+function onSchoolTypeChange(val) {
+  formData.schoolType = val;
+  var sd = POST_SCHOOL_DATA[schoolName];
+  if (sd) {
+    formData.orgLevel = sd.orgLevel;
+    formData.fundType = sd.fundType;
+    formData.authCareerStaff = sd.authCareerStaff;
+    formData.authControlNo = sd.authControlNo;
+    formData.totalQuota = sd.authCareerStaff + sd.authControlNo;
+  }
+  renderPage();
+}
+
+function updateMgmt(grade, val) {
+  formData.mgmtLevels[grade] = parseInt(val) || 0;
+  autoCalc();
+}
+
+function updateProf(layer, grade, val) {
+  formData.profLevels[layer].levels[grade] = parseInt(val) || 0;
+  formData.profLevels[layer].total = sumObj(formData.profLevels[layer].levels);
+  autoCalc();
+}
+
+function updateLabor(grade, val) {
+  formData.laborLevels[grade] = parseInt(val) || 0;
+  autoCalc();
+}
+
+function updateHrProf(layer, grade, val) {
+  hrData.profLevels[layer].levels[grade] = parseInt(val) || 0;
+  hrData.profLevels[layer].total = sumObj(hrData.profLevels[layer].levels);
+  autoCalcHr();
+}
+
+function autoCalc() {
+  var tp = (formData.mgmtPosts||0) + (formData.profPosts||0) + (formData.laborPosts||0);
+  var maxTotal = (formData.totalQuota||0) - (formData.highlandPosts||0);
+
+  var tpEl = document.getElementById('totalPosts');
+  if (tpEl) { tpEl.textContent = tp; tpEl.style.color = tp > maxTotal && maxTotal > 0 ? 'var(--danger)' : ''; }
+  var limitEl = document.getElementById('totalLimit');
+  if (limitEl) limitEl.textContent = '（上限：' + maxTotal + '）';
+
+  var mgmtR = document.getElementById('mgmtRatio'); if (mgmtR) mgmtR.textContent = pct(formData.mgmtPosts, tp) + '%';
+  var profR = document.getElementById('profRatio'); if (profR) profR.textContent = pct(formData.profPosts, tp) + '%';
+  var laborR = document.getElementById('laborRatio'); if (laborR) laborR.textContent = pct(formData.laborPosts, tp) + '%';
+
+  MGMT_GRADES.forEach(function(g) {
+    var el = document.getElementById('mgmtRatio_' + g);
+    if (el) el.textContent = pct(formData.mgmtLevels[g], formData.mgmtPosts) + '%';
+  });
+  var mgmtSumEl = document.getElementById('mgmtSum');
+  if (mgmtSumEl) mgmtSumEl.textContent = sumObj(formData.mgmtLevels);
+  var mgmtTgt = document.getElementById('mgmtTarget');
+  if (mgmtTgt) mgmtTgt.textContent = formData.mgmtPosts || 0;
+
+  var limits = formData.schoolType ? PROF_RATIO_LIMITS[formData.schoolType] : null;
+  var profGrand = 0;
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = formData.profLevels[layer.key];
+    ld.total = sumObj(ld.levels);
+    profGrand += ld.total;
+    var sumEl = document.getElementById('profSum_' + layer.key);
+    if (sumEl) sumEl.textContent = ld.total;
+    layer.grades.forEach(function(g) {
+      var rEl = document.getElementById('profR_' + layer.key + '_' + g);
+      if (rEl) rEl.textContent = (ld.total > 0 ? (ld.levels[g]/ld.total*100).toFixed(1) : '0.0') + '%';
+    });
+  });
+  var pgEl = document.getElementById('profGrandTotal');
+  if (pgEl) pgEl.textContent = profGrand;
+  var ptEl = document.getElementById('profTarget');
+  if (ptEl) ptEl.textContent = formData.profPosts || 0;
+
+  LABOR_GRADES.forEach(function(g) {
+    var el = document.getElementById('laborRatio_' + g);
+    if (el) el.textContent = pct(formData.laborLevels[g], formData.laborPosts) + '%';
+  });
+  var laborSumEl = document.getElementById('laborSum');
+  if (laborSumEl) laborSumEl.textContent = sumObj(formData.laborLevels);
+  var laborTgt = document.getElementById('laborTarget');
+  if (laborTgt) laborTgt.textContent = formData.laborPosts || 0;
+}
+
+function autoCalcHr() {
+  var hrTp = (hrData.mgmtPosts||0) + (hrData.profPosts||0) + (hrData.laborPosts||0);
+  var el = document.getElementById('hrTotal'); if (el) el.textContent = hrTp;
+  var ms = document.getElementById('hrMgmtSum'); if (ms) ms.textContent = sumObj(hrData.mgmtLevels);
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = hrData.profLevels[layer.key];
+    ld.total = sumObj(ld.levels);
+    var s = document.getElementById('hrProfSum_' + layer.key); if (s) s.textContent = ld.total;
+  });
+  var ls = document.getElementById('hrLaborSum'); if (ls) ls.textContent = sumObj(hrData.laborLevels);
+}
+
+// ===== FILE UPLOAD =====
+function handleFileUpload(input) {
+  var files = input.files;
+  for (var i = 0; i < files.length; i++) {
+    if (formData.attachments.length >= 10) { showToast('最多上传10个文件', 'warning'); break; }
+    formData.attachments.push({ name: files[i].name, size: files[i].size });
+  }
+  input.value = '';
+  var fl = document.getElementById('fileList');
+  if (fl) {
+    var h = '';
+    formData.attachments.forEach(function(f, i) {
+      h += '<div class="file-item"><span class="file-name">' + f.name + '</span><span class="file-size">' + formatSize(f.size) + '</span><span class="file-remove" onclick="removeFile(' + i + ')">✕</span></div>';
+    });
+    fl.innerHTML = h;
+  }
+}
+function removeFile(idx) {
+  formData.attachments.splice(idx, 1);
+  var fl = document.getElementById('fileList');
+  if (fl) {
+    var h = '';
+    formData.attachments.forEach(function(f, i) {
+      h += '<div class="file-item"><span class="file-name">' + f.name + '</span><span class="file-size">' + formatSize(f.size) + '</span><span class="file-remove" onclick="removeFile(' + i + ')">✕</span></div>';
+    });
+    fl.innerHTML = h;
+  }
+}
+function handleHrFileUpload(input) {
+  if (input.files.length > 0) {
+    var f = input.files[0];
+    if (!f.name.toLowerCase().endsWith('.pdf')) { showToast('仅支持 PDF 格式', 'warning'); return; }
+    hrData.hrApprovalAttachment = { name: f.name, size: f.size };
+    renderPage();
+  }
+}
+
+// ===== SUMMARY TOGGLE =====
+function toggleSummary() {
+  var toggle = document.getElementById('summaryToggle');
+  var content = document.getElementById('summaryContent');
+  if (!toggle || !content) return;
+  toggle.classList.toggle('open');
+  content.classList.toggle('open');
+  if (content.classList.contains('open')) {
+    content.innerHTML = buildSummaryTable();
+  }
+}
+
+// ===== VALIDATION =====
+function validateAll() {
+  var errors = [];
+  if (!formData.orgLevel) errors.push('请选择机构规格');
+  if (!formData.fundType) errors.push('请选择经费形式');
+  if (!formData.schoolType) errors.push('请选择学校类型');
+  if (!formData.totalQuota || formData.totalQuota <= 0) errors.push('请填写总量控制数');
+
+  var tp = (formData.mgmtPosts||0) + (formData.profPosts||0) + (formData.laborPosts||0);
+  var maxTotal = (formData.totalQuota||0) - (formData.highlandPosts||0);
+  if (tp > maxTotal) {
+    errors.push('岗位总量（' + tp + '）不能超过 ' + maxTotal + '（总量控制数 ' + formData.totalQuota + ' − 小高地岗位数 ' + (formData.highlandPosts||0) + '）');
+  }
+  if (tp === 0) errors.push('岗位总量不能为0');
+
+  var mgmtSum = sumObj(formData.mgmtLevels);
+  if (mgmtSum !== (formData.mgmtPosts||0)) errors.push('管理岗位各等级合计（' + mgmtSum + '）≠ 管理岗位数量（' + formData.mgmtPosts + '）');
+
+  var profTotal = 0;
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = formData.profLevels[layer.key];
+    var layerSum = sumObj(ld.levels);
+    if (layerSum !== ld.total) errors.push(layer.label + '各等级合计（' + layerSum + '）≠ 层级合计（' + ld.total + '）');
+    profTotal += ld.total;
+  });
+  if (profTotal !== (formData.profPosts||0)) errors.push('专技各层级合计（' + profTotal + '）≠ 专技岗位数量（' + formData.profPosts + '）');
+
+  if (formData.schoolType) {
+    var limits = PROF_RATIO_LIMITS[formData.schoolType];
+    if (limits && formData.profPosts > 0) {
+      PROF_LAYER_CONFIG.forEach(function(layer) {
+        var ld = formData.profLevels[layer.key];
+        var actualPct = ld.total / formData.profPosts * 100;
+        var limit = limits[layer.key];
+        if (actualPct > limit + 0.05) {
+          errors.push(layer.label + '占比 ' + actualPct.toFixed(1) + '%，超过上限 ' + limit + '%');
+        }
+      });
+    }
+  }
+
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = formData.profLevels[layer.key];
+    if (ld.total <= 0) return;
+    var ratios = LEVEL_INTERNAL_RATIOS[layer.key];
+    if (!ratios) return;
+    for (var g in ratios) {
+      if (!ratios.hasOwnProperty(g)) continue;
+      var expected = ld.total * ratios[g] / 100;
+      var actual = ld.levels[g] || 0;
+      if (Math.abs(actual - expected) > Math.max(1, ld.total * 0.05)) {
+        errors.push(layer.label + PROF_LAYER_CONFIG.filter(function(l){return l.key===layer.key})[0].gradeLabels[g] + '偏差过大（实际' + actual + '，期望约' + Math.round(expected) + '）');
+      }
+    }
+  });
+
+  var laborSum = sumObj(formData.laborLevels);
+  if (laborSum !== (formData.laborPosts||0)) errors.push('工勤技能各等级合计（' + laborSum + '）≠ 工勤技能岗位数量（' + formData.laborPosts + '）');
+
+  if (formData.laborPosts > 0) {
+    var lv = formData.laborLevels;
+    var lt = formData.laborPosts;
+    if ((lv['1']||0) / lt * 100 > LABOR_RATIO_LIMITS.level_1 + 0.05) errors.push('工勤一级占比超过 ' + LABOR_RATIO_LIMITS.level_1 + '%');
+    if ((lv['2']||0) / lt * 100 > LABOR_RATIO_LIMITS.level_2 + 0.05) errors.push('工勤二级占比超过 ' + LABOR_RATIO_LIMITS.level_2 + '%');
+    if (((lv['1']||0) + (lv['2']||0)) / lt * 100 > LABOR_RATIO_LIMITS.total_1_2 + 0.05) errors.push('工勤一级+二级合计占比超过 ' + LABOR_RATIO_LIMITS.total_1_2 + '%');
+    if ((lv['3']||0) / lt * 100 > LABOR_RATIO_LIMITS.level_3 + 0.05) errors.push('工勤三级占比超过 ' + LABOR_RATIO_LIMITS.level_3 + '%');
+    if ((lv['4']||0) / lt * 100 > LABOR_RATIO_LIMITS.level_4 + 0.05) errors.push('工勤四级占比超过 ' + LABOR_RATIO_LIMITS.level_4 + '%');
+    if ((lv['5']||0) / lt * 100 < LABOR_RATIO_LIMITS.level_5_min - 0.05) errors.push('工勤五级占比低于 ' + LABOR_RATIO_LIMITS.level_5_min + '%');
+  }
+
+  return errors;
+}
+
+function validateHr() {
+  var errors = [];
+  var hrTp = (hrData.mgmtPosts||0) + (hrData.profPosts||0) + (hrData.laborPosts||0);
+  if (hrTp === 0) errors.push('人社核准岗位总量不能为0');
+  var mgmtSum = sumObj(hrData.mgmtLevels);
+  if (mgmtSum !== (hrData.mgmtPosts||0)) errors.push('管理岗位核准明细合计（' + mgmtSum + '）≠ 管理岗位核准数（' + hrData.mgmtPosts + '）');
+  var profTotal = 0;
+  PROF_LAYER_CONFIG.forEach(function(layer) {
+    var ld = hrData.profLevels[layer.key];
+    profTotal += sumObj(ld.levels);
+  });
+  if (profTotal !== (hrData.profPosts||0)) errors.push('专技核准明细合计（' + profTotal + '）≠ 专技核准数（' + hrData.profPosts + '）');
+  var laborSum = sumObj(hrData.laborLevels);
+  if (laborSum !== (hrData.laborPosts||0)) errors.push('工勤核准明细合计（' + laborSum + '）≠ 工勤核准数（' + hrData.laborPosts + '）');
+  if (!hrData.hrApprovalAttachment) errors.push('请上传人社批复文件');
+  return errors;
+}
+
+function showValidation(errors) {
+  var box = document.getElementById('validationBox');
+  var list = document.getElementById('validationList');
+  if (errors.length > 0) {
+    var h = '';
+    errors.forEach(function(e) { h += '<li>' + e + '</li>'; });
+    list.innerHTML = h;
+    box.classList.add('show');
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    box.classList.remove('show');
+  }
+}
+
+// ===== SUBMIT =====
+function submitFirstReview() {
+  var errors = validateAll();
+  if (errors.length > 0) { showValidation(errors); return; }
+  showValidation([]);
+
+  var records = loadRecords();
+  var tp = (formData.mgmtPosts||0) + (formData.profPosts||0) + (formData.laborPosts||0);
+  var roleData = ROLES[currentRole];
+  var operator = roleData ? roleData.name : '未知';
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  if (pageMode === 'edit' && editRecordId) {
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].id === editRecordId) {
+        records[i].status = 'first_review';
+        records[i].orgLevel = formData.orgLevel;
+        records[i].fundType = formData.fundType;
+        records[i].schoolType = formData.schoolType;
+        records[i].totalQuota = formData.totalQuota;
+        records[i].highlandPosts = formData.highlandPosts;
+        records[i].authCareerStaff = formData.authCareerStaff;
+        records[i].authControlNo = formData.authControlNo;
+        records[i].totalPosts = tp;
+        records[i].mgmtPosts = formData.mgmtPosts;
+        records[i].profPosts = formData.profPosts;
+        records[i].laborPosts = formData.laborPosts;
+        records[i].mgmtLevels = JSON.parse(JSON.stringify(formData.mgmtLevels));
+        records[i].profLevels = JSON.parse(JSON.stringify(formData.profLevels));
+        records[i].laborLevels = JSON.parse(JSON.stringify(formData.laborLevels));
+        records[i].attachments = formData.attachments.slice();
+        records[i].firstRejectReason = null;
+        records[i].timeline.push({ time: now, action: '修改重提一审', operator: operator });
+        break;
+      }
+    }
+  } else {
+    var newRec = {
+      id: getNextId(),
+      schoolName: schoolName,
+      schoolType: formData.schoolType,
+      status: 'first_review',
+      orgLevel: formData.orgLevel, fundType: formData.fundType,
+      totalQuota: formData.totalQuota, highlandPosts: formData.highlandPosts,
+      authCareerStaff: formData.authCareerStaff, authControlNo: formData.authControlNo,
+      totalPosts: tp, mgmtPosts: formData.mgmtPosts, profPosts: formData.profPosts, laborPosts: formData.laborPosts,
+      mgmtLevels: JSON.parse(JSON.stringify(formData.mgmtLevels)),
+      profLevels: JSON.parse(JSON.stringify(formData.profLevels)),
+      laborLevels: JSON.parse(JSON.stringify(formData.laborLevels)),
+      attachments: formData.attachments.slice(),
+      firstReviewOpinion: null, firstReviewer: null, firstReviewTime: null, firstRejectReason: null,
+      hrResult: null, hrApprovalAttachment: null,
+      secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
+      timeline: [{ time: now, action: '学校提交一审', operator: operator }],
+      submitTime: now, completeTime: null
+    };
+    records.push(newRec);
+  }
+
+  saveRecords(records);
+  showToast('已提交一审', 'success');
+  setTimeout(function() { window.location.href = 'post-list-school.html'; }, 800);
+}
+
+function submitHrResult() {
+  var errors = validateHr();
+  if (errors.length > 0) { showValidation(errors); return; }
+  showValidation([]);
+
+  var records = loadRecords();
+  var roleData = ROLES[currentRole];
+  var operator = roleData ? roleData.name : '未知';
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].id === editRecordId) {
+      var profTotal = 0;
+      PROF_LAYER_CONFIG.forEach(function(layer) {
+        hrData.profLevels[layer.key].total = sumObj(hrData.profLevels[layer.key].levels);
+        profTotal += hrData.profLevels[layer.key].total;
+      });
+      records[i].hrResult = {
+        totalPosts: (hrData.mgmtPosts||0) + (hrData.profPosts||0) + (hrData.laborPosts||0),
+        mgmtPosts: hrData.mgmtPosts,
+        profPosts: hrData.profPosts,
+        laborPosts: hrData.laborPosts,
+        mgmtLevels: JSON.parse(JSON.stringify(hrData.mgmtLevels)),
+        profLevels: JSON.parse(JSON.stringify(hrData.profLevels)),
+        laborLevels: JSON.parse(JSON.stringify(hrData.laborLevels))
+      };
+      records[i].hrApprovalAttachment = hrData.hrApprovalAttachment;
+      records[i].status = 'second_review';
+      records[i].timeline.push({ time: now, action: '录入人社结果并提交二审', operator: operator });
+      break;
+    }
+  }
+
+  saveRecords(records);
+  showToast('已录入人社结果并提交二审', 'success');
+  setTimeout(function() { window.location.href = 'post-list-school.html'; }, 800);
+}
+
+// ===== FOOTER =====
+function renderFooter() {
+  var h = '<button class="btn btn-outline btn-lg" onclick="goBack()">返回</button>';
+  if (pageMode === 'hr') {
+    h += '<button class="btn btn-primary btn-lg" onclick="submitHrResult()">提交人社结果</button>';
+  } else {
+    h += '<button class="btn btn-primary btn-lg" onclick="submitFirstReview()">提交一审</button>';
+  }
+  document.getElementById('formFooter').innerHTML = h;
+}
+
+function goBack() { window.location.href = 'post-list-school.html'; }
+
+// ===== BIND EVENTS =====
+function bindEvents() {}
+
+// ===== LOAD FOR EDIT =====
+function loadForEdit(id, mode) {
+  var records = loadRecords();
+  var rec = null;
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].id === id) { rec = records[i]; break; }
+  }
+  if (!rec) { showToast('未找到记录', 'warning'); return; }
+
+  editRecordId = id;
+  schoolName = rec.schoolName;
+
+  if (mode === 'hr') {
+    pageMode = 'hr';
+    document.getElementById('pageTitle').textContent = '录入人社核准结果';
+    document.getElementById('pageSubtitle').textContent = '请根据人社批复文件录入核准数据';
+    document.getElementById('breadcrumbPage').textContent = '录入人社结果';
+    hrData.mgmtPosts = rec.mgmtPosts;
+    hrData.profPosts = rec.profPosts;
+    hrData.laborPosts = rec.laborPosts;
+    hrData.mgmtLevels = JSON.parse(JSON.stringify(rec.mgmtLevels));
+    hrData.profLevels = JSON.parse(JSON.stringify(rec.profLevels));
+    hrData.laborLevels = JSON.parse(JSON.stringify(rec.laborLevels));
+  } else {
+    pageMode = 'edit';
+    document.getElementById('pageTitle').textContent = '修改岗位设置审核表';
+    document.getElementById('pageSubtitle').textContent = '请根据驳回意见修改后重新提交';
+    document.getElementById('breadcrumbPage').textContent = '编辑申请';
+    formData.orgLevel = rec.orgLevel;
+    formData.fundType = rec.fundType;
+    formData.schoolType = rec.schoolType;
+    formData.totalQuota = rec.totalQuota;
+    formData.highlandPosts = rec.highlandPosts;
+    formData.authCareerStaff = rec.authCareerStaff;
+    formData.authControlNo = rec.authControlNo;
+    formData.mgmtPosts = rec.mgmtPosts;
+    formData.profPosts = rec.profPosts;
+    formData.laborPosts = rec.laborPosts;
+    formData.mgmtLevels = JSON.parse(JSON.stringify(rec.mgmtLevels));
+    formData.profLevels = JSON.parse(JSON.stringify(rec.profLevels));
+    formData.laborLevels = JSON.parse(JSON.stringify(rec.laborLevels));
+    formData.attachments = rec.attachments ? rec.attachments.slice() : [];
+  }
+}
+
+// ===== INIT =====
+function init() {
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+  var mode = params.get('mode');
+
+  if (id && mode) {
+    loadForEdit(id, mode);
+  } else {
+    var sd = POST_SCHOOL_DATA[schoolName];
+    if (sd) {
+      formData.orgLevel = sd.orgLevel;
+      formData.fundType = sd.fundType;
+      formData.schoolType = sd.schoolType;
+      formData.authCareerStaff = sd.authCareerStaff;
+      formData.authControlNo = sd.authControlNo;
+      formData.totalQuota = sd.authCareerStaff + sd.authControlNo;
+    }
+  }
+
+  renderSidebar();
+  renderPage();
+}
+
+init();
+</script>
+</body>
+</html>
