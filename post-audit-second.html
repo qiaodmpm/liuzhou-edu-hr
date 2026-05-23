@@ -253,6 +253,68 @@ body {
 }
 .editable-cell input:focus { outline: none; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
 
+/* ===== COMPARISON TABLE ===== */
+.compare-legend {
+  display: flex; gap: 24px; padding: 10px 14px; margin-bottom: 16px;
+  background: #F8FAFC; border-radius: 8px; font-size: 12px; color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-dot { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; box-sizing: border-box; }
+.legend-dot.same { background: #fff; border: 1px solid var(--border); }
+.legend-dot.diff { background: #FFF7ED; border: 1px solid #FED7AA; }
+.legend-dot.modified { background: #EFF6FF; border: 1px solid #93C5FD; }
+
+.compare-no-hr {
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px;
+  padding: 10px 14px; font-size: 12px; color: #92400E; margin-bottom: 16px;
+}
+
+.compare-section-title {
+  font-weight: 600; font-size: 13px; color: var(--text);
+  padding: 16px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+}
+.compare-section-title:first-of-type { padding-top: 0; margin-top: -4px; }
+
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 8px; }
+.compare-table th {
+  padding: 8px 10px; text-align: center; font-weight: 600; font-size: 12px;
+  color: var(--text-secondary); background: #F8FAFC; border: 1px solid var(--border);
+}
+.compare-table th:first-child { text-align: left; width: 80px; }
+.compare-table th.col-original-th { color: var(--text-secondary); }
+.compare-table th.col-hr-th { color: #92400E; }
+.compare-table th.col-final-th { color: var(--primary); }
+.compare-table td {
+  padding: 6px 8px; border: 1px solid var(--border); text-align: center;
+}
+.compare-table td:first-child { text-align: left; font-weight: 500; color: var(--text-secondary); }
+.compare-table .col-original { background: #FAFBFC; color: var(--text-secondary); font-size: 12px; min-width: 48px; }
+.compare-table .col-hr { background: #FAFBFC; color: var(--text-secondary); font-size: 12px; min-width: 48px; }
+.compare-table .col-hr.diff { background: #FFF7ED; color: #92400E; font-weight: 500; }
+.compare-table .col-final { background: #fff; min-width: 56px; }
+.compare-table .col-final input {
+  width: 56px; padding: 5px 4px; font-size: 13px; text-align: center;
+  border: 1px solid var(--accent); border-radius: 4px; font-family: inherit;
+}
+.compare-table .col-final input:focus { outline: none; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+.compare-table .col-final span { display: inline-block; }
+.compare-table .col-final.modified span {
+  padding: 2px 8px; background: #EFF6FF; border: 1px solid #93C5FD;
+  border-radius: 3px; font-weight: 600; color: var(--primary);
+}
+.compare-table tr.diff-row td:first-child {
+  border-left: 3px solid var(--warning);
+  padding-left: 6px;
+}
+.compare-table tr.compare-total-row td {
+  font-weight: 600; border-top: 2px solid var(--border); background: #F8FAFC;
+}
+.compare-table tr.layer-header td {
+  background: #EFF6FF; color: var(--primary); font-weight: 600; font-size: 13px;
+  padding: 8px 10px; border: 1px solid #BFDBFE;
+}
+
 /* Section label */
 .section-label {
   display: inline-block; padding: 2px 10px; border-radius: 4px;
@@ -733,6 +795,22 @@ function getOriginalValue(path) {
   return val != null ? val : 0;
 }
 
+function getHrValue(path) {
+  var r = currentRecord;
+  if (!r || !r.hrResult) return null;
+  var parts = path.split('.');
+  var val = r.hrResult;
+  for (var i = 0; i < parts.length; i++) {
+    if (val == null) return null;
+    val = val[parts[i]];
+  }
+  return val != null ? val : null;
+}
+
+function hasHrData() {
+  return currentRecord && currentRecord.hrResult;
+}
+
 // ===== PERMISSION =====
 function checkPermission() {
   if (!currentRecord) return false;
@@ -784,92 +862,227 @@ function renderSchoolInfo() {
   return html;
 }
 
-function renderGradeTableReadonly(data, label, grades, gradeLabels, rowLabel) {
-  var h = '<table class="grade-table" style="margin-bottom:12px">';
-  h += '<thead><tr><th>' + label + '</th>';
-  grades.forEach(function(g) { h += '<th>' + gradeLabels[g] + '</th>'; });
-  h += '<th>合计</th></tr></thead><tbody>';
-  h += '<tr><td class="ratio-cell">' + rowLabel + '</td>';
-  var total = 0;
-  grades.forEach(function(g) {
-    var v = (data[g] || 0);
-    total += v;
-    h += '<td>' + v + '</td>';
+
+// ===== COMPARISON TABLE (UNIFIED) =====
+function renderCompareMgmtSection() {
+  var hasHr = hasHrData();
+  var h = '<div class="compare-section-title">管理岗位明细</div>';
+  h += '<table class="compare-table"><thead><tr><th>等级</th>';
+  if (hasHr) {
+    h += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
+  } else {
+    h += '<th class="col-original-th">原始申报</th><th class="col-final-th">最终结果</th>';
+  }
+  h += '</tr></thead><tbody>';
+
+  var sumOrig = 0, sumHr = 0, sumEff = 0;
+  MGMT_GRADES.forEach(function(g) {
+    var path = 'mgmtLevels.' + g;
+    var orig = getOriginalValue(path);
+    var hr = getHrValue(path);
+    var eff = getEditableValue(path);
+    sumOrig += (orig || 0);
+    if (hasHr) sumHr += (hr || 0);
+    sumEff += (eff || 0);
+
+    var isDiff = hasHr && hr !== null && orig !== hr;
+    var isModified = modifiedFields.hasOwnProperty(path);
+    h += '<tr class="' + (isDiff ? 'diff-row' : '') + (isModified ? ' modified-row' : '') + '">';
+    h += '<td>' + MGMT_GRADE_LABELS[g] + '</td>';
+    h += '<td class="col-original">' + (orig || 0) + '</td>';
+    if (hasHr) {
+      h += '<td class="col-hr' + (isDiff ? ' diff' : '') + '">' + (hr != null ? hr : '--') + '</td>';
+    }
+    h += '<td class="col-final' + (isModified ? ' modified' : '') + '" data-path="' + path + '" onclick="startEdit(this,\'' + path + '\')"><span>' + (eff || 0) + '</span></td>';
+    h += '</tr>';
   });
-  h += '<td class="sub-total">' + total + '</td></tr>';
-  h += '</tbody></table>';
+
+  h += '<tr class="compare-total-row"><td><strong>合计</strong></td>';
+  h += '<td class="col-original"><strong>' + sumOrig + '</strong></td>';
+  if (hasHr) h += '<td class="col-hr"><strong>' + sumHr + '</strong></td>';
+  h += '<td class="col-final"><strong>' + sumEff + '</strong></td>';
+  h += '</tr></tbody></table>';
   return h;
 }
 
-function renderProfReadonly(profLevels, profTotal) {
-  var h = '';
+function renderCompareProfSection() {
+  var hasHr = hasHrData();
+  var h = '<div class="compare-section-title">专业技术岗位明细</div>';
+  var grandOrig = 0, grandHr = 0, grandEff = 0;
+
   PROF_LAYER_CONFIG.forEach(function(layer) {
-    var ld = profLevels[layer.key];
-    h += '<table class="grade-table" style="margin-bottom:12px">';
-    h += '<thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '</th></tr>';
-    h += '<tr><th></th>';
-    layer.grades.forEach(function(g) { h += '<th>' + layer.gradeLabels[g] + '</th>'; });
-    h += '<th>合计</th></tr></thead><tbody>';
-    h += '<tr><td class="ratio-cell">数量</td>';
+    h += '<table class="compare-table" style="margin-bottom:8px">';
+    h += '<thead><tr class="layer-header"><td colspan="' + (hasHr ? 4 : 3) + '">' + layer.label + '</td></tr>';
+    h += '<tr><th>等级</th>';
+    if (hasHr) {
+      h += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
+    } else {
+      h += '<th class="col-original-th">原始申报</th><th class="col-final-th">最终结果</th>';
+    }
+    h += '</tr></thead><tbody>';
+
+    var layerOrig = 0, layerHr = 0, layerEff = 0;
     layer.grades.forEach(function(g) {
-      h += '<td>' + (ld.levels[g] || 0) + '</td>';
+      var path = 'profLevels.' + layer.key + '.levels.' + g;
+      var orig = getOriginalValue(path);
+      var hr = getHrValue(path);
+      var eff = getEditableValue(path);
+      layerOrig += (orig || 0);
+      if (hasHr) layerHr += (hr || 0);
+      layerEff += (eff || 0);
+
+      var isDiff = hasHr && hr !== null && orig !== hr;
+      var isModified = modifiedFields.hasOwnProperty(path);
+      h += '<tr class="' + (isDiff ? 'diff-row' : '') + (isModified ? ' modified-row' : '') + '">';
+      h += '<td>' + layer.gradeLabels[g] + '</td>';
+      h += '<td class="col-original">' + (orig || 0) + '</td>';
+      if (hasHr) {
+        h += '<td class="col-hr' + (isDiff ? ' diff' : '') + '">' + (hr != null ? hr : '--') + '</td>';
+      }
+      h += '<td class="col-final' + (isModified ? ' modified' : '') + '" data-path="' + path + '" onclick="startEdit(this,\'' + path + '\')"><span>' + (eff || 0) + '</span></td>';
+      h += '</tr>';
     });
-    h += '<td class="sub-total">' + (ld.total || 0) + '</td></tr>';
-    h += '</tbody></table>';
+
+    h += '<tr class="compare-total-row"><td><strong>' + layer.label + '小计</strong></td>';
+    h += '<td class="col-original"><strong>' + layerOrig + '</strong></td>';
+    if (hasHr) h += '<td class="col-hr"><strong>' + layerHr + '</strong></td>';
+    h += '<td class="col-final"><strong>' + layerEff + '</strong></td>';
+    h += '</tr></tbody></table>';
+
+    grandOrig += layerOrig;
+    grandHr += layerHr;
+    grandEff += layerEff;
   });
-  h += '<div style="text-align:right;font-size:13px;color:var(--text-secondary)">专技合计：<strong style="color:var(--primary)">' + (profTotal || 0) + '</strong></div>';
+
+  h += '<div style="text-align:right;font-size:13px;color:var(--text-secondary);padding:4px 8px 0">';
+  h += '专技合计：<strong style="color:var(--primary)">' + grandEff + '</strong>';
+  if (hasHr && grandOrig !== grandHr) {
+    h += ' <span style="font-size:11px;color:var(--text-light)">（原始：' + grandOrig + ' / 人社：' + grandHr + '）</span>';
+  }
+  h += '</div>';
   return h;
 }
 
-function renderOriginalData() {
-  var r = currentRecord;
-  var html = '<div class="card"><div class="card-header">原始申报数据<span class="section-label original">原始申报</span></div><div class="card-body">';
+function renderCompareLaborSection() {
+  var hasHr = hasHrData();
+  var h = '<div class="compare-section-title">工勤技能岗位明细</div>';
+  h += '<table class="compare-table"><thead><tr><th>等级</th>';
+  if (hasHr) {
+    h += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
+  } else {
+    h += '<th class="col-original-th">原始申报</th><th class="col-final-th">最终结果</th>';
+  }
+  h += '</tr></thead><tbody>';
 
-  html += '<table class="grade-table" style="margin-bottom:16px"><thead><tr><th>项目</th><th>管理岗位</th><th>专技岗位</th><th>工勤技能岗位</th><th>合计</th></tr></thead><tbody>';
-  html += '<tr><td>数量</td><td>' + (r.mgmtPosts || 0) + '</td><td>' + (r.profPosts || 0) + '</td><td>' + (r.laborPosts || 0) + '</td><td><strong>' + (r.totalPosts || 0) + '</strong></td></tr>';
-  html += '</tbody></table>';
+  var sumOrig = 0, sumHr = 0, sumEff = 0;
+  LABOR_GRADES.forEach(function(g) {
+    var path = 'laborLevels.' + g;
+    var orig = getOriginalValue(path);
+    var hr = getHrValue(path);
+    var eff = getEditableValue(path);
+    sumOrig += (orig || 0);
+    if (hasHr) sumHr += (hr || 0);
+    sumEff += (eff || 0);
 
-  html += '<div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-secondary);">管理岗位</div>';
-  html += renderGradeTableReadonly(r.mgmtLevels, '等级', MGMT_GRADES, MGMT_GRADE_LABELS, '数量');
+    var isDiff = hasHr && hr !== null && orig !== hr;
+    var isModified = modifiedFields.hasOwnProperty(path);
+    h += '<tr class="' + (isDiff ? 'diff-row' : '') + (isModified ? ' modified-row' : '') + '">';
+    h += '<td>' + LABOR_GRADE_LABELS[g] + '</td>';
+    h += '<td class="col-original">' + (orig || 0) + '</td>';
+    if (hasHr) {
+      h += '<td class="col-hr' + (isDiff ? ' diff' : '') + '">' + (hr != null ? hr : '--') + '</td>';
+    }
+    h += '<td class="col-final' + (isModified ? ' modified' : '') + '" data-path="' + path + '" onclick="startEdit(this,\'' + path + '\')"><span>' + (eff || 0) + '</span></td>';
+    h += '</tr>';
+  });
 
-  html += '<div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-secondary);">专业技术岗位</div>';
-  html += renderProfReadonly(r.profLevels, r.profPosts);
-
-  html += '<div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-secondary);">工勤技能岗位</div>';
-  html += renderGradeTableReadonly(r.laborLevels, '等级', LABOR_GRADES, LABOR_GRADE_LABELS, '数量');
-
-  html += '</div></div>';
-  return html;
+  h += '<tr class="compare-total-row"><td><strong>合计</strong></td>';
+  h += '<td class="col-original"><strong>' + sumOrig + '</strong></td>';
+  if (hasHr) h += '<td class="col-hr"><strong>' + sumHr + '</strong></td>';
+  h += '<td class="col-final"><strong>' + sumEff + '</strong></td>';
+  h += '</tr></tbody></table>';
+  return h;
 }
 
-function renderHrApprovedData() {
-  var r = currentRecord;
-  var hr = r.hrResult;
-  if (!hr) {
-    return '<div class="card"><div class="card-header">人社核准结果<span class="section-label approved">人社核准</span></div><div class="card-body"><div style="text-align:center;padding:20px;color:var(--text-light);">暂无数据</div></div></div>';
+function renderComparisonTable() {
+  var hasHr = hasHrData();
+  var allMods = (currentRecord.secondReviewModifications || []).slice();
+  Object.keys(modifiedFields).forEach(function(path) {
+    if (!allMods.some(function(m) { return m.field === path; })) {
+      var orig = getOriginalValue(path);
+      allMods.push({ field: path, oldValue: orig, newValue: modifiedFields[path] });
+    }
+  });
+  var totalModCount = allMods.length;
+
+  var html = '<div class="card" id="comparisonCard">';
+  html += '<div class="card-header">数据对比与修改区';
+  if (hasHr) {
+    html += '<span class="section-label editable">可编辑</span>';
+  } else {
+    html += '<span class="section-label approved">待录入</span>';
+  }
+  if (totalModCount > 0) {
+    html += '<span class="mod-summary">' + totalModCount + ' 处修改</span>';
+  }
+  html += '</div><div class="card-body">';
+
+  if (!hasHr) {
+    html += '<div class="compare-no-hr">⚠ 学校尚未录入人社核准结果。当前显示学校原始申报数据，您可以直接修改后确认通过。</div>';
   }
 
-  var html = '<div class="card"><div class="card-header">人社核准结果<span class="section-label approved">人社核准</span></div><div class="card-body">';
-
-  html += '<table class="grade-table" style="margin-bottom:16px"><thead><tr><th>项目</th><th>管理岗位</th><th>专技岗位</th><th>工勤技能岗位</th><th>合计</th></tr></thead><tbody>';
-  var hrTotal = (hr.totalPosts) || ((hr.mgmtPosts || 0) + (hr.profPosts || 0) + (hr.laborPosts || 0));
-  html += '<tr><td>数量</td><td>' + (hr.mgmtPosts || 0) + '</td><td>' + (hr.profPosts || 0) + '</td><td>' + (hr.laborPosts || 0) + '</td><td><strong>' + hrTotal + '</strong></td></tr>';
-  html += '</tbody></table>';
-
-  if (hr.mgmtLevels) {
-    html += '<div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-secondary);">管理岗位</div>';
-    html += renderGradeTableReadonly(hr.mgmtLevels, '等级', MGMT_GRADES, MGMT_GRADE_LABELS, '数量');
+  // Legend
+  html += '<div class="compare-legend">';
+  html += '<span class="legend-item"><span class="legend-dot same"></span> 三方一致</span>';
+  if (hasHr) {
+    html += '<span class="legend-item"><span class="legend-dot diff"></span> 人社与原始申报不同</span>';
   }
+  html += '<span class="legend-item"><span class="legend-dot modified"></span> 审核人已修改</span>';
+  html += '<span style="font-size:11px;color:var(--text-light);margin-left:auto;">点击"最终结果"列数字可编辑</span>';
+  html += '</div>';
 
-  if (hr.profLevels) {
-    html += '<div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-secondary);">专业技术岗位</div>';
-    html += renderProfReadonly(hr.profLevels, hr.profPosts);
+  // Total section
+  html += '<div class="compare-section-title">岗位总量</div>';
+  html += '<table class="compare-table"><thead><tr><th>项目</th>';
+  if (hasHr) {
+    html += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
+  } else {
+    html += '<th class="col-original-th">原始申报</th><th class="col-final-th">最终结果</th>';
   }
+  html += '</tr></thead><tbody>';
 
-  if (hr.laborLevels) {
-    html += '<div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-secondary);">工勤技能岗位</div>';
-    html += renderGradeTableReadonly(hr.laborLevels, '等级', LABOR_GRADES, LABOR_GRADE_LABELS, '数量');
-  }
+  ['mgmtPosts','profPosts','laborPosts'].forEach(function(key) {
+    var labels = { mgmtPosts: '管理岗位', profPosts: '专技岗位', laborPosts: '工勤技能岗位' };
+    var path = key;
+    var orig = getOriginalValue(path);
+    var hr = getHrValue(path);
+    var eff = getEditableValue(path);
+    var isDiff = hasHr && hr !== null && orig !== hr;
+    var isModified = modifiedFields.hasOwnProperty(path);
+    html += '<tr class="' + (isDiff ? 'diff-row' : '') + (isModified ? ' modified-row' : '') + '">';
+    html += '<td>' + labels[key] + '</td>';
+    html += '<td class="col-original">' + (orig || 0) + '</td>';
+    if (hasHr) {
+      html += '<td class="col-hr' + (isDiff ? ' diff' : '') + '">' + (hr != null ? hr : '--') + '</td>';
+    }
+    html += '<td class="col-final' + (isModified ? ' modified' : '') + '" data-path="' + path + '" onclick="startEdit(this,\'' + path + '\')"><span>' + (eff || 0) + '</span></td>';
+    html += '</tr>';
+  });
+
+  var totalOrig = (getOriginalValue('mgmtPosts')||0) + (getOriginalValue('profPosts')||0) + (getOriginalValue('laborPosts')||0);
+  var totalHr = hasHr ? ((getHrValue('mgmtPosts')||0) + (getHrValue('profPosts')||0) + (getHrValue('laborPosts')||0)) : null;
+  var totalEff = (getEditableValue('mgmtPosts')||0) + (getEditableValue('profPosts')||0) + (getEditableValue('laborPosts')||0);
+  var totalDiff = hasHr && totalHr !== null && totalOrig !== totalHr;
+  html += '<tr class="compare-total-row' + (totalDiff ? ' diff-row' : '') + '"><td><strong>岗位总量</strong></td>';
+  html += '<td class="col-original"><strong>' + totalOrig + '</strong></td>';
+  if (hasHr) html += '<td class="col-hr' + (totalDiff ? ' diff' : '') + '"><strong>' + totalHr + '</strong></td>';
+  html += '<td class="col-final"><strong>' + totalEff + '</strong></td>';
+  html += '</tr></tbody></table>';
+
+  // Grade sections
+  html += renderCompareMgmtSection();
+  html += renderCompareProfSection();
+  html += renderCompareLaborSection();
 
   html += '</div></div>';
   return html;
@@ -883,108 +1096,6 @@ function renderHrAttachment() {
     '&#x1F4C4; ' + escapeHtml(r.hrApprovalAttachment.name) +
     ' <span style="color:var(--text-light);font-size:11px;">(' + formatSize(r.hrApprovalAttachment.size) + ')</span>' +
     '</span></div></div>';
-}
-
-// ===== EDITABLE RENDERING =====
-function renderEditableMgmtTable() {
-  var h = '<table class="grade-table"><thead><tr><th>等级</th>';
-  MGMT_GRADES.forEach(function(g) { h += '<th>' + MGMT_GRADE_LABELS[g] + '</th>'; });
-  h += '<th>合计</th></tr></thead><tbody>';
-  h += '<tr><td class="ratio-cell">数量</td>';
-  MGMT_GRADES.forEach(function(g) {
-    var path = 'mgmtLevels.' + g;
-    var val = getEditableValue(path);
-    var isModified = modifiedFields.hasOwnProperty(path);
-    h += '<td class="editable-cell' + (isModified ? ' modified' : '') + '" data-path="' + path + '" onclick="startEdit(this,\'' + path + '\')"><span>' + val + '</span></td>';
-  });
-  var mgmtSum = 0;
-  MGMT_GRADES.forEach(function(g) { mgmtSum += parseInt(getEditableValue('mgmtLevels.' + g)) || 0; });
-  h += '<td class="sub-total">' + mgmtSum + '</td></tr>';
-  h += '</tbody></table>';
-  return h;
-}
-
-function renderEditableProfTable() {
-  var h = '';
-  var profGrand = 0;
-  PROF_LAYER_CONFIG.forEach(function(layer) {
-    h += '<table class="grade-table" style="margin-bottom:12px">';
-    h += '<thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '</th></tr>';
-    h += '<tr><th></th>';
-    layer.grades.forEach(function(g) { h += '<th>' + layer.gradeLabels[g] + '</th>'; });
-    h += '<th>合计</th></tr></thead><tbody>';
-    h += '<tr><td class="ratio-cell">数量</td>';
-    var layerSum = 0;
-    layer.grades.forEach(function(g) {
-      var path = 'profLevels.' + layer.key + '.levels.' + g;
-      var val = getEditableValue(path);
-      layerSum += val;
-      var isModified = modifiedFields.hasOwnProperty(path);
-      h += '<td class="editable-cell' + (isModified ? ' modified' : '') + '" data-path="' + path + '" onclick="startEdit(this,\'' + path + '\')"><span>' + val + '</span></td>';
-    });
-    profGrand += layerSum;
-    h += '<td class="sub-total">' + layerSum + '</td></tr>';
-    h += '</tbody></table>';
-  });
-  h += '<div style="text-align:right;font-size:13px;color:var(--text-secondary);margin-top:4px">专技合计：<strong style="color:var(--primary)">' + profGrand + '</strong></div>';
-  return h;
-}
-
-function renderEditableLaborTable() {
-  var h = '<table class="grade-table"><thead><tr><th>等级</th>';
-  LABOR_GRADES.forEach(function(g) { h += '<th>' + LABOR_GRADE_LABELS[g] + '</th>'; });
-  h += '<th>合计</th></tr></thead><tbody>';
-  h += '<tr><td class="ratio-cell">数量</td>';
-  LABOR_GRADES.forEach(function(g) {
-    var path = 'laborLevels.' + g;
-    var val = getEditableValue(path);
-    var isModified = modifiedFields.hasOwnProperty(path);
-    h += '<td class="editable-cell' + (isModified ? ' modified' : '') + '" data-path="' + path + '" onclick="startEdit(this,\'' + path + '\')"><span>' + val + '</span></td>';
-  });
-  var laborSum = 0;
-  LABOR_GRADES.forEach(function(g) { laborSum += parseInt(getEditableValue('laborLevels.' + g)) || 0; });
-  h += '<td class="sub-total">' + laborSum + '</td></tr>';
-  h += '</tbody></table>';
-  return h;
-}
-
-function renderDataModificationArea() {
-  var modCount = Object.keys(modifiedFields).length;
-  var r = currentRecord;
-  var existingMods = r.secondReviewModifications || [];
-  var totalModCount = modCount + existingMods.length;
-
-  var html = '<div class="card"><div class="card-header">数据修改区<span class="section-label editable">可编辑</span>';
-  if (totalModCount > 0) {
-    html += '<span class="mod-summary">' + totalModCount + ' 处修改</span>';
-  }
-  html += '</div><div class="card-body">';
-
-  var eff = getEffectiveData();
-  var effTotal = eff.totalPosts || ((eff.mgmtPosts || 0) + (eff.profPosts || 0) + (eff.laborPosts || 0));
-
-  html += '<table class="grade-table" style="margin-bottom:16px"><thead><tr><th>项目</th><th>管理岗位</th><th>专技岗位</th><th>工勤技能岗位</th><th>合计</th></tr></thead><tbody>';
-  html += '<tr>';
-  html += '<td>数量</td>';
-  html += '<td class="editable-cell' + (modifiedFields.hasOwnProperty('mgmtPosts') ? ' modified' : '') + '" data-path="mgmtPosts" onclick="startEdit(this,\'mgmtPosts\')"><span>' + (eff.mgmtPosts || 0) + '</span></td>';
-  html += '<td class="editable-cell' + (modifiedFields.hasOwnProperty('profPosts') ? ' modified' : '') + '" data-path="profPosts" onclick="startEdit(this,\'profPosts\')"><span>' + (eff.profPosts || 0) + '</span></td>';
-  html += '<td class="editable-cell' + (modifiedFields.hasOwnProperty('laborPosts') ? ' modified' : '') + '" data-path="laborPosts" onclick="startEdit(this,\'laborPosts\')"><span>' + (eff.laborPosts || 0) + '</span></td>';
-  html += '<td><strong>' + effTotal + '</strong></td>';
-  html += '</tr></tbody></table>';
-
-  html += '<div style="font-weight:600;font-size:13px;margin:16px 0 8px;color:var(--text-secondary);">管理岗位明细</div>';
-  html += renderEditableMgmtTable();
-
-  html += '<div style="font-weight:600;font-size:13px;margin:16px 0 8px;color:var(--text-secondary);">专业技术岗位明细</div>';
-  html += renderEditableProfTable();
-
-  html += '<div style="font-weight:600;font-size:13px;margin:16px 0 8px;color:var(--text-secondary);">工勤技能岗位明细</div>';
-  html += renderEditableLaborTable();
-
-  html += '<div style="margin-top:12px;font-size:11px;color:var(--text-light);">点击数字单元格可进行在线编辑，修改过的单元格会高亮显示橙色背景。</div>';
-
-  html += '</div></div>';
-  return html;
 }
 
 function renderModificationHistory() {
@@ -1108,43 +1219,16 @@ function saveModification(field, oldValue, newValue) {
 }
 
 function refreshEditableDisplay() {
-  var mainContent = document.getElementById('mainContent');
-  if (!mainContent) return;
-  var layout = mainContent.querySelector('.detail-layout');
-  if (!layout) return;
-  var detailMain = layout.querySelector('.detail-main');
-  if (!detailMain) return;
-
-  var cards = detailMain.querySelectorAll('.card');
-  var modAreaCard = null;
-  var modHistCard = null;
-  cards.forEach(function(card) {
-    var header = card.querySelector('.card-header');
-    if (header && header.textContent.indexOf('数据修改区') >= 0) {
-      modAreaCard = card;
+  var compCard = document.getElementById('comparisonCard');
+  if (compCard) {
+    var newHtml = renderComparisonTable();
+    var dummy = document.createElement('div');
+    dummy.innerHTML = newHtml;
+    var newCard = dummy.querySelector('.card');
+    if (newCard) {
+      compCard.parentNode.replaceChild(newCard, compCard);
     }
-    if (header && header.textContent.indexOf('修改记录') >= 0) {
-      modHistCard = card;
-    }
-  });
-
-  var editableAreaHtml = renderDataModificationArea();
-  var dummy = document.createElement('div');
-  dummy.innerHTML = editableAreaHtml;
-  var newCard = dummy.querySelector('.card');
-
-  if (modAreaCard && newCard) {
-    modAreaCard.parentNode.replaceChild(newCard, modAreaCard);
   }
-
-  var modHistHtml = renderModificationHistory();
-  dummy.innerHTML = modHistHtml;
-  var newHistCard = dummy.querySelector('.card');
-
-  if (modHistCard && newHistCard) {
-    modHistCard.parentNode.replaceChild(newHistCard, modHistCard);
-  }
-
   renderSidebarContent();
 }
 
@@ -1415,10 +1499,8 @@ function renderPage() {
     '<div class="detail-main">' +
     renderProgress() +
     renderSchoolInfo() +
-    renderOriginalData() +
-    renderHrApprovedData() +
+    renderComparisonTable() +
     renderHrAttachment() +
-    renderDataModificationArea() +
     '</div>' +
     '<div class="detail-sidebar" id="sidebarContent">' +
     renderTimeline() +
