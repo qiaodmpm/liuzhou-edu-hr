@@ -783,17 +783,21 @@ function renderMain() {
 
   // Todo area
   var todoHtml = '';
-  if (data.todos.length === 0) {
+  var reminderTodo = getReminderTodo();
+  var allTodos = reminderTodo ? [reminderTodo].concat(data.todos) : data.todos;
+  if (allTodos.length === 0) {
     todoHtml = '<div class="todo-empty">暂无待办事项</div>';
   } else {
     todoHtml = '<div class="todo-module-list">';
-    data.todos.forEach(function(t) {
+    allTodos.forEach(function(t) {
       var targetUrl = '#';
-      if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
+      if (t.reminder) { targetUrl = 'post-list-school.html'; }
+      else if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
       else if (t.mod === '入编申请') targetUrl = getEntryUrl();
+      var nameHtml = t.reminder ? '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>' + t.group + ' · 主管单位提醒您尽快提交岗位设置申请</small></div>' : '<div class="todo-module-name">' + t.mod + '<small>' + t.group + '</small></div>';
       todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (targetUrl !== '#' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
-      todoHtml += '<div class="todo-module-name">' + t.mod + '<small>' + t.group + '</small></div>';
+      todoHtml += nameHtml;
       var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
       todoHtml += '<div class="todo-counts">';
       todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
@@ -867,6 +871,19 @@ function getExitUrl() {
 function getPostUrl() {
   if (currentRole === 'city' || currentRole === 'district') return 'post-list-admin.html?role=' + currentRole;
   if (currentRole === 'school') return 'post-list-school.html';
+  return null;
+}
+
+function loadReminders() { try { return JSON.parse(localStorage.getItem('post_reminders') || '{}'); } catch(e) { return {}; } }
+
+function getReminderTodo() {
+  if (currentRole !== 'school') return null;
+  var data = ROLES[currentRole];
+  var reminders = loadReminders();
+  var r = reminders[data.org];
+  if (r && r.read === false) {
+    return { mod: '岗位设置申请提醒', group: '岗位管理', icon: '📋', iclass: 'blue', pending: 1, review: 0, reject: 0, reminder: true };
+  }
   return null;
 }
 

@@ -222,7 +222,24 @@ var DEMO_RECORDS = [
 
 function loadRecords() { var s = localStorage.getItem('post_records'); if (s) { try { return JSON.parse(s); } catch(e) {} } return JSON.parse(JSON.stringify(DEMO_RECORDS)); }
 function saveRecords(r) { localStorage.setItem('post_records', JSON.stringify(r)); }
-function resetDemoData() { localStorage.removeItem('post_records'); localStorage.removeItem('post_seq'); location.reload(); }
+function resetDemoData() { localStorage.removeItem('post_records'); localStorage.removeItem('post_seq'); localStorage.removeItem('post_reminders'); location.reload(); }
+
+function loadReminders() { try { return JSON.parse(localStorage.getItem('post_reminders') || '{}'); } catch(e) { return {}; } }
+function saveReminders(data) { localStorage.setItem('post_reminders', JSON.stringify(data)); }
+
+function hasUnreadReminder() {
+  var reminders = loadReminders();
+  var r = reminders[schoolName];
+  return r && r.read === false;
+}
+
+function markReminderRead() {
+  var reminders = loadReminders();
+  if (reminders[schoolName] && reminders[schoolName].read === false) {
+    reminders[schoolName].read = true;
+    saveReminders(reminders);
+  }
+}
 
 function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
 function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
@@ -238,7 +255,7 @@ function renderSidebar() {
   var roleData = ROLES[currentRole]; if (!roleData) return;
   var s = roleData.sidebar, html = '';
   (s.top||[]).forEach(function(i) { html += '<a class="menu-item' + (i.id==='postset'?' active':'') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[i.icon]||'') + '<span class="menu-label">' + i.label + '</span></a>'; });
-  (s.groups||[]).forEach(function(g) { html += '<div class="menu-group">' + g.name + '</div>'; g.items.forEach(function(i) { html += '<a class="menu-item' + (i.id==='postset'?' active':'') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id]||'file']) + '<span class="menu-label">' + i.label + '</span>' + (i.badge?'<span class="menu-badge">'+i.badge+'</span>':'') + '</a>'; }); });
+  (s.groups||[]).forEach(function(g) { html += '<div class="menu-group">' + g.name + '</div>'; g.items.forEach(function(i) { var badgeHtml = ''; if (i.badge) { badgeHtml = '<span class="menu-badge">' + i.badge + '</span>'; } else if (i.id === 'postset' && hasUnreadReminder()) { badgeHtml = '<span class="menu-badge">1</span>'; } html += '<a class="menu-item' + (i.id==='postset'?' active':'') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id]||'file']) + '<span class="menu-label">' + i.label + '</span>' + badgeHtml + '</a>'; }); });
   document.getElementById('sidebarMenu').innerHTML = html;
   document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
   var n = document.querySelector('.topnav-user span'); if(n) n.textContent = roleData.name;
@@ -334,6 +351,7 @@ function enterHrResult(id) { window.location.href = 'post-form.html?id=' + id + 
 function renderAll() { renderFilterBar(); renderTable(); }
 
 function init() {
+  markReminderRead();
   renderSidebar();
   renderAll();
 }
