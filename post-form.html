@@ -244,14 +244,20 @@ body {
 .summary-toggle svg { width: 16px; height: 16px; transition: transform 0.3s; }
 .summary-toggle.open svg { transform: rotate(180deg); }
 .summary-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-.summary-content.open { max-height: 2000px; }
+.summary-content.open { max-height: 4000px; }
 
-.summary-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
-.summary-table th { padding: 6px 8px; text-align: center; font-weight: 600; font-size: 11px; background: #F8FAFC; border: 1px solid var(--border); }
-.summary-table th.group-th { background: #EFF6FF; color: var(--primary); }
-.summary-table td { padding: 6px 8px; border: 1px solid var(--border); text-align: center; font-size: 12px; }
-.summary-table .sub-label { background: #F8FAFC; font-weight: 500; color: var(--text-secondary); text-align: left; }
-.summary-table .highlight { background: #FFF7ED; font-weight: 600; }
+.summary-top-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.summary-top-table th { padding: 8px 12px; border: 1px solid var(--border); background: #F8FAFC; font-weight: 600; text-align: center; width: 12%; }
+.summary-top-table td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
+.summary-top-table b { color: var(--primary); }
+.summary-sec-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.summary-sec-table th { padding: 5px 6px; border: 1px solid var(--border); text-align: center; font-weight: 600; font-size: 11px; background: #F8FAFC; }
+.summary-sec-table td { padding: 5px 6px; border: 1px solid var(--border); text-align: center; font-size: 12px; }
+.summary-sec-table .sec-title { background: #F8FAFC; font-weight: 600; font-size: 12px; text-align: center; vertical-align: middle; }
+.summary-sec-table .row-label-1 { background: #F8FAFC; font-weight: 500; color: var(--text-secondary); font-size: 11px; text-align: left; padding-left: 10px; }
+.summary-sec-table .row-label-2 { background: #FAFAFA; color: var(--text-light); font-size: 11px; text-align: left; padding-left: 20px; }
+.summary-sec-table .note-col { min-width: 44px; color: var(--text-light); font-size: 11px; }
+.summary-sec-table .data-zero { color: var(--text-light); }
 
 /* Buttons */
 .btn {
@@ -306,6 +312,10 @@ body {
 .limit-hint { font-size: 11px; color: var(--text-light); font-weight: 400; margin-left: 6px; }
 .limit-hint.warn { color: var(--warning); }
 .limit-hint.error { color: var(--danger); }
+.ratio-hint-row { background: #F8FAFC; color: var(--text-light); font-size: 11px; padding: 4px 10px !important; text-align: left !important; border-top: none !important; }
+.ratio-hint-bar { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #92400E; margin-bottom: 8px; line-height: 1.8; }
+.labor-th-hint { display: block; font-size: 10px; font-weight: 400; color: var(--text-light); margin-top: 2px; }
+.labor-footnote { font-size: 11px; color: var(--text-light); margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -510,7 +520,7 @@ var LEVEL_INTERNAL_RATIOS = {
 var LABOR_RATIO_LIMITS = { total_1_2: 10, level_1: 4, level_2: 6, level_3: 20, level_4: 40, level_5_min: 30 };
 
 var MGMT_GRADES = ['5', '6', '7', '8', '9', '10'];
-var MGMT_GRADE_LABELS = { '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
+var MGMT_GRADE_LABELS = { '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
 var PROF_LAYER_CONFIG = [
   { key: 'senior', label: '正高级', grades: ['3', '4'], gradeLabels: { '3': '三级', '4': '四级' } },
   { key: 'vice', label: '副高级', grades: ['5', '6', '7'], gradeLabels: { '5': '五级', '6': '六级', '7': '七级' } },
@@ -824,19 +834,13 @@ function renderBasicInfo() {
   var sd = POST_SCHOOL_DATA[schoolName] || POST_SCHOOL_DATA['柳州市第八中学'];
   var h = '<div class="form-card"><div class="form-card-title">单位基本信息</div><div class="form-grid">';
   h += '<div class="form-item full-width"><div class="form-label">单位全称</div><div class="form-value">' + schoolName + '</div></div>';
-  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>机构规格</div><select id="fOrgLevel" onchange="formData.orgLevel=this.value"><option value="">请选择</option>';
-  ORG_LEVELS.forEach(function(o) { h += '<option value="' + o + '"' + (formData.orgLevel === o ? ' selected' : '') + '>' + o + '</option>'; });
-  h += '</select></div>';
-  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>经费形式</div><select id="fFundType" onchange="formData.fundType=this.value"><option value="">请选择</option>';
-  FUND_TYPES.forEach(function(o) { h += '<option value="' + o + '"' + (formData.fundType === o ? ' selected' : '') + '>' + o + '</option>'; });
-  h += '</select></div>';
-  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>学校类型</div><select id="fSchoolType" onchange="onSchoolTypeChange(this.value)"><option value="">请选择</option>';
-  SCHOOL_TYPES.forEach(function(o) { h += '<option value="' + o + '"' + (formData.schoolType === o ? ' selected' : '') + '>' + o + '</option>'; });
-  h += '</select></div>';
-  h += '<div class="form-item"><div class="form-label"><span class="required">*</span>总量控制数</div><input type="number" id="fTotalQuota" value="' + (formData.totalQuota || '') + '" min="0" onchange="formData.totalQuota=parseInt(this.value)||0;autoCalc()"></div>';
-  h += '<div class="form-item"><div class="form-label">小高地岗位数</div><input type="number" id="fHighland" value="' + (formData.highlandPosts || 0) + '" min="0" onchange="formData.highlandPosts=parseInt(this.value)||0;autoCalc()"></div>';
-  h += '<div class="form-item"><div class="form-label">实名编制数</div><input type="number" id="fAuthCareer" value="' + (formData.authCareerStaff || '') + '" min="0" onchange="formData.authCareerStaff=parseInt(this.value)||0"></div>';
-  h += '<div class="form-item"><div class="form-label">聘用控制数</div><input type="number" id="fAuthControl" value="' + (formData.authControlNo || '') + '" min="0" onchange="formData.authControlNo=parseInt(this.value)||0"></div>';
+  h += '<div class="form-item"><div class="form-label">机构规格</div><div class="form-value">' + (formData.orgLevel || '-') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">经费形式</div><div class="form-value">' + (formData.fundType || '-') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">学校类型</div><div class="form-value">' + (formData.schoolType || '-') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">总量控制数</div><div class="form-value">' + (formData.totalQuota || '-') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">小高地岗位数</div><div class="form-value">' + (formData.highlandPosts || 0) + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">实名编制数</div><div class="form-value">' + (formData.authCareerStaff || '-') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">聘用控制数</div><div class="form-value">' + (formData.authControlNo || '-') + '</div></div>';
   h += '</div></div>';
   return h;
 }
@@ -887,10 +891,11 @@ function renderProfTable() {
     var ld = formData.profLevels[layer.key];
     var limitPct = limits ? limits[layer.key] : null;
     var actualPct = formData.profPosts > 0 ? (ld.total / formData.profPosts * 100).toFixed(1) : '0.0';
-    var limitHint = limitPct !== null ? '（上限 ' + limitPct + '%，当前 ' + actualPct + '%）' : '';
+    var layerPctId = 'profLayerPct_' + layer.key;
+    var limitHint = limitPct !== null ? '（上限 ' + limitPct + '%，当前 <span id="' + layerPctId + '">' + actualPct + '</span>%）' : '';
     var limitClass = limitPct !== null && parseFloat(actualPct) > limitPct ? ' error' : '';
 
-    h += '<table class="grade-table" style="margin-bottom:16px"><thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '<span class="limit-hint' + limitClass + '">' + limitHint + '</span></th></tr>';
+    h += '<table class="grade-table" style="margin-bottom:16px"><thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '<span class="limit-hint' + limitClass + '" id="profLayerHint_' + layer.key + '">' + limitHint + '</span></th></tr>';
     h += '<tr><th></th>';
     layer.grades.forEach(function(g) { h += '<th>' + layer.gradeLabels[g] + '</th>'; });
     h += '<th>合计</th></tr></thead><tbody>';
@@ -907,6 +912,16 @@ function renderProfTable() {
       h += '<td><input type="number" id="prof_' + layer.key + '_' + g + '" value="' + (ld.levels[g] || 0) + '" min="0" onchange="updateProf(\'' + layer.key + '\',\'' + g + '\',this.value)"></td>';
     });
     h += '<td class="sub-total" id="profSum_' + layer.key + '">' + ld.total + '</td></tr>';
+
+    var iRatios = LEVEL_INTERNAL_RATIOS[layer.key];
+    if (iRatios) {
+      var hintLabels = [], hintVals = [], iKeys = Object.keys(iRatios);
+      iKeys.forEach(function(k) { hintLabels.push(layer.gradeLabels[k]); hintVals.push(iRatios[k] / 10); });
+      var hintText = '等级内比例参考：' + hintLabels.join(' : ') + ' = ' + hintVals.join(' : ');
+      if (layer.key === 'junior') hintText += '（十三级不限）';
+      h += '<tr><td colspan="' + (layer.grades.length + 2) + '" class="ratio-hint-row">' + hintText + '</td></tr>';
+    }
+
     h += '</tbody></table>';
   });
 
@@ -918,9 +933,21 @@ function renderProfTable() {
 }
 
 function renderLaborTable() {
+  var LABOR_HINTS = {
+    '1': '≤' + LABOR_RATIO_LIMITS.level_1 + '%',
+    '2': '≤' + LABOR_RATIO_LIMITS.level_2 + '%',
+    '3': '≤' + LABOR_RATIO_LIMITS.level_3 + '%',
+    '4': '≤' + LABOR_RATIO_LIMITS.level_4 + '%',
+    '5': '≥' + LABOR_RATIO_LIMITS.level_5_min + '%',
+    'common': ''
+  };
   var h = '<div class="form-card"><div class="form-card-title">工勤技能岗位明细<span class="limit-hint">（合计应等于工勤技能岗位数量：<span id="laborTarget">' + (formData.laborPosts || 0) + '</span>）</span></div>';
   h += '<table class="grade-table"><thead><tr><th></th>';
-  LABOR_GRADES.forEach(function(g) { h += '<th>' + LABOR_GRADE_LABELS[g] + '</th>'; });
+  LABOR_GRADES.forEach(function(g) {
+    h += '<th>' + LABOR_GRADE_LABELS[g];
+    if (LABOR_HINTS[g]) h += '<span class="labor-th-hint">' + LABOR_HINTS[g] + '</span>';
+    h += '</th>';
+  });
   h += '<th>合计</th></tr></thead><tbody>';
   h += '<tr><td class="ratio-cell">比例</td>';
   LABOR_GRADES.forEach(function(g) {
@@ -932,7 +959,9 @@ function renderLaborTable() {
     h += '<td><input type="number" id="labor_' + g + '" value="' + (formData.laborLevels[g] || 0) + '" min="0" onchange="updateLabor(\'' + g + '\',this.value)"></td>';
   });
   h += '<td class="sub-total" id="laborSum">' + sumObj(formData.laborLevels) + '</td></tr>';
-  h += '</tbody></table></div>';
+  h += '</tbody></table>';
+  h += '<div class="labor-footnote">* 一级+二级合计 ≤ ' + LABOR_RATIO_LIMITS.total_1_2 + '%</div>';
+  h += '</div>';
   return h;
 }
 
@@ -965,31 +994,71 @@ function renderSummaryPreview() {
 }
 
 function buildSummaryTable() {
-  var h = '<table class="summary-table"><thead>';
-  h += '<tr><th rowspan="2">岗位类别</th><th rowspan="2">等级</th><th colspan="2">核定</th><th colspan="2">实聘</th></tr>';
-  h += '<tr><th>数量</th><th>比例(%)</th><th>数量</th><th>比例(%)</th></tr></thead><tbody>';
+  var MGMT_SUMMARY = ['4', '5', '6', '7', '8', '9', '10'];
+  var PROF_SUMMARY = ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
+  var LABOR_SUMMARY = ['1', '2', '3', '4', '5', 'common'];
+  var PROF_LABELS = { '3': '三级', '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级', '11': '十一级', '12': '十二级', '13': '十三级' };
 
-  var tp = (formData.mgmtPosts||0) + (formData.profPosts||0) + (formData.laborPosts||0);
-
-  h += '<tr class="highlight"><td rowspan="' + (MGMT_GRADES.length + 1) + '">管理岗位</td><td>合计</td><td>' + (formData.mgmtPosts||0) + '</td><td>' + pct(formData.mgmtPosts, tp) + '</td><td>—</td><td>—</td></tr>';
-  MGMT_GRADES.forEach(function(g) {
-    h += '<tr><td class="sub-label">' + MGMT_GRADE_LABELS[g] + '</td><td>' + (formData.mgmtLevels[g]||0) + '</td><td>' + pct(formData.mgmtLevels[g], formData.mgmtPosts) + '</td><td>—</td><td>—</td></tr>';
-  });
-
-  PROF_LAYER_CONFIG.forEach(function(layer) {
-    var ld = formData.profLevels[layer.key];
-    h += '<tr class="highlight"><td rowspan="' + (layer.grades.length + 1) + '">' + layer.label + '</td><td>合计</td><td>' + ld.total + '</td><td>' + pct(ld.total, formData.profPosts) + '</td><td>—</td><td>—</td></tr>';
-    layer.grades.forEach(function(g) {
-      h += '<tr><td class="sub-label">' + layer.gradeLabels[g] + '</td><td>' + (ld.levels[g]||0) + '</td><td>' + pct(ld.levels[g], ld.total) + '</td><td>—</td><td>—</td></tr>';
+  // Helper: get flat professional grade value
+  function profVal(g) {
+    var v = 0;
+    PROF_LAYER_CONFIG.forEach(function(layer) {
+      if (layer.grades.indexOf(g) !== -1) v = formData.profLevels[layer.key].levels[g] || 0;
     });
-  });
+    return v;
+  }
 
-  h += '<tr class="highlight"><td rowspan="' + (LABOR_GRADES.length + 1) + '">工勤技能岗位</td><td>合计</td><td>' + (formData.laborPosts||0) + '</td><td>' + pct(formData.laborPosts, tp) + '</td><td>—</td><td>—</td></tr>';
-  LABOR_GRADES.forEach(function(g) {
-    h += '<tr><td class="sub-label">' + LABOR_GRADE_LABELS[g] + '</td><td>' + (formData.laborLevels[g]||0) + '</td><td>' + pct(formData.laborLevels[g], formData.laborPosts) + '</td><td>—</td><td>—</td></tr>';
-  });
+  function buildSection(title, grades, gradeLabels, getVal, hasHighland, prefix) {
+    var nRows = 6 + (hasHighland ? 1 : 0); // header + 核准 + 实聘4 + optional 小高地
+    var h = '<table class="summary-sec-table"><tbody>';
 
-  h += '</tbody></table>';
+    // Row 1: grade header
+    h += '<tr>';
+    h += '<td class="sec-title" rowspan="' + nRows + '">' + title + '</td>';
+    h += '<th>等级</th><th></th>';
+    grades.forEach(function(g) { h += '<th>' + (gradeLabels[g] || LABOR_GRADE_LABELS[g]) + '</th>'; });
+    h += '<th class="note-col">备注</th></tr>';
+
+    // Row 2: 核准岗位数
+    h += '<tr><td class="row-label-1">核准岗位数</td><td></td>';
+    grades.forEach(function(g) { h += '<td id="sum_' + prefix + '_' + g + '">' + (getVal(g) || 0) + '</td>'; });
+    h += '<td></td></tr>';
+
+    // Rows 3-6: 实聘数 section
+    var subRows = [
+      { label: '实聘数', sub: '合计' },
+      { label: '', sub: '实名编' },
+      { label: '', sub: '控制数' },
+      { label: '', sub: '超岗聘用数' }
+    ];
+    if (hasHighland) subRows.push({ label: '', sub: '小高地岗位' });
+
+    subRows.forEach(function(sr, idx) {
+      h += '<tr>';
+      if (idx === 0) {
+        h += '<td class="row-label-1" rowspan="' + subRows.length + '">实聘数</td>';
+      }
+      h += '<td class="row-label-2">' + sr.sub + '</td>';
+      grades.forEach(function(g) { h += '<td class="data-zero">0</td>'; });
+      h += '<td></td></tr>';
+    });
+
+    h += '</tbody></table>';
+    return h;
+  }
+
+  var h = '';
+  // Top bar
+  h += '<table class="summary-top-table"><tr>';
+  h += '<th>定编人数</th><td>实名编<b>' + (formData.authCareerStaff||0) + '</b>+控制数<b>' + (formData.authControlNo||0) + '</b>（合计<b>' + (formData.totalQuota||0) + '</b>）</td>';
+  h += '<th>实有人数</th><td>实名编<b>—</b>+控制数<b>—</b>（合计<b>—</b>）</td>';
+  h += '<th>小高地岗位</th><td><b>' + (formData.highlandPosts||0) + '</b></td>';
+  h += '</tr></table>';
+
+  h += buildSection('管理岗位', MGMT_SUMMARY, MGMT_GRADE_LABELS, function(g) { return formData.mgmtLevels[g] || 0; }, false, 'mgmt');
+  h += buildSection('专业技术岗位', PROF_SUMMARY, PROF_LABELS, profVal, true, 'prof');
+  h += buildSection('工勤技能岗位', LABOR_SUMMARY, LABOR_GRADE_LABELS, function(g) { return formData.laborLevels[g] || 0; }, false, 'labor');
+
   return h;
 }
 
@@ -1124,6 +1193,13 @@ function autoCalc() {
     profGrand += ld.total;
     var sumEl = document.getElementById('profSum_' + layer.key);
     if (sumEl) sumEl.textContent = ld.total;
+    var layerPctEl = document.getElementById('profLayerPct_' + layer.key);
+    if (layerPctEl) layerPctEl.textContent = formData.profPosts > 0 ? (ld.total / formData.profPosts * 100).toFixed(1) : '0.0';
+    var layerHintEl = document.getElementById('profLayerHint_' + layer.key);
+    if (layerHintEl && limits && limits[layer.key] !== null) {
+      var layerPct = formData.profPosts > 0 ? (ld.total / formData.profPosts * 100) : 0;
+      layerHintEl.className = 'limit-hint' + (layerPct > limits[layer.key] ? ' error' : '');
+    }
     layer.grades.forEach(function(g) {
       var rEl = document.getElementById('profR_' + layer.key + '_' + g);
       if (rEl) rEl.textContent = (ld.total > 0 ? (ld.levels[g]/ld.total*100).toFixed(1) : '0.0') + '%';
@@ -1136,12 +1212,50 @@ function autoCalc() {
 
   LABOR_GRADES.forEach(function(g) {
     var el = document.getElementById('laborRatio_' + g);
-    if (el) el.textContent = pct(formData.laborLevels[g], formData.laborPosts) + '%';
+    if (el) {
+      var lr = formData.laborPosts > 0 ? ((formData.laborLevels[g] || 0) / formData.laborPosts * 100) : 0;
+      el.textContent = lr.toFixed(1) + '%';
+      var over = false;
+      if (g === '1' && lr > LABOR_RATIO_LIMITS.level_1 + 0.05) over = true;
+      if (g === '2' && lr > LABOR_RATIO_LIMITS.level_2 + 0.05) over = true;
+      if (g === '3' && lr > LABOR_RATIO_LIMITS.level_3 + 0.05) over = true;
+      if (g === '4' && lr > LABOR_RATIO_LIMITS.level_4 + 0.05) over = true;
+      if (g === '5' && lr < LABOR_RATIO_LIMITS.level_5_min - 0.05) over = true;
+      if ((g === '1' || g === '2') && formData.laborPosts > 0) {
+        var combined = ((formData.laborLevels['1'] || 0) + (formData.laborLevels['2'] || 0)) / formData.laborPosts * 100;
+        if (combined > LABOR_RATIO_LIMITS.total_1_2 + 0.05) over = true;
+      }
+      el.style.color = over ? 'var(--danger)' : '';
+      el.style.fontWeight = over ? '600' : '';
+    }
   });
   var laborSumEl = document.getElementById('laborSum');
   if (laborSumEl) laborSumEl.textContent = sumObj(formData.laborLevels);
   var laborTgt = document.getElementById('laborTarget');
   if (laborTgt) laborTgt.textContent = formData.laborPosts || 0;
+
+  // Sync summary table 核准岗位数
+  var sumContent = document.getElementById('summaryContent');
+  if (sumContent && sumContent.classList.contains('open')) {
+    ['4','5','6','7','8','9','10'].forEach(function(g) {
+      var el = document.getElementById('sum_mgmt_' + g);
+      if (el) el.textContent = formData.mgmtLevels[g] || 0;
+    });
+    ['3','4','5','6','7','8','9','10','11','12','13'].forEach(function(g) {
+      var el = document.getElementById('sum_prof_' + g);
+      if (el) {
+        var pv = 0;
+        PROF_LAYER_CONFIG.forEach(function(layer) {
+          if (layer.grades.indexOf(g) !== -1) pv = formData.profLevels[layer.key].levels[g] || 0;
+        });
+        el.textContent = pv;
+      }
+    });
+    ['1','2','3','4','5','common'].forEach(function(g) {
+      var el = document.getElementById('sum_labor_' + g);
+      if (el) el.textContent = formData.laborLevels[g] || 0;
+    });
+  }
 }
 
 function autoCalcHr() {
@@ -1342,7 +1456,7 @@ function submitFirstReview() {
         records[i].laborLevels = JSON.parse(JSON.stringify(formData.laborLevels));
         records[i].attachments = formData.attachments.slice();
         records[i].firstRejectReason = null;
-        records[i].timeline.push({ time: now, action: '修改重提一审', operator: operator });
+        records[i].timeline.push({ time: now, action: '修改重新申报', operator: operator });
         break;
       }
     }
@@ -1363,14 +1477,14 @@ function submitFirstReview() {
       firstReviewOpinion: null, firstReviewer: null, firstReviewTime: null, firstRejectReason: null,
       hrResult: null, hrApprovalAttachment: null,
       secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
-      timeline: [{ time: now, action: '学校提交一审', operator: operator }],
+      timeline: [{ time: now, action: '学校提交申报', operator: operator }],
       submitTime: now, completeTime: null
     };
     records.push(newRec);
   }
 
   saveRecords(records);
-  showToast('已提交一审', 'success');
+  showToast('申报已提交', 'success');
   setTimeout(function() { window.location.href = 'post-list-school.html'; }, 800);
 }
 
@@ -1418,7 +1532,7 @@ function renderFooter() {
   if (pageMode === 'hr') {
     h += '<button class="btn btn-primary btn-lg" onclick="submitHrResult()">提交人社结果</button>';
   } else {
-    h += '<button class="btn btn-primary btn-lg" onclick="submitFirstReview()">提交一审</button>';
+    h += '<button class="btn btn-primary btn-lg" onclick="submitFirstReview()">提交申报</button>';
   }
   document.getElementById('formFooter').innerHTML = h;
 }
