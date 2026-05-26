@@ -110,6 +110,29 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .action-link:hover { text-decoration: underline; }
 .action-link.warn { color: var(--warning); }
 
+/* Table scroll */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.list-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 12px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 1; }
+.list-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tr:hover { background: #FAFBFC; }
+.list-table th:first-child, .list-table td:first-child { text-align: left; }
+.col-id { font-family: monospace; font-size: 12px; }
+.col-num { text-align: center !important; }
+.col-pct { text-align: center !important; color: var(--text-secondary); font-size: 12px; }
+.col-action { text-align: center !important; }
+.col-action .action-links { display: flex; gap: 8px; justify-content: center; }
+.file-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.file-link:hover { text-decoration: underline; }
+.file-link.none { color: var(--text-light); cursor: default; }
+.file-link.none:hover { text-decoration: none; }
+.list-table td .action-links { display: flex; gap: 8px; }
+.list-table td .action-links .action-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.list-table td .action-links .action-link:hover { text-decoration: underline; }
+.list-table td .action-links .action-link.warn { color: var(--warning); }
+.list-table td .action-links .btn-sm { padding: 4px 12px; font-size: 12px; }
+
 /* Empty state */
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
 .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
@@ -205,6 +228,7 @@ var ROLES = {
 };
 
 var STATUS_MAP = { first_review:'一审待审核', first_approved:'一审通过', first_rejected:'一审驳回', second_review:'二审待审核', completed:'已完成' };
+var SCHOOL_CATEGORY_MAP = { '柳州市第八中学':'鱼峰区属', '鱼峰区实验小学':'鱼峰区属', '柳州高级中学':'市直属', '柳州市第一中学':'市直属' };
 var SCHOOL_LIST = ['柳州市第八中学', '鱼峰区实验小学', '柳州高级中学', '柳州市第一中学'];
 
 var currentRole = 'school';
@@ -214,6 +238,7 @@ var currentFilter = 'all';
 // DEMO
 var DEMO_RECORDS = [
   { id:'PS20260522001', schoolName:'柳州市第八中学', schoolType:'初中', status:'first_review', totalPosts:104, submitTime:'2026-05-22 09:00:00', orgLevel:'正科级', fundType:'全额拨款', totalQuota:104, highlandPosts:0, authCareerStaff:88, authControlNo:16, mgmtPosts:8, profPosts:80, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':2,'8':2,'9':1,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:15,levels:{'5':3,'6':6,'7':6}},middle:{total:45,levels:{'8':14,'9':18,'10':13}},junior:{total:20,levels:{'11':8,'12':8,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[], timeline:[{time:'2026-05-22 09:00:00',action:'学校提交一审',operator:'周敏'}], firstReviewOpinion:null, firstReviewer:null, firstReviewTime:null, firstRejectReason:null, hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
+{ id:'PS20260523001', schoolName:'柳州市第八中学', schoolType:'初中', status:'first_approved', totalPosts:104, submitTime:'2026-05-23 08:30:00', orgLevel:'正科级', fundType:'全额拨款', totalQuota:104, highlandPosts:0, authCareerStaff:88, authControlNo:16, mgmtPosts:8, profPosts:80, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':2,'8':2,'9':1,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:15,levels:{'5':3,'6':6,'7':6}},middle:{total:45,levels:{'8':14,'9':18,'10':13}},junior:{total:20,levels:{'11':8,'12':8,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[], timeline:[{time:'2026-05-23 08:30:00',action:'学校提交一审',operator:'周敏'},{time:'2026-05-24 10:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'}], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-24 10:00:00', firstRejectReason:null, hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
   { id:'PS20260520001', schoolName:'柳州高级中学', schoolType:'自治区示范高中', status:'first_review', totalPosts:186, submitTime:'2026-05-20 10:00:00', orgLevel:'正处级', fundType:'全额拨款', totalQuota:186, highlandPosts:0, authCareerStaff:186, authControlNo:0, mgmtPosts:10, profPosts:160, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':3,'8':2,'9':1,'10':1}, profLevels:{senior:{total:5,levels:{'3':1,'4':4}},vice:{total:48,levels:{'5':10,'6':19,'7':19}},middle:{total:83,levels:{'8':25,'9':33,'10':25}},junior:{total:24,levels:{'11':10,'12':10,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[{name:'柳高岗位设置方案.pdf',size:345000}], timeline:[{time:'2026-05-20 10:00:00',action:'学校提交一审',operator:'陈丽华'}], firstReviewOpinion:null, firstReviewer:null, firstReviewTime:null, firstRejectReason:null, hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
   { id:'PS20260518001', schoolName:'鱼峰区实验小学', schoolType:'小学', status:'first_approved', totalPosts:65, submitTime:'2026-05-18 14:00:00', orgLevel:'副科级', fundType:'全额拨款', totalQuota:65, highlandPosts:0, authCareerStaff:65, authControlNo:0, mgmtPosts:5, profPosts:54, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':1,'8':2,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:6,levels:{'5':1,'6':3,'7':2}},middle:{total:30,levels:{'8':9,'9':12,'10':9}},junior:{total:18,levels:{'11':8,'12':8,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, attachments:[], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-19 15:00:00', firstRejectReason:null, timeline:[{time:'2026-05-18 14:00:00',action:'学校提交一审',operator:'王玉兰'},{time:'2026-05-19 15:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'}], hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
   { id:'PS20260515001', schoolName:'鱼峰区实验小学', schoolType:'小学', status:'second_review', totalPosts:65, submitTime:'2026-05-15 08:00:00', orgLevel:'副科级', fundType:'全额拨款', totalQuota:65, highlandPosts:0, authCareerStaff:65, authControlNo:0, mgmtPosts:5, profPosts:54, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':1,'8':2,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:6,levels:{'5':1,'6':3,'7':2}},middle:{total:30,levels:{'8':9,'9':12,'10':9}},junior:{total:18,levels:{'11':8,'12':8,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, hrResult:{totalPosts:66,mgmtPosts:5,profPosts:55,laborPosts:6}, hrApprovalAttachment:{name:'人社批复_鱼峰实小.pdf',size:567000}, attachments:[], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-19 15:00:00', firstRejectReason:null, timeline:[{time:'2026-05-15 08:00:00',action:'学校提交一审',operator:'王玉兰'},{time:'2026-05-16 10:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'},{time:'2026-05-20 16:00:00',action:'录入人社结果并提交二审',operator:'王玉兰'}], secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
@@ -223,6 +248,8 @@ var DEMO_RECORDS = [
 function loadRecords() { var s = localStorage.getItem('post_records'); if (s) { try { return JSON.parse(s); } catch(e) {} } return JSON.parse(JSON.stringify(DEMO_RECORDS)); }
 function saveRecords(r) { localStorage.setItem('post_records', JSON.stringify(r)); }
 function resetDemoData() { localStorage.removeItem('post_records'); localStorage.removeItem('post_seq'); localStorage.removeItem('post_reminders'); location.reload(); }
+function pct(n, total) { return total > 0 ? (n / total * 100).toFixed(1) : '0.0'; }
+function formatSize(bytes) { if (!bytes) return ''; if (bytes < 1024) return bytes + 'B'; if (bytes < 1048576) return (bytes/1024).toFixed(1) + 'KB'; return (bytes/1048576).toFixed(1) + 'MB'; }
 
 function loadReminders() { try { return JSON.parse(localStorage.getItem('post_reminders') || '{}'); } catch(e) { return {}; } }
 function saveReminders(data) { localStorage.setItem('post_reminders', JSON.stringify(data)); }
@@ -268,17 +295,11 @@ function sidebarClick(el, id) {
   if (id==='staffing') { window.location.href='staffing-application.html'; return; }
   if (id==='entry') { window.location.href='教师入编管理（学校管理员视角）.html'; return; }
   if (id==='exit') { window.location.href='教师出编管理（学校管理员视角）.html'; return; }
+  if (id==='promote') { window.location.href = 'promote-list-school.html'; return; }
   if (id==='postset') return;
   showToast('跳转至：' + (el.querySelector('.menu-label')?el.querySelector('.menu-label').textContent:id));
 }
 
-function getStatusBadgeClass(status) {
-  if (status === 'first_review' || status === 'second_review') return 'review';
-  if (status === 'first_approved') return 'approved';
-  if (status === 'first_rejected') return 'rejected';
-  if (status === 'completed') return 'completed';
-  return 'pending';
-}
 
 function getFilteredRecords() {
   var records = loadRecords().filter(function(r) { return r.schoolName === schoolName; });
@@ -323,22 +344,67 @@ function renderTable() {
     document.getElementById('tableArea').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无岗位设置申请记录</div><button class="btn btn-primary" onclick="newApplication()">新建申请</button></div>';
     return;
   }
-  var h = '<table class="list-table"><thead><tr><th>申请编号</th><th>学校类型</th><th>岗位总量</th><th>提交时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+  var h = '<div class="table-scroll"><table class="list-table"><thead><tr>';
+  h += '<th>申请编号</th><th>学校名称</th><th>学校类型</th><th>所属区域</th><th>机构规格</th><th>经费形式</th>';
+  h += '<th>总量控制数</th><th>实名编制数</th><th>聘用控制数</th>';
+  h += '<th>岗位总量</th>';
+  h += '<th>管理岗</th><th>管理岗比</th>';
+  h += '<th>专技岗</th><th>专技岗比</th>';
+  h += '<th>工勤岗</th><th>工勤岗比</th>';
+  h += '<th>附件</th><th>人社批复</th>';
+  h += '<th>状态</th><th>操作</th>';
+  h += '</tr></thead><tbody>';
   records.forEach(function(r) {
+    var cat = SCHOOL_CATEGORY_MAP[r.schoolName] || '';
+    var tp = r.totalPosts || 0;
     h += '<tr>';
-    h += '<td>' + r.id + '</td>';
+    h += '<td class="col-id">' + r.id + '</td>';
+    h += '<td class="col-name">' + (r.schoolName||'—') + '</td>';
     h += '<td>' + (r.schoolType||'—') + '</td>';
-    h += '<td>' + (r.totalPosts||0) + '</td>';
-    h += '<td>' + (r.submitTime ? r.submitTime.substring(0,16) : '—') + '</td>';
-    h += '<td><span class="status-badge ' + getStatusBadgeClass(r.status) + '">' + (STATUS_MAP[r.status]||r.status) + '</span></td>';
-    h += '<td><div class="action-links">';
+    h += '<td>' + (cat||'—') + '</td>';
+    h += '<td>' + (r.orgLevel||'—') + '</td>';
+    h += '<td>' + (r.fundType||'—') + '</td>';
+    h += '<td class="col-num">' + (r.totalQuota||0) + '</td>';
+    h += '<td class="col-num">' + (r.authCareerStaff||0) + '</td>';
+    h += '<td class="col-num">' + (r.authControlNo||0) + '</td>';
+    h += '<td class="col-num"><strong>' + tp + '</strong></td>';
+    h += '<td class="col-num">' + (r.mgmtPosts||0) + '</td>';
+    h += '<td class="col-pct">' + pct(r.mgmtPosts||0, tp) + '%</td>';
+    h += '<td class="col-num">' + (r.profPosts||0) + '</td>';
+    h += '<td class="col-pct">' + pct(r.profPosts||0, tp) + '%</td>';
+    h += '<td class="col-num">' + (r.laborPosts||0) + '</td>';
+    h += '<td class="col-pct">' + pct(r.laborPosts||0, tp) + '%</td>';
+    // Attachments
+    h += '<td>';
+    if (r.attachments && r.attachments.length > 0) {
+      r.attachments.forEach(function(f, fi) {
+        h += '<div><a class="file-link" onclick="showToast(\'预览：' + f.name + '（模拟）\')">' + (fi+1) + '.' + f.name + '</a></div>';
+      });
+    } else { h += '<span class="file-link none">无</span>'; }
+    h += '</td>';
+    // HR approval attachment
+    h += '<td>';
+    if (r.hrApprovalAttachment) {
+      h += '<a class="file-link" onclick="showToast(\'预览：' + r.hrApprovalAttachment.name + '（模拟）\')">' + r.hrApprovalAttachment.name + '</a>';
+    } else { h += '<span class="file-link none">—</span>'; }
+    h += '</td>';
+    // Status
+    var st = r.status || '';
+    var statusCls = '';
+    if (st === 'first_review' || st === 'second_review') statusCls = 'review';
+    else if (st === 'first_approved') statusCls = 'approved';
+    else if (st === 'first_rejected') statusCls = 'rejected';
+    else if (st === 'completed') statusCls = 'completed';
+    h += '<td><span class="status-badge ' + statusCls + '">' + STATUS_MAP[st] + '</span></td>';
+    // Actions
+    h += '<td class="col-action"><div class="action-links">';
     h += '<a class="action-link" onclick="viewDetail(\'' + r.id + '\')">查看</a>';
     if (r.status === 'first_rejected') h += '<a class="action-link warn" onclick="editRecord(\'' + r.id + '\')">编辑重提</a>';
-    if (r.status === 'first_approved') h += '<a class="action-link" onclick="enterHrResult(\'' + r.id + '\')">录入人社结果</a>';
+    if (r.status === 'first_approved') { h += '<a class="action-link" onclick="enterHrResult(\'' + r.id + '\')">录入人社结果</a>'; h += '<a class="action-link" onclick="exportRecord(\'' + r.id + '\')">导出数据</a>'; }
     if (r.status === 'completed') h += '<a class="action-link" onclick="showToast(\'PDF下载功能开发中\')">下载PDF</a>';
     h += '</div></td></tr>';
   });
-  h += '</tbody></table>';
+  h += '</tbody></table></div>';
   document.getElementById('tableArea').innerHTML = h;
 }
 
@@ -347,6 +413,89 @@ function newApplication() { window.location.href = 'post-form.html'; }
 function viewDetail(id) { window.location.href = 'post-detail.html?id=' + id; }
 function editRecord(id) { window.location.href = 'post-form.html?id=' + id + '&mode=edit'; }
 function enterHrResult(id) { window.location.href = 'post-form.html?id=' + id + '&mode=hr'; }
+
+function exportRecord(id) {
+  var records = loadRecords();
+  var r = records.find(function(rec) { return rec.id === id; });
+  if (!r) { showToast('记录不存在', 'warning'); return; }
+
+  var mgmtLabels = { '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
+  var profLabels = { '3': '三级', '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级', '11': '十一级', '12': '十二级', '13': '十三级' };
+  var laborLabels = { '1': '一级', '2': '二级', '3': '三级', '4': '四级', '5': '五级', 'common': '普通工' };
+
+  var rows = [];
+  rows.push(['柳州市事业单位岗位设置审核表']);
+  rows.push(['']);
+  rows.push(['申请编号', r.id]);
+  rows.push(['学校名称', r.schoolName || '']);
+  rows.push(['学校类型', r.schoolType || '']);
+  rows.push(['机构规格', r.orgLevel || '']);
+  rows.push(['经费形式', r.fundType || '']);
+  rows.push(['总量控制数', r.totalQuota || 0]);
+  rows.push(['小高地岗位数', r.highlandPosts || 0]);
+  rows.push(['实名编制数', r.authCareerStaff || 0]);
+  rows.push(['聘用控制数', r.authControlNo || 0]);
+  rows.push(['']);
+  rows.push(['岗位类别', '数量', '占比']);
+  var tp = r.totalPosts || 1;
+  rows.push(['岗位总量', r.totalPosts || 0, '100%']);
+  rows.push(['管理岗位', r.mgmtPosts || 0, pct(r.mgmtPosts||0, tp) + '%']);
+  rows.push(['专业技术岗位', r.profPosts || 0, pct(r.profPosts||0, tp) + '%']);
+  rows.push(['工勤技能岗位', r.laborPosts || 0, pct(r.laborPosts||0, tp) + '%']);
+  rows.push(['']);
+  rows.push(['管理岗位明细']);
+  rows.push(['等级'].concat(['五级','六级','七级','八级','九级','十级','合计']));
+  var mgmtRow = ['数量'];
+  var mgmtSum = 0;
+  ['5','6','7','8','9','10'].forEach(function(g) { var v = (r.mgmtLevels && r.mgmtLevels[g]) || 0; mgmtRow.push(v); mgmtSum += v; });
+  mgmtRow.push(mgmtSum);
+  rows.push(mgmtRow);
+  rows.push(['']);
+  rows.push(['专业技术岗位明细']);
+  rows.push(['层级', '等级', '三级', '四级', '五级', '六级', '七级', '八级', '九级', '十级', '十一级', '十二级', '十三级', '合计']);
+  var layerConfig = [
+    { key: 'senior', label: '正高级', grades: ['3','4'] },
+    { key: 'vice', label: '副高级', grades: ['5','6','7'] },
+    { key: 'middle', label: '中级', grades: ['8','9','10'] },
+    { key: 'junior', label: '初级', grades: ['11','12','13'] }
+  ];
+  layerConfig.forEach(function(layer) {
+    var ld = r.profLevels && r.profLevels[layer.key];
+    var qtyRow = [layer.label, '数量'];
+    var allGrades = ['3','4','5','6','7','8','9','10','11','12','13'];
+    var layerSum = 0;
+    allGrades.forEach(function(g) {
+      var v = (ld && ld.levels && ld.levels[g]) ? ld.levels[g] : 0;
+      qtyRow.push(layer.grades.indexOf(g) >= 0 ? v : '');
+      if (layer.grades.indexOf(g) >= 0) layerSum += v;
+    });
+    qtyRow.push(layerSum);
+    rows.push(qtyRow);
+  });
+  rows.push(['']);
+  rows.push(['工勤技能岗位明细']);
+  rows.push(['等级', '一级', '二级', '三级', '四级', '五级', '普通工', '合计']);
+  var laborRow = ['数量'];
+  var laborSum = 0;
+  ['1','2','3','4','5','common'].forEach(function(g) { var v = (r.laborLevels && r.laborLevels[g]) || 0; laborRow.push(v); laborSum += v; });
+  laborRow.push(laborSum);
+  rows.push(laborRow);
+  rows.push(['']);
+  rows.push(['状态', STATUS_MAP[r.status] || r.status]);
+  rows.push(['提交时间', r.submitTime || '']);
+
+  var bom = '﻿';
+  var csv = bom + rows.map(function(row) { return row.map(function(c) { return '"' + String(c != null ? c : '').replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (r.schoolName || 'export') + '_岗位设置审核表_' + r.id + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('已导出', 'success');
+}
 
 function renderAll() { renderFilterBar(); renderTable(); }
 

@@ -94,11 +94,17 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 
 /* Table */
 .list-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
-.list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.list-table th { padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border); }
-.list-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.list-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+.list-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
 .list-table tr:last-child td { border-bottom: none; }
 .list-table tr:hover { background: #FAFBFC; }
+.list-table .col-id { color: var(--primary); font-weight: 500; }
+.list-table .col-name { text-align: left; font-weight: 500; }
+.list-table .col-num { font-family: 'SF Mono', 'Consolas', monospace; }
+.list-table .col-pct { color: var(--text-secondary); font-size: 12px; }
+.list-table .col-action { white-space: nowrap; }
 .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
 .status-badge.pending { background: #FEF3C7; color: #92400E; }
 .status-badge.approved { background: #D1FAE5; color: #065F46; }
@@ -109,6 +115,17 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .action-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
 .action-link:hover { text-decoration: underline; }
 .action-link.warn { color: var(--warning); }
+
+/* Category badge */
+.cat-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 500; margin-left: 6px; }
+.cat-badge.district { background: #DBEAFE; color: #1E40AF; }
+.cat-badge.city { background: #FEF3C7; color: #92400E; }
+
+/* File link */
+.file-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; }
+.file-link:hover { text-decoration: underline; }
+.file-link.none { color: var(--text-light); cursor: default; }
+.file-link.none:hover { text-decoration: none; }
 
 /* Remind button */
 .btn-remind { padding: 4px 12px; font-size: 12px; background: #fff; color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; cursor: pointer; font-family: inherit; white-space: nowrap; }
@@ -136,6 +153,24 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .toast.warning { background: var(--warning); color: #1E293B; }
 .toast.success { background: var(--success); }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* Export modal */
+.modal-wide { width: 920px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; }
+.export-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.export-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--text-secondary); }
+.export-filters select { padding: 5px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; background: #fff; min-width: 120px; }
+.export-table-wrap { flex: 1; overflow: auto; max-height: 380px; border: 1px solid var(--border); border-radius: 6px; }
+.export-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.export-table th { padding: 8px 10px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; }
+.export-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: center; }
+.export-table tr:hover { background: #FAFBFC; }
+.export-table .cb-cell { width: 36px; text-align: center; }
+.export-summary { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; font-size: 12px; color: var(--text-secondary); }
+.btn-export { padding: 8px 20px; font-size: 13px; font-weight: 500; border-radius: 6px; border: none; background: var(--primary); color: #fff; cursor: pointer; font-family: inherit; }
+.btn-export:hover { background: var(--primary-dark); }
+.btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-outline { padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--text); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+.btn-outline:hover { background: var(--gray-bg); border-color: var(--text-light); }
 </style>
 </head>
 <body>
@@ -182,6 +217,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
       <h1>岗位设置申请管理</h1>
       <div class="subtitle">审核管理各学校提交的岗位设置申请</div>
     </div>
+    <button class="btn-outline" onclick="showExportModal()">导出数据</button>
   </div>
 
   <div class="filter-bar" id="filterBar"></div>
@@ -219,7 +255,7 @@ var ROLES = {
   teacher: { name:'陈明辉', short:'师', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]}]}}
 };
 
-var STATUS_MAP = { first_review:'待审核', first_approved:'已通过', first_rejected:'已驳回', second_review:'待审核', completed:'已完成' };
+var STATUS_MAP = { first_review:'一审待审核', first_approved:'一审通过', first_rejected:'一审驳回', second_review:'二审待审核', completed:'已完成' };
 var SCHOOL_LIST = ['柳州市第八中学', '鱼峰区实验小学', '柳州高级中学', '柳州市第一中学', '柳州市特色实验高中', '鱼峰区机关幼儿园', '柳州市第二中学', '鱼峰区第一小学'];
 
 var SCHOOL_CATEGORY_MAP = {
@@ -252,6 +288,8 @@ function saveRecords(r) { localStorage.setItem('post_records', JSON.stringify(r)
 function resetDemoData() { localStorage.removeItem('post_records'); localStorage.removeItem('post_seq'); location.reload(); }
 
 function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
+function pct(n, total) { return total > 0 ? (n / total * 100).toFixed(1) : '0.0'; }
+function formatSize(bytes) { if (!bytes) return ''; if (bytes < 1024) return bytes + 'B'; if (bytes < 1048576) return (bytes/1024).toFixed(1) + 'KB'; return (bytes/1048576).toFixed(1) + 'MB'; }
 function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
 document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
@@ -396,6 +434,7 @@ function sidebarClick(el, id) {
   if (id==='staffing') { window.location.href='staffing-application.html'; return; }
   if (id==='entry') { window.location.href='教师入编管理（学校管理员视角）.html'; return; }
   if (id==='exit') { window.location.href='教师出编管理（学校管理员视角）.html'; return; }
+  if (id==='promote') { window.location.href = 'promote-list-admin.html?role=' + currentRole; return; }
   if (id==='postset') return;
   showToast('跳转至：' + (el.querySelector('.menu-label')?el.querySelector('.menu-label').textContent:id));
 }
@@ -412,7 +451,7 @@ function renderFilterBar() {
   var counts = getFilterCounts();
   var tabs = [
     { key:'all', label:'全部', count:counts.all },
-    { key:'reviewing', label:'待审核', count:counts.reviewing },
+    { key:'reviewing', label:'审核中', count:counts.reviewing },
     { key:'passed', label:'已通过', count:counts.passed },
     { key:'rejected', label:'已驳回', count:counts.rejected },
     { key:'unsubmitted', label:'待提交', count:counts.unsubmitted }
@@ -458,22 +497,66 @@ function renderTable() {
     document.getElementById('tableArea').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无岗位设置申请记录</div></div>';
     return;
   }
-  var h = '<table class="list-table"><thead><tr><th>申请编号</th><th>学校名称</th><th>学校类型</th><th>岗位总量</th><th>提交时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+  var h = '<div class="table-scroll"><table class="list-table"><thead><tr>';
+  h += '<th>申请编号</th><th>学校名称</th><th>学校类型</th><th>所属区域</th><th>机构规格</th><th>经费形式</th>';
+  h += '<th>总量控制数</th><th>实名编制数</th><th>聘用控制数</th>';
+  h += '<th>岗位总量</th>';
+  h += '<th>管理岗</th><th>管理岗比</th>';
+  h += '<th>专技岗</th><th>专技岗比</th>';
+  h += '<th>工勤岗</th><th>工勤岗比</th>';
+  h += '<th>附件</th><th>人社批复</th>';
+  h += '<th>状态</th><th>操作</th>';
+  h += '</tr></thead><tbody>';
   records.forEach(function(r) {
+    var cat = SCHOOL_CATEGORY_MAP[r.schoolName] || '';
+    var tp = r.totalPosts || 0;
     h += '<tr>';
-    h += '<td>' + r.id + '</td>';
-    h += '<td>' + (r.schoolName||'—') + '</td>';
+    h += '<td class="col-id">' + r.id + '</td>';
+    h += '<td class="col-name">' + (r.schoolName||'—') + '</td>';
     h += '<td>' + (r.schoolType||'—') + '</td>';
-    h += '<td>' + (r.totalPosts||0) + '</td>';
-    h += '<td>' + (r.submitTime ? r.submitTime.substring(0,16) : '—') + '</td>';
-    h += '<td><span class="status-badge ' + getStatusBadgeClass(r.status) + '">' + (STATUS_MAP[r.status]||r.status) + '</span></td>';
-    h += '<td><div class="action-links">';
+    h += '<td>' + (cat||'—') + '</td>';
+    h += '<td>' + (r.orgLevel||'—') + '</td>';
+    h += '<td>' + (r.fundType||'—') + '</td>';
+    h += '<td class="col-num">' + (r.totalQuota||0) + '</td>';
+    h += '<td class="col-num">' + (r.authCareerStaff||0) + '</td>';
+    h += '<td class="col-num">' + (r.authControlNo||0) + '</td>';
+    h += '<td class="col-num"><strong>' + tp + '</strong></td>';
+    h += '<td class="col-num">' + (r.mgmtPosts||0) + '</td>';
+    h += '<td class="col-pct">' + pct(r.mgmtPosts||0, tp) + '%</td>';
+    h += '<td class="col-num">' + (r.profPosts||0) + '</td>';
+    h += '<td class="col-pct">' + pct(r.profPosts||0, tp) + '%</td>';
+    h += '<td class="col-num">' + (r.laborPosts||0) + '</td>';
+    h += '<td class="col-pct">' + pct(r.laborPosts||0, tp) + '%</td>';
+    // Attachments
+    h += '<td>';
+    if (r.attachments && r.attachments.length > 0) {
+      r.attachments.forEach(function(f, fi) {
+        h += '<div><a class="file-link" onclick="showToast(\'预览：' + f.name + '（模拟）\')">' + (fi+1) + '.' + f.name + '</a></div>';
+      });
+    } else { h += '<span class="file-link none">无</span>'; }
+    h += '</td>';
+    // HR approval attachment
+    h += '<td>';
+    if (r.hrApprovalAttachment) {
+      h += '<a class="file-link" onclick="showToast(\'预览：' + r.hrApprovalAttachment.name + '（模拟）\')">' + r.hrApprovalAttachment.name + '</a>';
+    } else { h += '<span class="file-link none">—</span>'; }
+    h += '</td>';
+    // Status
+    var statusCls = '';
+    var st = r.status || '';
+    if (st === 'first_review' || st === 'second_review') statusCls = 'review';
+    else if (st === 'first_approved') statusCls = 'approved';
+    else if (st === 'first_rejected') statusCls = 'rejected';
+    else if (st === 'completed') statusCls = 'completed';
+    h += '<td><span class="status-badge ' + statusCls + '">' + STATUS_MAP[st] + '</span></td>';
+    // Actions
+    h += '<td class="col-action"><div class="action-links">';
     if (canFirstReview(r)) { h += '<a class="action-link" onclick="reviewFirst(\'' + r.id + '\')">审核</a>'; }
-    else if (canSecondReview(r)) { h += '<a class="action-link" onclick="reviewSecond(\'' + r.id + '\')">二审</a>'; }
+    else if (canSecondReview(r)) { h += '<a class="action-link" onclick="reviewSecond(\'' + r.id + '\')">审核</a>'; }
     else { h += '<a class="action-link" onclick="viewDetail(\'' + r.id + '\')">查看</a>'; }
     h += '</div></td></tr>';
   });
-  h += '</tbody></table>';
+  h += '</tbody></table></div>';
   document.getElementById('tableArea').innerHTML = h;
 }
 
@@ -483,6 +566,202 @@ function reviewFirst(id) { window.location.href = 'post-audit-first.html?id=' + 
 function reviewSecond(id) { window.location.href = 'post-audit-second.html?id=' + id; }
 
 function renderAll() { renderFilterBar(); renderTable(); }
+
+// ===== Export Modal =====
+function showExportModal() {
+  var records = getPermittedRecords();
+  var schools = [], orgLevels = [], fundTypes = [], categories = [], schoolTypes = [], statuses = [];
+  records.forEach(function(r) {
+    var cat = SCHOOL_CATEGORY_MAP[r.schoolName] || '';
+    if (r.schoolName && schools.indexOf(r.schoolName) < 0) schools.push(r.schoolName);
+    if (r.orgLevel && orgLevels.indexOf(r.orgLevel) < 0) orgLevels.push(r.orgLevel);
+    if (r.fundType && fundTypes.indexOf(r.fundType) < 0) fundTypes.push(r.fundType);
+    if (cat && categories.indexOf(cat) < 0) categories.push(cat);
+    if (r.schoolType && schoolTypes.indexOf(r.schoolType) < 0) schoolTypes.push(r.schoolType);
+    if (r.status && statuses.indexOf(r.status) < 0) statuses.push(r.status);
+  });
+
+  var h = '<div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">';
+  h += '<div class="modal-container modal-wide">';
+  h += '<h3>导出数据</h3>';
+
+  // Filters
+  h += '<div class="export-filters">';
+  h += '<label>学校名称<select id="ef_school" onchange="filterExportTable()"><option value="">全部</option>';
+  schools.forEach(function(s) { h += '<option value="' + s + '">' + s + '</option>'; });
+  h += '</select></label>';
+  h += '<label>机构规格<select id="ef_org" onchange="filterExportTable()"><option value="">全部</option>';
+  orgLevels.forEach(function(s) { h += '<option value="' + s + '">' + s + '</option>'; });
+  h += '</select></label>';
+  h += '<label>经费形式<select id="ef_fund" onchange="filterExportTable()"><option value="">全部</option>';
+  fundTypes.forEach(function(s) { h += '<option value="' + s + '">' + s + '</option>'; });
+  h += '</select></label>';
+  h += '<label>所属区域<select id="ef_cat" onchange="filterExportTable()"><option value="">全部</option>';
+  categories.forEach(function(s) { h += '<option value="' + s + '">' + s + '</option>'; });
+  h += '</select></label>';
+  h += '<label>学校类型<select id="ef_type" onchange="filterExportTable()"><option value="">全部</option>';
+  schoolTypes.forEach(function(s) { h += '<option value="' + s + '">' + s + '</option>'; });
+  h += '</select></label>';
+  h += '<label>状态<select id="ef_status" onchange="filterExportTable()"><option value="">全部</option>';
+  statuses.forEach(function(s) { h += '<option value="' + s + '">' + STATUS_MAP[s] + '</option>'; });
+  h += '</select></label>';
+  h += '</div>';
+
+  // Table
+  h += '<div class="export-table-wrap"><table class="export-table"><thead><tr>';
+  h += '<th class="cb-cell"><input type="checkbox" id="exportSelectAll" onchange="toggleExportSelectAll()" checked></th>';
+  h += '<th>申请编号</th><th>学校名称</th><th>学校类型</th><th>所属区域</th><th>机构规格</th><th>经费形式</th>';
+  h += '<th>岗位总量</th><th>管理岗</th><th>专技岗</th><th>工勤岗</th><th>状态</th><th>提交时间</th>';
+  h += '</tr></thead><tbody id="exportTbody">';
+  records.forEach(function(r) {
+    var cat = SCHOOL_CATEGORY_MAP[r.schoolName] || '';
+    h += '<tr data-id="' + r.id + '" data-school="' + (r.schoolName||'') + '" data-org="' + (r.orgLevel||'') + '" data-fund="' + (r.fundType||'') + '" data-cat="' + cat + '" data-type="' + (r.schoolType||'') + '" data-status="' + (r.status||'') + '">';
+    h += '<td class="cb-cell"><input type="checkbox" class="export-cb" value="' + r.id + '" checked onchange="updateExportSummary()"></td>';
+    h += '<td>' + r.id + '</td>';
+    h += '<td>' + (r.schoolName||'') + '</td>';
+    h += '<td>' + (r.schoolType||'') + '</td>';
+    h += '<td>' + cat + '</td>';
+    h += '<td>' + (r.orgLevel||'') + '</td>';
+    h += '<td>' + (r.fundType||'') + '</td>';
+    h += '<td>' + (r.totalPosts||0) + '</td>';
+    h += '<td>' + (r.mgmtPosts||0) + '</td>';
+    h += '<td>' + (r.profPosts||0) + '</td>';
+    h += '<td>' + (r.laborPosts||0) + '</td>';
+    h += '<td>' + (STATUS_MAP[r.status]||'') + '</td>';
+    h += '<td>' + (r.submitTime||'').substring(0,10) + '</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  // Footer
+  h += '<div class="export-summary">';
+  h += '<span id="exportCountInfo">已选 ' + records.length + ' 条，共 ' + records.length + ' 条</span>';
+  h += '<div style="display:flex;gap:10px;">';
+  h += '<button class="btn-cancel" onclick="closeExportModal()">取消</button>';
+  h += '<button class="btn-export" id="btnDoExport" onclick="doExportChecked()">下载CSV</button>';
+  h += '</div></div>';
+
+  h += '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', h);
+  updateExportSummary();
+}
+
+function closeExportModal() {
+  var m = document.getElementById('exportModal');
+  if (m) m.remove();
+}
+
+function filterExportTable() {
+  var fSchool = document.getElementById('ef_school').value;
+  var fOrg = document.getElementById('ef_org').value;
+  var fFund = document.getElementById('ef_fund').value;
+  var fCat = document.getElementById('ef_cat').value;
+  var fType = document.getElementById('ef_type').value;
+  var fStatus = document.getElementById('ef_status').value;
+
+  var rows = document.querySelectorAll('#exportTbody tr');
+  rows.forEach(function(row) {
+    var show = true;
+    if (fSchool && row.dataset.school !== fSchool) show = false;
+    if (fOrg && row.dataset.org !== fOrg) show = false;
+    if (fFund && row.dataset.fund !== fFund) show = false;
+    if (fCat && row.dataset.cat !== fCat) show = false;
+    if (fType && row.dataset.type !== fType) show = false;
+    if (fStatus && row.dataset.status !== fStatus) show = false;
+    row.style.display = show ? '' : 'none';
+    if (!show) {
+      var cb = row.querySelector('.export-cb');
+      if (cb) cb.checked = false;
+    }
+  });
+  updateExportSummary();
+}
+
+function toggleExportSelectAll() {
+  var all = document.getElementById('exportSelectAll').checked;
+  var rows = document.querySelectorAll('#exportTbody tr');
+  rows.forEach(function(row) {
+    if (row.style.display !== 'none') {
+      var cb = row.querySelector('.export-cb');
+      if (cb) cb.checked = all;
+    }
+  });
+  updateExportSummary();
+}
+
+function updateExportSummary() {
+  var total = 0, checked = 0;
+  var rows = document.querySelectorAll('#exportTbody tr');
+  rows.forEach(function(row) {
+    if (row.style.display !== 'none') {
+      total++;
+      var cb = row.querySelector('.export-cb');
+      if (cb && cb.checked) checked++;
+    }
+  });
+  var info = document.getElementById('exportCountInfo');
+  if (info) info.textContent = '已选 ' + checked + ' 条，共 ' + total + ' 条';
+  var btn = document.getElementById('btnDoExport');
+  if (btn) btn.disabled = (checked === 0);
+}
+
+function doExportChecked() {
+  var selectedIds = [];
+  document.querySelectorAll('#exportTbody tr').forEach(function(row) {
+    if (row.style.display !== 'none') {
+      var cb = row.querySelector('.export-cb');
+      if (cb && cb.checked) selectedIds.push(cb.value);
+    }
+  });
+  if (selectedIds.length === 0) { showToast('请至少选择一条记录', 'warning'); return; }
+
+  var records = getPermittedRecords().filter(function(r) { return selectedIds.indexOf(r.id) >= 0; });
+  var headers = ['申请编号','学校名称','学校类型','所属区域','机构规格','经费形式',
+    '总量控制数','实名编制数','聘用控制数','岗位总量',
+    '管理岗位数','管理岗占比','专技岗位数','专技岗占比','工勤岗位数','工勤岗占比',
+    '管理五级','管理六级','管理七级','管理八级','管理九级','管理十级',
+    '专技正高合计','专技三级','专技四级',
+    '专技副高合计','专技五级','专技六级','专技七级',
+    '专技中级合计','专技八级','专技九级','专技十级',
+    '专技初级合计','专技十一级','专技十二级','专技十三级',
+    '工勤一级','工勤二级','工勤三级','工勤四级','工勤五级','工勤普工',
+    '状态','提交时间'];
+
+  var rows = [headers.join(',')];
+  records.forEach(function(r) {
+    var cat = SCHOOL_CATEGORY_MAP[r.schoolName] || '';
+    var tp = r.totalPosts || 0;
+    var pl = r.profLevels || { senior:{total:0,levels:{}}, vice:{total:0,levels:{}}, middle:{total:0,levels:{}}, junior:{total:0,levels:{}} };
+    var ml = r.mgmtLevels || {};
+    var ll = r.laborLevels || {};
+    var row = [
+      r.id, r.schoolName||'', r.schoolType||'', cat, r.orgLevel||'', r.fundType||'',
+      r.totalQuota||0, r.authCareerStaff||0, r.authControlNo||0, tp,
+      r.mgmtPosts||0, pct(r.mgmtPosts||0,tp)+'%', r.profPosts||0, pct(r.profPosts||0,tp)+'%', r.laborPosts||0, pct(r.laborPosts||0,tp)+'%',
+      ml['5']||0, ml['6']||0, ml['7']||0, ml['8']||0, ml['9']||0, ml['10']||0,
+      (pl.senior?pl.senior.total:0), (pl.senior&&pl.senior.levels?pl.senior.levels['3']||0:0), (pl.senior&&pl.senior.levels?pl.senior.levels['4']||0:0),
+      (pl.vice?pl.vice.total:0), (pl.vice&&pl.vice.levels?pl.vice.levels['5']||0:0), (pl.vice&&pl.vice.levels?pl.vice.levels['6']||0:0), (pl.vice&&pl.vice.levels?pl.vice.levels['7']||0:0),
+      (pl.middle?pl.middle.total:0), (pl.middle&&pl.middle.levels?pl.middle.levels['8']||0:0), (pl.middle&&pl.middle.levels?pl.middle.levels['9']||0:0), (pl.middle&&pl.middle.levels?pl.middle.levels['10']||0:0),
+      (pl.junior?pl.junior.total:0), (pl.junior&&pl.junior.levels?pl.junior.levels['11']||0:0), (pl.junior&&pl.junior.levels?pl.junior.levels['12']||0:0), (pl.junior&&pl.junior.levels?pl.junior.levels['13']||0:0),
+      ll['1']||0, ll['2']||0, ll['3']||0, ll['4']||0, ll['5']||0, ll['common']||0,
+      STATUS_MAP[r.status]||'', (r.submitTime||'').substring(0,10)
+    ];
+    rows.push(row.join(','));
+  });
+
+  var csv = '﻿' + rows.join('\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '岗位设置申请汇总表_' + new Date().toISOString().substring(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('已导出 ' + records.length + ' 条记录', 'success');
+  closeExportModal();
+}
 
 function getUrlParam(name) {
   var m = window.location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));

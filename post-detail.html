@@ -188,8 +188,8 @@ body {
 
 /* Progress tracker */
 .progress-tracker {
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 8px 0 12px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 0 20px;
 }
 .progress-step {
   display: flex; flex-direction: column; align-items: center; position: relative;
@@ -202,27 +202,49 @@ body {
 .progress-dot.done { background: var(--success); color: #fff; }
 .progress-dot.current { background: var(--primary); color: #fff; box-shadow: 0 0 0 6px rgba(30,64,175,0.12); }
 .progress-dot.pending { background: var(--gray-bg); color: var(--text-light); border: 2px solid var(--border); }
-.progress-dot.rejected { background: #FEE2E2; color: var(--danger); border: 2px solid var(--danger); }
-.progress-label { font-size: 11px; font-weight: 500; margin-top: 8px; text-align: center; white-space: nowrap; max-width: 80px; }
+.progress-dot.rejected { background: #FEE2E2; color: var(--danger); border-color: var(--danger); }
+.progress-label { font-size: 11px; font-weight: 500; margin-top: 8px; text-align: center; white-space: nowrap; }
 .progress-label.done { color: var(--success); }
 .progress-label.current { color: var(--primary); }
 .progress-label.pending { color: var(--text-light); }
-.progress-label.rejected { color: var(--danger); }
 .progress-line {
-  width: 72px; height: 2px; margin: 0 6px; margin-bottom: 24px;
+  width: 120px; height: 2px; margin: 0 8px; margin-bottom: 24px;
   position: relative; z-index: 0;
 }
 .progress-line.done { background: var(--success); }
 .progress-line.pending { background: var(--border); }
 .progress-line.rejected { background: #FECACA; }
 
-.status-hint-box {
-  text-align: center; padding: 10px 20px; font-size: 13px; color: var(--text-secondary);
-  border-top: 1px solid var(--border); background: #FAFBFC;
-}
-.status-hint-box.warn { color: var(--warning); }
-.status-hint-box.error { color: var(--danger); }
-.status-hint-box.success { color: var(--success); }
+/* Ratio & limit hints */
+.ratio-hint-row { background: #F8FAFC; color: var(--text-light); font-size: 11px; padding: 4px 10px !important; text-align: left !important; border-top: none !important; }
+.limit-hint { font-size: 11px; color: var(--text-light); margin-left: 8px; font-weight: 400; }
+.limit-hint.error { color: var(--danger); font-weight: 600; }
+.labor-th-hint { display: block; font-size: 10px; font-weight: 400; color: var(--text-light); margin-top: 2px; }
+.labor-footnote { font-size: 11px; color: var(--text-light); margin-top: 6px; }
+.hr-detail-row td { background: #FFFBEB; font-size: 12px; }
+.hr-detail-row .diff-cell { background: #FFF7ED; color: #C2410C; font-weight: 600; }
+
+/* Collapsible */
+.collapsible-header { cursor: pointer; user-select: none; }
+.collapsible-header:hover { background: #F1F5F9; }
+.collapsible-arrow { transition: transform 0.3s; display: inline-block; }
+.collapsible-arrow.open { transform: rotate(180deg); }
+.collapsible-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.collapsible-body.open { max-height: 6000px; }
+
+/* Summary table */
+.summary-top-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.summary-top-table th { padding: 8px 12px; border: 1px solid var(--border); background: #F8FAFC; font-weight: 600; text-align: center; width: 12%; }
+.summary-top-table td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
+.summary-top-table b { color: var(--primary); }
+.summary-sec-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.summary-sec-table th { padding: 5px 6px; border: 1px solid var(--border); text-align: center; font-weight: 600; font-size: 11px; background: #F8FAFC; }
+.summary-sec-table td { padding: 5px 6px; border: 1px solid var(--border); text-align: center; font-size: 12px; }
+.summary-sec-table .sec-title { background: #F8FAFC; font-weight: 600; font-size: 12px; text-align: center; vertical-align: middle; }
+.summary-sec-table .row-label-1 { background: #F8FAFC; font-weight: 500; color: var(--text-secondary); font-size: 11px; text-align: left; padding-left: 10px; }
+.summary-sec-table .row-label-2 { background: #FAFAFA; color: var(--text-light); font-size: 11px; text-align: left; padding-left: 20px; }
+.summary-sec-table .note-col { min-width: 44px; color: var(--text-light); font-size: 11px; }
+.summary-sec-table .data-zero { color: var(--text-light); }
 
 /* Info grid */
 .info-grid {
@@ -453,16 +475,21 @@ body {
         <div class="card-body" id="laborDetails"></div>
       </div>
 
+      <!-- Summary Table -->
+      <div class="card" id="summaryCard">
+        <div class="card-header collapsible-header" onclick="toggleSummary()">
+          岗位聘用汇总表
+          <span class="collapsible-arrow" id="summaryArrow">▼</span>
+        </div>
+        <div class="collapsible-body" id="summaryContent">
+          <div class="card-body" id="summaryTable"></div>
+        </div>
+      </div>
+
       <!-- Attachments -->
       <div class="card" id="attachmentCard" style="display:none;">
         <div class="card-header">附件材料</div>
         <div class="card-body" id="attachmentList"></div>
-      </div>
-
-      <!-- HR Comparison (for second_review / completed) -->
-      <div class="card" id="hrComparisonCard" style="display:none;">
-        <div class="card-header">人社核准结果对比</div>
-        <div class="card-body" id="hrComparison"></div>
       </div>
     </div>
 
@@ -564,21 +591,11 @@ var STATUS_MAP = {
   first_rejected: '一审驳回', second_review: '二审待审核', completed: '已完成'
 };
 
-var STATUS_HINTS = {
-  first_review: '当前环节：主管部门一审。请等待区/市管理员审核通过或驳回。',
-  first_approved: '当前环节：线下流转。请打印审核表并盖章，报送主管单位汇总报人社，收到人社批复后登录系统录入核准结果。',
-  first_rejected: '申请已退回。请根据驳回原因修改审核表后重新提交一审。',
-  second_review: '当前环节：主管部门二审。请等待区/市管理员最终确认，管理员可修改申报数据（不可驳回）。',
-  completed: '流程已完成。可下载或打印最终存档 PDF。'
-};
-
 var PROGRESS_STEPS = [
   { label: '学校提交', desc: '学校管理员在线填写审核表并提交' },
-  { label: '主管部门一审', desc: '区市管理员审核，可填写意见并通过或驳回' },
-  { label: '线下流转', desc: '学校打印纸质材料 报主管单位 汇总报人社 批复' },
-  { label: '学校录入人社结果', desc: '学校收到人社批复后录入核准结果并上传批复PDF' },
-  { label: '主管部门二审', desc: '区市管理员确认，可修改数据不可驳回' },
-  { label: '完成', desc: '生成最终存档PDF，支持打印下载' }
+  { label: '一审：材料审核', desc: '区市管理员审核，可填写意见并通过或驳回' },
+  { label: '学校提交人社结果', desc: '学校收到人社批复后录入核准结果并上传批复PDF' },
+  { label: '二审：人社确认', desc: '区市管理员确认，可修改数据（不可驳回）' }
 ];
 
 var MGMT_GRADE_LABELS = { '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
@@ -593,6 +610,27 @@ var PROF_LAYER_CONFIG = [
 
 var LABOR_GRADE_LABELS = { '1': '一级', '2': '二级', '3': '三级', '4': '四级', '5': '五级', 'common': '普通工' };
 var LABOR_GRADES = ['1', '2', '3', '4', '5', 'common'];
+var MGMT_GRADE_LABELS_FULL = { '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
+var MGMT_GRADES_SUMMARY = ['4', '5', '6', '7', '8', '9', '10'];
+var PROF_LABELS_FLAT = { '3': '三级', '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级', '11': '十一级', '12': '十二级', '13': '十三级' };
+
+var PROF_RATIO_LIMITS = {
+  '自治区示范高中': { senior: 3, vice: 30, middle: 52, junior: 15 },
+  '自治区特色高中': { senior: 2.5, vice: 25.5, middle: 52, junior: 20 },
+  '普通高中': { senior: 2, vice: 25, middle: 52, junior: 21 },
+  '初中': { senior: 1.5, vice: 21.5, middle: 54, junior: 23 },
+  '小学': { senior: 1, vice: 12, middle: 56, junior: 31 },
+  '幼儿园': { senior: 1, vice: 12, middle: 56, junior: 31 }
+};
+
+var LEVEL_INTERNAL_RATIOS = {
+  senior: { '3': 30, '4': 70 },
+  vice: { '5': 20, '6': 40, '7': 40 },
+  middle: { '8': 30, '9': 40, '10': 30 },
+  junior: { '11': 50, '12': 50 }
+};
+
+var LABOR_RATIO_LIMITS = { total_1_2: 10, level_1: 4, level_2: 6, level_3: 20, level_4: 40, level_5_min: 30 };
 
 // ===== STATE =====
 var currentRole = 'school';
@@ -737,6 +775,81 @@ var DEMO_RECORDS = [
       { time: '2026-05-15 09:00:00', action: '二审确认通过', operator: '张建国' }
     ],
     completeTime: '2026-05-15 09:00:00'
+  },
+  // 一审驳回 — 柳州市特色实验高中（自治区特色高中，市直属）
+  {
+    id: 'PS20260519001', schoolName: '柳州市特色实验高中', schoolType: '自治区特色高中', status: 'first_rejected',
+    totalPosts: 120, submitTime: '2026-05-19 11:00:00', orgLevel: '正科级', fundType: '全额拨款',
+    totalQuota: 120, highlandPosts: 0, authCareerStaff: 110, authControlNo: 10,
+    mgmtPosts: 8, profPosts: 100, laborPosts: 12,
+    mgmtLevels: { '5': 1, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
+    profLevels: {
+      senior: { total: 3, levels: { '3': 1, '4': 2 } },
+      vice: { total: 25, levels: { '5': 5, '6': 10, '7': 10 } },
+      middle: { total: 52, levels: { '8': 16, '9': 21, '10': 15 } },
+      junior: { total: 20, levels: { '11': 9, '12': 9, '13': 2 } }
+    },
+    laborLevels: { '1': 0, '2': 1, '3': 2, '4': 4, '5': 4, 'common': 1 },
+    hrResult: null, hrApprovalAttachment: null,
+    attachments: [{ name: '岗位设置申请表.pdf', size: 256000 }],
+    firstReviewOpinion: null, firstReviewer: '张建国', firstReviewTime: '2026-05-20 09:00:00',
+    firstRejectReason: '管理岗位设置数量需调整，请重新核算后提交',
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null, completeTime: null,
+    timeline: [
+      { time: '2026-05-19 11:00:00', action: '学校提交一审', operator: '林芳' },
+      { time: '2026-05-20 09:00:00', action: '一审驳回', operator: '张建国', opinion: '管理岗位设置数量需调整' }
+    ]
+  },
+  // 已完成 — 鱼峰区机关幼儿园（幼儿园，鱼峰区属）
+  {
+    id: 'PS20260512001', schoolName: '鱼峰区机关幼儿园', schoolType: '幼儿园', status: 'completed',
+    totalPosts: 45, submitTime: '2026-05-12 09:30:00', orgLevel: '股级', fundType: '全额拨款',
+    totalQuota: 45, highlandPosts: 0, authCareerStaff: 45, authControlNo: 0,
+    mgmtPosts: 3, profPosts: 36, laborPosts: 6,
+    mgmtLevels: { '5': 0, '6': 0, '7': 0, '8': 1, '9': 1, '10': 1 },
+    profLevels: {
+      senior: { total: 0, levels: { '3': 0, '4': 0 } },
+      vice: { total: 4, levels: { '5': 1, '6': 2, '7': 1 } },
+      middle: { total: 20, levels: { '8': 6, '9': 8, '10': 6 } },
+      junior: { total: 12, levels: { '11': 5, '12': 5, '13': 2 } }
+    },
+    laborLevels: { '1': 0, '2': 0, '3': 1, '4': 2, '5': 2, 'common': 1 },
+    hrResult: { totalPosts: 45 },
+    hrApprovalAttachment: { name: '人社批复_鱼峰幼儿园.pdf', size: 432000 },
+    attachments: [],
+    firstReviewOpinion: '同意', firstReviewer: '李振华', firstReviewTime: '2026-05-13 10:00:00', firstRejectReason: null,
+    secondReviewer: '李振华', secondReviewTime: '2026-05-17 14:00:00',
+    secondReviewModifications: [],
+    timeline: [
+      { time: '2026-05-12 09:30:00', action: '学校提交一审', operator: '黄丽萍' },
+      { time: '2026-05-13 10:00:00', action: '一审通过', operator: '李振华', opinion: '同意' },
+      { time: '2026-05-16 11:00:00', action: '录入人社结果并提交二审', operator: '黄丽萍' },
+      { time: '2026-05-17 14:00:00', action: '二审确认通过', operator: '李振华' }
+    ],
+    completeTime: '2026-05-17 14:00:00'
+  },
+  // 一审通过 — 柳州市第八中学（第二批申报）
+  {
+    id: 'PS20260523001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_approved',
+    totalPosts: 104, submitTime: '2026-05-23 10:00:00', orgLevel: '正科级', fundType: '全额拨款',
+    totalQuota: 104, highlandPosts: 0, authCareerStaff: 88, authControlNo: 16,
+    mgmtPosts: 8, profPosts: 80, laborPosts: 16,
+    mgmtLevels: { '5': 1, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
+    profLevels: {
+      senior: { total: 0, levels: { '3': 0, '4': 0 } },
+      vice: { total: 15, levels: { '5': 3, '6': 6, '7': 6 } },
+      middle: { total: 45, levels: { '8': 14, '9': 18, '10': 13 } },
+      junior: { total: 20, levels: { '11': 8, '12': 8, '13': 4 } }
+    },
+    laborLevels: { '1': 0, '2': 1, '3': 2, '4': 5, '5': 6, 'common': 2 },
+    hrResult: null, hrApprovalAttachment: null,
+    attachments: [],
+    firstReviewOpinion: '同意申报方案', firstReviewer: '李振华', firstReviewTime: '2026-05-24 16:00:00', firstRejectReason: null,
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null, completeTime: null,
+    timeline: [
+      { time: '2026-05-23 10:00:00', action: '学校提交一审', operator: '周敏' },
+      { time: '2026-05-24 16:00:00', action: '一审通过', operator: '李振华', opinion: '同意申报方案' }
+    ]
   }
 ];
 
@@ -773,12 +886,12 @@ function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g,'&amp;')
 
 // ===== PROGRESS STATE =====
 function getProgressStates(status) {
-  if (status === 'first_review') return ['done', 'current', 'pending', 'pending', 'pending', 'pending'];
-  if (status === 'first_approved') return ['done', 'done', 'current', 'pending', 'pending', 'pending'];
-  if (status === 'first_rejected') return ['done', 'rejected', 'pending', 'pending', 'pending', 'pending'];
-  if (status === 'second_review') return ['done', 'done', 'done', 'done', 'current', 'pending'];
-  if (status === 'completed') return ['done', 'done', 'done', 'done', 'done', 'done'];
-  return ['pending', 'pending', 'pending', 'pending', 'pending', 'pending'];
+  if (status === 'first_review') return ['done', 'current', 'pending', 'pending'];
+  if (status === 'first_approved') return ['done', 'done', 'current', 'pending'];
+  if (status === 'first_rejected') return ['done', 'rejected', 'pending', 'pending'];
+  if (status === 'second_review') return ['done', 'done', 'done', 'current'];
+  if (status === 'completed') return ['done', 'done', 'done', 'done'];
+  return ['pending', 'pending', 'pending', 'pending'];
 }
 
 // ===== RENDER ALL =====
@@ -801,8 +914,8 @@ function renderAll() {
   renderMgmtDetails();
   renderProfDetails();
   renderLaborDetails();
+  renderSummaryTable();
   renderAttachments();
-  renderHrComparison();
   renderTimeline();
   renderActionBar();
 }
@@ -810,7 +923,8 @@ function renderAll() {
 // ===== PROGRESS CARD =====
 function renderProgress() {
   var states = getProgressStates(record.status);
-  var html = '<div class="card-body"><div class="progress-tracker">';
+  var html = '<div class="card-header">审批进度</div>';
+  html += '<div class="card-body"><div class="progress-tracker">';
 
   for (var i = 0; i < PROGRESS_STEPS.length; i++) {
     var s = states[i];
@@ -834,15 +948,7 @@ function renderProgress() {
     }
   }
 
-  html += '</div>';
-
-  var hintClass = 'status-hint-box';
-  if (record.status === 'first_rejected') hintClass += ' error';
-  else if (record.status === 'first_approved') hintClass += ' warn';
-  else if (record.status === 'completed') hintClass += ' success';
-
-  html += '<div class="' + hintClass + '">' + (STATUS_HINTS[record.status] || '') + '</div>';
-  html += '</div>';
+  html += '</div></div>';
 
   document.getElementById('progressCard').innerHTML = html;
 }
@@ -881,6 +987,7 @@ function renderPositionTotals() {
 
 // ===== MANAGEMENT DETAILS =====
 function renderMgmtDetails() {
+  var hr = record.hrResult;
   var html = '<table class="data-table"><thead><tr><th></th>';
   MGMT_GRADES.forEach(function(g) { html += '<th>' + MGMT_GRADE_LABELS[g] + '</th>'; });
   html += '<th>合计</th></tr></thead><tbody>';
@@ -896,6 +1003,18 @@ function renderMgmtDetails() {
     html += '<td>' + (record.mgmtLevels[g] || 0) + '</td>';
   });
   html += '<td class="sub-total">' + sumObj(record.mgmtLevels) + '</td></tr>';
+
+  if (hr && hr.mgmtLevels) {
+    html += '<tr class="hr-detail-row"><td class="sub-label">人社核准</td>';
+    MGMT_GRADES.forEach(function(g) {
+      var orig = record.mgmtLevels[g] || 0;
+      var hrv = hr.mgmtLevels[g] || 0;
+      var cls = orig !== hrv ? ' diff-cell' : '';
+      html += '<td class="' + cls + '">' + hrv + '</td>';
+    });
+    html += '<td class="sub-total">' + sumObj(hr.mgmtLevels) + '</td></tr>';
+  }
+
   html += '</tbody></table>';
   document.getElementById('mgmtDetails').innerHTML = html;
 }
@@ -903,12 +1022,22 @@ function renderMgmtDetails() {
 // ===== PROFESSIONAL TECHNICAL DETAILS =====
 function renderProfDetails() {
   var html = '';
+  var hr = record.hrResult;
+  var limits = PROF_RATIO_LIMITS[record.schoolType] || {};
 
   PROF_LAYER_CONFIG.forEach(function(layer) {
     var ld = record.profLevels[layer.key];
     if (!ld) return;
 
-    html += '<table class="data-table" style="margin-bottom:16px"><thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '</th></tr>';
+    var layerPct = record.profPosts > 0 ? ((ld.total || 0) / record.profPosts * 100).toFixed(1) : '0.0';
+    var upperLimit = limits[layer.key];
+    var limitHtml = '';
+    if (upperLimit !== undefined) {
+      var isOver = parseFloat(layerPct) > upperLimit;
+      limitHtml = '<span class="limit-hint' + (isOver ? ' error' : '') + '">（当前 ' + layerPct + '% / 上限 ' + upperLimit + '%）</span>';
+    }
+
+    html += '<table class="data-table" style="margin-bottom:16px"><thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + limitHtml + '</th></tr>';
     html += '<tr><th></th>';
     layer.grades.forEach(function(g) { html += '<th>' + layer.gradeLabels[g] + '</th>'; });
     html += '<th>合计</th></tr></thead><tbody>';
@@ -919,11 +1048,43 @@ function renderProfDetails() {
     });
     html += '<td class="ratio-cell">100%</td></tr>';
 
+    // Internal ratio reference row
+    var internalRatios = LEVEL_INTERNAL_RATIOS[layer.key];
+    if (internalRatios) {
+      var parts = [];
+      layer.grades.forEach(function(g) {
+        if (internalRatios[g] !== undefined) parts.push(layer.gradeLabels[g] + ':' + internalRatios[g]);
+      });
+      if (parts.length > 0) {
+        html += '<tr class="ratio-hint-row"><td class="sub-label">参考</td>';
+        layer.grades.forEach(function(g) {
+          html += '<td>' + (internalRatios[g] !== undefined ? internalRatios[g] + '%' : '—') + '</td>';
+        });
+        html += '<td></td></tr>';
+      }
+    }
+
     html += '<tr><td class="sub-label">数量</td>';
     layer.grades.forEach(function(g) {
       html += '<td>' + (ld.levels[g] || 0) + '</td>';
     });
     html += '<td class="sub-total">' + (ld.total || 0) + '</td></tr>';
+
+    // HR approval row
+    if (hr && hr.profLevels && hr.profLevels[layer.key]) {
+      var hrLayer = hr.profLevels[layer.key];
+      html += '<tr class="hr-detail-row"><td class="sub-label">人社核准</td>';
+      layer.grades.forEach(function(g) {
+        var orig = ld.levels[g] || 0;
+        var hrv = hrLayer.levels[g] || 0;
+        var cls = orig !== hrv ? ' diff-cell' : '';
+        html += '<td class="' + cls + '">' + hrv + '</td>';
+      });
+      var origTotal = ld.total || 0;
+      var hrTotal = hrLayer.total || 0;
+      html += '<td class="sub-total' + (origTotal !== hrTotal ? ' diff-cell' : '') + '">' + hrTotal + '</td></tr>';
+    }
+
     html += '</tbody></table>';
   });
 
@@ -938,8 +1099,12 @@ function renderProfDetails() {
 
 // ===== LABOR DETAILS =====
 function renderLaborDetails() {
+  var hr = record.hrResult;
+  var laborHints = { '1': '≤4%', '2': '≤6%', '3': '≤20%', '4': '≤40%', '5': '≥30%', 'common': '—' };
   var html = '<table class="data-table"><thead><tr><th></th>';
-  LABOR_GRADES.forEach(function(g) { html += '<th>' + LABOR_GRADE_LABELS[g] + '</th>'; });
+  LABOR_GRADES.forEach(function(g) {
+    html += '<th>' + LABOR_GRADE_LABELS[g] + '<span class="labor-th-hint">' + laborHints[g] + '</span></th>';
+  });
   html += '<th>合计</th></tr></thead><tbody>';
 
   html += '<tr><td class="sub-label">比例</td>';
@@ -953,7 +1118,20 @@ function renderLaborDetails() {
     html += '<td>' + (record.laborLevels[g] || 0) + '</td>';
   });
   html += '<td class="sub-total">' + sumObj(record.laborLevels) + '</td></tr>';
+
+  if (hr && hr.laborLevels) {
+    html += '<tr class="hr-detail-row"><td class="sub-label">人社核准</td>';
+    LABOR_GRADES.forEach(function(g) {
+      var orig = record.laborLevels[g] || 0;
+      var hrv = hr.laborLevels[g] || 0;
+      var cls = orig !== hrv ? ' diff-cell' : '';
+      html += '<td class="' + cls + '">' + hrv + '</td>';
+    });
+    html += '<td class="sub-total">' + sumObj(hr.laborLevels) + '</td></tr>';
+  }
+
   html += '</tbody></table>';
+  html += '<div class="labor-footnote">* 一级+二级合计 ≤ 工勤总量的10%</div>';
   document.getElementById('laborDetails').innerHTML = html;
 }
 
@@ -988,142 +1166,100 @@ function renderAttachments() {
 }
 
 // ===== HR COMPARISON =====
-function renderHrComparison() {
-  var hr = record.hrResult;
-  if (!hr || (record.status !== 'second_review' && record.status !== 'completed')) {
-    document.getElementById('hrComparisonCard').style.display = 'none';
-    return;
-  }
-  document.getElementById('hrComparisonCard').style.display = '';
+// ===== TIMELINE =====
+function computeHrDiffsForDisplay(original, hr) {
+  if (!hr) return '人社核准结果未录入';
 
-  var html = '';
+  var diffs = [];
+  var mgmtLabels = { '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
+  var profLabels = { '3': '三级', '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级', '11': '十一级', '12': '十二级', '13': '十三级' };
+  var laborLabels = { '1': '一级', '2': '二级', '3': '三级', '4': '四级', '5': '五级', 'common': '普通工' };
+  var layerLabels = { senior: '正高级', vice: '副高级', middle: '中级', junior: '初级' };
 
-  html += '<div class="cmp-section">';
-  html += '<div class="cmp-title">岗位总量对比</div>';
-  html += '<table class="cmp-table"><thead><tr><th>项目</th><th>管理岗位</th><th>专技岗位</th><th>工勤技能岗位</th><th>合计</th></tr></thead><tbody>';
-  html += '<tr><td class="sub-label">原始申报</td><td class="orig">' + (record.mgmtPosts || 0) + '</td><td class="orig">' + (record.profPosts || 0) + '</td><td class="orig">' + (record.laborPosts || 0) + '</td><td class="orig">' + (record.totalPosts || 0) + '</td></tr>';
-  html += '<tr><td class="sub-label">人社核准</td><td class="hrval">' + (hr.mgmtPosts || 0) + '</td><td class="hrval">' + (hr.profPosts || 0) + '</td><td class="hrval">' + (hr.laborPosts || 0) + '</td><td class="hrval">' + (hr.totalPosts || 0) + '</td></tr>';
-  html += '</tbody></table>';
-  html += '</div>';
+  if ((original.mgmtPosts||0) !== (hr.mgmtPosts||0)) diffs.push('管理岗总量：' + (original.mgmtPosts||0) + '→' + (hr.mgmtPosts||0));
+  if ((original.profPosts||0) !== (hr.profPosts||0)) diffs.push('专技岗总量：' + (original.profPosts||0) + '→' + (hr.profPosts||0));
+  if ((original.laborPosts||0) !== (hr.laborPosts||0)) diffs.push('工勤岗总量：' + (original.laborPosts||0) + '→' + (hr.laborPosts||0));
 
   if (hr.mgmtLevels) {
-    html += '<div class="cmp-section">';
-    html += '<div class="cmp-title">管理岗位明细对比</div>';
-    html += '<table class="cmp-table"><thead><tr><th></th>';
-    MGMT_GRADES.forEach(function(g) { html += '<th>' + MGMT_GRADE_LABELS[g] + '</th>'; });
-    html += '<th>合计</th></tr></thead><tbody>';
-    html += '<tr><td class="sub-label">原始</td>';
-    MGMT_GRADES.forEach(function(g) {
-      var v = record.mgmtLevels[g] || 0;
-      html += '<td class="orig">' + v + '</td>';
+    ['5','6','7','8','9','10'].forEach(function(g) {
+      var ov = (original.mgmtLevels && original.mgmtLevels[g]) || 0;
+      var hv = hr.mgmtLevels[g] || 0;
+      if (ov !== hv) diffs.push('管理岗' + mgmtLabels[g] + '：' + ov + '→' + hv);
     });
-    html += '<td class="orig">' + sumObj(record.mgmtLevels) + '</td></tr>';
-    html += '<tr><td class="sub-label">核准</td>';
-    MGMT_GRADES.forEach(function(g) {
-      var v1 = record.mgmtLevels[g] || 0;
-      var v2 = hr.mgmtLevels[g] || 0;
-      var cls = v1 !== v2 ? 'diff' : 'hrval';
-      html += '<td class="' + cls + '">' + v2 + '</td>';
-    });
-    html += '<td class="hrval">' + sumObj(hr.mgmtLevels) + '</td></tr>';
-    html += '</tbody></table>';
-    html += '</div>';
   }
 
   if (hr.profLevels) {
     PROF_LAYER_CONFIG.forEach(function(layer) {
-      var orig = record.profLevels[layer.key];
-      var approved = hr.profLevels[layer.key];
-      if (!orig || !approved) return;
-
-      html += '<div class="cmp-section">';
-      html += '<div class="cmp-title">' + layer.label + '明细对比</div>';
-      html += '<table class="cmp-table"><thead><tr><th></th>';
-      layer.grades.forEach(function(g) { html += '<th>' + layer.gradeLabels[g] + '</th>'; });
-      html += '<th>合计</th></tr></thead><tbody>';
-      html += '<tr><td class="sub-label">原始</td>';
+      var oLayer = original.profLevels && original.profLevels[layer.key];
+      var hLayer = hr.profLevels[layer.key];
+      if (!hLayer) return;
+      var oTotal = oLayer ? (oLayer.total || 0) : 0;
+      var hTotal = hLayer.total || 0;
+      if (oTotal !== hTotal) diffs.push(layerLabels[layer.key] + '合计：' + oTotal + '→' + hTotal);
       layer.grades.forEach(function(g) {
-        html += '<td class="orig">' + (orig.levels[g] || 0) + '</td>';
+        var ov = oLayer ? (oLayer.levels && oLayer.levels[g] || 0) : 0;
+        var hv = (hLayer.levels && hLayer.levels[g]) || 0;
+        if (ov !== hv) diffs.push(layerLabels[layer.key] + profLabels[g] + '：' + ov + '→' + hv);
       });
-      html += '<td class="orig">' + (orig.total || 0) + '</td></tr>';
-      html += '<tr><td class="sub-label">核准</td>';
-      layer.grades.forEach(function(g) {
-        var v1 = orig.levels[g] || 0;
-        var v2 = approved.levels[g] || 0;
-        var cls = v1 !== v2 ? 'diff' : 'hrval';
-        html += '<td class="' + cls + '">' + v2 + '</td>';
-      });
-      html += '<td class="hrval">' + (approved.total || 0) + '</td></tr>';
-      html += '</tbody></table>';
-      html += '</div>';
     });
   }
 
   if (hr.laborLevels) {
-    html += '<div class="cmp-section">';
-    html += '<div class="cmp-title">工勤技能岗位明细对比</div>';
-    html += '<table class="cmp-table"><thead><tr><th></th>';
-    LABOR_GRADES.forEach(function(g) { html += '<th>' + LABOR_GRADE_LABELS[g] + '</th>'; });
-    html += '<th>合计</th></tr></thead><tbody>';
-    html += '<tr><td class="sub-label">原始</td>';
-    LABOR_GRADES.forEach(function(g) { html += '<td class="orig">' + (record.laborLevels[g] || 0) + '</td>'; });
-    html += '<td class="orig">' + sumObj(record.laborLevels) + '</td></tr>';
-    html += '<tr><td class="sub-label">核准</td>';
-    LABOR_GRADES.forEach(function(g) {
-      var v1 = record.laborLevels[g] || 0;
-      var v2 = hr.laborLevels[g] || 0;
-      var cls = v1 !== v2 ? 'diff' : 'hrval';
-      html += '<td class="' + cls + '">' + v2 + '</td>';
+    ['1','2','3','4','5','common'].forEach(function(g) {
+      var ov = (original.laborLevels && original.laborLevels[g]) || 0;
+      var hv = hr.laborLevels[g] || 0;
+      if (ov !== hv) diffs.push('工勤岗' + laborLabels[g] + '：' + ov + '→' + hv);
     });
-    html += '<td class="hrval">' + sumObj(hr.laborLevels) + '</td></tr>';
-    html += '</tbody></table>';
-    html += '</div>';
   }
 
-  if (record.secondReviewModifications && record.secondReviewModifications.length > 0) {
-    html += '<div class="cmp-section">';
-    html += '<div class="cmp-title">二审修改记录</div>';
-    record.secondReviewModifications.forEach(function(mod) {
-      html += '<div style="font-size:12px;color:var(--text-secondary);padding:4px 0">';
-      html += mod.time ? mod.time.substring(0,16) + ' | ' : '';
-      html += (mod.operator || '') + ' 修改了 ' + escapeHtml(mod.field || '') + '：';
-      html += '<span class="orig">' + (mod.oldValue != null ? mod.oldValue : '-') + '</span> → ';
-      html += '<span class="diff">' + (mod.newValue != null ? mod.newValue : '-') + '</span>';
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-
-  document.getElementById('hrComparison').innerHTML = html;
+  if (diffs.length === 0) return '人社核准结果与申报数据一致，无修改';
+  return '人社核准修改：' + diffs.join('；');
 }
 
-// ===== TIMELINE =====
 function renderTimeline() {
   var r = record;
   var items = [];
 
   items.push({ time: r.submitTime || '', title: '学校提交一审', desc: (r.timeline && r.timeline.length > 0 && r.timeline[0].operator ? r.timeline[0].operator : '') + ' 提交岗位设置审核表', action: 'submit' });
 
+  var hasRejectInTimeline = false;
+  var hasHrEntryInTimeline = false;
+
   if (r.timeline && r.timeline.length > 0) {
     for (var i = 0; i < r.timeline.length; i++) {
       var t = r.timeline[i];
       if (t.action === '学校提交一审') continue;
+
+      if (t.action.indexOf('驳回') >= 0) hasRejectInTimeline = true;
+      if (t.action.indexOf('人社') >= 0) hasHrEntryInTimeline = true;
 
       var actionType = 'submit';
       if (t.action.indexOf('通过') >= 0 || t.action.indexOf('确认') >= 0) actionType = 'approve';
       else if (t.action.indexOf('驳回') >= 0) actionType = 'reject';
       else if (t.action.indexOf('修改') >= 0 || t.action.indexOf('重提') >= 0) actionType = 'resubmit';
 
+      // If this is an HR entry without opinion, compute diffs dynamically
+      var desc = (t.operator || '');
+      if (t.action.indexOf('人社') >= 0) {
+        if (t.opinion) {
+          desc += '，' + t.opinion;
+        } else if (r.hrResult) {
+          desc += '，' + computeHrDiffsForDisplay(r, r.hrResult);
+        }
+      } else if (t.opinion) {
+        desc += '，意见：' + t.opinion;
+      }
+
       items.push({
         time: t.time || '',
         title: t.action || '',
-        desc: (t.operator || '') + (t.opinion ? '，意见：' + t.opinion : ''),
+        desc: desc,
         action: actionType
       });
     }
   }
 
-  if (r.status === 'first_rejected' && !r.timelineHasReject) {
+  if (r.status === 'first_rejected' && !hasRejectInTimeline) {
     items.push({
       time: r.firstReviewTime || r.submitTime || '',
       title: '一审驳回',
@@ -1135,8 +1271,7 @@ function renderTimeline() {
 
   var tagMap = {
     approve: '<span class="tlc-tag approve-tag">通过</span>',
-    reject: '<span class="tlc-tag reject-reason">驳回</span>',
-    resubmit: '<span class="tlc-tag resubmit-tag">修改重提</span>'
+    reject: '<span class="tlc-tag reject-reason">驳回</span>'
   };
 
   var dotClassMap = { submit: 'submit', approve: 'approve', reject: 'reject', resubmit: 'resubmit' };
@@ -1167,10 +1302,7 @@ function renderActionBar() {
   var bar = document.getElementById('actionBar');
   var html = '';
 
-  if (currentRole === 'school' && record.status === 'first_approved') {
-    card.style.display = '';
-    html += '<button class="btn btn-primary" onclick="enterHrResult()">录入人社结果</button>';
-  } else if ((currentRole === 'district' || currentRole === 'city') && record.status === 'first_review') {
+  if ((currentRole === 'district' || currentRole === 'city') && record.status === 'first_review') {
     card.style.display = '';
     html += '<button class="btn btn-primary" onclick="approveFirst()">通过一审</button>';
     html += '<button class="btn btn-outline" onclick="rejectFirst()">驳回</button>';
@@ -1188,10 +1320,6 @@ function renderActionBar() {
   bar.innerHTML = html;
 }
 
-function enterHrResult() {
-  window.location.href = 'post-form.html?id=' + record.id + '&mode=hr';
-}
-
 function approveFirst() {
   showToast('一审通过（模拟操作）', 'success');
 }
@@ -1202,6 +1330,70 @@ function rejectFirst() {
 
 function approveSecond() {
   showToast('二审确认通过（模拟操作）', 'success');
+}
+
+// ===== SUMMARY TABLE =====
+function toggleSummary() {
+  var body = document.getElementById('summaryContent');
+  var arrow = document.getElementById('summaryArrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function renderSummaryTable() {
+  var PROF_SUMMARY = ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
+  var LABOR_SUMMARY = ['1', '2', '3', '4', '5', 'common'];
+
+  function profVal(g) {
+    var v = 0;
+    PROF_LAYER_CONFIG.forEach(function(layer) {
+      if (layer.grades.indexOf(g) !== -1) v = record.profLevels[layer.key].levels[g] || 0;
+    });
+    return v;
+  }
+
+  function buildSection(title, grades, gradeLabels, getVal, hasHighland) {
+    var nRows = 6 + (hasHighland ? 1 : 0);
+    var h = '<table class="summary-sec-table"><tbody>';
+    h += '<tr>';
+    h += '<td class="sec-title" rowspan="' + nRows + '">' + title + '</td>';
+    h += '<th>等级</th><th></th>';
+    grades.forEach(function(g) { h += '<th>' + (gradeLabels[g] || LABOR_GRADE_LABELS[g]) + '</th>'; });
+    h += '<th class="note-col">备注</th></tr>';
+
+    h += '<tr><td class="row-label-1">核准岗位数</td><td></td>';
+    grades.forEach(function(g) { h += '<td>' + (getVal(g) || 0) + '</td>'; });
+    h += '<td></td></tr>';
+
+    var subRows = [
+      { sub: '合计' }, { sub: '实名编' }, { sub: '控制数' }, { sub: '超岗聘用数' }
+    ];
+    if (hasHighland) subRows.push({ sub: '小高地岗位' });
+
+    subRows.forEach(function(sr, idx) {
+      h += '<tr>';
+      if (idx === 0) h += '<td class="row-label-1" rowspan="' + subRows.length + '">实聘数</td>';
+      h += '<td class="row-label-2">' + sr.sub + '</td>';
+      grades.forEach(function() { h += '<td class="data-zero">0</td>'; });
+      h += '<td></td></tr>';
+    });
+
+    h += '</tbody></table>';
+    return h;
+  }
+
+  var h = '';
+  h += '<table class="summary-top-table"><tr>';
+  h += '<th>定编人数</th><td>实名编<b>' + (record.authCareerStaff || 0) + '</b>+控制数<b>' + (record.authControlNo || 0) + '</b>（合计<b>' + (record.totalQuota || 0) + '</b>）</td>';
+  h += '<th>实有人数</th><td>实名编<b>—</b>+控制数<b>—</b>（合计<b>—</b>）</td>';
+  h += '<th>小高地岗位</th><td><b>' + (record.highlandPosts || 0) + '</b></td>';
+  h += '</tr></table>';
+
+  h += buildSection('管理岗位', MGMT_GRADES_SUMMARY, MGMT_GRADE_LABELS_FULL, function(g) { return record.mgmtLevels[g] || 0; }, false);
+  h += buildSection('专业技术岗位', PROF_SUMMARY, PROF_LABELS_FLAT, profVal, true);
+  h += buildSection('工勤技能岗位', LABOR_SUMMARY, LABOR_GRADE_LABELS, function(g) { return record.laborLevels[g] || 0; }, false);
+
+  document.getElementById('summaryTable').innerHTML = h;
 }
 
 // ===== NAVIGATION =====
@@ -1281,6 +1473,11 @@ function sidebarClick(el, id) {
   if (id === 'exit') {
     if (currentRole === 'school') { window.location.href = '教师出编管理（学校管理员视角）.html'; }
     else { window.location.href = '教师出编管理（主管单位视角）.html'; }
+    return;
+  }
+  if (id === 'promote') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'promote-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'promote-list-school.html'; return; }
     return;
   }
   if (id === 'postset') return;

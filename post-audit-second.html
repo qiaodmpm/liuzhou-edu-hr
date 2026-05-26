@@ -1098,63 +1098,6 @@ function renderHrAttachment() {
     '</span></div></div>';
 }
 
-function renderModificationHistory() {
-  var r = currentRecord;
-  var mods = r.secondReviewModifications || [];
-
-  var html = '<div class="card"><div class="card-header" style="cursor:pointer" onclick="toggleCollapsible(\'modHistoryBody\', this.querySelector(\'svg\'))">';
-  html += '修改记录';
-  if (mods.length > 0) {
-    html += '<span class="mod-summary">' + mods.length + ' 条</span>';
-  }
-  html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" id="modHistoryArrow"><polyline points="6 9 12 15 18 9"/></svg>';
-  html += '</div>';
-
-  html += '<div class="collapsible-body" id="modHistoryBody">';
-  html += '<div class="card-body">';
-  if (mods.length === 0) {
-    html += '<div class="mod-history-empty">暂无修改记录</div>';
-  } else {
-    html += '<div class="mod-history">';
-    mods.forEach(function(mod) {
-      html += '<div class="mod-item">';
-      html += '<span class="mod-time">' + (mod.time ? mod.time.substring(0, 16) : '') + '</span>';
-      html += '<span class="mod-field">' + escapeHtml(formatFieldName(mod.field)) + '</span>';
-      html += '<span class="mod-change">' + (mod.oldValue || 0) + ' → ' + (mod.newValue || 0) + '</span>';
-      html += '<span class="mod-operator">' + escapeHtml(mod.operator || '') + '</span>';
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-  html += '</div></div></div>';
-  return html;
-}
-
-function formatFieldName(field) {
-  if (!field) return '';
-  var parts = field.split('.');
-  if (field === 'mgmtPosts') return '管理岗位总量';
-  if (field === 'profPosts') return '专技岗位总量';
-  if (field === 'laborPosts') return '工勤技能岗位总量';
-
-  if (field.indexOf('mgmtLevels.') === 0) {
-    var g = parts[parts.length - 1];
-    return '管理岗位-' + (MGMT_GRADE_LABELS[g] || g);
-  }
-  if (field.indexOf('profLevels.') === 0) {
-    var layerKey = parts[1];
-    var grade = parts[parts.length - 1];
-    var layerConfig = PROF_LAYER_CONFIG.find(function(l) { return l.key === layerKey; });
-    var layerLabel = layerConfig ? layerConfig.label : layerKey;
-    var gradeLabel = layerConfig ? (layerConfig.gradeLabels[grade] || grade) : grade;
-    return layerLabel + '-' + gradeLabel;
-  }
-  if (field.indexOf('laborLevels.') === 0) {
-    var lg = parts[parts.length - 1];
-    return '工勤技能岗位-' + (LABOR_GRADE_LABELS[lg] || lg);
-  }
-  return field;
-}
 
 // ===== INLINE EDIT =====
 function startEdit(td, path) {
@@ -1233,6 +1176,55 @@ function refreshEditableDisplay() {
 }
 
 // ===== SIDEBAR CONTENT =====
+function computeHrDiffsForDisplay(original, hr) {
+  if (!hr) return '人社核准结果未录入';
+
+  var diffs = [];
+  var mgmtLabels = { '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
+  var profLabels = { '3': '三级', '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级', '11': '十一级', '12': '十二级', '13': '十三级' };
+  var laborLabels = { '1': '一级', '2': '二级', '3': '三级', '4': '四级', '5': '五级', 'common': '普通工' };
+  var layerLabels = { senior: '正高级', vice: '副高级', middle: '中级', junior: '初级' };
+
+  if ((original.mgmtPosts||0) !== (hr.mgmtPosts||0)) diffs.push('管理岗总量：' + (original.mgmtPosts||0) + '→' + (hr.mgmtPosts||0));
+  if ((original.profPosts||0) !== (hr.profPosts||0)) diffs.push('专技岗总量：' + (original.profPosts||0) + '→' + (hr.profPosts||0));
+  if ((original.laborPosts||0) !== (hr.laborPosts||0)) diffs.push('工勤岗总量：' + (original.laborPosts||0) + '→' + (hr.laborPosts||0));
+
+  if (hr.mgmtLevels) {
+    ['5','6','7','8','9','10'].forEach(function(g) {
+      var ov = (original.mgmtLevels && original.mgmtLevels[g]) || 0;
+      var hv = hr.mgmtLevels[g] || 0;
+      if (ov !== hv) diffs.push('管理岗' + mgmtLabels[g] + '：' + ov + '→' + hv);
+    });
+  }
+
+  if (hr.profLevels) {
+    PROF_LAYER_CONFIG.forEach(function(layer) {
+      var oLayer = original.profLevels && original.profLevels[layer.key];
+      var hLayer = hr.profLevels[layer.key];
+      if (!hLayer) return;
+      var oTotal = oLayer ? (oLayer.total || 0) : 0;
+      var hTotal = hLayer.total || 0;
+      if (oTotal !== hTotal) diffs.push(layerLabels[layer.key] + '合计：' + oTotal + '→' + hTotal);
+      layer.grades.forEach(function(g) {
+        var ov = oLayer ? (oLayer.levels && oLayer.levels[g] || 0) : 0;
+        var hv = (hLayer.levels && hLayer.levels[g]) || 0;
+        if (ov !== hv) diffs.push(layerLabels[layer.key] + profLabels[g] + '：' + ov + '→' + hv);
+      });
+    });
+  }
+
+  if (hr.laborLevels) {
+    ['1','2','3','4','5','common'].forEach(function(g) {
+      var ov = (original.laborLevels && original.laborLevels[g]) || 0;
+      var hv = hr.laborLevels[g] || 0;
+      if (ov !== hv) diffs.push('工勤岗' + laborLabels[g] + '：' + ov + '→' + hv);
+    });
+  }
+
+  if (diffs.length === 0) return '人社核准结果与申报数据一致，无修改';
+  return '人社核准修改：' + diffs.join('；');
+}
+
 function renderTimeline() {
   var r = currentRecord;
   var dotClassMap = { submit: 'submit', approve: 'approve', reject: 'reject', resubmit: 'resubmit' };
@@ -1249,10 +1241,18 @@ function renderTimeline() {
       else if (t.action.indexOf('驳回') >= 0) actionType = 'reject';
       else if (t.action.indexOf('重提') >= 0 || t.action.indexOf('修改') >= 0) actionType = 'resubmit';
 
+      var desc = (t.operator || '');
+      if (t.action.indexOf('人社') >= 0) {
+        if (t.opinion) { desc += '，' + t.opinion; }
+        else if (r.hrResult) { desc += '，' + computeHrDiffsForDisplay(r, r.hrResult); }
+      } else if (t.opinion) {
+        desc += '，意见：' + t.opinion;
+      }
+
       items.push({
         time: t.time || '',
         title: t.action || '',
-        desc: (t.operator || '') + (t.opinion ? '，意见：' + t.opinion : ''),
+        desc: desc,
         action: actionType
       });
     }
@@ -1295,7 +1295,7 @@ function renderSidebarContent() {
   if (!layout) return;
   var sidebar = layout.querySelector('.detail-sidebar');
   if (!sidebar) return;
-  sidebar.innerHTML = renderTimeline() + renderModificationHistory();
+  sidebar.innerHTML = renderTimeline();
 }
 
 // ===== CONFIRMATION =====
@@ -1321,6 +1321,15 @@ function showConfirmModal() {
   document.getElementById('confirmBtn').onclick = doSecondConfirm;
 }
 
+function summarizeModifications(mods) {
+  if (!mods || mods.length === 0) return '';
+  var items = [];
+  mods.forEach(function(m) {
+    items.push('修改' + (m.field||'') + '：' + (m.oldValue!=null?m.oldValue:'-') + '→' + (m.newValue!=null?m.newValue:'-'));
+  });
+  return items.join('；');
+}
+
 function doSecondConfirm() {
   var opinion = '';
   document.getElementById('confirmModal').remove();
@@ -1337,13 +1346,15 @@ function doSecondConfirm() {
   records[idx].secondReviewTime = now;
   records[idx].completeTime = now;
 
+  var modSummary = summarizeModifications(records[idx].secondReviewModifications);
   records[idx].timeline = records[idx].timeline || [];
   records[idx].timeline.push({
     time: now,
     action: '二审确认通过',
     operator: approverName,
-    opinion: opinion || ''
+    opinion: modSummary || (opinion || '')
   });
+  records[idx].secondReviewModifications = [];
 
   saveRecords(records);
   showToast('二审确认完成，流程结束', 'success');
@@ -1404,6 +1415,11 @@ function sidebarClick(el, id) {
   if (id === 'exit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = '教师出编管理（主管单位视角）.html?role=' + currentRole; return; }
     if (currentRole === 'school') { window.location.href = '教师出编管理（学校管理员视角）.html?role=school'; return; }
+  }
+  if (id === 'promote') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'promote-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'promote-list-school.html'; return; }
+    return;
   }
   if (id === 'postset') { window.location.href = listUrl; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
@@ -1504,7 +1520,6 @@ function renderPage() {
     '</div>' +
     '<div class="detail-sidebar" id="sidebarContent">' +
     renderTimeline() +
-    renderModificationHistory() +
     '</div>' +
     '</div>' +
     renderActionBar();
