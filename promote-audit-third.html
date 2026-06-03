@@ -365,6 +365,32 @@ body {
   .audit-sidebar { width: 100%; }
   .info-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== QUOTA SUMMARY (added for third audit) ===== */
+.quota-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 20px; overflow: hidden; }
+.quota-card-header { padding: 14px 20px; background: #F8FAFC; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+.quota-card-header h3 { font-size: 14px; font-weight: 600; margin: 0; }
+.quota-card-body { padding: 20px; }
+.quota-card-body.collapsed { display: none; }
+.summary-top-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.summary-top-table th { padding: 8px 12px; border: 1px solid var(--border); background: #F8FAFC; font-weight: 600; text-align: center; width: 12%; }
+.summary-top-table td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
+.summary-top-table b { color: var(--primary); }
+.summary-sec-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.summary-sec-table th { padding: 5px 6px; border: 1px solid var(--border); text-align: center; font-weight: 600; font-size: 11px; background: #F8FAFC; }
+.summary-sec-table td { padding: 5px 6px; border: 1px solid var(--border); text-align: center; font-size: 12px; }
+.summary-sec-table .sec-title { background: #F8FAFC; font-weight: 600; font-size: 12px; text-align: center; vertical-align: middle; }
+.summary-sec-table .row-label-1 { background: #F8FAFC; font-weight: 500; color: var(--text-secondary); font-size: 11px; text-align: left; padding-left: 10px; }
+.summary-sec-table .row-label-2 { background: #FAFAFA; color: var(--text-light); font-size: 11px; text-align: left; padding-left: 20px; }
+.summary-sec-table .note-col { min-width: 44px; color: var(--text-light); font-size: 11px; }
+.summary-sec-table .data-zero { color: var(--text-light); }
+.summary-sec-table .cv { color: var(--text-secondary); }
+.summary-sec-table .ar { font-weight: 600; margin: 0 1px; }
+.summary-sec-table .dt { font-size: 10px; white-space: nowrap; }
+.summary-sec-table .dt.up { color: #16A34A; }
+.summary-sec-table .dt.down { color: #DC2626; }
+.note-item { font-size: 11px; line-height: 1.6; padding: 2px 6px; text-align: left; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -715,6 +741,212 @@ function checkPermission() {
   if (!currentRecord) return false;
   if (currentRecord.status !== 'pending_third') return false;
   return currentRole === 'city' || currentRole === 'district';
+}
+
+// ===== POST EMPLOYED DATA =====
+var POST_EMPLOYED_DATA = {
+  '柳州市第八中学': {
+    mgmt: { '4':{career:1,control:0,over:0},'5':{career:2,control:0,over:0},'6':{career:2,control:0,over:0},'7':{career:3,control:0,over:0},'8':{career:2,control:0,over:0},'9':{career:1,control:0,over:0},'10':{career:1,control:0,over:0} },
+    prof: { '3':{career:0,control:0,over:0},'4':{career:1,control:0,over:0},'5':{career:2,control:0,over:0},'6':{career:3,control:0,over:0},'7':{career:5,control:1,over:0},'8':{career:4,control:1,over:0},'9':{career:3,control:0,over:0},'10':{career:3,control:1,over:0},'11':{career:2,control:0,over:0},'12':{career:2,control:1,over:0},'13':{career:1,control:0,over:0} },
+    labor: { '1':{career:1,control:0,over:0},'2':{career:2,control:0,over:0},'3':{career:1,control:0,over:0},'4':{career:1,control:0,over:0},'5':{career:1,control:0,over:0},'common':{career:1,control:0,over:0} }
+  },
+  '柳州高级中学': {
+    mgmt: { '4':{career:1,control:0,over:0},'5':{career:1,control:0,over:0},'6':{career:2,control:0,over:0},'7':{career:2,control:0,over:0},'8':{career:1,control:0,over:0},'9':{career:1,control:0,over:0},'10':{career:1,control:0,over:0} },
+    prof: { '3':{career:1,control:0,over:0},'4':{career:2,control:0,over:0},'5':{career:3,control:0,over:0},'6':{career:4,control:1,over:0},'7':{career:6,control:1,over:0},'8':{career:5,control:1,over:0},'9':{career:4,control:1,over:0},'10':{career:3,control:0,over:0},'11':{career:2,control:1,over:0},'12':{career:2,control:0,over:0},'13':{career:1,control:0,over:0} },
+    labor: { '1':{career:1,control:0,over:0},'2':{career:2,control:0,over:0},'3':{career:1,control:0,over:0},'4':{career:1,control:0,over:0},'5':{career:1,control:0,over:0},'common':{career:1,control:0,over:0} }
+  }
+};
+
+var PROF_LAYER_CONFIG = [
+  { key: 'senior', label: '正高级', grades: ['3','4'], gradeLabels: {'3':'三级','4':'四级'} },
+  { key: 'vice', label: '副高级', grades: ['5','6','7'], gradeLabels: {'5':'五级','6':'六级','7':'七级'} },
+  { key: 'middle', label: '中级', grades: ['8','9','10'], gradeLabels: {'8':'八级','9':'九级','10':'十级'} },
+  { key: 'junior', label: '初级', grades: ['11','12','13'], gradeLabels: {'11':'十一级','12':'十二级','13':'十三级'} }
+];
+
+function getEmployedVal(schoolName, category, grade, subType) {
+  var school = POST_EMPLOYED_DATA[schoolName];
+  if (!school) return 0;
+  var cat = school[category];
+  if (!cat) return 0;
+  var gd = cat[grade];
+  if (!gd) return 0;
+  if (subType === 'total') return (gd.career || 0) + (gd.control || 0) + (gd.over || 0);
+  return gd[subType] || 0;
+}
+
+function loadSchoolQuota(schoolName) {
+  var postRecords = [];
+  try { postRecords = JSON.parse(localStorage.getItem('post_records') || 'null') || []; } catch(e) {}
+  var quota = null;
+  postRecords.forEach(function(r) {
+    if (r.schoolName === schoolName && (r.status === 'completed' || r.status === 'second_review' || r.status === 'first_approved'))
+      quota = r;
+  });
+  return quota;
+}
+
+function seedPostRecords() {
+  if (localStorage.getItem('post_records')) return;
+  var demo = [
+    { schoolName: '柳州高级中学', schoolType: '自治区示范高中', status: 'completed', authCareerStaff: 280, authControlNo: 85, totalQuota: 365, highlandPosts: 5,
+      mgmtLevels: {'4':2,'5':3,'6':4,'7':5,'8':3,'9':2,'10':1},
+      profLevels: { senior: { levels: {'3':1,'4':3} }, vice: { levels: {'5':5,'6':8,'7':12} }, middle: { levels: {'8':15,'9':12,'10':10} }, junior: { levels: {'11':8,'12':6,'13':3} } },
+      laborLevels: {'1':1,'2':2,'3':2,'4':2,'5':1,'common':2} },
+    { schoolName: '柳州市第八中学', schoolType: '初中', status: 'completed', authCareerStaff: 200, authControlNo: 60, totalQuota: 260, highlandPosts: 3,
+      mgmtLevels: {'4':2,'5':2,'6':3,'7':4,'8':2,'9':1,'10':1},
+      profLevels: { senior: { levels: {'3':0,'4':2} }, vice: { levels: {'5':4,'6':6,'7':8} }, middle: { levels: {'8':10,'9':8,'10':6} }, junior: { levels: {'11':5,'12':4,'13':2} } },
+      laborLevels: {'1':1,'2':2,'3':1,'4':1,'5':1,'common':1} }
+  ];
+  localStorage.setItem('post_records', JSON.stringify(demo));
+}
+seedPostRecords();
+
+var CN_LEVEL_TO_KEY = { '三级':'3','四级':'4','五级':'5','六级':'6','七级':'7','八级':'8','九级':'9','十级':'10','十一级':'11','十二级':'12','十三级':'13','一级':'1','二级':'2','普通工':'common' };
+
+function getCategoryLabel(catKey) {
+  if (catKey === 'mgmt' || catKey === 'manage') return '管理岗位';
+  if (catKey === 'labor' || catKey === 'skill') return '工勤技能岗位';
+  return '专业技术岗位';
+}
+
+function parseCategoryFromPost(currentPost) {
+  if (!currentPost) return { category: 'prof', label: '专业技术岗位' };
+  if (currentPost.indexOf('管理') >= 0) return { category: 'mgmt', label: '管理岗位' };
+  if (currentPost.indexOf('工勤') >= 0) return { category: 'labor', label: '工勤技能岗位' };
+  return { category: 'prof', label: '专业技术岗位' };
+}
+
+function levelToKey(level) { return CN_LEVEL_TO_KEY[level] || level; }
+
+function computeSubmitChanges(schoolName, selected) {
+  var deltas = { mgmt: {}, prof: {}, labor: {} };
+  ['mgmt','prof','labor'].forEach(function(cat) {
+    var gs = cat === 'mgmt' ? MGMT_GRADES_SUMMARY : (cat === 'labor' ? LABOR_SUMMARY : PROF_SUMMARY);
+    gs.forEach(function(g) { deltas[cat][g] = { total: 0, career: 0, control: 0, over: 0 }; });
+  });
+  selected.forEach(function(r) {
+    var src = parseCategoryFromPost(r.currentPost);
+    var srcGrade = levelToKey(r.fromLevel);
+    var tgtCat = src.category;
+    if (r.transferType === 'transfer' && r._targetCategory) {
+      if (r._targetCategory === 'mgmt' || r._targetCategory.indexOf('管理') >= 0) tgtCat = 'mgmt';
+      else if (r._targetCategory === 'labor' || r._targetCategory.indexOf('工勤') >= 0) tgtCat = 'labor';
+    }
+    var tgtGrade = levelToKey(r.targetLevel);
+    var staffType = r._staffType || 'career';
+    if (srcGrade && deltas[src.category] && deltas[src.category][srcGrade]) {
+      deltas[src.category][srcGrade].total -= 1;
+      deltas[src.category][srcGrade][staffType] -= 1;
+    }
+    if (tgtGrade && deltas[tgtCat] && deltas[tgtCat][tgtGrade]) {
+      deltas[tgtCat][tgtGrade].total += 1;
+      deltas[tgtCat][tgtGrade][staffType] += 1;
+    }
+  });
+  return deltas;
+}
+
+function cellWithDelta(schoolName, cat, g, subKey, deltas) {
+  var current = getEmployedVal(schoolName, cat, g, subKey);
+  var d = deltas[cat] && deltas[cat][g] ? (deltas[cat][g][subKey] || 0) : 0;
+  var after = current + d;
+  if (d === 0) {
+    return '<td' + (current === 0 ? ' class="data-zero"' : '') + '>' + current + '</td>';
+  }
+  var dc = d > 0 ? ' up' : ' down';
+  return '<td><span class="cv">' + current + '</span><span class="ar">→' + after + '</span><span class="dt' + dc + '">' + (d > 0 ? '+' : '') + d + '</span></td>';
+}
+
+function renderNoteCell(cat, selected) {
+  var pathCounts = {};
+  selected.forEach(function(r) {
+    var src = parseCategoryFromPost(r.currentPost);
+    if (src.category !== cat) return;
+    var promoType = r.transferType === 'transfer' ? '转岗' : '晋升';
+    var srcFull = getCategoryLabel(src.category) + (r.fromLevel || '');
+    var tgtCatLabel = getCategoryLabel(src.category);
+    if (r.transferType === 'transfer' && r._targetCategory) {
+      if (r._targetCategory === 'mgmt' || r._targetCategory.indexOf('管理') >= 0) tgtCatLabel = '管理岗位';
+      else if (r._targetCategory === 'labor' || r._targetCategory.indexOf('工勤') >= 0) tgtCatLabel = '工勤技能岗位';
+    }
+    var path = srcFull + ' ' + promoType + ' → ' + (tgtCatLabel + (r.targetLevel || ''));
+    pathCounts[path] = (pathCounts[path] || 0) + 1;
+  });
+  var lines = [];
+  for (var p in pathCounts) { lines.push(p + '：' + pathCounts[p] + '人'); }
+  if (lines.length === 0) return '<div style="color:var(--text-light);font-size:10px;text-align:center;">—</div>';
+  var h = '';
+  lines.forEach(function(l) { h += '<div class="note-item">' + escapeHtml(l) + '</div>'; });
+  return h;
+}
+
+function renderQuotaSummary(schoolName, schoolRecords) {
+  var quota = loadSchoolQuota(schoolName);
+  if (!quota) return '<div class="quota-card"><div class="quota-card-header"><h3>岗位聘用汇总表</h3></div><div class="quota-card-body"><div style="text-align:center;color:var(--text-light);padding:20px;font-size:13px;">该学校尚未提交岗位设置审核表，无法展示岗位聘用汇总表</div></div></div>';
+
+  var deltas = computeSubmitChanges(schoolName, schoolRecords);
+
+  function profQuotaVal(g) {
+    var v = 0;
+    PROF_LAYER_CONFIG.forEach(function(layer) {
+      if (layer.grades.indexOf(g) !== -1) v = quota.profLevels[layer.key].levels[g] || 0;
+    });
+    return v;
+  }
+  function getQuotaVal(cat, g) {
+    if (cat === 'mgmt') return (quota.mgmtLevels && quota.mgmtLevels[g]) || 0;
+    if (cat === 'labor') return (quota.laborLevels && quota.laborLevels[g]) || 0;
+    if (cat === 'prof') return profQuotaVal(g);
+    return 0;
+  }
+  function shortGrade(l) { return (l || '').replace('级', ''); }
+
+  var careerTotal = 0, controlTotal = 0;
+  ['mgmt','prof','labor'].forEach(function(cat) {
+    var gs = cat === 'mgmt' ? MGMT_GRADES_SUMMARY : (cat === 'labor' ? LABOR_SUMMARY : PROF_SUMMARY);
+    gs.forEach(function(g) { careerTotal += getEmployedVal(schoolName, cat, g, 'career'); controlTotal += getEmployedVal(schoolName, cat, g, 'control'); });
+  });
+
+  var sections = [
+    { cat: 'mgmt', title: '管理岗位', grades: MGMT_GRADES_SUMMARY, labels: MGMT_GRADE_LABELS_FULL, hasHighland: false },
+    { cat: 'prof', title: '专业技术岗位', grades: PROF_SUMMARY, labels: PROF_LABELS_FLAT, hasHighland: true },
+    { cat: 'labor', title: '工勤技能岗位', grades: LABOR_SUMMARY, labels: LABOR_GRADE_LABELS, hasHighland: false }
+  ];
+
+  var h = '<div class="quota-card"><div class="quota-card-header" onclick="var b=document.getElementById(\'quotaCardBody\');var a=document.getElementById(\'quotaArrow\');if(b.classList.contains(\'collapsed\')){b.classList.remove(\'collapsed\');a.textContent=\'▼\';}else{b.classList.add(\'collapsed\');a.textContent=\'▶\';}"><h3>岗位聘用汇总表 — ' + escapeHtml(schoolName) + '</h3><span id="quotaArrow">▼</span></div><div class="quota-card-body" id="quotaCardBody">';
+  h += '<table class="summary-top-table" style="width:100%;margin-bottom:12px;"><tr>';
+  h += '<th>定编人数</th><td>实名编<b>' + (quota.authCareerStaff || 0) + '</b>+控制数<b>' + (quota.authControlNo || 0) + '</b>（合计<b>' + (quota.totalQuota || 0) + '</b>）</td>';
+  h += '<th>实有人数</th><td>实名编<b>' + careerTotal + '</b>+控制数<b>' + controlTotal + '</b>（合计<b>' + (careerTotal + controlTotal) + '</b>）</td>';
+  h += '<th>小高地岗位</th><td><b>' + (quota.highlandPosts || 0) + '</b></td></tr></table>';
+
+  sections.forEach(function(sec) {
+    var subRows = [{ sub: '合计', key: 'total' },{ sub: '实名编', key: 'career' },{ sub: '控制数', key: 'control' },{ sub: '超岗聘用数', key: 'over' }];
+    if (sec.hasHighland) subRows.push({ sub: '小高地岗位', key: 'over' });
+    var nRows = 2 + subRows.length;
+    h += '<table class="summary-sec-table" style="width:100%;margin-bottom:12px;"><tbody>';
+    h += '<tr><td class="sec-title" rowspan="' + nRows + '">' + sec.title + '</td><th>等级</th><th></th>';
+    sec.grades.forEach(function(g) { h += '<th>' + shortGrade(sec.labels[g] || g) + '</th>'; });
+    h += '<th class="note-col">备注</th></tr>';
+    h += '<tr><th class="row-label-1">核准岗位数</th><th></th>';
+    sec.grades.forEach(function(g) {
+      var qv = getQuotaVal(sec.cat, g);
+      h += '<td' + (qv === 0 ? ' class="data-zero"' : '') + '>' + (qv != null ? qv : '—') + '</td>';
+    });
+    h += '<td></td></tr>';
+    var noteHtml = renderNoteCell(sec.cat, schoolRecords);
+    subRows.forEach(function(sr, idx) {
+      h += '<tr>';
+      if (idx === 0) h += '<td class="row-label-1" rowspan="' + subRows.length + '">实聘数</td>';
+      h += '<td class="row-label-2">' + sr.sub + '</td>';
+      sec.grades.forEach(function(g) { h += cellWithDelta(schoolName, sec.cat, g, sr.key, deltas); });
+      if (idx === 0) h += '<td class="note-col" rowspan="' + subRows.length + '">' + noteHtml + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+  });
+  h += '</div></div>';
+  return h;
 }
 
 // ===== RENDER PROGRESS BAR =====
@@ -1171,6 +1403,7 @@ function renderPage() {
     '</div>' +
     '<div class="audit-layout">' +
     '<div class="audit-main">' +
+    renderQuotaSummary(currentRecord ? currentRecord.schoolName : '', [currentRecord]) +
     renderProgress() +
     renderTeacherForm() +
     renderHrResult() +

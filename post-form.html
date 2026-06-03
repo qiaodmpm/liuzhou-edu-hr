@@ -329,6 +329,27 @@ body {
 .ratio-hint-bar { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #92400E; margin-bottom: 8px; line-height: 1.8; }
 .labor-th-hint { display: block; font-size: 10px; font-weight: 400; color: var(--text-light); margin-top: 2px; }
 .labor-footnote { font-size: 11px; color: var(--text-light); margin-top: 6px; }
+.btn-auto-config { font-size: 11px; padding: 4px 12px; background: var(--primary); color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-left: 12px; font-weight: 500; }
+.btn-auto-config:hover { opacity: 0.9; }
+.summary-sec-table .change-up { color: #16A34A; font-weight: 600; }
+.summary-sec-table .change-down { color: #DC2626; font-weight: 600; }
+.summary-sec-table .change-same { color: var(--text-light); }
+.summary-sec-table .over-quota { color: #DC2626; font-weight: 700; }
+.summary-sec-table .under-quota { color: #EA580C; font-weight: 600; }
+.summary-sec-table .cell-changed-up { background: #F0FDF4; }
+.summary-sec-table .cell-changed-down { background: #FEF2F2; }
+.summary-sec-table .snapshot-row td { background: #F8FAFC; color: var(--text-secondary); font-size: 11px; }
+.summary-sec-table .note-text { font-size: 10px; white-space: nowrap; }
+.cell-arrow-up { font-size: 10px; color: #16A34A; font-weight: 700; margin-left: 2px; }
+.cell-arrow-down { font-size: 10px; color: #DC2626; font-weight: 700; margin-left: 2px; }
+.summary-sec-table .note-editable { min-width: 80px; outline: none; border-bottom: 1px dashed transparent; cursor: text; }
+.summary-sec-table .note-editable:hover { border-bottom-color: var(--border); }
+.summary-sec-table .note-editable:focus { border-bottom-color: var(--primary); background: #FFFBEB; }
+
+.reject-notice { background: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid var(--danger); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; }
+.reject-notice .reject-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--danger); margin-bottom: 6px; }
+.reject-notice .reject-header .reject-meta { font-weight: 400; font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+.reject-notice .reject-body { font-size: 13px; color: #991B1B; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -503,10 +524,207 @@ var ROLES = {
 
 // ===== SCHOOL DATA =====
 var POST_SCHOOL_DATA = {
-  '柳州市第八中学': { schoolType: '初中', orgLevel: '正科级', fundType: '全额拨款', authCareerStaff: 88, authControlNo: 16, schoolCategory: '鱼峰区属' },
-  '鱼峰区实验小学': { schoolType: '小学', orgLevel: '副科级', fundType: '全额拨款', authCareerStaff: 65, authControlNo: 0, schoolCategory: '鱼峰区属' },
-  '柳州高级中学': { schoolType: '自治区示范高中', orgLevel: '正处级', fundType: '全额拨款', authCareerStaff: 186, authControlNo: 0, schoolCategory: '市直属' },
-  '柳州市第一中学': { schoolType: '普通高中', orgLevel: '正科级', fundType: '全额拨款', authCareerStaff: 150, authControlNo: 0, schoolCategory: '市直属' }
+  '柳州市第八中学': { schoolType: '初中', orgLevel: '正科级', fundType: '全额拨款', careerStaffQuota: 88, authControlNo: 16, schoolCategory: '鱼峰区属' },
+  '鱼峰区实验小学': { schoolType: '小学', orgLevel: '副科级', fundType: '全额拨款', careerStaffQuota: 65, authControlNo: 0, schoolCategory: '鱼峰区属' },
+  '柳州高级中学': { schoolType: '自治区示范高中', orgLevel: '正处级', fundType: '全额拨款', careerStaffQuota: 186, authControlNo: 0, schoolCategory: '市直属' },
+  '柳州市第一中学': { schoolType: '普通高中', orgLevel: '正科级', fundType: '全额拨款', careerStaffQuota: 150, authControlNo: 0, schoolCategory: '市直属' },
+  '柳州市特色实验高中': { schoolType: '自治区特色高中', orgLevel: '正科级', fundType: '全额拨款', careerStaffQuota: 110, authControlNo: 10, schoolCategory: '市直属' },
+  '鱼峰区机关幼儿园': { schoolType: '幼儿园', orgLevel: '股级', fundType: '全额拨款', careerStaffQuota: 45, authControlNo: 0, schoolCategory: '鱼峰区属' }
+};
+
+var POST_EMPLOYED_DATA = {
+  '柳州市第八中学': {
+    mgmt: {
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 1, control: 0, over: 0 },
+      '6': { career: 1, control: 1, over: 0 },
+      '7': { career: 1, control: 0, over: 0 },
+      '8': { career: 1, control: 1, over: 0 },
+      '9': { career: 1, control: 0, over: 0 },
+      '10': { career: 0, control: 0, over: 0 }
+    },
+    prof: {
+      '3': { career: 0, control: 0, over: 0 },
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 3, control: 1, over: 0 },
+      '6': { career: 5, control: 1, over: 0 },
+      '7': { career: 4, control: 2, over: 0 },
+      '8': { career: 12, control: 2, over: 0 },
+      '9': { career: 15, control: 3, over: 0 },
+      '10': { career: 10, control: 3, over: 0 },
+      '11': { career: 6, control: 2, over: 0 },
+      '12': { career: 6, control: 2, over: 0 },
+      '13': { career: 2, control: 0, over: 0 }
+    },
+    labor: {
+      '1': { career: 0, control: 0, over: 0 },
+      '2': { career: 1, control: 0, over: 0 },
+      '3': { career: 2, control: 0, over: 0 },
+      '4': { career: 5, control: 0, over: 0 },
+      '5': { career: 6, control: 0, over: 0 },
+      'common': { career: 2, control: 0, over: 0 }
+    }
+  },
+  '柳州高级中学': {
+    mgmt: {
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 1, control: 0, over: 0 },
+      '6': { career: 2, control: 0, over: 0 },
+      '7': { career: 3, control: 0, over: 0 },
+      '8': { career: 2, control: 0, over: 0 },
+      '9': { career: 1, control: 0, over: 0 },
+      '10': { career: 1, control: 0, over: 0 }
+    },
+    prof: {
+      '3': { career: 1, control: 0, over: 0 },
+      '4': { career: 3, control: 0, over: 0 },
+      '5': { career: 9, control: 0, over: 0 },
+      '6': { career: 18, control: 0, over: 0 },
+      '7': { career: 17, control: 0, over: 0 },
+      '8': { career: 23, control: 0, over: 0 },
+      '9': { career: 30, control: 0, over: 0 },
+      '10': { career: 23, control: 0, over: 0 },
+      '11': { career: 9, control: 0, over: 0 },
+      '12': { career: 9, control: 0, over: 0 },
+      '13': { career: 3, control: 0, over: 0 }
+    },
+    labor: {
+      '1': { career: 0, control: 0, over: 0 },
+      '2': { career: 1, control: 0, over: 0 },
+      '3': { career: 2, control: 0, over: 0 },
+      '4': { career: 5, control: 0, over: 0 },
+      '5': { career: 5, control: 0, over: 0 },
+      'common': { career: 2, control: 0, over: 0 }
+    }
+  },
+  '鱼峰区实验小学': {
+    mgmt: {
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 0, control: 0, over: 0 },
+      '6': { career: 0, control: 0, over: 0 },
+      '7': { career: 1, control: 0, over: 0 },
+      '8': { career: 2, control: 0, over: 0 },
+      '9': { career: 1, control: 0, over: 0 },
+      '10': { career: 1, control: 0, over: 0 }
+    },
+    prof: {
+      '3': { career: 0, control: 0, over: 0 },
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 1, control: 0, over: 0 },
+      '6': { career: 2, control: 0, over: 0 },
+      '7': { career: 2, control: 0, over: 0 },
+      '8': { career: 8, control: 0, over: 0 },
+      '9': { career: 11, control: 0, over: 0 },
+      '10': { career: 8, control: 0, over: 0 },
+      '11': { career: 7, control: 0, over: 0 },
+      '12': { career: 7, control: 0, over: 0 },
+      '13': { career: 2, control: 0, over: 0 }
+    },
+    labor: {
+      '1': { career: 0, control: 0, over: 0 },
+      '2': { career: 0, control: 0, over: 0 },
+      '3': { career: 1, control: 0, over: 0 },
+      '4': { career: 2, control: 0, over: 0 },
+      '5': { career: 1, control: 0, over: 0 },
+      'common': { career: 1, control: 0, over: 0 }
+    }
+  },
+  '柳州市第一中学': {
+    mgmt: {
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 1, control: 0, over: 0 },
+      '6': { career: 2, control: 0, over: 0 },
+      '7': { career: 2, control: 0, over: 0 },
+      '8': { career: 2, control: 0, over: 0 },
+      '9': { career: 1, control: 0, over: 0 },
+      '10': { career: 0, control: 0, over: 0 }
+    },
+    prof: {
+      '3': { career: 1, control: 0, over: 0 },
+      '4': { career: 2, control: 0, over: 0 },
+      '5': { career: 6, control: 0, over: 0 },
+      '6': { career: 12, control: 0, over: 0 },
+      '7': { career: 11, control: 0, over: 0 },
+      '8': { career: 16, control: 0, over: 0 },
+      '9': { career: 21, control: 0, over: 0 },
+      '10': { career: 16, control: 0, over: 0 },
+      '11': { career: 8, control: 0, over: 0 },
+      '12': { career: 7, control: 0, over: 0 },
+      '13': { career: 2, control: 0, over: 0 }
+    },
+    labor: {
+      '1': { career: 0, control: 0, over: 0 },
+      '2': { career: 1, control: 0, over: 0 },
+      '3': { career: 2, control: 0, over: 0 },
+      '4': { career: 4, control: 0, over: 0 },
+      '5': { career: 5, control: 0, over: 0 },
+      'common': { career: 2, control: 0, over: 0 }
+    }
+  },
+  '柳州市特色实验高中': {
+    mgmt: {
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 1, control: 0, over: 0 },
+      '6': { career: 2, control: 0, over: 0 },
+      '7': { career: 2, control: 0, over: 0 },
+      '8': { career: 2, control: 0, over: 0 },
+      '9': { career: 1, control: 0, over: 0 },
+      '10': { career: 0, control: 0, over: 0 }
+    },
+    prof: {
+      '3': { career: 1, control: 0, over: 0 },
+      '4': { career: 2, control: 0, over: 0 },
+      '5': { career: 5, control: 0, over: 0 },
+      '6': { career: 10, control: 0, over: 0 },
+      '7': { career: 10, control: 0, over: 0 },
+      '8': { career: 16, control: 0, over: 0 },
+      '9': { career: 21, control: 0, over: 0 },
+      '10': { career: 15, control: 0, over: 0 },
+      '11': { career: 9, control: 0, over: 0 },
+      '12': { career: 9, control: 0, over: 0 },
+      '13': { career: 2, control: 0, over: 0 }
+    },
+    labor: {
+      '1': { career: 0, control: 0, over: 0 },
+      '2': { career: 1, control: 0, over: 0 },
+      '3': { career: 2, control: 0, over: 0 },
+      '4': { career: 4, control: 0, over: 0 },
+      '5': { career: 4, control: 0, over: 0 },
+      'common': { career: 1, control: 0, over: 0 }
+    }
+  },
+  '鱼峰区机关幼儿园': {
+    mgmt: {
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 0, control: 0, over: 0 },
+      '6': { career: 0, control: 0, over: 0 },
+      '7': { career: 0, control: 0, over: 0 },
+      '8': { career: 1, control: 0, over: 0 },
+      '9': { career: 1, control: 0, over: 0 },
+      '10': { career: 1, control: 0, over: 0 }
+    },
+    prof: {
+      '3': { career: 0, control: 0, over: 0 },
+      '4': { career: 0, control: 0, over: 0 },
+      '5': { career: 1, control: 0, over: 0 },
+      '6': { career: 2, control: 0, over: 0 },
+      '7': { career: 1, control: 0, over: 0 },
+      '8': { career: 6, control: 0, over: 0 },
+      '9': { career: 8, control: 0, over: 0 },
+      '10': { career: 6, control: 0, over: 0 },
+      '11': { career: 5, control: 0, over: 0 },
+      '12': { career: 5, control: 0, over: 0 },
+      '13': { career: 2, control: 0, over: 0 }
+    },
+    labor: {
+      '1': { career: 0, control: 0, over: 0 },
+      '2': { career: 0, control: 0, over: 0 },
+      '3': { career: 1, control: 0, over: 0 },
+      '4': { career: 2, control: 0, over: 0 },
+      '5': { career: 2, control: 0, over: 0 },
+      'common': { career: 1, control: 0, over: 0 }
+    }
+  }
 };
 
 // ===== ENUMS =====
@@ -544,8 +762,8 @@ var LABOR_GRADES = ['1', '2', '3', '4', '5', 'common'];
 var LABOR_GRADE_LABELS = { '1': '一级', '2': '二级', '3': '三级', '4': '四级', '5': '五级', 'common': '普通工' };
 
 var STATUS_MAP = {
-  first_review: '一审待审核', first_approved: '一审通过',
-  first_rejected: '一审驳回', second_review: '二审待审核', completed: '已完成'
+  first_review: '待一审', first_approved: '一审通过',
+  first_rejected: '一审驳回', second_review: '待二审', completed: '已完成'
 };
 
 // ===== STATE =====
@@ -553,10 +771,11 @@ var currentRole = 'school';
 var schoolName = '柳州市第八中学';
 var pageMode = 'new'; // 'new' | 'edit' | 'hr'
 var editRecordId = null;
+var rejectInfo = null;
 
 var formData = {
-  orgLevel: '', fundType: '', schoolType: '', totalQuota: 0, highlandPosts: 0,
-  authCareerStaff: 0, authControlNo: 0,
+  orgLevel: '', fundType: '', schoolType: '', totalControlQuota: 0, highlandPosts: 0,
+  careerStaffQuota: 0, authControlNo: 0,
   mgmtPosts: 0, profPosts: 0, laborPosts: 0,
   mgmtLevels: { '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0 },
   profLevels: {
@@ -598,8 +817,15 @@ var hrData = {
 
 // ===== PERSISTENCE =====
 function loadRecords() {
-  var stored = localStorage.getItem('post_records');
-  if (stored) { try { return JSON.parse(stored); } catch(e) {} }
+  try {
+    var stored = JSON.parse(localStorage.getItem('post_records') || 'null');
+    if (stored && stored.length) {
+      var ids = {}; stored.forEach(function(r) { ids[r.id] = true; });
+      var merged = stored.slice();
+      DEMO_RECORDS.forEach(function(r) { if (!ids[r.id]) { merged.push(r); ids[r.id] = true; } });
+      return merged;
+    }
+  } catch(e) {}
   return JSON.parse(JSON.stringify(DEMO_RECORDS));
 }
 function saveRecords(records) { localStorage.setItem('post_records', JSON.stringify(records)); }
@@ -616,8 +842,8 @@ function pad(n, len) { len = len || 2; var s = '' + n; while(s.length < len) s =
 var DEMO_RECORDS = [
   {
     id: 'PS20260522001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_review',
-    orgLevel: '正科级', fundType: '全额拨款', totalQuota: 104, highlandPosts: 0,
-    authCareerStaff: 88, authControlNo: 16,
+    orgLevel: '正科级', fundType: '全额拨款', totalControlQuota: 104, highlandPosts: 0,
+    careerStaffQuota: 88, authControlNo: 16,
     totalPosts: 104, mgmtPosts: 8, profPosts: 80, laborPosts: 16,
     mgmtLevels: { '5': 1, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
     profLevels: {
@@ -637,8 +863,8 @@ var DEMO_RECORDS = [
   },
   {
     id: 'PS20260520001', schoolName: '柳州高级中学', schoolType: '自治区示范高中', status: 'first_review',
-    orgLevel: '正处级', fundType: '全额拨款', totalQuota: 186, highlandPosts: 0,
-    authCareerStaff: 186, authControlNo: 0,
+    orgLevel: '正处级', fundType: '全额拨款', totalControlQuota: 186, highlandPosts: 0,
+    careerStaffQuota: 186, authControlNo: 0,
     totalPosts: 186, mgmtPosts: 10, profPosts: 160, laborPosts: 16,
     mgmtLevels: { '5': 1, '6': 2, '7': 3, '8': 2, '9': 1, '10': 1 },
     profLevels: {
@@ -658,8 +884,8 @@ var DEMO_RECORDS = [
   },
   {
     id: 'PS20260518001', schoolName: '鱼峰区实验小学', schoolType: '小学', status: 'first_approved',
-    orgLevel: '副科级', fundType: '全额拨款', totalQuota: 65, highlandPosts: 0,
-    authCareerStaff: 65, authControlNo: 0,
+    orgLevel: '副科级', fundType: '全额拨款', totalControlQuota: 65, highlandPosts: 0,
+    careerStaffQuota: 65, authControlNo: 0,
     totalPosts: 65, mgmtPosts: 5, profPosts: 54, laborPosts: 6,
     mgmtLevels: { '5': 0, '6': 0, '7': 1, '8': 2, '9': 1, '10': 1 },
     profLevels: {
@@ -670,6 +896,38 @@ var DEMO_RECORDS = [
     },
     laborLevels: { '1': 0, '2': 0, '3': 1, '4': 2, '5': 2, 'common': 1 },
     attachments: [],
+    employedSnapshot: {
+      mgmt: {
+        '4': { career: 0, control: 0, over: 0 },
+        '5': { career: 0, control: 0, over: 0 },
+        '6': { career: 0, control: 0, over: 0 },
+        '7': { career: 1, control: 0, over: 0 },
+        '8': { career: 1, control: 0, over: 0 },
+        '9': { career: 1, control: 0, over: 0 },
+        '10': { career: 1, control: 0, over: 0 }
+      },
+      prof: {
+        '3': { career: 0, control: 0, over: 0 },
+        '4': { career: 0, control: 0, over: 0 },
+        '5': { career: 1, control: 0, over: 0 },
+        '6': { career: 2, control: 0, over: 0 },
+        '7': { career: 2, control: 0, over: 0 },
+        '8': { career: 7, control: 0, over: 0 },
+        '9': { career: 10, control: 0, over: 0 },
+        '10': { career: 7, control: 0, over: 0 },
+        '11': { career: 7, control: 0, over: 0 },
+        '12': { career: 6, control: 0, over: 0 },
+        '13': { career: 2, control: 0, over: 0 }
+      },
+      labor: {
+        '1': { career: 0, control: 0, over: 0 },
+        '2': { career: 0, control: 0, over: 0 },
+        '3': { career: 1, control: 0, over: 0 },
+        '4': { career: 2, control: 0, over: 0 },
+        '5': { career: 1, control: 0, over: 0 },
+        'common': { career: 1, control: 0, over: 0 }
+      }
+    },
     firstReviewOpinion: '同意申报方案', firstReviewer: '李振华', firstReviewTime: '2026-05-19 15:00:00', firstRejectReason: null,
     timeline: [
       { time: '2026-05-18 14:00:00', action: '学校提交一审', operator: '王玉兰' },
@@ -682,8 +940,8 @@ var DEMO_RECORDS = [
   },
   {
     id: 'PS20260515001', schoolName: '鱼峰区实验小学', schoolType: '小学', status: 'second_review',
-    orgLevel: '副科级', fundType: '全额拨款', totalQuota: 65, highlandPosts: 0,
-    authCareerStaff: 65, authControlNo: 0,
+    orgLevel: '副科级', fundType: '全额拨款', totalControlQuota: 65, highlandPosts: 0,
+    careerStaffQuota: 65, authControlNo: 0,
     totalPosts: 65, mgmtPosts: 5, profPosts: 54, laborPosts: 6,
     mgmtLevels: { '5': 0, '6': 0, '7': 1, '8': 2, '9': 1, '10': 1 },
     profLevels: {
@@ -718,8 +976,8 @@ var DEMO_RECORDS = [
   },
   {
     id: 'PS20260510001', schoolName: '柳州市第一中学', schoolType: '普通高中', status: 'completed',
-    orgLevel: '正科级', fundType: '全额拨款', totalQuota: 150, highlandPosts: 0,
-    authCareerStaff: 150, authControlNo: 0,
+    orgLevel: '正科级', fundType: '全额拨款', totalControlQuota: 150, highlandPosts: 0,
+    careerStaffQuota: 150, authControlNo: 0,
     totalPosts: 150, mgmtPosts: 10, profPosts: 125, laborPosts: 15,
     mgmtLevels: { '5': 1, '6': 2, '7': 3, '8': 2, '9': 1, '10': 1 },
     profLevels: {
@@ -742,6 +1000,38 @@ var DEMO_RECORDS = [
     },
     hrApprovalAttachment: { name: '人社批复_柳州一中.pdf', size: 678000 },
     attachments: [{ name: '柳州一中岗位设置会议纪要.pdf', size: 234000 }],
+    employedSnapshot: {
+      mgmt: {
+        '4': { career: 0, control: 0, over: 0 },
+        '5': { career: 1, control: 0, over: 0 },
+        '6': { career: 2, control: 0, over: 0 },
+        '7': { career: 2, control: 0, over: 0 },
+        '8': { career: 2, control: 0, over: 0 },
+        '9': { career: 1, control: 0, over: 0 },
+        '10': { career: 0, control: 0, over: 0 }
+      },
+      prof: {
+        '3': { career: 1, control: 0, over: 0 },
+        '4': { career: 2, control: 0, over: 0 },
+        '5': { career: 5, control: 0, over: 0 },
+        '6': { career: 11, control: 0, over: 0 },
+        '7': { career: 10, control: 0, over: 0 },
+        '8': { career: 15, control: 0, over: 0 },
+        '9': { career: 20, control: 0, over: 0 },
+        '10': { career: 15, control: 0, over: 0 },
+        '11': { career: 7, control: 0, over: 0 },
+        '12': { career: 6, control: 0, over: 0 },
+        '13': { career: 2, control: 0, over: 0 }
+      },
+      labor: {
+        '1': { career: 0, control: 0, over: 0 },
+        '2': { career: 1, control: 0, over: 0 },
+        '3': { career: 2, control: 0, over: 0 },
+        '4': { career: 4, control: 0, over: 0 },
+        '5': { career: 4, control: 0, over: 0 },
+        'common': { career: 2, control: 0, over: 0 }
+      }
+    },
     firstReviewOpinion: '同意', firstReviewer: '张建国', firstReviewTime: '2026-05-11 14:00:00', firstRejectReason: null,
     secondReviewer: '张建国', secondReviewTime: '2026-05-15 09:00:00',
     secondReviewModifications: [
@@ -757,8 +1047,8 @@ var DEMO_RECORDS = [
   },
   {
     id: 'PS20260523001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_approved',
-    orgLevel: '正科级', fundType: '全额拨款', totalQuota: 104, highlandPosts: 0,
-    authCareerStaff: 88, authControlNo: 16,
+    orgLevel: '正科级', fundType: '全额拨款', totalControlQuota: 104, highlandPosts: 0,
+    careerStaffQuota: 88, authControlNo: 16,
     totalPosts: 104, mgmtPosts: 8, profPosts: 80, laborPosts: 16,
     mgmtLevels: { '5': 1, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
     profLevels: {
@@ -769,6 +1059,38 @@ var DEMO_RECORDS = [
     },
     laborLevels: { '1': 0, '2': 1, '3': 2, '4': 5, '5': 6, 'common': 2 },
     attachments: [],
+    employedSnapshot: {
+      mgmt: {
+        '4': { career: 0, control: 0, over: 0 },
+        '5': { career: 1, control: 0, over: 0 },
+        '6': { career: 1, control: 0, over: 0 },
+        '7': { career: 1, control: 0, over: 0 },
+        '8': { career: 1, control: 0, over: 0 },
+        '9': { career: 1, control: 0, over: 0 },
+        '10': { career: 0, control: 0, over: 0 }
+      },
+      prof: {
+        '3': { career: 0, control: 0, over: 0 },
+        '4': { career: 0, control: 0, over: 0 },
+        '5': { career: 2, control: 1, over: 0 },
+        '6': { career: 4, control: 1, over: 0 },
+        '7': { career: 4, control: 2, over: 0 },
+        '8': { career: 11, control: 2, over: 0 },
+        '9': { career: 14, control: 2, over: 0 },
+        '10': { career: 9, control: 2, over: 0 },
+        '11': { career: 5, control: 2, over: 0 },
+        '12': { career: 5, control: 2, over: 0 },
+        '13': { career: 2, control: 0, over: 0 }
+      },
+      labor: {
+        '1': { career: 0, control: 0, over: 0 },
+        '2': { career: 1, control: 0, over: 0 },
+        '3': { career: 2, control: 0, over: 0 },
+        '4': { career: 4, control: 0, over: 0 },
+        '5': { career: 5, control: 0, over: 0 },
+        'common': { career: 2, control: 0, over: 0 }
+      }
+    },
     timeline: [
       { time: '2026-05-23 08:30:00', action: '学校提交一审', operator: '周敏' },
       { time: '2026-05-24 10:00:00', action: '一审通过', operator: '李振华', opinion: '同意申报方案' }
@@ -778,7 +1100,32 @@ var DEMO_RECORDS = [
     hrResult: null, hrApprovalAttachment: null,
     secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
     completeTime: null, submitTime: '2026-05-23 08:30:00'
-  }
+  },
+  // 一审驳回 — 柳州市特色实验高中（自治区特色高中，市直属）
+  {
+    id: 'PS20260519001', schoolName: '柳州市特色实验高中', schoolType: '自治区特色高中', status: 'first_rejected',
+    orgLevel: '正科级', fundType: '全额拨款', totalControlQuota: 120, highlandPosts: 0,
+    careerStaffQuota: 110, authControlNo: 10,
+    totalPosts: 120, mgmtPosts: 8, profPosts: 100, laborPosts: 12,
+    mgmtLevels: { '5': 1, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
+    profLevels: {
+      senior: { total: 3, levels: { '3': 1, '4': 2 } },
+      vice: { total: 25, levels: { '5': 5, '6': 10, '7': 10 } },
+      middle: { total: 52, levels: { '8': 16, '9': 21, '10': 15 } },
+      junior: { total: 20, levels: { '11': 9, '12': 9, '13': 2 } }
+    },
+    laborLevels: { '1': 0, '2': 1, '3': 2, '4': 4, '5': 4, 'common': 1 },
+    attachments: [{ name: '岗位设置申请表.pdf', size: 256000 }],
+    firstReviewOpinion: null, firstReviewer: '张建国', firstReviewTime: '2026-05-20 09:00:00',
+    firstRejectReason: '管理岗位设置数量需调整，请重新核算后提交',
+    submitTime: '2026-05-19 11:00:00',
+    hrResult: null, hrApprovalAttachment: null,
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null, completeTime: null,
+    timeline: [
+      { time: '2026-05-19 11:00:00', action: '学校提交一审', operator: '林芳' },
+      { time: '2026-05-20 09:00:00', action: '一审驳回', operator: '张建国', opinion: '管理岗位设置数量需调整' }
+    ]
+  },
 ];
 
 // ===== TOAST =====
@@ -855,6 +1202,11 @@ function sidebarClick(el, id) {
     window.location.href = currentRole === 'school' ? 'post-list-school.html' : 'post-list-admin.html?role=' + currentRole;
     return;
   }
+  if (id === 'recruit') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+    return;
+  }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -864,6 +1216,17 @@ function pct(n, total) { return total > 0 ? (n / total * 100).toFixed(1) : '0.0'
 function formatSize(bytes) { if (bytes < 1024) return bytes + 'B'; if (bytes < 1048576) return (bytes/1024).toFixed(1) + 'KB'; return (bytes/1048576).toFixed(1) + 'MB'; }
 
 // ===== RENDER PAGE =====
+function renderRejectNotice() {
+  if (!rejectInfo) return '';
+  return '<div class="reject-notice">' +
+    '<div class="reject-header">' +
+    '<span>&#9888; ' + rejectInfo.type + '</span>' +
+    '<span class="reject-meta">' + (rejectInfo.reviewer || '') + ' · ' + (rejectInfo.time ? rejectInfo.time.substring(0, 16) : '') + '</span>' +
+    '</div>' +
+    '<div class="reject-body">驳回理由：' + (rejectInfo.reason || '无') + '</div>' +
+    '</div>';
+}
+
 function renderPage() {
   var html = '';
 
@@ -872,11 +1235,14 @@ function renderPage() {
       '<div class="hr-banner"><span class="hr-icon">📋</span><span class="hr-text">当前为人社核准结果录入模式。请根据人社批复文件逐项录入核准数据，并上传批复PDF。</span></div>';
     html += renderHrForm();
   } else {
+    if (pageMode === 'edit' && rejectInfo) {
+      html += renderRejectNotice();
+    }
     html += renderBasicInfo();
     html += renderTotalSection();
-    html += renderMgmtTable();
-    html += renderProfTable();
-    html += renderLaborTable();
+    html += '<div id="mgmtTableContainer">' + renderMgmtTable() + '</div>';
+    html += '<div id="profTableContainer">' + renderProfTable() + '</div>';
+    html += '<div id="laborTableContainer">' + renderLaborTable() + '</div>';
     html += renderAttachmentArea();
     html += renderSummaryPreview();
   }
@@ -893,9 +1259,9 @@ function renderBasicInfo() {
   h += '<div class="form-item"><div class="form-label">机构规格</div><div class="form-value">' + (formData.orgLevel || '-') + '</div></div>';
   h += '<div class="form-item"><div class="form-label">经费形式</div><div class="form-value">' + (formData.fundType || '-') + '</div></div>';
   h += '<div class="form-item"><div class="form-label">学校类型</div><div class="form-value">' + (formData.schoolType || '-') + '</div></div>';
-  h += '<div class="form-item"><div class="form-label">总量控制数</div><div class="form-value">' + (formData.totalQuota || '-') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">总量控制数</div><div class="form-value">' + (formData.totalControlQuota || '-') + '</div></div>';
   h += '<div class="form-item"><div class="form-label">小高地岗位数</div><div class="form-value">' + (formData.highlandPosts || 0) + '</div></div>';
-  h += '<div class="form-item"><div class="form-label">实名编制数</div><div class="form-value">' + (formData.authCareerStaff || '-') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">事业编制数</div><div class="form-value">' + (formData.careerStaffQuota || '-') + '</div></div>';
   h += '<div class="form-item"><div class="form-label">聘用控制数</div><div class="form-value">' + (formData.authControlNo || '-') + '</div></div>';
   h += '</div></div>';
   return h;
@@ -903,9 +1269,9 @@ function renderBasicInfo() {
 
 function renderTotalSection() {
   var tp = (parseInt(formData.mgmtPosts) || 0) + (parseInt(formData.profPosts) || 0) + (parseInt(formData.laborPosts) || 0);
-  var maxTotal = (formData.totalQuota || 0) - (formData.highlandPosts || 0);
+  var maxTotal = (formData.totalControlQuota || 0) - (formData.highlandPosts || 0);
   var totalClass = tp > maxTotal && maxTotal > 0 ? ' style="color:var(--danger)"' : '';
-  var h = '<div class="form-card"><div class="form-card-title">岗位总量<span class="limit-hint" id="totalLimit">（上限：' + maxTotal + '）</span></div>';
+  var h = '<div class="form-card"><div class="form-card-title">岗位总量<span class="limit-hint" id="totalLimit">（等于：' + maxTotal + '）</span><button class="btn-auto-config" onclick="autoDistributeAll();return false;" title="根据各层级比例自动配置每个岗位等级的数据">自动配置</button></div>';
   h += '<table class="total-table"><thead><tr><th>岗位总量</th><th>管理岗位数量</th><th>占比</th><th>专技岗位数量</th><th>占比</th><th>工勤技能岗位数量</th><th>占比</th></tr></thead>';
   h += '<tbody><tr>';
   h += '<td><span class="auto-val" id="totalPosts"' + totalClass + '>' + tp + '</span></td>';
@@ -1049,13 +1415,76 @@ function renderSummaryPreview() {
   return h;
 }
 
+function getEmployedData(schoolName) {
+  return POST_EMPLOYED_DATA[schoolName] || POST_EMPLOYED_DATA['柳州市第八中学'];
+}
+
+function getLastApprovedRecord(schoolName) {
+  // 优先从当前数据（localStorage 或 DEMO）中查找
+  var records = loadRecords();
+  var approved = records.filter(function(r) {
+    return r.schoolName === schoolName && (r.status === 'first_approved' || r.status === 'completed');
+  });
+  // 如果当前数据中找不到，回退到 DEMO_RECORDS 直接查找（避免 localStorage 旧数据干扰）
+  if (approved.length === 0) {
+    approved = DEMO_RECORDS.filter(function(r) {
+      return r.schoolName === schoolName && (r.status === 'first_approved' || r.status === 'completed');
+    });
+  }
+  if (approved.length === 0) return null;
+  approved.sort(function(a, b) { return b.submitTime.localeCompare(a.submitTime); });
+  return approved[0];
+}
+
+function formatChangeNote(currentVal, prevVal, hasPrev) {
+  if (!hasPrev) return '<span class="note-text change-same">—</span>';
+  if (currentVal === prevVal) return '<span class="note-text change-same">与上次持平</span>';
+  var diff = currentVal - prevVal;
+  var cls = diff > 0 ? 'change-up' : 'change-down';
+  var sign = diff > 0 ? '+' : '';
+  return '<span class="note-text ' + cls + '">较上次 ' + sign + diff + '</span>';
+}
+
+function getEmployedVal(empData, category, grade, key) {
+  if (!empData) return 0;
+  var cat = empData[category];
+  if (!cat) return 0;
+  var entry = cat[grade];
+  if (!entry) return 0;
+  return entry[key] || 0;
+}
+
+function getEmployedTotal(empData, category, grade) {
+  if (!empData) return 0;
+  var cat = empData[category];
+  if (!cat) return 0;
+  var entry = cat[grade];
+  if (!entry) return 0;
+  return (entry.career || 0) + (entry.control || 0) + (entry.over || 0);
+}
+
+function sumEmployedCategory(empData, category, key) {
+  if (!empData) return 0;
+  var cat = empData[category];
+  if (!cat) return 0;
+  var total = 0;
+  Object.keys(cat).forEach(function(g) {
+    total += (cat[g][key] || 0);
+  });
+  return total;
+}
+
 function buildSummaryTable() {
   var MGMT_SUMMARY = ['4', '5', '6', '7', '8', '9', '10'];
   var PROF_SUMMARY = ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
   var LABOR_SUMMARY = ['1', '2', '3', '4', '5', 'common'];
   var PROF_LABELS = { '3': '三级', '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级', '11': '十一级', '12': '十二级', '13': '十三级' };
 
-  // Helper: get flat professional grade value
+  var lastApproved = getLastApprovedRecord(schoolName);
+  var prevSnapshot = lastApproved ? (lastApproved.employedSnapshot || null) : null;
+  var prevLevels = lastApproved || null;
+  var empData = getEmployedData(schoolName);
+
   function profVal(g) {
     var v = 0;
     PROF_LAYER_CONFIG.forEach(function(layer) {
@@ -1064,8 +1493,28 @@ function buildSummaryTable() {
     return v;
   }
 
-  function buildSection(title, grades, gradeLabels, getVal, hasHighland, prefix) {
-    var nRows = 6 + (hasHighland ? 1 : 0); // header + 核准 + 实聘4 + optional 小高地
+  function prevProfVal(g) {
+    if (!prevLevels) return 0;
+    var v = 0;
+    PROF_LAYER_CONFIG.forEach(function(layer) {
+      if (layer.grades.indexOf(g) !== -1) v = (prevLevels.profLevels[layer.key].levels[g] || 0);
+    });
+    return v;
+  }
+
+  function cellArrow(cur, prev, hasPrev) {
+    if (!hasPrev || cur === prev) return '';
+    var diff = cur - prev;
+    var sign = diff > 0 ? '+' : '';
+    var cls = diff > 0 ? 'cell-arrow-up' : 'cell-arrow-down';
+    var arrow = diff > 0 ? '&#8593;' : '&#8595;';
+    return '<span class="' + cls + '">' + arrow + sign + diff + '</span>';
+  }
+
+  function buildSection(category, grades, gradeLabels, getCurVal, getPrevVal, hasHighland, prefix) {
+    var nRows = 7 + (hasHighland ? 1 : 0);
+    var SECTION_TITLES = { mgmt: '管理岗位', prof: '专业技术岗位', labor: '工勤技能岗位' };
+    var title = SECTION_TITLES[category] || category;
     var h = '<table class="summary-sec-table"><tbody>';
 
     // Row 1: grade header
@@ -1075,19 +1524,32 @@ function buildSummaryTable() {
     grades.forEach(function(g) { h += '<th>' + (gradeLabels[g] || LABOR_GRADE_LABELS[g]) + '</th>'; });
     h += '<th class="note-col">备注</th></tr>';
 
-    // Row 2: 核准岗位数
+    // Row 2: 核准岗位数（本次）
     h += '<tr><td class="row-label-1">核准岗位数</td><td></td>';
-    grades.forEach(function(g) { h += '<td id="sum_' + prefix + '_' + g + '">' + (getVal(g) || 0) + '</td>'; });
-    h += '<td></td></tr>';
+    grades.forEach(function(g) {
+      var cur = getCurVal(g);
+      var prev = getPrevVal ? getPrevVal(g) : 0;
+      var hasPrev = !!lastApproved;
+      var cellClass = hasPrev ? (cur > prev ? 'cell-changed-up' : (cur < prev ? 'cell-changed-down' : '')) : '';
+      h += '<td class="' + cellClass + '" id="sum_' + prefix + '_' + g + '">' + cur + cellArrow(cur, prev, hasPrev) + '</td>';
+    });
+    h += '<td contenteditable="true" class="note-editable">' + (lastApproved ? '本次申报值' : '首次申报') + '</td></tr>';
 
-    // Rows 3-6: 实聘数 section
+    // Row 3: 上次核准
+    h += '<tr class="snapshot-row"><td class="row-label-1">上次核准</td><td></td>';
+    grades.forEach(function(g) {
+      h += '<td>' + (getPrevVal ? (getPrevVal(g) || 0) : 0) + '</td>';
+    });
+    h += '<td contenteditable="true" class="note-editable">' + (lastApproved ? lastApproved.id : '—') + '</td></tr>';
+
+    // Rows 4-7: 实聘数 section
     var subRows = [
-      { label: '实聘数', sub: '合计' },
-      { label: '', sub: '实名编' },
-      { label: '', sub: '控制数' },
-      { label: '', sub: '超岗聘用数' }
+      { sub: '合计', key: null },
+      { sub: '事业编', key: 'career' },
+      { sub: '控制数', key: 'control' },
+      { sub: '超岗聘用数', key: 'over' }
     ];
-    if (hasHighland) subRows.push({ label: '', sub: '小高地岗位' });
+    if (hasHighland) subRows.push({ sub: '小高地岗位', key: 'highland' });
 
     subRows.forEach(function(sr, idx) {
       h += '<tr>';
@@ -1095,25 +1557,95 @@ function buildSummaryTable() {
         h += '<td class="row-label-1" rowspan="' + subRows.length + '">实聘数</td>';
       }
       h += '<td class="row-label-2">' + sr.sub + '</td>';
-      grades.forEach(function(g) { h += '<td class="data-zero">0</td>'; });
-      h += '<td></td></tr>';
+      grades.forEach(function(g) {
+        var val;
+        if (sr.key === null) {
+          val = getEmployedTotal(empData, category, g);
+        } else {
+          val = getEmployedVal(empData, category, g, sr.key);
+        }
+        var prevVal = 0;
+        if (sr.key === null) {
+          prevVal = getEmployedTotal(prevSnapshot, category, g);
+        } else if (sr.key === 'highland') {
+          prevVal = 0;
+        } else {
+          prevVal = getEmployedVal(prevSnapshot, category, g, sr.key);
+        }
+        var hasPrev = !!prevSnapshot;
+        var cellClass = '';
+        if (hasPrev && sr.key !== 'highland') {
+          cellClass = val > prevVal ? 'cell-changed-up' : (val < prevVal ? 'cell-changed-down' : '');
+        }
+        if (sr.key === 'over' && val > 0) cellClass = 'cell-changed-down';
+        var arrowHtml = (sr.key !== 'highland') ? cellArrow(val, prevVal, hasPrev) : '';
+        h += '<td class="' + cellClass + ' ' + (val === 0 && sr.key !== 'over' ? 'data-zero' : '') + (sr.key === 'over' && val > 0 ? 'over-quota' : '') + '">' + val + arrowHtml + '</td>';
+      });
+      // 备注：汇总各等级变动
+      if (sr.key !== 'highland') {
+        var noteParts = [];
+        var totalDiff = 0;
+        grades.forEach(function(g) {
+          var cv, pv;
+          if (sr.key === null) {
+            cv = getEmployedTotal(empData, category, g);
+            pv = getEmployedTotal(prevSnapshot, category, g);
+          } else {
+            cv = getEmployedVal(empData, category, g, sr.key);
+            pv = getEmployedVal(prevSnapshot, category, g, sr.key);
+          }
+          totalDiff += (cv - pv);
+          if (prevSnapshot && cv !== pv) {
+            var sign = cv > pv ? '+' : '';
+            noteParts.push((gradeLabels[g] || g) + ' ' + sign + (cv - pv));
+          }
+        });
+        var noteText = '';
+        if (!prevSnapshot) {
+          noteText = '—';
+        } else if (noteParts.length === 0) {
+          noteText = '与上次持平';
+        } else {
+          if (totalDiff !== 0) {
+            var tSign = totalDiff > 0 ? '+' : '';
+            noteParts.unshift('合计 ' + tSign + totalDiff);
+          }
+          noteText = noteParts.join('；');
+        }
+        var noteCls = totalDiff > 0 ? 'change-up' : (totalDiff < 0 ? 'change-down' : 'change-same');
+        h += '<td contenteditable="true" class="note-editable ' + noteCls + '">' + noteText + '</td>';
+      } else {
+        h += '<td contenteditable="true" class="note-editable"></td>';
+      }
+      h += '</tr>';
     });
 
     h += '</tbody></table>';
     return h;
   }
 
+  // --- Top bar: compute totals ---
+  var empCareerTotal = sumEmployedCategory(empData, 'mgmt', 'career') + sumEmployedCategory(empData, 'prof', 'career') + sumEmployedCategory(empData, 'labor', 'career');
+  var empControlTotal = sumEmployedCategory(empData, 'mgmt', 'control') + sumEmployedCategory(empData, 'prof', 'control') + sumEmployedCategory(empData, 'labor', 'control');
+  var empGrand = empCareerTotal + empControlTotal;
+
   var h = '';
-  // Top bar
   h += '<table class="summary-top-table"><tr>';
-  h += '<th>定编人数</th><td>实名编<b>' + (formData.authCareerStaff||0) + '</b>+控制数<b>' + (formData.authControlNo||0) + '</b>（合计<b>' + (formData.totalQuota||0) + '</b>）</td>';
-  h += '<th>实有人数</th><td>实名编<b>—</b>+控制数<b>—</b>（合计<b>—</b>）</td>';
+  h += '<th>定编人数</th><td>事业编<b>' + (formData.careerStaffQuota||0) + '</b>+控制数<b>' + (formData.authControlNo||0) + '</b>（合计<b>' + (formData.totalControlQuota||0) + '</b>）</td>';
+  h += '<th>实有人数</th><td>事业编<b>' + empCareerTotal + '</b>+控制数<b>' + empControlTotal + '</b>（合计<b>' + empGrand + '</b>）</td>';
   h += '<th>小高地岗位</th><td><b>' + (formData.highlandPosts||0) + '</b></td>';
   h += '</tr></table>';
 
-  h += buildSection('管理岗位', MGMT_SUMMARY, MGMT_GRADE_LABELS, function(g) { return formData.mgmtLevels[g] || 0; }, false, 'mgmt');
-  h += buildSection('专业技术岗位', PROF_SUMMARY, PROF_LABELS, profVal, true, 'prof');
-  h += buildSection('工勤技能岗位', LABOR_SUMMARY, LABOR_GRADE_LABELS, function(g) { return formData.laborLevels[g] || 0; }, false, 'labor');
+  h += buildSection('mgmt', MGMT_SUMMARY, MGMT_GRADE_LABELS,
+    function(g) { return formData.mgmtLevels[g] || 0; },
+    prevLevels ? function(g) { return (prevLevels.mgmtLevels[g] || 0); } : null,
+    false, 'mgmt');
+  h += buildSection('prof', PROF_SUMMARY, PROF_LABELS, profVal,
+    prevLevels ? prevProfVal : null, true, 'prof');
+  h += buildSection('labor', LABOR_SUMMARY, LABOR_GRADE_LABELS,
+    function(g) { return formData.laborLevels[g] || 0; },
+    prevLevels ? function(g) { return (prevLevels.laborLevels[g] || 0); } : null,
+    false, 'labor');
 
   return h;
 }
@@ -1218,9 +1750,9 @@ function onSchoolTypeChange(val) {
   if (sd) {
     formData.orgLevel = sd.orgLevel;
     formData.fundType = sd.fundType;
-    formData.authCareerStaff = sd.authCareerStaff;
+    formData.careerStaffQuota = sd.careerStaffQuota;
     formData.authControlNo = sd.authControlNo;
-    formData.totalQuota = sd.authCareerStaff + sd.authControlNo;
+    formData.totalControlQuota = sd.careerStaffQuota + sd.authControlNo;
   }
   renderPage();
 }
@@ -1247,14 +1779,99 @@ function updateHrProf(layer, grade, val) {
   autoCalcHr();
 }
 
+function autoDistributeAll() {
+  // 1. 管理岗位：均分到各等级（5-10级）
+  var mgmtTotal = formData.mgmtPosts || 0;
+  if (mgmtTotal > 0) {
+    var mgmtGrades = MGMT_GRADES;
+    var n = mgmtGrades.length;
+    var base = Math.floor(mgmtTotal / n);
+    var rem = mgmtTotal - base * n;
+    mgmtGrades.forEach(function(g, i) {
+      formData.mgmtLevels[g] = base + (i < rem ? 1 : 0);
+    });
+  }
+
+  // 2. 专业技术岗位：先按层级比例分配，再按等级内比例分配
+  var profTotal = formData.profPosts || 0;
+  if (profTotal > 0) {
+    var limits = PROF_RATIO_LIMITS[formData.schoolType];
+    if (limits) {
+      // Step 2a: 层级分配
+      var layerKeys = PROF_LAYER_CONFIG.map(function(l) { return l.key; });
+      var allocated = 0;
+      layerKeys.forEach(function(key, i) {
+        if (i === layerKeys.length - 1) {
+          formData.profLevels[key].total = profTotal - allocated;
+        } else {
+          var val = Math.round(profTotal * limits[key] / 100);
+          formData.profLevels[key].total = val;
+          allocated += val;
+        }
+      });
+
+      // Step 2b: 层级内等级分配
+      PROF_LAYER_CONFIG.forEach(function(layer) {
+        var lt = formData.profLevels[layer.key].total;
+        var ratios = LEVEL_INTERNAL_RATIOS[layer.key];
+        if (ratios && lt > 0) {
+          var rKeys = Object.keys(ratios);
+          var rTotal = 0;
+          rKeys.forEach(function(k) { rTotal += ratios[k]; });
+          var innerAllocated = 0;
+          rKeys.forEach(function(k, i) {
+            if (i === rKeys.length - 1) {
+              formData.profLevels[layer.key].levels[k] = lt - innerAllocated;
+            } else {
+              var val = Math.round(lt * ratios[k] / rTotal);
+              formData.profLevels[layer.key].levels[k] = val;
+              innerAllocated += val;
+            }
+          });
+        }
+      });
+    }
+  }
+
+  // 3. 工勤技能岗位：按比例上下限分配
+  var laborTotal = formData.laborPosts || 0;
+  if (laborTotal > 0) {
+    var l1 = Math.floor(laborTotal * LABOR_RATIO_LIMITS.level_1 / 100);
+    var l2 = Math.floor(laborTotal * LABOR_RATIO_LIMITS.level_2 / 100);
+    var max12 = Math.floor(laborTotal * LABOR_RATIO_LIMITS.total_1_2 / 100);
+    if (l1 + l2 > max12) { l2 = max12 - l1; }
+    var l3 = Math.floor(laborTotal * LABOR_RATIO_LIMITS.level_3 / 100);
+    var l4 = Math.floor(laborTotal * LABOR_RATIO_LIMITS.level_4 / 100);
+    var l5 = Math.ceil(laborTotal * LABOR_RATIO_LIMITS.level_5_min / 100);
+    var common = laborTotal - l1 - l2 - l3 - l4 - l5;
+    // 如果总分配超出，从大到小逐级削减
+    var items = [l4, l3, l5, l2, l1];
+    while (common < 0) {
+      for (var j = 0; j < items.length && common < 0; j++) {
+        if (items[j] > 0) { items[j]--; common++; }
+      }
+    }
+    l4 = items[0]; l3 = items[1]; l5 = items[2]; l2 = items[3]; l1 = items[4];
+    common = Math.max(0, common);
+    formData.laborLevels = { '1': l1, '2': l2, '3': l3, '4': l4, '5': l5, 'common': common };
+  }
+
+  // 重新渲染3个表格
+  document.getElementById('mgmtTableContainer').innerHTML = renderMgmtTable();
+  document.getElementById('profTableContainer').innerHTML = renderProfTable();
+  document.getElementById('laborTableContainer').innerHTML = renderLaborTable();
+  autoCalc();
+  showToast('已根据比例自动配置各等级数据，可手动调整', 'success');
+}
+
 function autoCalc() {
   var tp = (formData.mgmtPosts||0) + (formData.profPosts||0) + (formData.laborPosts||0);
-  var maxTotal = (formData.totalQuota||0) - (formData.highlandPosts||0);
+  var maxTotal = (formData.totalControlQuota||0) - (formData.highlandPosts||0);
 
   var tpEl = document.getElementById('totalPosts');
   if (tpEl) { tpEl.textContent = tp; tpEl.style.color = tp > maxTotal && maxTotal > 0 ? 'var(--danger)' : ''; }
   var limitEl = document.getElementById('totalLimit');
-  if (limitEl) limitEl.textContent = '（上限：' + maxTotal + '）';
+  if (limitEl) limitEl.textContent = '（等于：' + maxTotal + '）';
 
   var mgmtR = document.getElementById('mgmtRatio'); if (mgmtR) mgmtR.textContent = pct(formData.mgmtPosts, tp) + '%';
   var profR = document.getElementById('profRatio'); if (profR) profR.textContent = pct(formData.profPosts, tp) + '%';
@@ -1420,12 +2037,12 @@ function validateAll() {
   if (!formData.orgLevel) errors.push('请选择机构规格');
   if (!formData.fundType) errors.push('请选择经费形式');
   if (!formData.schoolType) errors.push('请选择学校类型');
-  if (!formData.totalQuota || formData.totalQuota <= 0) errors.push('请填写总量控制数');
+  if (!formData.totalControlQuota || formData.totalControlQuota <= 0) errors.push('请填写总量控制数');
 
   var tp = (formData.mgmtPosts||0) + (formData.profPosts||0) + (formData.laborPosts||0);
-  var maxTotal = (formData.totalQuota||0) - (formData.highlandPosts||0);
+  var maxTotal = (formData.totalControlQuota||0) - (formData.highlandPosts||0);
   if (tp > maxTotal) {
-    errors.push('岗位总量（' + tp + '）不能超过 ' + maxTotal + '（总量控制数 ' + formData.totalQuota + ' − 小高地岗位数 ' + (formData.highlandPosts||0) + '）');
+    errors.push('岗位总量（' + tp + '）不能超过 ' + maxTotal + '（总量控制数 ' + formData.totalControlQuota + ' − 小高地岗位数 ' + (formData.highlandPosts||0) + '）');
   }
   if (tp === 0) errors.push('岗位总量不能为0');
 
@@ -1538,9 +2155,9 @@ function submitFirstReview() {
         records[i].orgLevel = formData.orgLevel;
         records[i].fundType = formData.fundType;
         records[i].schoolType = formData.schoolType;
-        records[i].totalQuota = formData.totalQuota;
+        records[i].totalControlQuota = formData.totalControlQuota;
         records[i].highlandPosts = formData.highlandPosts;
-        records[i].authCareerStaff = formData.authCareerStaff;
+        records[i].careerStaffQuota = formData.careerStaffQuota;
         records[i].authControlNo = formData.authControlNo;
         records[i].totalPosts = tp;
         records[i].mgmtPosts = formData.mgmtPosts;
@@ -1562,8 +2179,8 @@ function submitFirstReview() {
       schoolType: formData.schoolType,
       status: 'first_review',
       orgLevel: formData.orgLevel, fundType: formData.fundType,
-      totalQuota: formData.totalQuota, highlandPosts: formData.highlandPosts,
-      authCareerStaff: formData.authCareerStaff, authControlNo: formData.authControlNo,
+      totalControlQuota: formData.totalControlQuota, highlandPosts: formData.highlandPosts,
+      careerStaffQuota: formData.careerStaffQuota, authControlNo: formData.authControlNo,
       totalPosts: tp, mgmtPosts: formData.mgmtPosts, profPosts: formData.profPosts, laborPosts: formData.laborPosts,
       mgmtLevels: JSON.parse(JSON.stringify(formData.mgmtLevels)),
       profLevels: JSON.parse(JSON.stringify(formData.profLevels)),
@@ -1707,15 +2324,19 @@ function loadForEdit(id, mode) {
     hrData.laborLevels = JSON.parse(JSON.stringify(rec.laborLevels));
   } else {
     pageMode = 'edit';
+    rejectInfo = null;
+    if (rec.firstRejectReason) {
+      rejectInfo = { type: '一审驳回', reviewer: rec.firstReviewer, time: rec.firstReviewTime, reason: rec.firstRejectReason };
+    }
     document.getElementById('pageTitle').textContent = '修改岗位设置审核表';
     document.getElementById('pageSubtitle').textContent = '请根据驳回意见修改后重新提交';
     document.getElementById('breadcrumbPage').textContent = '编辑申请';
     formData.orgLevel = rec.orgLevel;
     formData.fundType = rec.fundType;
     formData.schoolType = rec.schoolType;
-    formData.totalQuota = rec.totalQuota;
+    formData.totalControlQuota = rec.totalControlQuota;
     formData.highlandPosts = rec.highlandPosts;
-    formData.authCareerStaff = rec.authCareerStaff;
+    formData.careerStaffQuota = rec.careerStaffQuota;
     formData.authControlNo = rec.authControlNo;
     formData.mgmtPosts = rec.mgmtPosts;
     formData.profPosts = rec.profPosts;
@@ -1741,9 +2362,9 @@ function init() {
       formData.orgLevel = sd.orgLevel;
       formData.fundType = sd.fundType;
       formData.schoolType = sd.schoolType;
-      formData.authCareerStaff = sd.authCareerStaff;
+      formData.careerStaffQuota = sd.careerStaffQuota;
       formData.authControlNo = sd.authControlNo;
-      formData.totalQuota = sd.authCareerStaff + sd.authControlNo;
+      formData.totalControlQuota = sd.careerStaffQuota + sd.authControlNo;
     }
   }
 

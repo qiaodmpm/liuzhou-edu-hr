@@ -131,6 +131,35 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .not-found { text-align: center; padding: 80px 20px; color: var(--text-light); }
 .not-found .icon { font-size: 48px; margin-bottom: 16px; }
 .not-found .text { font-size: 16px; margin-bottom: 20px; }
+
+/* Attachment list in original info */
+.att-list { margin-top: 8px; }
+.att-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--gray-bg); border-radius: 6px; margin-bottom: 4px; font-size: 12px; }
+.att-item .att-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att-item .att-size { color: var(--text-light); flex-shrink: 0; }
+.att-item .att-link { color: var(--primary); cursor: pointer; text-decoration: none; flex-shrink: 0; font-size: 11px; }
+.att-item .att-link:hover { text-decoration: underline; }
+.att-empty { font-size: 12px; color: var(--text-light); padding: 4px 0; }
+
+/* HR action buttons */
+.hr-actions { display: flex; gap: 12px; margin-top: 20px; }
+.btn-hr-approve { flex: 1; padding: 12px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; background: var(--success); color: #fff; cursor: pointer; font-family: inherit; transition: var(--transition); }
+.btn-hr-approve:hover { background: #059669; }
+.btn-hr-reject { flex: 1; padding: 12px; font-size: 14px; font-weight: 600; border: 1px solid var(--danger); border-radius: 6px; background: #fff; color: var(--danger); cursor: pointer; font-family: inherit; transition: var(--transition); }
+.btn-hr-reject:hover { background: #FEF2F2; }
+
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-box { background: #fff; border-radius: var(--radius-lg); padding: 28px; width: 440px; max-width: 90vw; box-shadow: 0 12px 48px rgba(0,0,0,0.12); }
+.modal-box h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+.modal-box p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+.modal-box textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 80px; }
+.modal-box textarea:focus { outline: none; border-color: var(--accent); }
+.modal-btns { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+.btn-cancel { padding: 8px 20px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+.btn-cancel:hover { background: var(--gray-bg); }
+.btn-danger { padding: 8px 20px; font-size: 13px; border: none; border-radius: 6px; background: var(--danger); color: #fff; cursor: pointer; font-family: inherit; }
+.btn-danger:hover { background: #DC2626; }
 </style>
 </head>
 <body>
@@ -254,6 +283,11 @@ function saveRecords(r) {
   localStorage.setItem('promote_records', JSON.stringify(r));
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function formatSize(bytes) {
   if (!bytes) return '';
   if (bytes < 1024) return bytes + 'B';
@@ -316,6 +350,7 @@ function sidebarClick(el, id) {
   if (id === 'promote') { window.location.href = 'promote-list-school.html'; return; }
   if (id === 'entry') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
   if (id === 'exit') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
+  if (id === 'recruit') { window.location.href = 'recruit-list-school.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -344,58 +379,87 @@ function renderProgress() {
 }
 
 function renderOriginalInfo() {
+  var r = record;
+  var promotionLabel = r.promotionType === 'senior_3' ? '正高三级专项' : (r.transferType === 'transfer' ? '转岗' : '常规晋升');
+
+  // Build assessment string
+  var assessments = (r.assessments && r.assessments.length >= 3) ? r.assessments.join(' / ') : '—';
+
+  // Build attachments HTML
+  function buildAttList(atts, emptyText) {
+    if (!atts || atts.length === 0) return '<div class="att-empty">' + (emptyText || '无') + '</div>';
+    var h = '<div class="att-list">';
+    atts.forEach(function(a) {
+      h += '<div class="att-item"><span>&#128196; </span><span class="att-name">' + (a.name || '') + '</span><span class="att-size">(' + formatSize(a.size) + ')</span><a class="att-link" onclick="showToast(\'预览：' + escapeHtml(a.name) + '（演示）\')">预览</a><a class="att-link" onclick="showToast(\'下载功能演示\')">下载</a></div>';
+    });
+    h += '</div>';
+    return h;
+  }
+
   return '<div class="form-card">' +
     '<h3>原始申报信息</h3>' +
+
+    // Basic info section
+    '<div style="margin-bottom:16px;"><h4 style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">基本信息</h4>' +
     '<div class="info-grid">' +
-      '<div class="info-item"><span class="lbl">教师姓名</span><span class="val">' + record.teacherName + '</span></div>' +
-      '<div class="info-item"><span class="lbl">所在学校</span><span class="val">' + record.schoolName + '</span></div>' +
-      '<div class="info-item"><span class="lbl">申报批次</span><span class="val">' + record.batchName + '</span></div>' +
-      '<div class="info-item"><span class="lbl">目标等级</span><span class="val">' + record.fromLevel + ' → ' + record.targetLevel + '</span></div>' +
-      '<div class="info-item"><span class="lbl">现任岗位</span><span class="val">' + record.currentPost + '</span></div>' +
-      '<div class="info-item"><span class="lbl">现任职务</span><span class="val">' + record.currentTitle + '</span></div>' +
+      '<div class="info-item"><span class="lbl">姓名</span><span class="val">' + (r.teacherName || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">性别</span><span class="val">' + (r.gender || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">民族</span><span class="val">' + (r.ethnicity || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">出生年月</span><span class="val">' + (r.birthDate || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">政治面貌</span><span class="val">' + (r.politicalStatus || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">学历</span><span class="val">' + (r.education || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">毕业时间</span><span class="val">' + (r.graduateTime || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">参加工作时间</span><span class="val">' + (r.workStartTime || '—') + '</span></div>' +
+    '</div></div>' +
+
+    // Post info section
+    '<div style="margin-bottom:16px;"><h4 style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">岗位与申报信息</h4>' +
+    '<div class="info-grid">' +
+      '<div class="info-item"><span class="lbl">现任岗位</span><span class="val">' + (r.currentPost || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">现任职务</span><span class="val">' + (r.currentTitle || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">任职时间</span><span class="val">' + (r.appointTime || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">晋升方向</span><span class="val">' + (r.fromLevel || '—') + ' → ' + (r.targetLevel || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">晋升类型</span><span class="val">' + promotionLabel + '</span></div>' +
+      '<div class="info-item"><span class="lbl">所属批次</span><span class="val">' + (r.batchName || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">所在学校</span><span class="val">' + (r.schoolName || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">近三年考核</span><span class="val">' + assessments + '</span></div>' +
+    '</div></div>' +
+
+    // Attachments section
+    '<div><h4 style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">教师申报附件</h4>' +
+    buildAttList(r.attachments, '无教师上传的附件') +
     '</div>' +
+    '<div style="margin-top:12px;"><h4 style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">学校补充材料</h4>' +
+    buildAttList(r.schoolAttachments, '无学校补充材料') +
+    '</div>' +
+
   '</div>';
 }
 
 function renderHrForm() {
   return '<div class="form-card">' +
     '<h3>人社核准结果</h3>' +
-    '<div class="form-grid-2col">' +
-      '<div class="form-item">' +
-        '<label>核准等级 <span class="required">*</span></label>' +
-        '<input type="text" id="approvedLevel" placeholder="如：专业技术六级">' +
-      '</div>' +
-      '<div class="form-item">' +
-        '<label>依据文号 <span class="required">*</span></label>' +
-        '<input type="text" id="docNumber" placeholder="如：柳人社函〔2026〕123号">' +
-      '</div>' +
-      '<div class="form-item full-width">' +
-        '<label>备注</label>' +
-        '<textarea id="hrRemark" placeholder="选填" rows="2"></textarea>' +
-      '</div>' +
-    '</div>' +
+    '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">确认对「<strong>' + (record.teacherName || '—') + '</strong>」的申报材料进行人社核准：</p>' +
     '<div class="upload-section">' +
       '<h4>人社批复文件 <span class="required">*</span></h4>' +
       '<div class="upload-area" id="uploadArea" onclick="triggerUpload()">' +
         '<div class="upload-icon">📄</div>' +
-        '<div class="upload-text">点击上传人社批复PDF</div>' +
-        '<div class="upload-hint">仅支持 PDF 格式，单文件 ≤ 20MB</div>' +
+        '<div class="upload-text">点击或拖拽上传人社批复文件</div>' +
+        '<div class="upload-hint">支持 PDF、Word (.doc/.docx)、图片 (.jpg/.png)，单文件 ≤ 20MB</div>' +
       '</div>' +
       '<div class="file-list" id="fileList"></div>' +
-      '<input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="handleFileUpload(event)">' +
+      '<input type="file" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none" onchange="handleFileUpload(event)">' +
     '</div>' +
-  '</div>';
-}
-
-function renderActionBar() {
-  return '<div class="action-bar">' +
-    '<button class="btn-submit" onclick="submitToThirdReview()">提交三审</button>' +
+    '<div class="hr-actions">' +
+      '<button class="btn-hr-approve" onclick="approveHr()">✓ 人社审核通过</button>' +
+      '<button class="btn-hr-reject" onclick="rejectHr()">✗ 人社审核不通过</button>' +
+    '</div>' +
   '</div>';
 }
 
 function renderPage() {
   document.getElementById('pageTitle').textContent = '录入人社结果 — ' + record.teacherName;
-  var html = renderProgress() + renderOriginalInfo() + renderHrForm() + renderActionBar();
+  var html = renderProgress() + renderOriginalInfo() + renderHrForm();
   document.getElementById('contentArea').innerHTML = html;
 }
 
@@ -406,8 +470,14 @@ function triggerUpload() {
 function handleFileUpload(event) {
   var file = event.target.files[0];
   if (!file) return;
-  if (file.type !== 'application/pdf') {
-    showToast('仅支持 PDF 格式文件', 'warning');
+  var name = file.name.toLowerCase();
+  var allowed = ['.pdf','.doc','.docx','.jpg','.jpeg','.png'];
+  var valid = false;
+  for (var i = 0; i < allowed.length; i++) {
+    if (name.endsWith(allowed[i])) { valid = true; break; }
+  }
+  if (!valid) {
+    showToast('不支持的文件格式，请上传 PDF、Word、图片文件', 'warning');
     event.target.value = '';
     return;
   }
@@ -436,31 +506,65 @@ function renderFileList() {
   '</div>';
 }
 
-function submitToThirdReview() {
-  var approvedLevel = document.getElementById('approvedLevel').value.trim();
-  var docNumber = document.getElementById('docNumber').value.trim();
-  var remark = document.getElementById('hrRemark').value.trim();
-
-  if (!approvedLevel) { showToast('请填写核准等级', 'warning'); return; }
-  if (!docNumber) { showToast('请填写依据文号', 'warning'); return; }
+function approveHr() {
   if (!uploadedFile) { showToast('请上传人社批复文件', 'warning'); return; }
 
-  record.hrResult = { approvedLevel: approvedLevel, docNumber: docNumber, remark: remark };
+  record.hrResult = { approvedLevel: record.targetLevel || '', docNumber: '', remark: '' };
   record.hrApprovalAttachment = { name: uploadedFile.name, size: uploadedFile.size };
   record.status = 'pending_third';
   record.timeline.push({ time: now(), action: '录入人社结果并提交三审', operator: ROLES[currentRole].name });
 
   var records = loadRecords();
   for (var i = 0; i < records.length; i++) {
-    if (records[i].id === record.id) {
-      records[i] = record;
-      break;
-    }
+    if (records[i].id === record.id) { records[i] = record; break; }
   }
   saveRecords(records);
 
-  showToast('已提交三审', 'success');
+  showToast('人社审核通过，已提交三审', 'success');
   setTimeout(function() { window.location.href = 'promote-list-school.html'; }, 1000);
+}
+
+function rejectHr() {
+  showRejectModal();
+}
+
+function showRejectModal() {
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'hrRejectModal';
+  overlay.innerHTML = '<div class="modal-box">' +
+    '<h3>人社审核不通过</h3>' +
+    '<p>请填写退回原因，该申请将退回至学校管理员重新处理。</p>' +
+    '<textarea id="hrRejectReason" placeholder="请详细说明退回原因..."></textarea>' +
+    '<div class="modal-btns">' +
+      '<button class="btn-cancel" id="cancelHrReject">取消</button>' +
+      '<button class="btn-danger" id="confirmHrReject">确认退回</button>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+
+  document.getElementById('cancelHrReject').onclick = function() { overlay.remove(); };
+  document.getElementById('confirmHrReject').onclick = function() {
+    var reason = document.getElementById('hrRejectReason').value.trim();
+    if (!reason) { showToast('请填写退回原因', 'warning'); return; }
+    overlay.remove();
+
+    record.hrResult = null;
+    record.hrApprovalAttachment = null;
+    record.status = 'second_rejected';
+    record.secondRejectReason = reason;
+    record.timeline.push({ time: now(), action: '人社审核退回', operator: ROLES[currentRole].name, opinion: reason });
+
+    var records = loadRecords();
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].id === record.id) { records[i] = record; break; }
+    }
+    saveRecords(records);
+
+    showToast('已退回', 'success');
+    setTimeout(function() { window.location.href = 'promote-list-school.html'; }, 1000);
+  };
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
 }
 
 function init() {

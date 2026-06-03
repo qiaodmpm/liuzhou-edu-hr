@@ -395,6 +395,7 @@ body {
           <tr>
             <th>申请编号</th>
             <th>学校名称</th>
+            <th>所属区域</th>
             <th>编制类型</th>
             <th>申请时间</th>
             <th>人数</th>
@@ -635,11 +636,11 @@ function renderTable() {
     var typeLabel = TYPE_MAP[r.staffingType] || r.staffingType;
     var statusLabel = STATUS_MAP[r.status] || r.status;
     var count = r.applicants ? r.applicants.length : 0;
-    var schoolTypeLabel = r.schoolType === '市直属' ? '市直属' : '区属';
 
     html += '<tr>';
     html += '<td><span style="font-weight:600;color:var(--primary);">' + r.id + '</span></td>';
-    html += '<td>' + r.schoolName + ' <span class="school-type-badge ' + (r.schoolType === '市直属' ? 'city' : 'district') + '">' + schoolTypeLabel + '</span></td>';
+    html += '<td>' + r.schoolName + '</td>';
+    html += '<td>' + (r.schoolType || '—') + '</td>';
     html += '<td><span class="type-badge ' + r.staffingType + '">' + typeLabel + '</span></td>';
     html += '<td>' + r.submitTime.substring(0, 10) + '</td>';
     html += '<td>' + count + '人</td>';
@@ -788,7 +789,7 @@ function modifyResult(id) {
 	  html += '<div style="max-height:50vh;overflow-y:auto;">';
 	  html += '<table class="export-table"><thead><tr>';
 	  html += '<th style="width:40px;"><input type="checkbox" ' + (selectedCount === records.length && records.length > 0 ? 'checked' : '') + ' onclick="toggleSelectAllExport(this.checked)"></th>';
-	  html += '<th>申请编号</th><th>学校名称</th><th>编制类型</th><th>申请时间</th><th>人数</th></tr></thead><tbody>';
+	  html += '<th>申请编号</th><th>学校名称</th><th>所属区域</th><th>编制类型</th><th>申请时间</th><th>人数</th></tr></thead><tbody>';
 
 	  records.forEach(function(r) {
 	    var checked = exportSelection[r.id] ? ' checked' : '';
@@ -796,6 +797,7 @@ function modifyResult(id) {
 	    html += '<td><input type="checkbox"' + checked + ' onclick="onExportCheckClick(\'' + r.id.replace(/'/g, '') + '\')"></td>';
 	    html += '<td>' + r.id + '</td>';
 	    html += '<td>' + r.schoolName + '</td>';
+	    html += '<td>' + (r.schoolType || '—') + '</td>';
 	    html += '<td>' + (TYPE_MAP[r.staffingType] || r.staffingType) + '</td>';
 	    html += '<td>' + (r.submitTime ? r.submitTime.substring(0, 10) : '') + '</td>';
 	    html += '<td>' + (r.applicants || []).length + '</td>';
@@ -816,10 +818,10 @@ function modifyResult(id) {
 	  var records = getApprovedRecords().filter(function(r) { return exportSelection[r.id]; });
 	  if (records.length === 0) { showToast('请至少选择一条记录', 'warning'); return; }
 
-	  var rows = [['申请编号','学校名称','编制类型','申请时间','审批时间','人数','申请人']];
+	  var rows = [['申请编号','学校名称','所属区域','编制类型','申请时间','审批时间','人数','申请人']];
 	  records.forEach(function(r) {
 	    rows.push([
-	      r.id, r.schoolName,
+	      r.id, r.schoolName, r.schoolType || '',
 	      TYPE_MAP[r.staffingType] || r.staffingType,
 	      r.submitTime ? r.submitTime.substring(0, 10) : '',
 	      r.approveTime ? r.approveTime.substring(0, 10) : '',
@@ -936,6 +938,7 @@ function sidebarClick(el, id) {
   }
   if (id === 'promote') { window.location.href = 'promote-list-admin.html?role=' + currentRole; return; }
   if (id === 'postset') { window.location.href = 'post-list-admin.html?role=' + currentRole; return; }
+  if (id === 'recruit') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
   showToast('导航到: ' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

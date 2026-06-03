@@ -566,7 +566,7 @@ var SCHOOL_DATA = {
     schoolType: '鱼峰区属',
     unitName: '柳州市第八中学',
     orgLevel: '正科级', orgNature: '全额拨款事业单位',
-    authCareerStaff: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
+    careerStaffQuota: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
     authLeader: 5, actualLeader: 4, actualOtherLeader: 3,
     authControlNo: 16, currentControlStaff: 14
   },
@@ -574,7 +574,7 @@ var SCHOOL_DATA = {
     schoolType: '市直属',
     unitName: '柳州市第一中学',
     orgLevel: '正处级', orgNature: '全额拨款事业单位',
-    authCareerStaff: 120, currentCareerStaff: 110, unusedCareerPlan: 2,
+    careerStaffQuota: 120, currentCareerStaff: 110, unusedCareerPlan: 2,
     authLeader: 8, actualLeader: 7, actualOtherLeader: 5,
     authControlNo: 25, currentControlStaff: 22
   },
@@ -585,7 +585,7 @@ var SCHOOL_DATA = {
     orgLevel: '其他未定级',
     fundingSource: '全额拨款',
     orgNature: '全额拨款事业单位',
-    authCareerStaff: 628,
+    careerStaffQuota: 628,
     currentCareerStaff: 584,
     unusedCareerPlan: 44,
     authLeader: 0, actualLeader: 5, actualOtherLeader: 0,
@@ -609,9 +609,66 @@ var MATERIAL_CHECKLIST_BASE = {
   '解除聘用合同': ['解除聘用合同协议书', '解除聘用合同审批表', '编制本人员名册复印件'],
   '开除': ['开除处分决定书', '开除审批表', '编制本人员名册复印件'],
   '在职人员亡故': ['死亡医学证明', '户口注销证明', '编制本人员名册复印件'],
-  '离退休人员亡故核减': ['死亡医学证明', '户口注销证明', '离退休证复印件', '编制本人员名册复印件'],
-  '解除控制数聘用关系': ['解除聘用关系协议书', '解除聘用关系审批表']
+  '离退休人员亡故核减': ['死亡医学证明', '户口注销证明', '离退休证复印件'],
+  '解除控制数聘用关系': ['解除聘用关系协议书', '解除聘用关系审批表'],
+  '亡故': ['死亡医学证明', '户口注销证明']
 };
+
+// ===== DEMO: 学校在编人员（用于出编姓名下拉选） =====
+var DEMO_CURRENT_STAFF = {
+  '柳州铁一中学': [
+    { name: '张明远', gender: '男', idCard: '450203198503154678' },
+    { name: '李秀芳', gender: '女', idCard: '450203198809123456' },
+    { name: '王建华', gender: '男', idCard: '450203197611208912' },
+    { name: '陈丽华', gender: '女', idCard: '450203199002287654' },
+    { name: '刘建国', gender: '男', idCard: '450203198107153210' },
+    { name: '赵美玲', gender: '女', idCard: '450203199307094321' },
+    { name: '黄志强', gender: '男', idCard: '450203197905067890' },
+    { name: '周桂芳', gender: '女', idCard: '450203198611235678' },
+    { name: '杨文博', gender: '男', idCard: '450203199108124567' },
+    { name: '林燕红', gender: '女', idCard: '450203198403198765' }
+  ],
+  '柳州市第八中学': [
+    { name: '孙立新', gender: '男', idCard: '450203197508214567' },
+    { name: '马海燕', gender: '女', idCard: '450203198512093456' },
+    { name: '朱伟杰', gender: '男', idCard: '450203199006158901' },
+    { name: '胡雪梅', gender: '女', idCard: '450203198709232345' },
+    { name: '郑国栋', gender: '男', idCard: '450203198203117890' }
+  ],
+  '柳州市第一中学': [
+    { name: '吴志强', gender: '男', idCard: '450203197910125678' },
+    { name: '何慧娟', gender: '女', idCard: '450203198708291234' },
+    { name: '钱学军', gender: '男', idCard: '450203199204187654' },
+    { name: '沈玉兰', gender: '女', idCard: '450203198505234321' }
+  ]
+};
+
+function getAvailableStaffNames(school) {
+  return DEMO_CURRENT_STAFF[school] || DEMO_CURRENT_STAFF['柳州铁一中学'] || [];
+}
+
+function onStaffNameChange(idx) {
+  var sel = document.getElementById('exitName_' + idx);
+  var val = sel ? sel.value : '';
+  exitRows[idx].name = val;
+  var staff = getAvailableStaffNames(schoolName);
+  var found = null;
+  for (var i = 0; i < staff.length; i++) {
+    if (staff[i].name === val) { found = staff[i]; break; }
+  }
+  if (found) {
+    if (found.gender) {
+      exitRows[idx].gender = found.gender;
+      var genderSel = document.getElementById('exitGender_' + idx);
+      if (genderSel) genderSel.value = found.gender;
+    }
+    if (found.idCard) {
+      exitRows[idx].idCard = found.idCard;
+      var idCardEl = document.getElementById('exitIdCard_' + idx);
+      if (idCardEl) idCardEl.value = found.idCard;
+    }
+  }
+}
 
 function getMaterialChecklist(exitForm, staffingType) {
   var list = MATERIAL_CHECKLIST_BASE[exitForm] || [];
@@ -737,6 +794,12 @@ function sidebarClick(el, id) {
     else { showToast('无权限访问', 'warning'); }
     return;
   }
+  if (id === 'recruit') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+    showToast('无权限访问', 'warning');
+    return;
+  }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -745,7 +808,7 @@ function renderTypeSelector() {
   var html = '';
   var types = [
     { value: 'career', name: '事业编出编', form: '事业编', desc: '多人表格申报，出编形式8种', badgeClass: 'career' },
-    { value: 'control', name: '控制数出编', form: '控制数', desc: '多人表格申报，减员形式4种', badgeClass: 'control' }
+    { value: 'control', name: '控制数出编', form: '控制数', desc: '多人表格申报，减员形式5种', badgeClass: 'control' }
   ];
   types.forEach(function(t) {
     html += '<div class="type-option' + (staffingType === t.value ? ' selected' : '') + '" onclick="selectType(\'' + t.value + '\')">';
@@ -781,7 +844,7 @@ function renderUnitInfo() {
       html += '<option value="' + opt + '"' + (careerStaffType === opt ? ' selected' : '') + '>' + opt + '</option>';
     });
     html += '</select></div>';
-    html += '<div class="info-item"><div class="info-label">核定编制数（名）</div><div class="info-value">' + sd.authCareerStaff + '</div></div>';
+    html += '<div class="info-item"><div class="info-label">核定编制数（名）</div><div class="info-value">' + sd.careerStaffQuota + '</div></div>';
     html += '<div class="info-item"><div class="info-label">实有在编人数（人）</div><div class="info-value">' + sd.currentCareerStaff + '</div></div>';
     html += '<div class="info-item"><div class="info-label">剩余编制数 <span class="info-label-note">（剩余编制数=核定编制数-实有在编人数）</span></div><div class="info-value calculated">' + sd.unusedCareerPlan + '</div></div>';
     html += '</div>';
@@ -851,12 +914,24 @@ function buildExitRowHtml(row, idx) {
   var forms = staffingType === 'career' ? CAREER_EXIT_FORMS : CONTROL_EXIT_FORMS;
   var html = '<tr id="exitRow_' + idx + '">';
   html += '<td>' + (idx + 1) + '</td>';
-  html += '<td><input type="text" value="' + escapeHtml(row.name) + '" oninput="exitRows[' + idx + '].name=this.value;" placeholder="姓名"></td>';
-  html += '<td><select onchange="exitRows[' + idx + '].gender=this.value;">';
+  // 姓名：除"离退休人员亡故核减"外均为下拉选（事业编+控制数）
+  var isDeathRetiree = (staffingType === 'career' && row.exitForm === '离退休人员亡故核减');
+  if (!isDeathRetiree) {
+    var staffList = getAvailableStaffNames(schoolName);
+    html += '<td><select id="exitName_' + idx + '" onchange="onStaffNameChange(' + idx + ')" style="width:100%;">';
+    html += '<option value="">— 请选择 —</option>';
+    staffList.forEach(function(s) {
+      html += '<option value="' + s.name + '"' + (row.name === s.name ? ' selected' : '') + '>' + s.name + '</option>';
+    });
+    html += '</select></td>';
+  } else {
+    html += '<td><input type="text" value="' + escapeHtml(row.name) + '" oninput="exitRows[' + idx + '].name=this.value;" placeholder="姓名"></td>';
+  }
+  html += '<td><select id="exitGender_' + idx + '" onchange="exitRows[' + idx + '].gender=this.value;">';
   html += '<option value="男"' + (row.gender === '男' ? ' selected' : '') + '>男</option>';
   html += '<option value="女"' + (row.gender === '女' ? ' selected' : '') + '>女</option>';
   html += '</select></td>';
-  html += '<td><input type="text" value="' + escapeHtml(row.idCard) + '" oninput="exitRows[' + idx + '].idCard=this.value;" placeholder="18位身份证号" maxlength="18"></td>';
+  html += '<td><input type="text" id="exitIdCard_' + idx + '" value="' + escapeHtml(row.idCard) + '" oninput="exitRows[' + idx + '].idCard=this.value;" placeholder="18位身份证号" maxlength="18"></td>';
 
   // docNumber — conditional required
   var isDeathForm = DOC_NUMBER_OPTIONAL.indexOf(row.exitForm) >= 0;
@@ -869,9 +944,10 @@ function buildExitRowHtml(row, idx) {
   });
   html += '</select></td>';
 
-  // roster book (career only)
+  // roster book (career only, optional for 离退休人员亡故核减)
   if (staffingType === 'career') {
-    html += '<td><input type="text" value="' + escapeHtml(row.rosterBook || '') + '" oninput="exitRows[' + idx + '].rosterBook=this.value;" placeholder="如：第5页第3行"></td>';
+    var isDeathRet = row.exitForm === '离退休人员亡故核减';
+    html += '<td><input type="text" value="' + escapeHtml(row.rosterBook || '') + '" oninput="exitRows[' + idx + '].rosterBook=this.value;" placeholder="' + (isDeathRet ? '可不填' : '如：第5页第3行') + '" style="' + (isDeathRet ? 'background:#FFF7ED;' : '') + '"></td>';
   }
 
   // materials per-row upload — checklist style
@@ -955,7 +1031,13 @@ function submitForm() {
   // Validate
   for (var i = 0; i < exitRows.length; i++) {
     var r = exitRows[i];
-    if (!r.name || r.name.length < 2 || r.name.length > 20) { showToast('第' + (i+1) + '行：姓名需2-20个字符', 'warning'); return; }
+    // name validation: dropdown just check non-empty; text input (离退休人员亡故核减) check chars
+    var isDeathRetireeRow = (staffingType === 'career' && r.exitForm === '离退休人员亡故核减');
+    if (isDeathRetireeRow) {
+      if (!r.name || r.name.length < 2 || r.name.length > 20) { showToast('第' + (i+1) + '行：姓名需2-20个字符', 'warning'); return; }
+    } else {
+      if (!r.name) { showToast('第' + (i+1) + '行：请选择姓名', 'warning'); return; }
+    }
     if (!r.gender) { showToast('第' + (i+1) + '行：请选择性别', 'warning'); return; }
     if (!r.idCard || r.idCard.length !== 18 || !/^\d{17}[\dXx]$/.test(r.idCard)) { showToast('第' + (i+1) + '行：身份证号格式错误', 'warning'); return; }
     if (!r.exitForm) { showToast('第' + (i+1) + '行：请选择' + (staffingType === 'career' ? '出编形式' : '减员形式'), 'warning'); return; }
@@ -963,15 +1045,9 @@ function submitForm() {
     if (DOC_NUMBER_OPTIONAL.indexOf(r.exitForm) < 0 && !r.docNumber) {
       showToast('第' + (i+1) + '行：请填写依据文号（亡故类可不填）', 'warning'); return;
     }
-    // roster book required for career
-    if (staffingType === 'career' && !r.rosterBook) { showToast('第' + (i+1) + '行：请填写编制本人员名册序号', 'warning'); return; }
-    // materials checklist — all items required
-    var checklist = getMaterialChecklist(r.exitForm, staffingType);
-    for (var c = 0; c < checklist.length; c++) {
-      if (!r.checklistFiles || !r.checklistFiles[checklist[c]]) {
-        showToast('第' + (i+1) + '行：请上传"' + checklist[c] + '"', 'warning'); return;
-      }
-    }
+    // roster book required for career (except 离退休人员亡故核减)
+    if (staffingType === 'career' && r.exitForm !== '离退休人员亡故核减' && !r.rosterBook) { showToast('第' + (i+1) + '行：请填写编制本人员名册序号', 'warning'); return; }
+    // materials checklist — 选填，不做必传校验
   }
 
   // Generate ID
@@ -1000,7 +1076,7 @@ function submitForm() {
   record.unitName = sd.unitName;
   if (staffingType === 'career') {
     record.careerStaffType = careerStaffType;
-    record.authCareerStaff = sd.authCareerStaff;
+    record.careerStaffQuota = sd.careerStaffQuota;
     record.currentCareerStaff = sd.currentCareerStaff;
     record.unusedCareerPlan = sd.unusedCareerPlan;
   } else {

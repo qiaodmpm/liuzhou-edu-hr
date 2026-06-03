@@ -285,6 +285,12 @@ body {
 .file-item .file-remove { color: var(--danger); cursor: pointer; font-size: 11px; }
 .file-item .file-remove:hover { text-decoration: underline; }
 
+/* ===== REJECT NOTICE ===== */
+.reject-notice { background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px; }
+.reject-notice .rn-title { font-size: 14px; font-weight: 600; color: #991B1B; margin-bottom: 6px; }
+.reject-notice .rn-meta { font-size: 11px; color: #B91C1C; margin-bottom: 4px; }
+.reject-notice .rn-reason { font-size: 13px; color: #7F1D1D; line-height: 1.6; }
+
 /* ===== ACTION BAR ===== */
 .action-bar {
   position: sticky; bottom: 0; background: #fff;
@@ -532,14 +538,50 @@ var TEACHERS = [
   { id:'t4', name:'赵伟强', short:'赵', gender:'男', ethnicity:'汉族', birthDate:'1983-12-10',
     education:'本科', graduateTime:'2006-06', workStartTime:'2006-08',
     currentPost:'专业技术岗位九级', currentTitle:'一级教师', appointTime:'2022-09-01',
-    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' }
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t5', name:'周国庆', short:'周', gender:'男', ethnicity:'汉族', birthDate:'1972-05-10',
+    education:'本科', graduateTime:'1994-07', workStartTime:'1994-09',
+    currentPost:'管理岗位七级', currentTitle:'副校长', appointTime:'2017-03-01',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t6', name:'吴小娟', short:'吴', gender:'女', ethnicity:'壮族', birthDate:'1985-07-20',
+    education:'大专', graduateTime:'2007-07', workStartTime:'2007-09',
+    currentPost:'工勤技能岗位三级', currentTitle:'高级工', appointTime:'2019-06-01',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'群众' }
 ];
+
+function loadTeacherProfiles() {
+  try { return JSON.parse(localStorage.getItem('teacher_profiles') || '{}'); } catch(e) { return {}; }
+}
 
 function getCurrentTeacher() {
   var params = new URLSearchParams(window.location.search);
   var tid = params.get('teacher') || localStorage.getItem('current_teacher_id') || 't1';
   var t = TEACHERS.find(function(x) { return x.id === tid; });
-  return t || TEACHERS[0];
+  t = t || TEACHERS[0];
+  if (!t) return null;
+  // Merge saved profile (from school approval) over base data
+  var profiles = loadTeacherProfiles();
+  var p = profiles[t.name];
+  if (p) {
+    return {
+      id: t.id,
+      name: p.name || t.name,
+      short: t.short,
+      gender: p.gender || t.gender,
+      ethnicity: p.ethnicity || t.ethnicity,
+      birthDate: p.birthDate || t.birthDate,
+      politicalStatus: p.politicalStatus || t.politicalStatus,
+      education: p.education || t.education,
+      graduateTime: p.graduateTime || t.graduateTime,
+      workStartTime: p.workStartTime || t.workStartTime,
+      currentPost: t.currentPost,
+      currentTitle: t.currentTitle,
+      appointTime: t.appointTime,
+      schoolName: t.schoolName,
+      schoolCategory: t.schoolCategory
+    };
+  }
+  return t;
 }
 
 function setCurrentTeacher(id) {
@@ -554,21 +596,18 @@ var SCOPE_MAP = { all: '全市', district: '指定区', city: '市直属' };
 
 var DEMO_BATCHES = [
   {
-    id: 'PB20260501001', name: '2026年春季专业技术岗位晋升',
-    category: 'professional', year: '2026',
-    allowedLevels: ['三级','四级','五级','六级','七级','八级','九级','十级'],
+    id: 'PB20260501001', name: '2026年春季岗位晋升',
+    schoolName: '柳州市第八中学', createdBy: 'school', year: 2026,
+    promoteTypes: ['mgmt','prof','labor'], allowedLevels: [],
     startTime: '2026-05-01', endTime: '2026-06-30',
-    scope: 'all', scopeAreas: ['市直属','鱼峰区属'],
-    remark: '面向全市所有直属学校及鱼峰区属学校的常规晋升批次',
-    createTime: '2026-04-28 09:00:00', status: 'open'
+    remark: '面向本校全体教师的常规晋升批次', status: 'open'
   },
   {
-    id: 'PB20260415001', name: '2026年鱼峰区专项晋升',
-    category: 'skill', year: '2026',
-    allowedLevels: ['五级','六级','七级','八级'],
-    startTime: '2026-04-15', endTime: '2026-05-15',
-    scope: 'district', scopeAreas: ['鱼峰区属'],
-    remark: '', createTime: '2026-04-10 10:00:00', status: 'closed'
+    id: 'PB20260415001', name: '2026年春季岗位晋升',
+    schoolName: '柳州高级中学', createdBy: 'school', year: 2026,
+    promoteTypes: ['prof'], allowedLevels: ['五级','六级','七级','八级'],
+    startTime: '2026-04-15', endTime: '2026-06-15',
+    remark: '', status: 'open'
   }
 ];
 
@@ -637,17 +676,94 @@ var DEMO_RECORDS = [
     thirdReviewer: null, thirdReviewTime: null, thirdModifications: [],
     timeline: [{ time: '2026-05-18 14:30:00', action: '教师提交申报', operator: '张淑芳' }],
     submitTime: '2026-05-18 14:30:00', completeTime: null
+  },
+  {
+    id: 'PR20260510002', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '王小燕', gender: '女', ethnicity: '壮族', birthDate: '1982-11-05',
+    politicalStatus: '群众', education: '硕士研究生', graduateTime: '2005-06', workStartTime: '2005-08',
+    currentPost: '专业技术岗位十级', currentTitle: '一级教师', appointTime: '2021-03-01',
+    promotionType: 'regular', targetLevel: '九级', fromLevel: '十级',
+    assessments: ['合格', '合格', '合格'], senior3Form: null,
+    schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    attachments: [{ name: '一级教师聘书.pdf', size: 189000 }], schoolAttachments: [],
+    status: 'first_rejected',
+    firstReviewer: '周敏', firstReviewTime: '2026-05-12 10:00:00', firstRejectReason: '近三年考核结果未完整填写，请补充后重新提交',
+    secondReviewer: null, secondReviewTime: null, secondReviewOpinion: null, secondRejectReason: null,
+    hrResult: null, hrApprovalAttachment: null,
+    thirdReviewer: null, thirdReviewTime: null, thirdModifications: [],
+    timeline: [
+      { time: '2026-05-10 08:30:00', action: '教师提交申报', operator: '王小燕' },
+      { time: '2026-05-12 10:00:00', action: '学校一审驳回', operator: '周敏', opinion: '近三年考核结果未完整填写，请补充后重新提交' }
+    ],
+    submitTime: '2026-05-10 08:30:00', completeTime: null
   }
 ];
 
 // ===== PAGE STATE =====
 var pageMode = 'new'; // 'new' | 'edit'
 var editRecordId = null;
+var rejectInfo = null; // { reason: '...', reviewer: '...', time: '...' }
 var currentStep = 1;
 var selectedBatch = null;
 var selectedLevel = null;
 var uploadedFiles = [];
+var selectedTransferType = 'promote'; // 'promote' | 'transfer'
+var selectedTransferCategory = null;  // 'mgmt' | 'prof' | 'labor'
+var selectedTransferLevel = null;     // e.g. '五级'
 var formAssessments = ['合格', '合格', '合格']; // 2023, 2024, 2025
+
+// Editable basic info — initialized from CURRENT_TEACHER, editable by teacher
+var formTeacherInfo = {};
+
+function initFormTeacherInfo(overrides) {
+  var t = CURRENT_TEACHER;
+  formTeacherInfo = {
+    teacherName: (overrides && overrides.teacherName) || t.name || '',
+    gender: (overrides && overrides.gender) || t.gender || '',
+    ethnicity: (overrides && overrides.ethnicity) || t.ethnicity || '',
+    birthDate: (overrides && overrides.birthDate) || t.birthDate || '',
+    politicalStatus: (overrides && overrides.politicalStatus) || t.politicalStatus || '',
+    education: (overrides && overrides.education) || t.education || '',
+    graduateTime: (overrides && overrides.graduateTime) || t.graduateTime || '',
+    workStartTime: (overrides && overrides.workStartTime) || t.workStartTime || ''
+  };
+}
+
+var GENDER_OPTIONS = ['男', '女'];
+var ETHNICITY_OPTIONS = ['汉族', '壮族', '回族', '苗族', '瑶族', '侗族', '其他'];
+var POLITICAL_OPTIONS = ['中共党员', '中共预备党员', '共青团员', '群众', '民主党派'];
+var EDUCATION_OPTIONS = ['博士研究生', '硕士研究生', '本科', '大专', '中专', '高中及以下'];
+
+function buildEditableRow(label, fieldKey) {
+  // Name is read-only
+  if (fieldKey === 'teacherName') {
+    var val = formTeacherInfo[fieldKey] || '';
+    return '<div class="form-item"><span class="label">' + label + '</span><div class="form-value">' + escapeHtml(String(val)) + '</div></div>';
+  }
+  // Select dropdowns
+  if (fieldKey === 'gender') return buildSelectRow(label, fieldKey, GENDER_OPTIONS);
+  if (fieldKey === 'ethnicity') return buildSelectRow(label, fieldKey, ETHNICITY_OPTIONS);
+  if (fieldKey === 'politicalStatus') return buildSelectRow(label, fieldKey, POLITICAL_OPTIONS);
+  if (fieldKey === 'education') return buildSelectRow(label, fieldKey, EDUCATION_OPTIONS);
+  // Date inputs
+  if (fieldKey === 'birthDate' || fieldKey === 'graduateTime' || fieldKey === 'workStartTime') {
+    var dval = formTeacherInfo[fieldKey] || '';
+    return '<div class="form-item"><span class="label">' + label + '</span><input type="date" value="' + escapeHtml(String(dval)) + '" onchange="formTeacherInfo[\'' + fieldKey + '\'] = this.value" class="editable-field"></div>';
+  }
+  // Default text
+  var val = formTeacherInfo[fieldKey] || '';
+  return '<div class="form-item"><span class="label">' + label + '</span><input type="text" value="' + escapeHtml(String(val)) + '" onchange="formTeacherInfo[\'' + fieldKey + '\'] = this.value" class="editable-field"></div>';
+}
+
+function buildSelectRow(label, fieldKey, options) {
+  var val = formTeacherInfo[fieldKey] || '';
+  var h = '<div class="form-item"><span class="label">' + label + '</span><select onchange="formTeacherInfo[\'' + fieldKey + '\'] = this.value" class="editable-field">';
+  for (var i = 0; i < options.length; i++) {
+    h += '<option value="' + options[i] + '"' + (val === options[i] ? ' selected' : '') + '>' + options[i] + '</option>';
+  }
+  h += '</select></div>';
+  return h;
+}
 
 // senior_3 form data
 var senior3Form = {
@@ -667,8 +783,8 @@ var senior3Form = {
   publicEnd: ''         // 公示结束时间
 };
 
-var STEP_LABELS = ['选择批次', '选择目标等级', '填写申报信息', '上传附件'];
-var STEP_COUNT = 4;
+var STEP_LABELS = ['选择批次', '选择晋升类型', '选择目标等级', '填写申报信息', '上传附件'];
+var STEP_COUNT = 5;
 
 // ===== CHINESE NUMBER MAPPING =====
 var CN_NUM_MAP = {
@@ -703,6 +819,11 @@ function parseLevelPair(pair) {
     fromLabel: parts[0].trim(),
     toLabel: parts[1].trim()
   };
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function formatDate(isoStr) {
@@ -781,41 +902,63 @@ function loadBatches() {
 }
 
 function getOpenBatches() {
-  return loadBatches().filter(function (b) { return b.status === 'open'; });
+  var school = CURRENT_TEACHER.schoolName || '';
+  return loadBatches().filter(function (b) { return b.status === 'open' && b.schoolName === school; });
 }
+
+var CATEGORY_MIN_LEVEL = { mgmt: 4, prof: 3, labor: 1 };
 
 function getApplicableLevels(batch) {
   var currentNum = extractCurrentLevelNumber();
   var levels = [];
-  if (!batch.allowedLevels || !batch.allowedLevels.length) return levels;
 
-  // New format: flat target levels like ['三级','四级','五级']
-  // Teacher at level N can promote to level N-1
-  var targetNum = currentNum - 1;
-  if (targetNum < 1) return levels;
-  var targetCn = NUM_CN_MAP[targetNum];
-  if (!targetCn) return levels;
-  var targetLabel = targetCn + '级';
-
-  for (var i = 0; i < batch.allowedLevels.length; i++) {
-    var item = batch.allowedLevels[i];
-    if (item.indexOf('→') >= 0) {
-      // Backward compat: old pair format "七级→六级"
-      var parsed = parseLevelPair(item);
-      if (parsed && parsed.from === currentNum) levels.push(parsed);
-    } else {
-      // New format: just target level name like "六级"
-      if (item === targetLabel) {
-        var fromCn = NUM_CN_MAP[currentNum];
-        levels.push({
-          from: currentNum,
-          to: targetNum,
-          fromLabel: fromCn + '级',
-          toLabel: targetLabel
-        });
-      }
-    }
+  // Determine which target levels are allowed by the batch
+  var allowedSet = null;
+  if (batch.allowedLevels && batch.allowedLevels.length > 0) {
+    allowedSet = {};
+    batch.allowedLevels.forEach(function(item) {
+      var num = extractLevelNumber(item);
+      if (num > 0) allowedSet[num] = true;
+    });
   }
+  // allowedSet === null means all levels are allowed (empty allowedLevels)
+
+  // Category-aware min level: 专业技术岗最高三级, 管理岗最高四级, 工勤岗最高一级
+  var cat = getTeacherCategory();
+  var minLevel = CATEGORY_MIN_LEVEL[cat] || 1;
+
+  // Cross-level: teacher can promote to ANY level higher than current (minLevel to currentNum-1)
+  for (var targetNum = minLevel; targetNum < currentNum; targetNum++) {
+    // If batch restricts levels, only add matching ones
+    if (allowedSet && !allowedSet[targetNum]) continue;
+
+    var targetCn = NUM_CN_MAP[targetNum];
+    if (!targetCn) continue;
+    var fromCn = NUM_CN_MAP[currentNum];
+    if (!fromCn) continue;
+
+    levels.push({
+      from: currentNum,
+      to: targetNum,
+      fromLabel: fromCn + '级',
+      toLabel: targetCn + '级'
+    });
+  }
+  return levels;
+}
+
+function getTransferLevels(category) {
+  var levels = [];
+  var ranges = { mgmt: [4, 10], prof: [3, 13], labor: [1, 5] };
+  var range = ranges[category];
+  if (!range) return levels;
+  for (var n = range[0]; n <= range[1]; n++) {
+    var cn = NUM_CN_MAP[n];
+    if (!cn) continue;
+    levels.push({ num: n, label: cn + '级' });
+  }
+  // Labor has extra "普通工"
+  if (category === 'labor') levels.push({ num: 0, label: '普通工' });
   return levels;
 }
 
@@ -857,6 +1000,7 @@ function sidebarClick(el, id) {
   el.classList.add('active');
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'promote') return; // stay on this page
+  if (id === 'recruit') { showToast('无权限访问', 'warning'); return; }
   if (id === 'ethics') { showToast('师德师风举报页面开发中'); return; }
   if (id === 'honor') { showToast('荣誉申请页面开发中'); return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
@@ -929,86 +1073,208 @@ function selectBatch(id) {
   renderStep1_BatchSelect();
 }
 
-// ===== STEP 2: LEVEL SELECT =====
-function renderStep2_LevelSelect() {
-  if (!selectedBatch) {
-    document.getElementById('contentArea').innerHTML = '';
-    return;
-  }
+// ===== STEP 2: PROMOTION TYPE SELECT =====
+var CATEGORY_LABELS = { mgmt: '管理岗位', prof: '专业技术岗位', labor: '工勤技能岗位' };
 
+function getTeacherCategory() {
+  var post = CURRENT_TEACHER.currentPost || '';
+  if (post.indexOf('管理') >= 0) return 'mgmt';
+  if (post.indexOf('工勤') >= 0) return 'labor';
+  return 'prof';
+}
+
+function getTeacherCategoryLabel() {
+  return CATEGORY_LABELS[getTeacherCategory()] || '专业技术岗位';
+}
+
+function renderStep2_PromotionType() {
+  var currentCatLabel = getTeacherCategoryLabel();
+  var fromNum = extractCurrentLevelNumber();
   var applicableLevels = getApplicableLevels(selectedBatch);
-  var currentNum = extractCurrentLevelNumber();
+  var levelPreview = applicableLevels.map(function(l) { return l.toLabel; }).join('/');
+  if (!levelPreview) levelPreview = '无可申报等级';
 
-  var html = '<div class="level-card">';
-  html += '<h3>选择目标晋升等级</h3>';
-  html += '<div class="level-hint">当前批次：' + selectedBatch.name + ' | 您当前岗位等级：<strong>' + CURRENT_TEACHER.currentPost + '</strong></div>';
+  var html = '';
+  html += '<div class="form-card" style="text-align:center;padding:24px;">';
+  html += '<h3 style="margin-bottom:20px;">请选择晋升类型</h3>';
 
-  if (applicableLevels.length === 0) {
-    html += '<div style="padding:20px;text-align:center;color:var(--text-light);">';
-    html += '当前批次无可申报的晋升等级（您当前岗位为' + CURRENT_TEACHER.currentPost + '，该批次不包含您可申报的目标等级）';
-    html += '</div>';
-  } else {
-    html += '<div class="level-tags">';
-    applicableLevels.forEach(function (level) {
-      var targetNum = level.to;
-      var remaining = getRemainingQuota(CURRENT_TEACHER.schoolName, targetNum);
-      var exempt = isExemptFromQuota(targetNum);
-      var disabled = false;
+  // Promote card
+  var promoteSelected = selectedTransferType === 'promote' ? ' selected' : '';
+  html += '<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">';
+  html += '<div class="transfer-type-card' + promoteSelected + '" onclick="selectTransferType(\'promote\')" style="flex:1;min-width:240px;max-width:360px;padding:24px;border:2px solid ' + (selectedTransferType === 'promote' ? 'var(--primary)' : 'var(--border)') + ';border-radius:12px;cursor:pointer;transition:var(--transition);">';
+  html += '<div style="font-size:32px;margin-bottom:8px;">&#127956;</div>';
+  html += '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">晋升</div>';
+  html += '<div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">在本岗位类别内跨级或逐级<br>晋升至更高等级</div>';
+  html += '<div style="margin-top:12px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:12px;color:var(--text-secondary);">';
+  html += '当前：' + currentCatLabel + ' ' + CURRENT_TEACHER.currentPost + '<br>可申报：' + levelPreview;
+  html += '</div></div>';
 
-      if (!exempt && remaining <= 0) {
-        disabled = true;
-      }
-
-      var selCls = '';
-      if (selectedLevel && selectedLevel.toLabel === level.toLabel && selectedLevel.fromLabel === level.fromLabel) {
-        selCls = ' selected';
-      }
-      if (disabled) selCls += ' disabled';
-
-      html += '<div class="level-tag' + selCls + '"';
-      if (!disabled) {
-        html += ' onclick="selectLevel(\'' + level.fromLabel + '\', \'' + level.toLabel + '\')"';
-      }
-      html += '>';
-      html += level.fromLabel + '<span class="tag-arrow">→</span>' + level.toLabel;
-      html += '</div>';
-    });
-    html += '</div>';
-
-    // Show quota hints for all levels
-    applicableLevels.forEach(function (level) {
-      var targetNum = level.to;
-      var remaining = getRemainingQuota(CURRENT_TEACHER.schoolName, targetNum);
-      var exempt = isExemptFromQuota(targetNum);
-
-      var quotaCls = 'quota-hint';
-      if (!exempt && remaining <= 0) quotaCls += ' danger';
-
-      html += '<div class="' + quotaCls + '" style="margin-right:8px;">';
-      html += '目标' + level.toLabel + '：';
-      if (exempt) {
-        html += '不限名额';
-      } else {
-        html += '剩余可申报 <span class="quota-number">' + remaining + '</span> 个岗位';
-        if (remaining <= 0) {
-          html += '（无可申报岗位数）';
-        }
-      }
-      html += '</div>';
-    });
-  }
+  // Transfer card
+  var transferSelected = selectedTransferType === 'transfer' ? ' selected' : '';
+  html += '<div class="transfer-type-card' + transferSelected + '" onclick="selectTransferType(\'transfer\')" style="flex:1;min-width:240px;max-width:360px;padding:24px;border:2px solid ' + (selectedTransferType === 'transfer' ? 'var(--primary)' : 'var(--border)') + ';border-radius:12px;cursor:pointer;transition:var(--transition);">';
+  html += '<div style="font-size:32px;margin-bottom:8px;">&#128260;</div>';
+  html += '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">转岗</div>';
+  html += '<div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">跨岗位类别调动至<br>其他岗位类别</div>';
+  html += '<div style="margin-top:12px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:12px;color:var(--text-secondary);">';
+  html += '当前：' + currentCatLabel + '<br>需选择目标类别和等级';
+  html += '</div></div>';
+  html += '</div>';
 
   html += '</div>';
   document.getElementById('contentArea').innerHTML = html;
 }
 
-function selectLevel(fromLabel, toLabel) {
-  selectedLevel = { fromLabel: fromLabel, toLabel: toLabel };
-  renderStep2_LevelSelect();
+function selectTransferType(type) {
+  selectedTransferType = type;
+  if (type === 'transfer') {
+    selectedLevel = null;
+  }
+  selectedTransferCategory = null;
+  selectedTransferLevel = null;
+  renderStep2_PromotionType();
 }
 
-// ===== STEP 3: FORM =====
-function renderStep3_Form() {
+// ===== STEP 3: LEVEL SELECT =====
+function renderStep3_LevelSelect() {
+  if (!selectedBatch) {
+    document.getElementById('contentArea').innerHTML = '';
+    return;
+  }
+
+  var html = '';
+  var currentCatLabel = getTeacherCategoryLabel();
+
+  if (selectedTransferType === 'transfer') {
+    // ===== TRANSFER MODE =====
+    var batchTypes = selectedBatch.promoteTypes || ['mgmt','prof','labor'];
+    var currentCat = getTeacherCategory();
+    var availableCats = batchTypes.filter(function(c) { return c !== currentCat; });
+
+    html += '<div class="form-card" style="padding:24px;">';
+    html += '<h3>选择转岗目标</h3>';
+    html += '<div class="level-hint">当前批次：' + selectedBatch.name + ' | 当前岗位类别：<strong>' + currentCatLabel + '</strong> | 类型：<strong>转岗</strong></div>';
+
+    if (availableCats.length === 0) {
+      html += '<div style="padding:20px;text-align:center;color:var(--text-light);">当前批次无可转岗的岗位类别</div>';
+    } else {
+      html += '<div class="form-grid" style="margin-top:16px;">';
+      html += '<div class="form-item"><span class="label">目标岗位类别</span><select id="transferCat" onchange="onTransferCatChange()" style="padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;">';
+      html += '<option value="">请选择</option>';
+      availableCats.forEach(function(c) {
+        html += '<option value="' + c + '"' + (selectedTransferCategory === c ? ' selected' : '') + '>' + CATEGORY_LABELS[c] + '</option>';
+      });
+      html += '</select></div>';
+
+      html += '<div class="form-item"><span class="label">目标岗位等级</span><select id="transferLv" onchange="onTransferLevelChange()" style="padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;">';
+      html += '<option value="">请先选择类别</option>';
+      if (selectedTransferCategory) {
+        var transferLevels = getTransferLevels(selectedTransferCategory);
+        transferLevels.forEach(function(lv) {
+          html += '<option value="' + lv.label + '"' + (selectedTransferLevel === lv.label ? ' selected' : '') + '>' + lv.label + '</option>';
+        });
+      }
+      html += '</select></div>';
+      html += '</div>';
+
+      if (selectedTransferLevel) {
+        var tNum = extractLevelNumber(selectedTransferLevel);
+        var remaining = getRemainingQuota(CURRENT_TEACHER.schoolName, tNum);
+        var exempt = isExemptFromQuota(tNum);
+        var quotaCls = 'quota-hint' + (!exempt && remaining <= 0 ? ' danger' : '');
+        html += '<div class="' + quotaCls + '" style="margin-top:12px;">目标' + selectedTransferLevel + '：';
+        if (exempt) { html += '不限名额'; }
+        else { html += '剩余可申报 <span class="quota-number">' + remaining + '</span> 个岗位' + (remaining <= 0 ? '（无可申报岗位数）' : ''); }
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+
+  } else {
+    // ===== PROMOTE MODE (cross-level) =====
+    var applicableLevels = getApplicableLevels(selectedBatch);
+    html += '<div class="level-card">';
+    html += '<h3>选择目标晋升等级</h3>';
+    html += '<div class="level-hint">当前批次：' + selectedBatch.name + ' | 您当前岗位等级：<strong>' + CURRENT_TEACHER.currentPost + '</strong> | 类型：<strong>晋升（可跨级）</strong></div>';
+
+    if (applicableLevels.length === 0) {
+      html += '<div style="padding:20px;text-align:center;color:var(--text-light);">';
+      html += '当前批次无可申报的晋升等级（您当前岗位为' + CURRENT_TEACHER.currentPost + '）';
+      html += '</div>';
+    } else {
+      html += '<div class="level-tags">';
+      applicableLevels.forEach(function (level) {
+        var targetNum = level.to;
+        var remaining = getRemainingQuota(CURRENT_TEACHER.schoolName, targetNum);
+        var exempt = isExemptFromQuota(targetNum);
+        var disabled = false;
+
+        if (!exempt && remaining <= 0) disabled = true;
+
+        var selCls = '';
+        if (selectedLevel && selectedLevel.toLabel === level.toLabel && selectedLevel.fromLabel === level.fromLabel) {
+          selCls = ' selected';
+        }
+        if (disabled) selCls += ' disabled';
+
+        html += '<div class="level-tag' + selCls + '"';
+        if (!disabled) {
+          html += ' onclick="selectLevel(\'' + level.fromLabel + '\', \'' + level.toLabel + '\')"';
+        }
+        html += '>';
+        html += level.fromLabel + '<span class="tag-arrow">→</span>' + level.toLabel;
+        html += '<div style="font-size:10px;color:var(--text-light);">剩余 ' + remaining + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+
+      applicableLevels.forEach(function (level) {
+        var targetNum = level.to;
+        var remaining = getRemainingQuota(CURRENT_TEACHER.schoolName, targetNum);
+        var exempt = isExemptFromQuota(targetNum);
+        var quotaCls = 'quota-hint';
+        if (!exempt && remaining <= 0) quotaCls += ' danger';
+        html += '<div class="' + quotaCls + '" style="margin-right:8px;">';
+        html += '目标' + level.toLabel + '：';
+        if (exempt) { html += '不限名额'; }
+        else { html += '剩余可申报 <span class="quota-number">' + remaining + '</span> 个岗位' + (remaining <= 0 ? '（无可申报岗位数）' : ''); }
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+  }
+  document.getElementById('contentArea').innerHTML = html;
+}
+
+function selectLevel(fromLabel, toLabel) {
+  selectedLevel = { fromLabel: fromLabel, toLabel: toLabel };
+  renderStep3_LevelSelect();
+}
+
+function onTransferCatChange() {
+  var sel = document.getElementById('transferCat');
+  if (!sel) return;
+  selectedTransferCategory = sel.value || null;
+  selectedTransferLevel = null;
+  if (selectedTransferCategory) {
+    selectedLevel = { fromLabel: CURRENT_TEACHER.currentPost, toLabel: null };
+  } else {
+    selectedLevel = null;
+  }
+  renderStep3_LevelSelect();
+}
+
+function onTransferLevelChange() {
+  var sel = document.getElementById('transferLv');
+  if (!sel) return;
+  selectedTransferLevel = sel.value || null;
+  if (selectedTransferLevel && selectedLevel) {
+    selectedLevel.toLabel = selectedTransferLevel;
+  }
+  renderStep3_LevelSelect();
+}
+
+// ===== STEP 4: FORM =====
+function renderStep4_Form() {
   var targetNum = selectedLevel ? extractLevelNumber(selectedLevel.toLabel) : 0;
   var fromNum = selectedLevel ? extractLevelNumber(selectedLevel.fromLabel) : 0;
   var isSenior3 = (fromNum === 4 && targetNum === 3); // 四级→三级
@@ -1030,21 +1296,21 @@ function renderStep3_Form() {
 function renderRegularForm() {
   var html = '';
 
-  // Card 1: 基本信息 (readonly)
+  // Card 1: 基本信息 (editable — pre-filled from system, teacher can modify)
   html += '<div class="form-card">';
-  html += '<h3>基本信息</h3>';
+  html += '<h3>基本信息 <span style="font-size:11px;color:var(--text-light);">（可修改）</span></h3>';
   html += '<div class="form-grid">';
-  html += buildReadonlyRow('姓名', CURRENT_TEACHER.name);
-  html += buildReadonlyRow('性别', CURRENT_TEACHER.gender);
-  html += buildReadonlyRow('民族', CURRENT_TEACHER.ethnicity);
-  html += buildReadonlyRow('出生年月', CURRENT_TEACHER.birthDate);
-  html += buildReadonlyRow('政治面貌', CURRENT_TEACHER.politicalStatus);
-  html += buildReadonlyRow('学历', CURRENT_TEACHER.education);
-  html += buildReadonlyRow('毕业时间', CURRENT_TEACHER.graduateTime);
-  html += buildReadonlyRow('参加工作时间', CURRENT_TEACHER.workStartTime);
+  html += buildEditableRow('姓名', 'teacherName');
+  html += buildEditableRow('性别', 'gender');
+  html += buildEditableRow('民族', 'ethnicity');
+  html += buildEditableRow('出生年月', 'birthDate');
+  html += buildEditableRow('政治面貌', 'politicalStatus');
+  html += buildEditableRow('学历', 'education');
+  html += buildEditableRow('毕业时间', 'graduateTime');
+  html += buildEditableRow('参加工作时间', 'workStartTime');
   html += '</div></div>';
 
-  // Card 2: 岗位信息 (readonly)
+  // Card 2: 岗位信息 (readonly — from system)
   html += '<div class="form-card">';
   html += '<h3>岗位信息</h3>';
   html += '<div class="form-grid">';
@@ -1077,13 +1343,13 @@ function renderRegularForm() {
 function renderSenior3Form() {
   var html = '';
 
-  // Card 1: 基本信息
+  // Card 1: 基本信息 (editable)
   html += '<div class="form-card">';
-  html += '<h3>基本信息</h3>';
+  html += '<h3>基本信息 <span style="font-size:11px;color:var(--text-light);">（可修改）</span></h3>';
   html += '<div class="form-grid">';
-  html += buildReadonlyRow('姓名', CURRENT_TEACHER.name);
-  html += buildReadonlyRow('性别', CURRENT_TEACHER.gender);
-  html += buildReadonlyRow('出生日期', CURRENT_TEACHER.birthDate);
+  html += buildEditableRow('姓名', 'teacherName');
+  html += buildEditableRow('性别', 'gender');
+  html += buildEditableRow('出生日期', 'birthDate');
   html += buildEditRow('毕业学校及专业', 'senior3_schoolMajor', senior3Form.schoolMajor, 'text');
   html += buildEditRow('毕业时间', 'senior3_graduateTime', senior3Form.graduateTime, 'date');
   html += buildEditRow('参加工作时间', 'senior3_workStartTime', senior3Form.workStartTime, 'date');
@@ -1168,12 +1434,12 @@ function collectSenior3Form() {
   });
 }
 
-// ===== STEP 4: UPLOAD =====
-function renderStep4_Upload() {
+// ===== STEP 5: UPLOAD =====
+function renderStep5_Upload() {
   var html = '';
 
   html += '<div class="form-card">';
-  html += '<h3>附件材料 <span style="color:var(--danger);font-size:12px;">* 至少上传一个附件</span></h3>';
+  html += '<h3>附件材料 <span style="color:var(--text-light);font-size:12px;">（选填）</span></h3>';
   html += '<div class="upload-area" onclick="document.getElementById(\'fileInput\').click()">';
   html += '<div class="upload-icon">&#128206;</div>';
   html += '<div class="upload-text">点击选择文件上传</div>';
@@ -1260,28 +1526,39 @@ function nextStep() {
       showToast('请先选择晋升批次', 'warning');
       return;
     }
-    var applicable = getApplicableLevels(selectedBatch);
-    if (applicable.length === 0) {
-      showToast('当前批次无可申报的晋升等级', 'warning');
-      return;
-    }
   }
   if (currentStep === 2) {
-    if (!selectedLevel) {
-      showToast('请先选择目标等级', 'warning');
-      return;
-    }
-    // Check quota
-    var targetNum = extractLevelNumber(selectedLevel.toLabel);
-    if (!isExemptFromQuota(targetNum)) {
-      var remaining = getRemainingQuota(CURRENT_TEACHER.schoolName, targetNum);
-      if (remaining <= 0) {
-        showToast('目标等级无可申报岗位数', 'warning');
+    if (selectedTransferType === 'promote') {
+      var applicable = getApplicableLevels(selectedBatch);
+      if (applicable.length === 0) {
+        showToast('当前批次无可申报的晋升等级', 'warning');
         return;
       }
     }
   }
   if (currentStep === 3) {
+    if (selectedTransferType === 'promote') {
+      if (!selectedLevel || !selectedLevel.toLabel) {
+        showToast('请先选择目标等级', 'warning');
+        return;
+      }
+      var targetNum = extractLevelNumber(selectedLevel.toLabel);
+      if (!isExemptFromQuota(targetNum)) {
+        var remaining = getRemainingQuota(CURRENT_TEACHER.schoolName, targetNum);
+        if (remaining <= 0) {
+          showToast('目标等级无可申报岗位数', 'warning');
+          return;
+        }
+      }
+    } else {
+      if (!selectedTransferCategory || !selectedTransferLevel) {
+        showToast('请选择转岗目标类别和等级', 'warning');
+        return;
+      }
+      if (!selectedLevel) { selectedLevel = { fromLabel: CURRENT_TEACHER.currentPost, toLabel: selectedTransferLevel }; }
+    }
+  }
+  if (currentStep === 4) {
     // Collect any edited fields
     collectSenior3Form();
     var targetNum = selectedLevel ? extractLevelNumber(selectedLevel.toLabel) : 0;
@@ -1325,10 +1602,18 @@ function prevStep() {
 
 // ===== SUBMIT =====
 function submitApplication() {
-  // Validate step 4 (attachments)
-  if (uploadedFiles.length === 0) {
-    showToast('请至少上传一个附件', 'warning');
-    return;
+  // Prevent duplicate application for same batch (only allow if editing a rejected record)
+  if (pageMode !== 'edit') {
+    var existingRecords = loadRecords().filter(function(r) {
+      return r.teacherName === CURRENT_TEACHER.name && r.batchId === selectedBatch.id;
+    });
+    var hasActive = existingRecords.some(function(r) {
+      return r.status !== 'first_rejected' && r.status !== 'second_rejected' && r.status !== 'third_rejected';
+    });
+    if (hasActive) {
+      showToast('该批次您已申报，请勿重复提交', 'warning');
+      return;
+    }
   }
 
   // Check quota for the target level
@@ -1354,7 +1639,7 @@ function submitApplication() {
   // Determine promotion type
   var fromNum = selectedLevel ? extractLevelNumber(selectedLevel.fromLabel) : 0;
   var isSenior3 = (fromNum === 4 && targetNum === 3);
-  var promotionType = isSenior3 ? 'senior_3' : 'regular';
+  var promotionType = isSenior3 ? 'senior_3' : (selectedTransferType === 'transfer' ? 'transfer' : 'regular');
 
   // Build timeline
   var now = new Date().toISOString().replace('T', ' ').slice(0, 19);
@@ -1364,20 +1649,23 @@ function submitApplication() {
     id: newId,
     batchId: selectedBatch.id,
     batchName: selectedBatch.name,
-    teacherName: CURRENT_TEACHER.name,
-    gender: CURRENT_TEACHER.gender,
-    ethnicity: CURRENT_TEACHER.ethnicity,
-    birthDate: CURRENT_TEACHER.birthDate,
-    politicalStatus: CURRENT_TEACHER.politicalStatus,
-    education: CURRENT_TEACHER.education,
-    graduateTime: CURRENT_TEACHER.graduateTime,
-    workStartTime: CURRENT_TEACHER.workStartTime,
+    teacherName: formTeacherInfo.teacherName || CURRENT_TEACHER.name,
+    gender: formTeacherInfo.gender || CURRENT_TEACHER.gender,
+    ethnicity: formTeacherInfo.ethnicity || CURRENT_TEACHER.ethnicity,
+    birthDate: formTeacherInfo.birthDate || CURRENT_TEACHER.birthDate,
+    politicalStatus: formTeacherInfo.politicalStatus || CURRENT_TEACHER.politicalStatus,
+    education: formTeacherInfo.education || CURRENT_TEACHER.education,
+    graduateTime: formTeacherInfo.graduateTime || CURRENT_TEACHER.graduateTime,
+    workStartTime: formTeacherInfo.workStartTime || CURRENT_TEACHER.workStartTime,
     currentPost: CURRENT_TEACHER.currentPost,
     currentTitle: CURRENT_TEACHER.currentTitle,
     appointTime: CURRENT_TEACHER.appointTime,
     promotionType: promotionType,
-    targetLevel: selectedLevel.toLabel,
-    fromLevel: selectedLevel.fromLabel,
+    targetLevel: selectedLevel ? selectedLevel.toLabel : '',
+    fromLevel: selectedLevel ? selectedLevel.fromLabel : '',
+    transferType: selectedTransferType,
+    transferCategory: selectedTransferType === 'transfer' ? selectedTransferCategory : null,
+    transferTargetLevel: selectedTransferType === 'transfer' ? selectedTransferLevel : null,
     assessments: formAssessments.slice(),
     senior3Form: isSenior3 ? JSON.parse(JSON.stringify(senior3Form)) : null,
     schoolName: CURRENT_TEACHER.schoolName,
@@ -1404,9 +1692,22 @@ function submitApplication() {
     completeTime: null
   };
 
-  // Save
+  // Save — replace old record if editing, otherwise append
   var records = loadRecords();
-  records.push(record);
+  if (pageMode === 'edit' && editRecordId) {
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].id === editRecordId) {
+        // Preserve original timeline and prepend new entry
+        var oldTimeline = records[i].timeline || [];
+        record.timeline = oldTimeline.concat([{ time: now, action: '教师修改重提', operator: CURRENT_TEACHER.name }]);
+        record.id = editRecordId; // keep original ID
+        records[i] = record;
+        break;
+      }
+    }
+  } else {
+    records.push(record);
+  }
   saveRecords(records);
 
   showToast('申报提交成功', 'success');
@@ -1425,6 +1726,26 @@ function loadForEdit(id) {
   if (!rec) { showToast('未找到记录', 'warning'); return; }
 
   editRecordId = id;
+
+  // Extract reject reason
+  rejectInfo = null;
+  if (rec.firstRejectReason) {
+    rejectInfo = { type: '一审驳回', reason: rec.firstRejectReason, reviewer: rec.firstReviewer, time: rec.firstReviewTime };
+  } else if (rec.secondRejectReason) {
+    rejectInfo = { type: '二审驳回', reason: rec.secondRejectReason, reviewer: rec.secondReviewer, time: rec.secondReviewTime };
+  }
+
+  // Pre-fill teacher info from record (overrides CURRENT_TEACHER defaults)
+  initFormTeacherInfo({
+    teacherName: rec.teacherName,
+    gender: rec.gender,
+    ethnicity: rec.ethnicity,
+    birthDate: rec.birthDate,
+    politicalStatus: rec.politicalStatus,
+    education: rec.education,
+    graduateTime: rec.graduateTime,
+    workStartTime: rec.workStartTime
+  });
 
   // Pre-fill batch
   var allBatches = loadBatches();
@@ -1455,25 +1776,54 @@ function loadForEdit(id) {
     uploadedFiles = JSON.parse(JSON.stringify(rec.attachments));
   }
 
+  // Pre-fill transfer type
+  if (rec.transferType) {
+    selectedTransferType = rec.transferType;
+    if (rec.transferType === 'transfer') {
+      selectedTransferCategory = rec.transferCategory || null;
+      selectedTransferLevel = rec.transferTargetLevel || null;
+    }
+  }
+
   // Update page header
   document.getElementById('pageTitle').textContent = '修改晋升申报';
   document.getElementById('pageSubtitle').textContent = '已驳回申报的重新提交，请修改信息后再次申报';
 
+  // Jump directly to the form step so teacher can edit
+  currentStep = 4;
   renderPage();
+}
+
+function renderRejectNotice() {
+  if (!rejectInfo) return '';
+  return '<div class="reject-notice">' +
+    '<div class="rn-title">&#9888; ' + (rejectInfo.type || '驳回通知') + '</div>' +
+    (rejectInfo.reviewer || rejectInfo.time ? '<div class="rn-meta">' + (rejectInfo.reviewer || '') + (rejectInfo.reviewer && rejectInfo.time ? ' · ' : '') + (rejectInfo.time ? rejectInfo.time.substring(0, 16) : '') + '</div>' : '') +
+    '<div class="rn-reason">驳回理由：' + escapeHtml(rejectInfo.reason || '无') + '</div>' +
+    '</div>';
 }
 
 // ===== MAIN RENDER =====
 function renderPage() {
+  // Show reject notice in edit mode (remove existing first to prevent duplicates)
+  var existing = document.getElementById('rejectNoticeArea');
+  if (existing) existing.remove();
+  if (pageMode === 'edit' && rejectInfo) {
+    document.getElementById('pageSubtitle').insertAdjacentHTML('afterend', '<div id="rejectNoticeArea">' + renderRejectNotice() + '</div>');
+  }
+
   renderStepIndicator();
 
   if (currentStep === 1) {
     renderStep1_BatchSelect();
   } else if (currentStep === 2) {
-    renderStep2_LevelSelect();
+    renderStep2_PromotionType();
   } else if (currentStep === 3) {
-    renderStep3_Form();
+    renderStep3_LevelSelect();
   } else if (currentStep === 4) {
-    renderStep4_Upload();
+    renderStep4_Form();
+  } else if (currentStep === 5) {
+    renderStep5_Upload();
   }
 
   renderActionBar();
@@ -1492,6 +1842,9 @@ function init() {
   }
 
   renderSidebar();
+
+  // Initialize editable teacher info from CURRENT_TEACHER
+  initFormTeacherInfo(null);
 
   if (id && mode === 'edit') {
     pageMode = 'edit';

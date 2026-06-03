@@ -887,18 +887,96 @@ function renderRegularForm(r) {
 
   // 申报目标
   html += '<div class="form-card">';
-  html += '<h3>申报目标</h3>';
+  html += '<h3>申报目标 <span style="font-size:11px;color:var(--text-light);">（可编辑）</span></h3>';
   html += '<div class="form-grid">';
-  html += '<div class="form-item"><span class="label">申报岗位等级</span><div class="form-value">' + escapeHtml(r.targetLevel) + '（从' + escapeHtml(r.fromLevel) + '晋升）</div></div>';
+  var catLabel = getCategoryLabel(r);
+  var levelOptions = getLevelOptionsByCategory(catLabel);
+  html += formSelectCat('申报岗位类别', catLabel, 'onchange="onTargetCategoryChange(this.value)"');
+  html += '<div class="form-item"><span class="label">申报岗位等级</span><select id="_targetLevel" onchange="updateRecordField(\'_targetLevel\', this.value)">';
+  for (var li = 0; li < levelOptions.length; li++) {
+    html += '<option value="' + levelOptions[li] + '"' + ((r.targetLevel || '') === levelOptions[li] ? ' selected' : '') + '>' + levelOptions[li] + '</option>';
+  }
+  html += '</select></div>';
+  html += '<div class="form-item"><span class="label">晋升类型</span><div class="form-value">' + (r.transferType === 'transfer' ? '转岗' : '晋升') + '</div></div>';
   html += '<div class="form-item"><span class="label">所属批次</span><div class="form-value">' + escapeHtml(r.batchName) + '</div></div>';
   html += '</div></div>';
 
   return html;
 }
 
+function getLevelOptionsByCategory(catLabel) {
+  if (catLabel.indexOf('管理') >= 0) return ['四级','五级','六级','七级','八级','九级','十级'];
+  if (catLabel.indexOf('工勤') >= 0) return ['一级','二级','三级','四级','五级','普通工'];
+  return ['三级','四级','五级','六级','七级','八级','九级','十级','十一级','十二级','十三级'];
+}
+
+function onTargetCategoryChange(catLabel) {
+  updateRecordField('_targetCategory', catLabel);
+  var sel = document.getElementById('_targetLevel');
+  if (!sel) return;
+  var options = getLevelOptionsByCategory(catLabel);
+  var currentVal = sel.value;
+  sel.innerHTML = '';
+  for (var i = 0; i < options.length; i++) {
+    sel.innerHTML += '<option value="' + options[i] + '"' + (currentVal === options[i] ? ' selected' : '') + '>' + options[i] + '</option>';
+  }
+  if (sel.value) updateRecordField('_targetLevel', sel.value);
+}
+
+function formSelectCat(label, val, extraAttrs) {
+  var h = '<div class="form-item"><span class="label">' + label + '</span><select ' + (extraAttrs || '') + '>';
+  for (var i = 0; i < POST_CATEGORY_OPTIONS.length; i++) {
+    h += '<option value="' + POST_CATEGORY_OPTIONS[i] + '"' + (val === POST_CATEGORY_OPTIONS[i] ? ' selected' : '') + '>' + POST_CATEGORY_OPTIONS[i] + '</option>';
+  }
+  h += '</select></div>';
+  return h;
+}
+
+function getCategoryLabel(r) {
+  var post = r.currentPost || '';
+  if (post.indexOf('管理') >= 0) return '管理岗位';
+  if (post.indexOf('工勤') >= 0) return '工勤技能岗位';
+  if (r.transferCategory === 'mgmt') return '管理岗位';
+  if (r.transferCategory === 'labor') return '工勤技能岗位';
+  return '专业技术岗位';
+}
+
+var GENDER_OPTIONS = ['男', '女'];
+var ETHNICITY_OPTIONS = ['汉族', '壮族', '回族', '苗族', '瑶族', '侗族', '其他'];
+var POLITICAL_OPTIONS = ['中共党员', '中共预备党员', '共青团员', '群众', '民主党派'];
+var EDUCATION_OPTIONS = ['博士研究生', '硕士研究生', '本科', '大专', '中专', '高中及以下'];
+var POST_CATEGORY_OPTIONS = ['专业技术岗位', '管理岗位', '工勤技能岗位'];
+
 function formItem(label, field, r, type) {
   var val = r[field] || '';
+  // Name readonly
+  if (field === 'teacherName') {
+    return '<div class="form-item"><span class="label">' + label + '</span><div class="form-value">' + escapeHtml(String(val)) + '</div></div>';
+  }
+  // Dropdowns
+  if (field === 'gender') return formSelect(label, field, GENDER_OPTIONS, val);
+  if (field === 'ethnicity') return formSelect(label, field, ETHNICITY_OPTIONS, val);
+  if (field === 'politicalStatus') return formSelect(label, field, POLITICAL_OPTIONS, val);
+  if (field === 'education') return formSelect(label, field, EDUCATION_OPTIONS, val);
+  // 现任岗位 dropdown — derive from currentPost
+  if (field === 'currentPost') {
+    var catVal = getCategoryLabel(r);
+    return formSelect(label, field, POST_CATEGORY_OPTIONS, catVal);
+  }
+  // Date inputs
+  if (field === 'birthDate' || field === 'graduateTime' || field === 'workStartTime' || field === 'appointTime') {
+    return '<div class="form-item"><span class="label">' + label + '</span><input type="date" value="' + escapeHtml(String(val)) + '" onchange="updateRecordField(\'' + field + '\', this.value)"></div>';
+  }
   return '<div class="form-item"><span class="label">' + label + '</span><input type="' + type + '" value="' + escapeHtml(String(val)) + '" onchange="updateRecordField(\'' + field + '\', this.value)"></div>';
+}
+
+function formSelect(label, field, options, val) {
+  var h = '<div class="form-item"><span class="label">' + label + '</span><select onchange="updateRecordField(\'' + field + '\', this.value)">';
+  for (var i = 0; i < options.length; i++) {
+    h += '<option value="' + options[i] + '"' + (val === options[i] ? ' selected' : '') + '>' + options[i] + '</option>';
+  }
+  h += '</select></div>';
+  return h;
 }
 
 function assessmentSelect(index, r) {
@@ -973,6 +1051,7 @@ function renderSenior3Form(r) {
 function renderAttachments(r) {
   var html = '';
   var attachments = r.attachments || [];
+  var rid = r.id;
 
   html += '<div class="form-card">';
   html += '<h3>教师申报附件</h3>';
@@ -985,14 +1064,36 @@ function renderAttachments(r) {
       html += '<span class="file-icon">&#x1F4C4;</span>';
       html += '<span class="file-name">' + escapeHtml(f.name) + '</span>';
       html += '<span class="file-size">' + formatSize(f.size) + '</span>';
-      html += '<a class="file-download" onclick="showToast(\'预览：' + escapeHtml(f.name) + '（模拟）\')">下载</a>';
-      html += '<span class="remove-file" title="删除" onclick="event.stopPropagation();deleteAttachment(' + idx + ')" style="cursor:pointer;color:var(--danger);font-size:16px;font-weight:700;margin-left:4px">&times;</span>';
+      html += '<a class="file-download" href="#" onclick="event.preventDefault();showToast(\'预览：' + escapeHtml(f.name) + '（模拟）\')">预览</a>';
+      html += '<a class="file-download" href="#" onclick="event.preventDefault();showToast(\'下载：' + escapeHtml(f.name) + '（模拟）\')" style="margin-left:8px;">下载</a>';
+      html += '<span class="remove-file" title="删除" onclick="event.stopPropagation();confirmDeleteAttachment(\'' + rid + '\',' + idx + ')" style="cursor:pointer;color:var(--danger);font-size:16px;font-weight:700;margin-left:8px">&times;</span>';
       html += '</div>';
     });
     html += '</div>';
   }
   html += '</div>';
   return html;
+}
+
+function confirmDeleteAttachment(recordId, idx) {
+  if (!currentRecord || !currentRecord.attachments || !currentRecord.attachments[idx]) return;
+  var fname = currentRecord.attachments[idx].name;
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = '<div class="modal-container"><h3>确认删除</h3><p>确定要删除附件「<strong>' + escapeHtml(fname) + '</strong>」吗？<br><span style="font-size:12px;color:var(--text-light);">此操作不可撤销。</span></p><div class="modal-buttons"><button class="btn-cancel" id="cancelDel">取消</button><button class="btn-confirm danger" id="confirmDel">确认删除</button></div></div>';
+  document.body.appendChild(overlay);
+  document.getElementById('cancelDel').onclick = function() { overlay.remove(); };
+  document.getElementById('confirmDel').onclick = function() {
+    overlay.remove();
+    currentRecord.attachments.splice(idx, 1);
+    var records = loadRecords();
+    var ri = records.findIndex(function(r) { return r.id === currentRecord.id; });
+    if (ri >= 0) records[ri].attachments = currentRecord.attachments;
+    saveRecords(records);
+    renderPage();
+    showToast('附件已删除');
+  };
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
 }
 
 function renderSchoolUploads(r) {
@@ -1186,6 +1287,17 @@ function renderPage() {
 // ===== FORM FIELD UPDATES =====
 function updateRecordField(field, value) {
   if (!currentRecord) return;
+  // Handle special target fields
+  if (field === '_targetCategory') {
+    if (value.indexOf('管理') >= 0) currentRecord.transferCategory = 'mgmt';
+    else if (value.indexOf('工勤') >= 0) currentRecord.transferCategory = 'labor';
+    else currentRecord.transferCategory = 'prof';
+    return;
+  }
+  if (field === '_targetLevel') {
+    currentRecord.targetLevel = value;
+    return;
+  }
   currentRecord[field] = value;
 }
 

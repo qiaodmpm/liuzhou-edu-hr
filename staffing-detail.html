@@ -462,7 +462,7 @@ grid-column: 1 / -1;
       <span class="menu-label">岗位晋升申请</span>
       <span class="menu-badge">2</span>
     </a>
-    <a class="menu-item" href="#">
+    <a class="menu-item" href="#" onclick="event.preventDefault();goRecruit();">
       <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <span class="menu-label">招聘岗位申请</span>
     </a>
@@ -597,12 +597,7 @@ grid-column: 1 / -1;
           </thead>
           <tbody id="useFormBody"></tbody>
         </table>
-      </div>
-
-      <!-- ===== 编办确认 ===== -->
-      <div class="card" id="staffingConfirmCard" style="display:none;">
-        <div class="card-title">📋 编办确认</div>
-        <div class="card-body" id="staffingConfirmBody"></div>
+        <div id="validityPeriod" style="margin-top:16px;"></div>
       </div>
 
       <!-- ===== Step 3: 附件上传 ===== -->
@@ -633,7 +628,7 @@ var detailId = urlParams.get('id') || 'S2026-004';
 var submissions = [
   { id: 'S2026-001', batchName: '2026年度第一批', school: '柳州市第一中学', schoolType: '市直属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 120, currentStaff: 108, unusedPlan: 3, controlNum: 25, controlActual: 20, unusedControl: 2,
+    totalStaff: 120, currentStaff: 108, unusedPlan: 3, controlNum: 25, controlActual: 20, unusedControl: 2, controlApprovedPlan: 4, controlUsedPlan: 2, controlUnusedPlan: 2, controlAvailablePlan: 1,
     useForms: [
       { type: '统一公开招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
       { type: '单位自主实施招聘', num: 2, edu: '本科，语文类，高中教师资格证', cond: '40周岁以下', note: '' },
@@ -652,7 +647,7 @@ var submissions = [
   },
   { id: 'S2026-002', batchName: '2026年度第一批', school: '柳州市第二中学', schoolType: '市直属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 95, currentStaff: 88, unusedPlan: 2, controlNum: 18, controlActual: 15, unusedControl: 1,
+    totalStaff: 95, currentStaff: 88, unusedPlan: 2, controlNum: 18, controlActual: 15, unusedControl: 1, controlApprovedPlan: 3, controlUsedPlan: 2, controlUnusedPlan: 1, controlAvailablePlan: 0,
     useForms: [
       { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
       { type: '单位自主实施招聘', num: 2, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
@@ -672,7 +667,7 @@ var submissions = [
   },
   { id: 'S2026-003', batchName: '2026年度第一批', school: '柳州高级中学', schoolType: '市直属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: 30, controlActual: 26, unusedControl: 1,
+    totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: 30, controlActual: 26, unusedControl: 1, controlApprovedPlan: 5, controlUsedPlan: 4, controlUnusedPlan: 1, controlAvailablePlan: -1,
     useForms: [
       { type: '统一公开招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
       { type: '单位自主实施招聘', num: 3, edu: '本科，语文/英语/物理，高中教师资格证', cond: '40周岁以下', note: '' },
@@ -692,7 +687,7 @@ var submissions = [
   },
   { id: 'S2026-004', batchName: '2026年度第一批', school: '柳州市第八中学', schoolType: '鱼峰区属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1,
+    totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1, controlApprovedPlan: 3, controlUsedPlan: 2, controlUnusedPlan: 1, controlAvailablePlan: -1,
     useForms: [
       { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
       { type: '单位自主实施招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
@@ -719,7 +714,7 @@ var submissions = [
   },
   { id: 'S2026-005', batchName: '2026年度第一批', school: '鱼峰区实验小学', schoolType: '鱼峰区属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 60, currentStaff: 55, unusedPlan: 0, controlNum: 10, controlActual: 8, unusedControl: 1,
+    totalStaff: 60, currentStaff: 55, unusedPlan: 0, controlNum: 10, controlActual: 8, unusedControl: 1, controlApprovedPlan: 2, controlUsedPlan: 1, controlUnusedPlan: 1, controlAvailablePlan: 0,
     useForms: [
       { type: '统一公开招聘', num: 2, edu: '本科，语文/数学，小学教师资格证', cond: '35周岁以下', note: '' },
       { type: '单位自主实施招聘', num: 0, edu: '', cond: '', note: '' },
@@ -737,7 +732,7 @@ var submissions = [
   },
   { id: 'S2026-006', batchName: '2026年度第一批', school: '柳州市民族高中', schoolType: '市直属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 72, currentStaff: 68, unusedPlan: 1, controlNum: 12, controlActual: 10, unusedControl: 0,
+    totalStaff: 72, currentStaff: 68, unusedPlan: 1, controlNum: 12, controlActual: 10, unusedControl: 0, controlApprovedPlan: 2, controlUsedPlan: 2, controlUnusedPlan: 0, controlAvailablePlan: 0,
     useForms: [
       { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
       { type: '单位自主实施招聘', num: 1, edu: '本科，历史类，高中教师资格证', cond: '35周岁以下', note: '' },
@@ -756,7 +751,7 @@ var submissions = [
   },
   { id: 'S2026-007', batchName: '2026年度第二批', school: '柳州市第一中学', schoolType: '市直属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 120, currentStaff: 110, unusedPlan: 0, controlNum: 25, controlActual: 22, unusedControl: 0,
+    totalStaff: 120, currentStaff: 110, unusedPlan: 0, controlNum: 25, controlActual: 22, unusedControl: 0, controlApprovedPlan: 3, controlUsedPlan: 3, controlUnusedPlan: 0, controlAvailablePlan: 0,
     useForms: [
       { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
       { type: '单位自主实施招聘', num: 1, edu: '本科，英语类，高中教师资格证', cond: '35周岁以下', note: '' },
@@ -825,14 +820,14 @@ var submissions = [
 
 // School profile lookup for fallback generation
 var SCHOOL_DATA = {
-  '柳州市第一中学':     { schoolType:'市直属', totalStaff:120, currentStaff:108, approvedPlan:8, usedPlan:5, unusedPlan:3, availablePlan:4, controlNum:25, controlActual:20, unusedControl:2, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
-  '柳州市第二中学':     { schoolType:'市直属', totalStaff:95,  currentStaff:88,  approvedPlan:6, usedPlan:4, unusedPlan:2, availablePlan:1, controlNum:18, controlActual:15, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
-  '柳州高级中学':       { schoolType:'市直属', totalStaff:150, currentStaff:142, approvedPlan:8, usedPlan:8, unusedPlan:0, availablePlan:0, controlNum:30, controlActual:26, unusedControl:1, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:6, actualLeader:5, actualOtherLeader:4 },
-  '柳州市民族高中':     { schoolType:'市直属', totalStaff:72,  currentStaff:68,  approvedPlan:4, usedPlan:3, unusedPlan:1, availablePlan:0, controlNum:12, controlActual:10, unusedControl:0, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
-  '柳州市第八中学':     { schoolType:'鱼峰区属', totalStaff:88,  currentStaff:80,  approvedPlan:5, usedPlan:4, unusedPlan:1, availablePlan:3, controlNum:16, controlActual:14, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
-  '鱼峰区实验小学':     { schoolType:'鱼峰区属', totalStaff:60,  currentStaff:55,  approvedPlan:5, usedPlan:5, unusedPlan:0, availablePlan:0, controlNum:10, controlActual:8,  unusedControl:1, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 },
-  '柳州市第十三中学':   { schoolType:'鱼峰区属', totalStaff:70,  currentStaff:65,  approvedPlan:4, usedPlan:3, unusedPlan:1, availablePlan:1, controlNum:12, controlActual:10, unusedControl:1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
-  '柳州市第二十五中学': { schoolType:'鱼峰区属', totalStaff:55,  currentStaff:50,  approvedPlan:4, usedPlan:4, unusedPlan:0, availablePlan:1, controlNum:8,  controlActual:7,  unusedControl:0, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 }
+  '柳州市第一中学':     { schoolType:'市直属', totalStaff:120, currentStaff:108, approvedPlan:8, usedPlan:5, unusedPlan:3, availablePlan:4, controlNum:25, controlActual:20, unusedControl:2, controlApprovedPlan:4, controlUsedPlan:2, controlUnusedPlan:2, controlAvailablePlan:1, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
+  '柳州市第二中学':     { schoolType:'市直属', totalStaff:95,  currentStaff:88,  approvedPlan:6, usedPlan:4, unusedPlan:2, availablePlan:1, controlNum:18, controlActual:15, unusedControl:1, controlApprovedPlan:3, controlUsedPlan:2, controlUnusedPlan:1, controlAvailablePlan:0, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
+  '柳州高级中学':       { schoolType:'市直属', totalStaff:150, currentStaff:142, approvedPlan:8, usedPlan:8, unusedPlan:0, availablePlan:0, controlNum:30, controlActual:26, unusedControl:1, controlApprovedPlan:5, controlUsedPlan:4, controlUnusedPlan:1, controlAvailablePlan:-1, orgLevel:'正处级', orgNature:'全额拨款事业单位', authLeader:6, actualLeader:5, actualOtherLeader:4 },
+  '柳州市民族高中':     { schoolType:'市直属', totalStaff:72,  currentStaff:68,  approvedPlan:4, usedPlan:3, unusedPlan:1, availablePlan:0, controlNum:12, controlActual:10, unusedControl:0, controlApprovedPlan:2, controlUsedPlan:2, controlUnusedPlan:0, controlAvailablePlan:0, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
+  '柳州市第八中学':     { schoolType:'鱼峰区属', totalStaff:88,  currentStaff:80,  approvedPlan:5, usedPlan:4, unusedPlan:1, availablePlan:3, controlNum:16, controlActual:14, unusedControl:1, controlApprovedPlan:3, controlUsedPlan:2, controlUnusedPlan:1, controlAvailablePlan:-1, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:5, actualLeader:4, actualOtherLeader:3 },
+  '鱼峰区实验小学':     { schoolType:'鱼峰区属', totalStaff:60,  currentStaff:55,  approvedPlan:5, usedPlan:5, unusedPlan:0, availablePlan:0, controlNum:10, controlActual:8,  unusedControl:1, controlApprovedPlan:2, controlUsedPlan:1, controlUnusedPlan:1, controlAvailablePlan:0, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 },
+  '柳州市第十三中学':   { schoolType:'鱼峰区属', totalStaff:70,  currentStaff:65,  approvedPlan:4, usedPlan:3, unusedPlan:1, availablePlan:1, controlNum:12, controlActual:10, unusedControl:1, controlApprovedPlan:2, controlUsedPlan:1, controlUnusedPlan:1, controlAvailablePlan:0, orgLevel:'正科级', orgNature:'全额拨款事业单位', authLeader:4, actualLeader:3, actualOtherLeader:2 },
+  '柳州市第二十五中学': { schoolType:'鱼峰区属', totalStaff:55,  currentStaff:50,  approvedPlan:4, usedPlan:4, unusedPlan:0, availablePlan:1, controlNum:8,  controlActual:7,  unusedControl:0, controlApprovedPlan:2, controlUsedPlan:2, controlUnusedPlan:0, controlAvailablePlan:-1, orgLevel:'副科级', orgNature:'全额拨款事业单位', authLeader:3, actualLeader:2, actualOtherLeader:1 }
 };
 
 function findById(id) {
@@ -929,8 +924,12 @@ function generateFallback(id) {
     id: id, batchName: batchName, school: school, schoolType: sd.schoolType,
     staffingType: staffingType, formName: formName,
     status: status, submitDate: submitDate,
-    totalStaff: sd.totalStaff, currentStaff: sd.currentStaff, unusedPlan: sd.unusedPlan,
+    totalStaff: sd.totalStaff, currentStaff: sd.currentStaff,
+    approvedPlan: sd.approvedPlan, usedPlan: sd.usedPlan,
+    unusedPlan: sd.unusedPlan, availablePlan: sd.availablePlan,
     controlNum: sd.controlNum, controlActual: sd.controlActual, unusedControl: sd.unusedControl,
+    controlApprovedPlan: sd.controlApprovedPlan, controlUsedPlan: sd.controlUsedPlan,
+    controlUnusedPlan: sd.controlUnusedPlan, controlAvailablePlan: sd.controlAvailablePlan,
     orgLevel: sd.orgLevel, orgNature: sd.orgNature,
     authLeader: sd.authLeader, actualLeader: sd.actualLeader, actualOtherLeader: sd.actualOtherLeader,
     useForms: useForms,
@@ -968,8 +967,8 @@ if (!s) {
 if (s) {
 
 // ===== STATUS MAP =====
-var STATUS_MAP = { submitted: '已提交', reviewing: '审核中', first_approved: '一审通过', final_submitted: '待二审确认', approved: '已通过', rejected: '已退回' };
-var STATUS_CSS = { submitted: 'submitted', reviewing: 'reviewing', first_approved: 'first_approved', final_submitted: 'final_submitted', approved: 'approved', rejected: 'rejected' };
+var STATUS_MAP = { submitted: '待一审', first_approved: '一审通过', final_submitted: '待二审', approved: '已通过', rejected: '已驳回' };
+var STATUS_CSS = { submitted: 'submitted', first_approved: 'first_approved', final_submitted: 'final_submitted', approved: 'approved', rejected: 'rejected' };
 
 // ===== RENDER HEADER =====
 var detailTypeLabel = s.staffingType === 'career' ? '事业编' : '控制数';
@@ -979,12 +978,11 @@ document.getElementById('headerSubtitle').innerHTML = '申报编号：' + s.id +
 
 // Seal stamp
 var SEAL_MAP = {
-  submitted:{ css: 'submitted',label: '审核', text: '已提交' },
-  reviewing:{ css: 'reviewing',label: '审核', text: '审核中' },
-  first_approved:{ css: 'first_approved',label: '一审', text: '已通过' },
-  final_submitted:{ css: 'final_submitted',label: '待二审', text: '确认' },
-  approved: { css: 'approved', label: '终审', text: '通过' },
-  rejected: { css: 'rejected', label: '审核', text: '退回' }
+  submitted:{ css: 'submitted',label: '待', text: '一审' },
+  first_approved:{ css: 'first_approved',label: '一审', text: '通过' },
+  final_submitted:{ css: 'final_submitted',label: '待', text: '二审' },
+  approved: { css: 'approved', label: '已', text: '通过' },
+  rejected: { css: 'rejected', label: '已', text: '驳回' }
 };
 var seal = SEAL_MAP[s.status] || SEAL_MAP['submitted'];
 document.getElementById('headerSeal').className = 'status-seal ' + seal.css;
@@ -1016,15 +1014,19 @@ function renderUnitInfo() {
   h += '<div class="info-item"><div class="info-label">已批复计划数</div><div class="info-value">' + (s.approvedPlan || '0') + '</div></div>';
   h += '<div class="info-item"><div class="info-label">已使用计划数</div><div class="info-value">' + (s.usedPlan || '0') + '</div></div>';
   h += '<div class="info-item"><div class="info-label">未使用计划数</div><div class="info-value">' + (s.unusedPlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">未使用计划数 = 已批复计划数 − 已使用计划数</div></div>';
-  h += '<div class="info-item"><div class="info-label">可申请计划数</div><div class="info-value">' + (s.availablePlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请计划数 = 核定编制数 − 实有在编人数 − 已批复计划数</div></div>';
+  h += '<div class="info-item"><div class="info-label">可申请编制数</div><div class="info-value">' + (s.availablePlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请编制数 = 核定编制数 − 实有在编人数 − 已批复计划数</div></div>';
   } else {
-    // Control / 附件9: 6 fields
-    h += '<div class="info-item"><div class="info-label">核定编制数（名）</div><div class="info-value">' + (s.totalStaff || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">在编人数（人）</div><div class="info-value">' + (s.currentStaff || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">剩余可用计划数</div><div class="info-value">' + (s.unusedPlan || '0') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">核定聘用教师控制数（名）</div><div class="info-value">' + (s.controlNum || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">聘用教师控制数实有数（人）</div><div class="info-value">' + (s.controlActual || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">剩余可用控制数计划数</div><div class="info-value">' + (s.unusedControl || '0') + '</div></div>';
+    // Control / 附件9: 9 items (1 full-width + 8 fields)
+    h += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + s.school + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || '—') + '</div></div>';
+    h += '<div class="info-item-placeholder"></div>';
+    h += '<div class="info-item"><div class="info-label">核定控制数</div><div class="info-value">' + (s.controlNum || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">实有控制数人数</div><div class="info-value">' + (s.controlActual || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">已批复控制数</div><div class="info-value">' + (s.controlApprovedPlan || '0') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">已使用控制数</div><div class="info-value">' + (s.controlUsedPlan || '0') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">未使用控制数</div><div class="info-value">' + (s.controlUnusedPlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">未使用控制数 = 已批复控制数 − 已使用控制数</div></div>';
+    h += '<div class="info-item"><div class="info-label">可申请控制数</div><div class="info-value">' + (s.controlAvailablePlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请控制数 = 核定控制数 − 实有控制数人数 − 已批复控制数</div></div>';
   }
 
   document.getElementById('unitInfoArea').innerHTML = h;
@@ -1043,8 +1045,8 @@ if (isCareer) {
 quota = (s.totalStaff || 0) - (s.currentStaff || 0) - (s.approvedPlan || 0);
 label = '可申请编制数';
 } else {
-quota = (s.controlNum || 0) - (s.controlActual || 0) + (s.unusedControl || 0);
-  label = '可用控制数';
+quota = (s.controlNum || 0) - (s.controlActual || 0) - (s.controlApprovedPlan || 0);
+  label = '可申请控制数';
 }
 
 // For approved records, base on final confirmed count
@@ -1057,7 +1059,7 @@ if (isApproved && s.finalApprovedDetails) {
   effectiveNum = totalApply;
 }
 remaining = quota - effectiveNum;
-var resultLabel = isCareer ? '剩余可用编制数' : '剩余可用控制数';
+var resultLabel = isCareer ? '剩余可申请编制数' : '剩余可申请控制数';
 var resultBg = remaining >= 0 ? '#D1FAE5' : '#FEE2E2';
 var resultColor = remaining >= 0 ? '#059669' : '#DC2626';
 
@@ -1137,81 +1139,18 @@ if (isApproved) ufHtml += '<td>' + totalFinal + '</td>';
 ufHtml += '<td colspan="3"></td></tr>';
 document.getElementById('useFormBody').innerHTML = ufHtml;
 
-	// ===== 编办确认 =====
-	function formatDate(dateStr) {
-	  if (!dateStr) return '—';
-	  var parts = dateStr.split('-');
-	  if (parts.length === 3) return parts[0] + '年' + parts[1] + '月' + parts[2] + '日';
-	  return dateStr;
-	}
-	(function renderStaffingConfirm() {
-	  var card = document.getElementById('staffingConfirmCard');
-	  var body = document.getElementById('staffingConfirmBody');
-	  if (s.status === 'first_approved') {
-	    card.style.display = '';
-	    body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);">请返回列表页提交编办确认</div>';
-	  } else if (s.status === 'final_submitted' && s.schoolFinalConfirm) {
-	    card.style.display = '';
-	    var sc = s.schoolFinalConfirm;
-	    var h = '';
-	    // Details table
-	    h += '<table class="detail-table" style="margin-bottom:16px;"><thead><tr>';
-	    h += '<th style="width:140px;">使用形式</th><th>学校申请数</th><th>最终核定数</th>';
-	    h += '</tr></thead><tbody>';
-	    var details = sc.details || [];
-	    for (var d = 0; d < details.length; d++) {
-	      var item = details[d];
-	      h += '<tr>';
-	      h += '<td class="row-label">' + item.type + '</td>';
-	      h += '<td>' + item.schoolNum + '</td>';
-	      h += '<td>' + item.finalNum + '</td>';
-	      h += '</tr>';
-	    }
-	    h += '<tr class="total-row"><td class="row-label">合　计</td>';
-	    h += '<td>' + (sc.totalFinalCount || 0) + '</td>';
-	    h += '<td>' + (sc.totalFinalCount || 0) + '</td>';
-	    h += '</tr></tbody></table>';
-	    // Validity period
-	    if (sc.validityStart && sc.validityEnd) {
-	      h += '<div class="info-row"><div class="info-item">';
-	      h += '<div class="info-label">有效期限</div>';
-	      h += '<div class="info-value">' + formatDate(sc.validityStart) + ' — ' + formatDate(sc.validityEnd) + '</div>';
-	      h += '</div></div>';
-	    }
-	    // Document
-	    if (sc.document) {
-	      h += '<div class="info-row"><div class="info-item">';
-	      h += '<div class="info-label">编办批复文件</div>';
-	      h += '<a class="attachment-item" href="#" onclick="event.preventDefault();showToast(\'文件预览: ' + sc.document.name + '\')">📎 ' + sc.document.name + '</a>';
-	      h += '</div></div>';
-	    }
-	    body.innerHTML = h;
-	  } else if (s.status === 'approved' && s.finalApprovedDetails) {
-	    card.style.display = '';
-	    var fd = s.finalApprovedDetails;
-	    var h2 = '';
-	    h2 += '<table class="detail-table" style="margin-bottom:16px;"><thead><tr>';
-	    h2 += '<th style="width:140px;">使用形式</th><th>学校申请数</th><th>最终核定数</th>';
-	    h2 += '</tr></thead><tbody>';
-	    var totalF = 0;
-	    var totalS = 0;
-	    for (var dd = 0; dd < fd.length; dd++) {
-	      var row = fd[dd];
-	      h2 += '<tr>';
-	      h2 += '<td class="row-label">' + row.type + '</td>';
-	      h2 += '<td>' + row.schoolNum + '</td>';
-	      h2 += '<td>' + row.finalNum + '</td>';
-	      h2 += '</tr>';
-	      totalS += row.schoolNum;
-	      totalF += row.finalNum;
-	    }
-	    h2 += '<tr class="total-row"><td class="row-label">合　计</td>';
-	    h2 += '<td>' + totalS + '</td>';
-	    h2 += '<td>' + totalF + '</td>';
-	    h2 += '</tr></tbody></table>';
-	    body.innerHTML = h2;
-	  }
-	})();
+// Validity period (below use forms table)
+var vpEl = document.getElementById('validityPeriod');
+if (s.schoolFinalConfirm && s.schoolFinalConfirm.validityStart && s.schoolFinalConfirm.validityEnd) {
+  var vs = s.schoolFinalConfirm.validityStart.split('-');
+  var ve = s.schoolFinalConfirm.validityEnd.split('-');
+  vpEl.innerHTML = '<div class="info-row"><div class="info-item">' +
+    '<div class="info-label">编制有效期</div>' +
+    '<div class="info-value">' + vs[0] + '年' + vs[1] + '月' + vs[2] + '日' + ' — ' + ve[0] + '年' + ve[1] + '月' + ve[2] + '日' + '</div>' +
+    '</div></div>';
+} else {
+  vpEl.innerHTML = '';
+}
 
 // Attachments
 var formLabel = s.staffingType === 'career' ? '附件2 — 中小学事业编制使用计划申报表' : '附件9 — 中小学聘用教师控制数使用计划申报表';
@@ -1370,6 +1309,10 @@ document.addEventListener('click', function(e) {
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function goRecruit() {
+  window.location.href = 'recruit-list-school.html';
 }
 </script>
 

@@ -264,13 +264,41 @@ var TEACHERS = [
   { id:'t4', name:'赵伟强', short:'赵', gender:'男', ethnicity:'汉族', birthDate:'1983-12',
     education:'本科', graduateTime:'2006-06', workStartTime:'2006-08',
     currentPost:'专业技术岗位九级', currentTitle:'一级教师', appointTime:'2022-09',
-    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' }
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t5', name:'周国庆', short:'周', gender:'男', ethnicity:'汉族', birthDate:'1972-05',
+    education:'本科', graduateTime:'1994-07', workStartTime:'1994-09',
+    currentPost:'管理岗位七级', currentTitle:'副校长', appointTime:'2017-03',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t6', name:'吴小娟', short:'吴', gender:'女', ethnicity:'壮族', birthDate:'1985-07',
+    education:'大专', graduateTime:'2007-07', workStartTime:'2007-09',
+    currentPost:'工勤技能岗位三级', currentTitle:'高级工', appointTime:'2019-06',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'群众' }
 ];
+
+function loadTeacherProfiles() {
+  try { return JSON.parse(localStorage.getItem('teacher_profiles') || '{}'); } catch(e) { return {}; }
+}
 
 function getCurrentTeacher() {
   var id = localStorage.getItem('current_teacher_id') || 't1';
-  for (var i = 0; i < TEACHERS.length; i++) { if (TEACHERS[i].id === id) return TEACHERS[i]; }
-  return TEACHERS[0];
+  var t = null;
+  for (var i = 0; i < TEACHERS.length; i++) { if (TEACHERS[i].id === id) { t = TEACHERS[i]; break; } }
+  t = t || TEACHERS[0];
+  if (!t) return null;
+  var profiles = loadTeacherProfiles();
+  var p = profiles[t.name];
+  if (p) {
+    return {
+      id: t.id, name: p.name || t.name, short: t.short,
+      gender: p.gender || t.gender, ethnicity: p.ethnicity || t.ethnicity,
+      birthDate: p.birthDate || t.birthDate, politicalStatus: p.politicalStatus || t.politicalStatus,
+      education: p.education || t.education, graduateTime: p.graduateTime || t.graduateTime,
+      workStartTime: p.workStartTime || t.workStartTime,
+      currentPost: t.currentPost, currentTitle: t.currentTitle, appointTime: t.appointTime,
+      schoolName: t.schoolName, schoolCategory: t.schoolCategory
+    };
+  }
+  return t;
 }
 
 function setCurrentTeacher(id) {
@@ -280,13 +308,13 @@ function setCurrentTeacher(id) {
 // ===== DEMO DATA =====
 var CATEGORY_MAP = { manage: '管理岗位', professional: '专业技术岗位', skill: '工勤技能岗位' };
 var DEMO_BATCHES = [
-  { id: 'PB20260501001', name: '2026年春季专业技术岗位晋升', category: 'professional', year: '2026', status: 'open',
-    allowedLevels: ['三级','四级','五级','六级','七级','八级','九级','十级'],
-    startTime: '2026-05-01', endTime: '2026-06-30', scope: 'all', scopeAreas: ['市直属','鱼峰区属'],
-    remark: '面向全市所有直属学校及鱼峰区属学校的常规晋升批次' },
-  { id: 'PB20260415001', name: '2026年鱼峰区专项晋升', category: 'skill', year: '2026', status: 'closed',
-    allowedLevels: ['五级','六级','七级','八级'],
-    startTime: '2026-04-15', endTime: '2026-05-15', scope: 'district', scopeAreas: ['鱼峰区属'],
+  { id: 'PB20260501001', name: '2026年春季岗位晋升', schoolName: '柳州市第八中学', createdBy: 'school', year: 2026, status: 'open',
+    promoteTypes: ['mgmt','prof','labor'], allowedLevels: [],
+    startTime: '2026-05-01', endTime: '2026-06-30',
+    remark: '面向本校全体教师的常规晋升批次' },
+  { id: 'PB20260415001', name: '2026年春季岗位晋升', schoolName: '柳州高级中学', createdBy: 'school', year: 2026, status: 'open',
+    promoteTypes: ['prof'], allowedLevels: ['五级','六级','七级','八级'],
+    startTime: '2026-04-15', endTime: '2026-06-15',
     remark: '' }
 ];
 
@@ -320,22 +348,31 @@ var DEMO_RECORDS = [
   { id: 'PR20260420001', batchId: 'PB20260415001', batchName: '2026年鱼峰区专项晋升',
     teacherName: '张淑芳', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
     promotionType: 'regular', targetLevel: '六级', fromLevel: '七级',
-    status: 'completed', submitTime: '2026-04-03 08:00:00', completeTime: '2026-04-22 09:00:00' }
+    status: 'completed', submitTime: '2026-04-03 08:00:00', completeTime: '2026-04-22 09:00:00' },
+  { id: 'PR20260520001', batchId: 'PB20260501001', batchName: '2026年春季岗位晋升',
+    teacherName: '周国庆', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '六级', fromLevel: '七级',
+    status: 'pending_first', submitTime: '2026-05-20 10:00:00' },
+  { id: 'PR20260521001', batchId: 'PB20260501001', batchName: '2026年春季岗位晋升',
+    teacherName: '吴小娟', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '二级', fromLevel: '三级',
+    status: 'pending_first', submitTime: '2026-05-21 09:00:00' }
 ];
 
 var STATUS_LABEL_MAP = {
-  pending_first: '学校审核中',
-  first_approved: '已提交学校',
-  first_rejected: '学校驳回',
-  pending_second: '主管审核中',
+  pending_first: '待一审',
+  first_approved: '一审通过',
+  first_rejected: '一审驳回',
+  pending_second: '待二审',
   second_approved: '二审通过',
-  second_rejected: '主管驳回',
-  pending_third: '三审中',
-  completed: '晋升成功'
+  second_rejected: '二审驳回',
+  pending_third: '待三审',
+  third_rejected: '三审驳回',
+  completed: '已完成'
 };
 
 var REVIEWING_STATUSES = ['pending_first', 'first_approved', 'pending_second', 'second_approved', 'pending_third'];
-var REJECTED_STATUSES = ['first_rejected', 'second_rejected'];
+var REJECTED_STATUSES = ['first_rejected', 'second_rejected', 'third_rejected'];
 
 var currentRole = 'teacher';
 var selectedBatchId = null;
@@ -390,14 +427,17 @@ function renderSidebar() {
 function sidebarClick(id) {
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'promote') return;
+  if (id === 'recruit') { showToast('无权限访问', 'warning'); return; }
   showToast('跳转至：' + id);
 }
 
 // ===== DATA HELPERS =====
 function getAvailableBatches() {
   var batches = loadBatches();
+  var teacher = getCurrentTeacher();
+  var school = teacher ? teacher.schoolName : '';
   return batches.filter(function(b) {
-    return b.scopeAreas && b.scopeAreas.indexOf('鱼峰区属') >= 0;
+    return b.schoolName === school;
   });
 }
 
@@ -431,18 +471,16 @@ function showBatchDetail(batchId) {
   for (var i = 0; i < batches.length; i++) { if (batches[i].id === batchId) { batch = batches[i]; break; } }
   if (!batch) return;
   var myRecords = getMyRecords().filter(function(r) { return r.batchId === batchId; });
-  var scopeLabel = (batch.scope === 'all' ? '全市' : batch.scope === 'district' ? '指定区' : '市直属');
-  var areaText = batch.scopeAreas && batch.scopeAreas.length ? batch.scopeAreas.join('、') : '无';
+  var TYPE_LABEL = { mgmt: '管理岗位', prof: '专业技术岗位', labor: '工勤技能岗位', manage: '管理岗位', professional: '专业技术岗位', skill: '工勤技能岗位' };
+  var typeLabels = (batch.promoteTypes && batch.promoteTypes.length ? batch.promoteTypes : (batch.category ? [batch.category] : [])).map(function(t) { return TYPE_LABEL[t] || t; });
   var h = '<div class="modal-header"><h3>批次详情</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   h += '<div class="modal-body">';
   h += '<table class="detail-table"><tbody>';
   h += '<tr><td class="dt-label">批次名称</td><td>' + batch.name + '</td></tr>';
   h += '<tr><td class="dt-label">批次编号</td><td>' + batch.id + '</td></tr>';
-  h += '<tr><td class="dt-label">晋升类别</td><td>' + (CATEGORY_MAP[batch.category] || batch.category) + '</td></tr>';
+  h += '<tr><td class="dt-label">晋升类别</td><td>' + (typeLabels.length > 0 ? typeLabels.join('、') : '—') + '</td></tr>';
   h += '<tr><td class="dt-label">年度</td><td>' + (batch.year || '—') + '</td></tr>';
   h += '<tr><td class="dt-label">申报时间</td><td>' + batch.startTime + ' ~ ' + batch.endTime + '</td></tr>';
-  h += '<tr><td class="dt-label">适用范围</td><td>' + scopeLabel + '（' + areaText + '）</td></tr>';
-  h += '<tr><td class="dt-label">允许申报等级</td><td>' + (batch.allowedLevels||[]).join('、') + '</td></tr>';
   h += '<tr><td class="dt-label">备注说明</td><td>' + (batch.remark || '—') + '</td></tr>';
   h += '</tbody></table>';
   h += '<div style="margin-top:12px"><strong style="font-size:13px">我的申报</strong></div>';
@@ -478,11 +516,18 @@ function renderBatchCards() {
       h += '</div></div>';
     }
     h += '<div class="batch-card-actions">';
+    var hasActiveApplication = myBatchRecords.some(function(r) {
+      return r.status !== 'first_rejected' && r.status !== 'second_rejected' && r.status !== 'third_rejected';
+    });
     if (hasApplied) {
       h += '<span style="font-size:11px;color:var(--text-light);">已申报 ' + myBatchRecords.length + ' 次</span>';
     }
     if (b.status === 'open') {
-      h += '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();applyBatch(\'' + b.id + '\')">申报</button>';
+      if (hasActiveApplication) {
+        h += '<span style="font-size:11px;color:var(--success);">✓ 已申报</span>';
+      } else {
+        h += '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();applyBatch(\'' + b.id + '\')">申报</button>';
+      }
     }
     h += '</div>';
     h += '</div>';

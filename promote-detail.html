@@ -167,13 +167,15 @@ body {
 .page-header h1 { font-size: 20px; font-weight: 700; }
 .page-header .header-right { display: flex; align-items: center; gap: 12px; }
 
-/* Status badge */
-.status-badge { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 11px; font-weight: 500; }
-.status-badge.pending { background: #FEF3C7; color: #92400E; }
-.status-badge.approved { background: #D1FAE5; color: #065F46; }
-.status-badge.rejected { background: #FEE2E2; color: #991B1B; }
-.status-badge.review { background: #DBEAFE; color: #1E40AF; }
-.status-badge.completed { background: #E0E7FF; color: #3730A3; }
+/* Status stamp */
+.status-stamp {
+  display: inline-block; padding: 6px 16px; border: 2px solid;
+  transform: rotate(-5deg); font-weight: 700; font-size: 14px; background: #fff;
+}
+.status-stamp.pending { color: #F59E0B; border-color: #F59E0B; }
+.status-stamp.approved { color: #10B981; border-color: #10B981; }
+.status-stamp.rejected { color: #EF4444; border-color: #EF4444; }
+.status-stamp.completed { color: #8B5CF6; border-color: #8B5CF6; }
 
 /* Status hint */
 .status-hint { padding: 10px 16px; background: var(--primary-light); border-radius: 6px; font-size: 12px; color: var(--primary); margin-bottom: 16px; border-left: 3px solid var(--primary); }
@@ -472,7 +474,7 @@ var STATUS_HINTS = {
 var STATUS_LABELS = {
   pending_first: '待一审', first_approved: '一审通过', first_rejected: '一审驳回',
   pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回',
-  pending_third: '待三审', completed: '已完成'
+  pending_third: '待三审', third_rejected: '三审驳回', completed: '已完成'
 };
 
 var PROGRESS_STEPS = [
@@ -645,11 +647,11 @@ function getProgressState(status) {
 }
 
 function getStatusBadgeClass(status) {
-  if (status === 'pending_first' || status === 'pending_second' || status === 'pending_third') return 'review';
-  if (status === 'first_approved' || status === 'second_approved') return 'approved';
-  if (status === 'first_rejected' || status === 'second_rejected') return 'rejected';
-  if (status === 'completed') return 'completed';
-  return 'pending';
+	if (status === 'pending_first' || status === 'pending_second' || status === 'pending_third') return 'pending';
+	if (status === 'first_approved' || status === 'second_approved') return 'approved';
+	if (status === 'first_rejected' || status === 'second_rejected' || status === 'third_rejected') return 'rejected';
+	if (status === 'completed') return 'completed';
+	return 'pending';
 }
 
 // ===== RENDER PROGRESS =====
@@ -758,6 +760,7 @@ function renderTeacherForm() {
 
     html += '<div class="form-card"><h3>申报目标</h3><div class="info-grid">';
     html += infoItem('目标等级', record.fromLevel + ' → ' + record.targetLevel);
+    html += infoItem('晋升类型', record.transferType === 'transfer' ? '转岗' : '晋升');
     html += '</div></div>';
   }
 
@@ -905,9 +908,6 @@ function getActions() {
     if (!isMyJurisdiction() && s !== 'completed') {
       return [];
     }
-    if (s === 'pending_second') {
-      actions.push({ type: 'primary', label: '审核', href: 'promote-audit-second.html?id=' + record.id + '&role=' + currentRole });
-    }
     if (s === 'pending_third') {
       actions.push({ type: 'primary', label: '确认', href: 'promote-audit-third.html?id=' + record.id + '&role=' + currentRole });
     }
@@ -1022,7 +1022,7 @@ function renderAll() {
   mainHtml += '<div><h1>岗位晋升详情</h1></div>';
   mainHtml += '<div class="header-right">';
   mainHtml += '<span style="font-size:15px;font-weight:600;">' + escapeHtml(record.teacherName) + '</span>';
-  mainHtml += '<span class="status-badge ' + badgeClass + '">' + statusLabel + '</span>';
+  mainHtml += '<span class="status-stamp ' + badgeClass + '">' + statusLabel + '</span>';
   mainHtml += '</div></div>';
 
   // Status hint
@@ -1143,6 +1143,11 @@ function sidebarClick(el, id) {
     return;
   }
   if (id === 'postset') { window.location.href = 'post-list-admin.html?role=' + currentRole; return; }
+  if (id === 'recruit') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+    return;
+  }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

@@ -664,7 +664,7 @@ var SCHOOL_PROFILE = {
     fOrgNature: '全额拨款事业单位',
     fAuthStaff: 88, fCurrentStaff: 80,
     fApprovedPlan: 5, fUsedPlan: 4, fUnusedPlan: 1, fAvailablePlan: 3,
-    fControlQuota: 16, fControlActual: 14, fUnusedControl: 5,
+    fControlQuota: 16, fControlActual: 14, fControlApprovedPlan: 3, fControlUsedPlan: 1, fControlUnusedPlan: 2, fControlAvailablePlan: 1,
     fAuthLeader: 5, fActualLeader: 4, fActualOtherLeader: 3
   }
 };
@@ -686,7 +686,7 @@ var TYPE_CONFIG = {
       { id: 'fApprovedPlan', label: '已批复计划数', unit: '名', help: '已获批复的事业编制使用计划总数' },
       { id: 'fUsedPlan', label: '已使用计划数', unit: '名', help: '已办理进编手续的人数' },
       { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '未使用计划数 = 已批复计划数 − 已使用计划数', formula: '未使用计划数 = 已批复计划数 − 已使用计划数' },
-      { id: 'fAvailablePlan', label: '可申请计划数', unit: '名', help: '可申请计划数 = 核定编制数 − 实有在编人数 − 已批复计划数', formula: '可申请计划数 = 核定编制数 − 实有在编人数 − 已批复计划数' }
+      { id: 'fAvailablePlan', label: '可申请编制数', unit: '名', help: '可申请编制数 = 核定编制数 − 实有在编人数 − 已批复计划数', formula: '可申请编制数 = 核定编制数 − 实有在编人数 − 已批复计划数' }
     ],
     countLabel: '使用事业编制（名）',
     countField: '使用事业编制',
@@ -709,12 +709,14 @@ var TYPE_CONFIG = {
     icon: '📎',
     step1Title: '控制数情况',
     fields: [
-      { id: 'fAuthStaff', label: '核定编制数（名）', unit: '名', help: '机构编制部门核定的本单位编制总数' },
-      { id: 'fCurrentStaff', label: '在编人数（人）', unit: '人', help: '当前实际在编的总人数' },
-      { id: 'fUnusedPlan', label: '剩余可用计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' },
-      { id: 'fControlQuota', label: '核定聘用教师控制数（名）', unit: '名', help: '机构编制部门核定的聘用教师控制数' },
-      { id: 'fControlActual', label: '聘用教师控制数实有数（人）', unit: '人', help: '当前实际聘用的控制数教师人数' },
-      { id: 'fUnusedControl', label: '剩余可用控制数计划数', unit: '名', help: '已批复计划中尚未办理增人手续的人数' }
+      { id: 'fOrgLevel', label: '机构级别', unit: '', help: '机构编制部门确定的机构级别' },
+      { id: 'fOrgNature', label: '单位性质', unit: '', help: '事业单位分类，如全额拨款事业单位' },
+      { id: 'fControlQuota', label: '核定控制数', unit: '名', help: '机构编制部门核定的聘用教师控制数' },
+      { id: 'fControlActual', label: '实有控制数人数', unit: '人', help: '当前实际聘用的控制数教师人数' },
+      { id: 'fControlApprovedPlan', label: '已批复控制数', unit: '名', help: '已获批复的控制数使用计划总数' },
+      { id: 'fControlUsedPlan', label: '已使用控制数', unit: '名', help: '已办理增人手续的控制数人数' },
+      { id: 'fControlUnusedPlan', label: '未使用控制数', unit: '名', help: '未使用控制数 = 已批复控制数 − 已使用控制数', formula: '未使用控制数 = 已批复控制数 − 已使用控制数' },
+      { id: 'fControlAvailablePlan', label: '可申请控制数', unit: '名', help: '可申请控制数 = 核定控制数 − 实有控制数人数 − 已批复控制数', formula: '可申请控制数 = 核定控制数 − 实有控制数人数 − 已批复控制数' }
     ],
     countLabel: '使用控制数（名）',
     countField: '使用控制数',
@@ -723,10 +725,10 @@ var TYPE_CONFIG = {
     validation: function() {
       var quota = parseInt(document.getElementById('fControlQuotaVal').textContent) || 0;
       var actual = parseInt(document.getElementById('fControlActualVal').textContent) || 0;
-      var unused = parseInt(document.getElementById('fUnusedControlVal').textContent) || 0;
+      var approved = parseInt(document.getElementById('fControlApprovedPlanVal').textContent) || 0;
       var totalApply = getApplyTotal();
-      var available = quota - actual + unused;
-      return { quota: available, label: '可用控制数', apply: totalApply, ok: totalApply <= available };
+      var available = quota - actual - approved;
+      return { quota: available, label: '可申请控制数', apply: totalApply, ok: totalApply <= available };
     }
   }
 };
@@ -767,6 +769,7 @@ function sidebarClick(el, id) {
   if (id === 'exit') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
   if (id === 'promote') { window.location.href = 'promote-list-school.html'; return; }
   if (id === 'postset') { window.location.href = 'post-list-school.html'; return; }
+  if (id === 'recruit') { window.location.href = 'recruit-list-school.html'; return; }
   showToast('跳转至：' + (el.textContent || id));
 }
 
@@ -851,8 +854,8 @@ function renderForm() {
       fieldsHtml += '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">' + f.formula + '</div>';
     }
     fieldsHtml += '</div>';
-    // Career: blank placeholder after first 2 fields for 2+3+3 layout
-    if (staffingType === 'career' && i === 1) {
+    // Blank placeholder after first 2 fields for 2+3+3 layout
+    if (i === 1) {
       fieldsHtml += '<div class="info-item info-item-placeholder"></div>';
     }
   });
@@ -898,7 +901,7 @@ function updateQuotaSummary() {
 
   var summaryEl = document.getElementById('quotaSummary');
   var remaining = valid.quota - valid.apply;
-  var resultLabel = staffingType === 'career' ? '剩余可用编制数' : '剩余可用控制数';
+  var resultLabel = staffingType === 'career' ? '剩余可申请编制数' : '剩余可申请控制数';
   var resultClass = remaining >= 0 ? 'ok' : 'error';
   summaryEl.innerHTML =
     '<div class="quota-item"><div class="q-label">' + valid.label + '</div><div class="q-value ok">' + valid.quota + ' 名</div></div>' +

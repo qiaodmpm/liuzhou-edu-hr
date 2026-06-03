@@ -232,6 +232,8 @@ body {
 .quota-item .q-value.ok { color: #10B981; }
 .quota-item .q-value.warn { color: #F59E0B; }
 .quota-item .q-value.error { color: #EF4444; }
+.quota-detail { font-size: 11px; color: var(--text-light); margin-top: 4px; line-height: 1.5; }
+input[readonly], select[disabled] { background: #F1F5F9; color: #64748B; cursor: not-allowed; }
 
 /* Career form groups */
 .form-group-section {
@@ -632,7 +634,7 @@ var SCHOOL_DATA = {
     schoolType: '鱼峰区属',
     unitName: '柳州市第八中学',
     orgLevel: '正科级', orgNature: '全额拨款事业单位',
-    authCareerStaff: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
+    careerStaffQuota: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
     authLeader: 5, actualLeader: 4, actualOtherLeader: 3,
     authControlNo: 16, currentControlStaff: 14
   },
@@ -640,7 +642,7 @@ var SCHOOL_DATA = {
     schoolType: '市直属',
     unitName: '柳州市第一中学',
     orgLevel: '正处级', orgNature: '全额拨款事业单位',
-    authCareerStaff: 120, currentCareerStaff: 110, unusedCareerPlan: 2,
+    careerStaffQuota: 120, currentCareerStaff: 110, unusedCareerPlan: 2,
     authLeader: 8, actualLeader: 7, actualOtherLeader: 5,
     authControlNo: 25, currentControlStaff: 22
   },
@@ -651,7 +653,7 @@ var SCHOOL_DATA = {
     orgLevel: '其他未定级',
     fundingSource: '全额拨款',
     orgNature: '全额拨款事业单位',
-    authCareerStaff: 628,
+    careerStaffQuota: 628,
     currentCareerStaff: 584,
     unusedCareerPlan: 44,
     postBreakdown: {
@@ -669,6 +671,70 @@ var SCHOOL_DATA = {
   }
 };
 
+// ===== DEMO: 编制使用申请通过记录（用于展示可申请入编编制数明细） =====
+var DEMO_STAFFING_SUBMISSIONS = [
+  { id: 'S2026-001', schoolName: '柳州铁一中学', staffingType: 'career', status: 'approved', useForms: { '公招': 2, '调动': 1 } },
+  { id: 'S2026-002', schoolName: '柳州铁一中学', staffingType: 'career', status: 'approved', useForms: { '公招': 1 } },
+  { id: 'S2026-003', schoolName: '柳州铁一中学', staffingType: 'control', status: 'approved', useForms: { '公招': 3 } }
+];
+
+// ===== DEMO: 招聘岗位申请审核通过的岗位（用于拟分配岗位下拉选） =====
+var DEMO_RECRUIT_POSITIONS = [
+  { id: 'RP001', schoolName: '柳州铁一中学', positionName: '高中语文教师', categoryLevel: '专业技术岗位 十二级', status: 'approved' },
+  { id: 'RP002', schoolName: '柳州铁一中学', positionName: '高中数学教师', categoryLevel: '专业技术岗位 十级', status: 'approved' },
+  { id: 'RP003', schoolName: '柳州铁一中学', positionName: '高中英语教师', categoryLevel: '专业技术岗位 十二级', status: 'approved' },
+  { id: 'RP004', schoolName: '柳州铁一中学', positionName: '高中物理教师', categoryLevel: '专业技术岗位 十一级', status: 'approved' },
+  { id: 'RP005', schoolName: '柳州铁一中学', positionName: '高中化学教师', categoryLevel: '专业技术岗位 十二级', status: 'approved' },
+  { id: 'RP006', schoolName: '柳州铁一中学', positionName: '高中历史教师', categoryLevel: '专业技术岗位 十级', status: 'approved' }
+];
+
+// ===== DEMO: 聘用手续办理完成、待入编人员 =====
+var DEMO_EMPLOY_RECORDS = [
+  { id: 'EMP001', schoolName: '柳州铁一中学', name: '张三', gender: '男', status: 'employed' },
+  { id: 'EMP002', schoolName: '柳州铁一中学', name: '李丽', gender: '女', status: 'employed' },
+  { id: 'EMP003', schoolName: '柳州铁一中学', name: '王强', gender: '男', status: 'employed' },
+  { id: 'EMP004', schoolName: '柳州铁一中学', name: '赵芳', gender: '女', status: 'employed' }
+];
+
+// ===== 民族枚举 =====
+var ETHNIC_GROUPS = ['汉族','蒙古族','回族','藏族','维吾尔族','苗族','彝族','壮族','布依族','朝鲜族','满族','侗族','瑶族','白族','土家族','哈尼族','哈萨克族','傣族','黎族','傈僳族','佤族','畲族','高山族','拉祜族','水族','东乡族','纳西族','景颇族','柯尔克孜族','土族','达斡尔族','仫佬族','羌族','布朗族','撒拉族','毛南族','仡佬族','锡伯族','阿昌族','普米族','塔吉克族','怒族','乌孜别克族','俄罗斯族','鄂温克族','德昂族','保安族','裕固族','京族','塔塔尔族','独龙族','鄂伦春族','赫哲族','门巴族','珞巴族','基诺族'];
+
+// ===== 籍贯枚举（省市区县三级联动） =====
+var REGION_DATA = {
+  '北京': { '北京市': ['东城区','西城区','朝阳区','丰台区','石景山区','海淀区','门头沟区','房山区','通州区','顺义区','昌平区','大兴区','怀柔区','平谷区','密云区','延庆区'] },
+  '天津': { '天津市': ['和平区','河东区','河西区','南开区','河北区','红桥区','东丽区','西青区','津南区','北辰区','武清区','宝坻区','滨海新区','宁河区','静海区','蓟州区'] },
+  '上海': { '上海市': ['黄浦区','徐汇区','长宁区','静安区','普陀区','虹口区','杨浦区','闵行区','宝山区','嘉定区','浦东新区','金山区','松江区','青浦区','奉贤区','崇明区'] },
+  '重庆': { '重庆市': ['万州区','涪陵区','渝中区','大渡口区','江北区','沙坪坝区','九龙坡区','南岸区','北碚区','綦江区','大足区','渝北区','巴南区','黔江区','长寿区','江津区','合川区','永川区','南川区'] },
+  '河北': { '石家庄市':['长安区','桥西区','新华区','裕华区','藁城区','鹿泉区','栾城区'],'唐山市':['路南区','路北区','古冶区','开平区','丰南区','丰润区'],'保定市':['竞秀区','莲池区','满城区','清苑区','徐水区'],'邯郸市':['邯山区','丛台区','复兴区','峰峰矿区'] },
+  '山西': { '太原市':['小店区','迎泽区','杏花岭区','尖草坪区','万柏林区','晋源区'],'大同市':['平城区','云冈区','新荣区','云州区'],'临汾市':['尧都区'],'运城市':['盐湖区'] },
+  '辽宁': { '沈阳市':['和平区','沈河区','大东区','皇姑区','铁西区','苏家屯区','浑南区','沈北新区','于洪区'],'大连市':['中山区','西岗区','沙河口区','甘井子区','旅顺口区','金州区'],'鞍山市':['铁东区','铁西区','立山区','千山区'],'抚顺市':['新抚区','东洲区','望花区','顺城区'] },
+  '吉林': { '长春市':['南关区','宽城区','朝阳区','二道区','绿园区','双阳区','九台区'],'吉林市':['昌邑区','龙潭区','船营区','丰满区'],'四平市':['铁西区','铁东区'],'延边朝鲜族自治州':['延吉市','图们市','敦化市'] },
+  '黑龙江': { '哈尔滨市':['道里区','南岗区','道外区','平房区','松北区','香坊区','呼兰区','阿城区'],'齐齐哈尔市':['龙沙区','建华区','铁锋区','昂昂溪区'],'牡丹江市':['东安区','阳明区','爱民区','西安区'],'大庆市':['萨尔图区','龙凤区','让胡路区','红岗区'] },
+  '江苏': { '南京市':['玄武区','秦淮区','建邺区','鼓楼区','浦口区','栖霞区','雨花台区','江宁区','六合区'],'苏州市':['姑苏区','虎丘区','吴中区','相城区','吴江区'],'无锡市':['梁溪区','锡山区','惠山区','滨湖区','新吴区'],'常州市':['天宁区','钟楼区','新北区','武进区','金坛区'],'徐州市':['鼓楼区','云龙区','贾汪区','泉山区','铜山区'] },
+  '浙江': { '杭州市':['上城区','拱墅区','西湖区','滨江区','萧山区','余杭区','富阳区','临安区'],'宁波市':['海曙区','江北区','北仑区','镇海区','鄞州区','奉化区'],'温州市':['鹿城区','龙湾区','瓯海区'],'绍兴市':['越城区','柯桥区','上虞区'] },
+  '安徽': { '合肥市':['瑶海区','庐阳区','蜀山区','包河区'],'芜湖市':['镜湖区','鸠江区','弋江区'],'蚌埠市':['龙子湖区','蚌山区','禹会区','淮上区'],'马鞍山市':['花山区','雨山区','博望区'] },
+  '福建': { '福州市':['鼓楼区','台江区','仓山区','马尾区','晋安区','长乐区'],'厦门市':['思明区','湖里区','集美区','海沧区','同安区','翔安区'],'泉州市':['鲤城区','丰泽区','洛江区','泉港区'],'漳州市':['芗城区','龙文区'] },
+  '江西': { '南昌市':['东湖区','西湖区','青云谱区','青山湖区','新建区','红谷滩区'],'九江市':['濂溪区','浔阳区','柴桑区'],'赣州市':['章贡区','南康区','赣县区'],'上饶市':['信州区','广丰区','广信区'] },
+  '山东': { '济南市':['历下区','市中区','槐荫区','天桥区','历城区','长清区','章丘区'],'青岛市':['市南区','市北区','黄岛区','崂山区','李沧区','城阳区','即墨区'],'烟台市':['芝罘区','福山区','牟平区','莱山区','蓬莱区'],'潍坊市':['潍城区','寒亭区','坊子区','奎文区'] },
+  '河南': { '郑州市':['中原区','二七区','管城回族区','金水区','上街区','惠济区'],'洛阳市':['老城区','西工区','瀍河回族区','涧西区','洛龙区'],'开封市':['龙亭区','顺河回族区','鼓楼区','禹王台区','祥符区'],'南阳市':['宛城区','卧龙区'] },
+  '湖北': { '武汉市':['江岸区','江汉区','硚口区','汉阳区','武昌区','青山区','洪山区','东西湖区','汉南区','蔡甸区','江夏区','黄陂区','新洲区'],'宜昌市':['西陵区','伍家岗区','点军区','猇亭区','夷陵区'],'襄阳市':['襄城区','樊城区','襄州区'],'荆州市':['沙市区','荆州区'] },
+  '湖南': { '长沙市':['芙蓉区','天心区','岳麓区','开福区','雨花区','望城区'],'株洲市':['荷塘区','芦淞区','石峰区','天元区'],'湘潭市':['雨湖区','岳塘区'],'衡阳市':['珠晖区','雁峰区','石鼓区','蒸湘区','南岳区'] },
+  '广东': { '广州市':['越秀区','海珠区','荔湾区','天河区','白云区','黄埔区','番禺区','花都区','南沙区','从化区','增城区'],'深圳市':['罗湖区','福田区','南山区','宝安区','龙岗区','盐田区','龙华区','坪山区','光明区'],'珠海市':['香洲区','斗门区','金湾区'],'佛山市':['禅城区','南海区','顺德区','三水区','高明区'],'东莞市':['莞城街道','南城街道','东城街道','万江街道'] },
+  '广西': { '南宁市':['青秀区','兴宁区','江南区','西乡塘区','良庆区','邕宁区','武鸣区','横州市','宾阳县','上林县','马山县','隆安县'],'柳州市':['城中区','鱼峰区','柳南区','柳北区','柳江区','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县'],'桂林市':['秀峰区','叠彩区','象山区','七星区','雁山区','临桂区','阳朔县','灵川县','全州县','兴安县','永福县','灌阳县','龙胜各族自治县','资源县','平乐县','恭城瑶族自治县','荔浦市'],'梧州市':['万秀区','长洲区','龙圩区','苍梧县','藤县','蒙山县','岑溪市'],'北海市':['海城区','银海区','铁山港区','合浦县'],'防城港市':['港口区','防城区','上思县','东兴市'],'钦州市':['钦南区','钦北区','灵山县','浦北县'],'贵港市':['港北区','港南区','覃塘区','平南县','桂平市'],'玉林市':['玉州区','福绵区','容县','陆川县','博白县','兴业县','北流市'],'百色市':['右江区','田阳区','田东县','平果市','德保县','靖西市','那坡县','凌云县','乐业县','田林县','西林县','隆林各族自治县'],'贺州市':['八步区','平桂区','昭平县','钟山县','富川瑶族自治县'],'河池市':['金城江区','宜州区','南丹县','天峨县','凤山县','东兰县','罗城仫佬族自治县','环江毛南族自治县','巴马瑶族自治县','都安瑶族自治县','大化瑶族自治县'],'来宾市':['兴宾区','忻城县','象州县','武宣县','金秀瑶族自治县','合山市'],'崇左市':['江州区','扶绥县','宁明县','龙州县','大新县','天等县','凭祥市'] },
+  '海南': { '海口市':['秀英区','龙华区','琼山区','美兰区'],'三亚市':['海棠区','吉阳区','天涯区','崖州区'],'儋州市':['那大镇'] },
+  '四川': { '成都市':['锦江区','青羊区','金牛区','武侯区','成华区','龙泉驿区','青白江区','新都区','温江区','双流区','郫都区'],'绵阳市':['涪城区','游仙区','安州区'],'德阳市':['旌阳区','罗江区'],'宜宾市':['翠屏区','南溪区','叙州区'] },
+  '贵州': { '贵阳市':['南明区','云岩区','花溪区','乌当区','白云区','观山湖区'],'遵义市':['红花岗区','汇川区','播州区'],'六盘水市':['钟山区','水城区'],'安顺市':['西秀区','平坝区'] },
+  '云南': { '昆明市':['五华区','盘龙区','官渡区','西山区','东川区','呈贡区','晋宁区'],'曲靖市':['麒麟区','沾益区','马龙区'],'玉溪市':['红塔区','江川区'],'大理白族自治州':['大理市'] },
+  '西藏': { '拉萨市':['城关区','堆龙德庆区','达孜区'],'日喀则市':['桑珠孜区'],'昌都市':['卡若区'] },
+  '陕西': { '西安市':['新城区','碑林区','莲湖区','灞桥区','未央区','雁塔区','阎良区','临潼区','长安区','高陵区','鄠邑区'],'宝鸡市':['渭滨区','金台区','陈仓区'],'咸阳市':['秦都区','渭城区'],'延安市':['宝塔区','安塞区'] },
+  '甘肃': { '兰州市':['城关区','七里河区','西固区','安宁区','红古区'],'天水市':['秦州区','麦积区'],'酒泉市':['肃州区'],'庆阳市':['西峰区'] },
+  '青海': { '西宁市':['城东区','城中区','城西区','城北区','湟中区'],'海东市':['乐都区','平安区'] },
+  '宁夏': { '银川市':['兴庆区','西夏区','金凤区','灵武市'],'石嘴山市':['大武口区','惠农区'],'吴忠市':['利通区','红寺堡区'] },
+  '新疆': { '乌鲁木齐市':['天山区','沙依巴克区','新市区','水磨沟区','头屯河区','达坂城区','米东区'],'克拉玛依市':['克拉玛依区','独山子区'],'吐鲁番市':['高昌区'],'哈密市':['伊州区'] },
+  '内蒙古': { '呼和浩特市':['新城区','回民区','玉泉区','赛罕区'],'包头市':['东河区','昆都仑区','青山区','石拐区'],'鄂尔多斯市':['东胜区','康巴什区'],'赤峰市':['红山区','元宝山区','松山区'] }
+};
+var PROVINCE_LIST = Object.keys(REGION_DATA);
+
 // ===== STATE =====
 var currentRole = 'school';
 var schoolName = '柳州铁一中学';
@@ -679,11 +745,11 @@ var editRecordId = null;
 
 // career form state
 var careerForm = {
-  name: '', gender: '', politics: '', ethnicity: '', nativePlace: '',
+  name: '', gender: '', politics: '', ethnicity: '', nativeProvince: '', nativeCity: '', nativeDistrict: '',
   education: '', graduateInfo: '',
   spouseName: '', spouseWorkUnit: '',
   previousJob: '', orgNature: '', fundingSource: '', cadreOrWorker: '', title: '',
-  assignPosition: '', entryMethod: '', docNumber: '',
+  assignPosition: '', assignCategoryLevel: '', entryMethod: '', docNumber: '',
   reason: ''
 };
 
@@ -798,6 +864,12 @@ function sidebarClick(el, id) {
     else { showToast('无权限访问', 'warning'); }
     return;
   }
+  if (id === 'recruit') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+    showToast('无权限访问', 'warning');
+    return;
+  }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -805,14 +877,12 @@ function sidebarClick(el, id) {
 function renderTypeSelector() {
   var html = '';
   var types = [
-    { value: 'career', name: '事业编', form: '附件2', desc: '实名制，每次限1人，单条详细表单', badgeClass: 'career' },
-    { value: 'control', name: '控制数', form: '附件9', desc: '备案制，可多人，表格形式批量申报', badgeClass: 'control' }
+    { value: 'career', name: '事业编' },
+    { value: 'control', name: '控制数' }
   ];
   types.forEach(function(t) {
     html += '<div class="type-option' + (staffingType === t.value ? ' selected' : '') + '" onclick="selectType(\'' + t.value + '\')">';
     html += '<div class="type-name">' + t.name + '</div>';
-    html += '<span class="type-badge ' + t.badgeClass + '">' + t.form + '</span>';
-    html += '<div class="type-desc">' + t.desc + '</div>';
     html += '</div>';
   });
   document.getElementById('typeSelector').innerHTML = html;
@@ -859,7 +929,7 @@ function renderDetailedUnitInfo(sd) {
   html += '<tr><td class="ilabel">统一社会信用代码(或事登证号)</td><td class="ivalue" colspan="3">' + (sd.creditCode || '—') + '</td></tr>';
   html += '<tr><td class="ilabel">机构级别</td><td class="ivalue">' + sd.orgLevel + '</td>';
   html += '<td class="ilabel">经费来源</td><td class="ivalue">' + (sd.fundingSource || sd.orgNature || '—') + '</td></tr>';
-  html += '<tr><td class="ilabel">核定编制数(名)</td><td class="ivalue">' + sd.authCareerStaff + '</td>';
+  html += '<tr><td class="ilabel">核定编制数(名)</td><td class="ivalue">' + sd.careerStaffQuota + '</td>';
   html += '<td class="ilabel">现有人数(人)</td><td class="ivalue">' + sd.currentCareerStaff + '</td></tr>';
   html += '</table>';
 
@@ -911,7 +981,7 @@ function renderLegacyUnitInfo(sd) {
   html += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + sd.orgLevel + '</div></div>';
   html += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + sd.orgNature + '</div></div>';
   html += '<div class="info-item"><!-- placeholder --></div>';
-  html += '<div class="info-item"><div class="info-label">核定事业编制数（名）</div><div class="info-value">' + sd.authCareerStaff + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">核定事业编制数（名）</div><div class="info-value">' + sd.careerStaffQuota + '</div></div>';
   html += '<div class="info-item"><div class="info-label">在编人数（人）</div><div class="info-value">' + sd.currentCareerStaff + '</div></div>';
   html += '<div class="info-item"><div class="info-label">剩余可用计划数</div><div class="info-value">' + sd.unusedCareerPlan + '</div></div>';
   html += '<div class="info-item"><div class="info-label">核定单位领导职数</div><div class="info-value">' + sd.authLeader + '</div></div>';
@@ -928,7 +998,7 @@ function renderControlInfoCard(sd) {
   html += '<div class="form-card-title" style="margin-top:16px;">控制数信息</div>';
   html += '<div class="unit-grid">';
   html += '<div class="info-item full-width"><div class="info-label">控制数类型</div><select id="controlTypeSelect" onchange="controlType=this.value;">';
-  var ctOptions = ['中小学校聘用教师控制数','中职中专学校教职人员控制数','高等职业学校教职人员控制数','公立医院聘用人员控制数'];
+  var ctOptions = ['中小学校聘用教师控制数','中职中专学校教职人员控制数','高等职业学校教职人员控制数'];
   ctOptions.forEach(function(opt) {
     html += '<option value="' + opt + '"' + (controlType === opt ? ' selected' : '') + '>' + opt + '</option>';
   });
@@ -946,14 +1016,30 @@ function renderControlInfoCard(sd) {
 function renderQuotaSummary(sd) {
   var summary = document.getElementById('quotaSummary');
   if (staffingType === 'career') {
+    var breakdown = getApprovedUseFormBreakdown(schoolName);
+    var breakdownHtml = '';
+    if (breakdown.length > 0) {
+      var parts = [];
+      breakdown.forEach(function(b) { parts.push(b.type + b.count + '人'); });
+      breakdownHtml = '<div class="quota-detail">（' + parts.join('/') + '）</div>';
+    }
+    var unusedPlan = 0;
+    breakdown.forEach(function(b) { unusedPlan += b.count; });
+    var remaining = unusedPlan - 1;
     summary.innerHTML =
-      '<div class="quota-item"><div class="q-label">可用编制数</div><div class="q-value ok">' + sd.unusedCareerPlan + '</div></div>' +
-      '<div class="quota-item"><div class="q-label">申请使用人数</div><div class="q-value" id="applyCount">1</div></div>';
+      '<div class="quota-item">' +
+        '<div class="q-label">可申请入编的编制数</div>' +
+        '<div class="q-value ok">' + unusedPlan + '</div>' +
+        breakdownHtml +
+      '</div>' +
+      '<div class="quota-item"><div class="q-label">本次申请使用人数</div><div class="q-value" id="applyCount">1</div></div>' +
+      '<div class="quota-item"><div class="q-label">剩余可申请入编编制数</div><div class="q-value ok" id="remainingQuota">' + remaining + '</div></div>';
   } else {
     var applicantCount = controlRows.length;
     summary.innerHTML =
-      '<div class="quota-item"><div class="q-label">可用控制数</div><div class="q-value ok">' + (sd.authControlNo - sd.currentControlStaff) + '</div></div>' +
-      '<div class="quota-item"><div class="q-label">申请使用人数</div><div class="q-value" id="applyCount">' + applicantCount + '</div></div>';
+      '<div class="quota-item"><div class="q-label">可申请控制数</div><div class="q-value ok">' + (sd.authControlNo - sd.currentControlStaff) + '</div></div>' +
+      '<div class="quota-item"><div class="q-label">本次申请使用人数</div><div class="q-value" id="applyCount">' + applicantCount + '</div></div>' +
+      '<div class="quota-item"><div class="q-label">剩余可申请控制数</div><div class="q-value ok" id="remainingControlQuota">' + Math.max(0, (sd.authControlNo - sd.currentControlStaff) - applicantCount) + '</div></div>';
   }
   summary.style.display = 'flex';
 }
@@ -962,15 +1048,169 @@ function editOrgInfo() {
   showToast('机构信息页面暂未开放', 'warning');
 }
 
+// ===== HELPERS: 编制使用申请 + 招聘岗位 =====
+function getApprovedUseFormBreakdown(school) {
+  var stored = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+  var matchingStored = stored.filter(function(s) {
+    return s.schoolName === school && s.staffingType === 'career' && s.status === 'approved';
+  });
+  var source = matchingStored.length > 0 ? stored : DEMO_STAFFING_SUBMISSIONS;
+  var approved = source.filter(function(s) {
+    return s.schoolName === school && s.staffingType === 'career' && s.status === 'approved';
+  });
+  var agg = {};
+  approved.forEach(function(s) {
+    var uf = s.useForms || {};
+    Object.keys(uf).forEach(function(k) {
+      agg[k] = (agg[k] || 0) + uf[k];
+    });
+  });
+  var result = [];
+  Object.keys(agg).forEach(function(k) {
+    result.push({ type: k, count: agg[k] });
+  });
+  return result;
+}
+
+function getApprovedRecruitPositions(school) {
+  var stored = JSON.parse(localStorage.getItem('recruit_positions') || '[]');
+  var matchingStored = stored.filter(function(p) {
+    return p.schoolName === school && p.status === 'approved';
+  });
+  var source = matchingStored.length > 0 ? stored : DEMO_RECRUIT_POSITIONS;
+  return source.filter(function(p) {
+    return p.schoolName === school && p.status === 'approved';
+  });
+}
+
+function onPositionChange() {
+  var sel = document.getElementById('c_assignPosition');
+  var val = sel ? sel.value : '';
+  careerForm.assignPosition = val;
+  var positions = getApprovedRecruitPositions(schoolName);
+  var found = null;
+  for (var i = 0; i < positions.length; i++) {
+    if (positions[i].positionName === val) { found = positions[i]; break; }
+  }
+  careerForm.assignCategoryLevel = found ? found.categoryLevel : '';
+  var catEl = document.getElementById('c_assignCategoryLevel');
+  if (catEl) catEl.value = careerForm.assignCategoryLevel;
+}
+
+function getAvailableEmployNames(school) {
+  var stored = JSON.parse(localStorage.getItem('employ_records') || '[]');
+  var matchingStored = stored.filter(function(e) {
+    return e.schoolName === school && e.status === 'employed';
+  });
+  var source = matchingStored.length > 0 ? stored : DEMO_EMPLOY_RECORDS;
+  return source.filter(function(e) {
+    return e.schoolName === school && e.status === 'employed';
+  });
+}
+
+function onNameChange() {
+  var sel = document.getElementById('c_name');
+  var val = sel ? sel.value : '';
+  careerForm.name = val;
+  var employList = getAvailableEmployNames(schoolName);
+  var found = null;
+  for (var i = 0; i < employList.length; i++) {
+    if (employList[i].name === val) { found = employList[i]; break; }
+  }
+  if (found && found.gender) {
+    careerForm.gender = found.gender;
+    var genderEl = document.getElementById('c_gender');
+    if (genderEl) genderEl.value = found.gender;
+  }
+}
+
+function updateSpouseFields() {
+  var spouseName = document.getElementById('c_spouseName');
+  var spouseWork = document.getElementById('c_spouseWorkUnit');
+  if (!spouseWork) return;
+  var isEmpty = !careerForm.spouseName || careerForm.spouseName === '无';
+  spouseWork.disabled = isEmpty;
+  if (isEmpty) { careerForm.spouseWorkUnit = ''; spouseWork.value = ''; }
+}
+
+function onProvinceChange() {
+  var sel = document.getElementById('c_nativeProvince');
+  careerForm.nativeProvince = sel ? sel.value : '';
+  careerForm.nativeCity = '';
+  careerForm.nativeDistrict = '';
+  rebuildCitySelect();
+  rebuildDistrictSelect();
+}
+
+function onCityChange() {
+  var sel = document.getElementById('c_nativeCity');
+  careerForm.nativeCity = sel ? sel.value : '';
+  careerForm.nativeDistrict = '';
+  rebuildDistrictSelect();
+}
+
+function rebuildCitySelect() {
+  var cityEl = document.getElementById('c_nativeCity');
+  var distEl = document.getElementById('c_nativeDistrict');
+  if (!cityEl) return;
+  var prov = careerForm.nativeProvince;
+  var cityMap = REGION_DATA[prov] || {};
+  var cities = Object.keys(cityMap);
+  var html = '<option value="">市</option>';
+  cities.forEach(function(c) { html += '<option value="' + c + '">' + c + '</option>'; });
+  cityEl.innerHTML = html;
+  if (distEl) { distEl.innerHTML = '<option value="">区/县</option>'; }
+}
+
+function rebuildDistrictSelect() {
+  var distEl = document.getElementById('c_nativeDistrict');
+  if (!distEl) return;
+  var prov = careerForm.nativeProvince;
+  var city = careerForm.nativeCity;
+  var districts = (REGION_DATA[prov] || {})[city] || [];
+  var html = '<option value="">区/县</option>';
+  districts.forEach(function(d) { html += '<option value="' + d + '">' + d + '</option>'; });
+  distEl.innerHTML = html;
+}
+
+function rebuildNativeCascades() {
+  // populate city/district dropdowns from current careerForm state
+  var prov = careerForm.nativeProvince;
+  if (!prov) { rebuildCitySelect(); return; }
+  rebuildCitySelect();
+  var cityEl = document.getElementById('c_nativeCity');
+  if (cityEl && careerForm.nativeCity) { cityEl.value = careerForm.nativeCity; }
+  rebuildDistrictSelect();
+  var distEl = document.getElementById('c_nativeDistrict');
+  if (distEl && careerForm.nativeDistrict) { distEl.value = careerForm.nativeDistrict; }
+}
+
+function updatePreviousJobFields() {
+  var fields = ['c_orgNature','c_fundingSource','c_cadreOrWorker','c_title'];
+  var isEmpty = !careerForm.previousJob || careerForm.previousJob === '无';
+  fields.forEach(function(fid) {
+    var el = document.getElementById(fid);
+    if (!el) return;
+    el.disabled = isEmpty;
+    if (isEmpty) {
+      var key = fid.replace('c_','');
+      careerForm[key] = '';
+      el.value = '';
+    }
+  });
+}
+
 function updateControlCalculated() {
   var sd = SCHOOL_DATA[schoolName] || SCHOOL_DATA['柳州市第八中学'];
   var cnt = controlRows.length;
   var afterEl = document.getElementById('afterFiling');
   var thisEl = document.getElementById('thisFiling');
   var applyEl = document.getElementById('applyCount');
+  var remainEl = document.getElementById('remainingControlQuota');
   if (thisEl) thisEl.textContent = cnt;
   if (afterEl) afterEl.textContent = sd.currentControlStaff + cnt;
   if (applyEl) applyEl.textContent = cnt;
+  if (remainEl) remainEl.textContent = Math.max(0, (sd.authControlNo - sd.currentControlStaff) - cnt);
   var controlCard = document.getElementById('controlInfoCard');
   if (controlCard && controlCard.style.display !== 'none') {
     controlCard.innerHTML = renderControlInfoCard(sd);
@@ -980,16 +1220,34 @@ function updateControlCalculated() {
 // ===== CAREER FORM =====
 function renderCareerForm() {
   var html = '';
+  var employNames = getAvailableEmployNames(schoolName);
+  var positions = getApprovedRecruitPositions(schoolName);
 
   // Group: 身份信息
   html += '<div class="form-group-section">';
   html += '<div class="section-label">身份信息</div>';
   html += '<div class="form-grid">';
-  html += formField('c_name', '姓名', 'text', careerForm.name, true, '汉字，2-20字符');
+  // 姓名 — 下拉选（聘用手续办理完成、未入编人员）
+  html += '<div class="form-field">';
+  html += '<label>姓名 <span class="required">*</span></label>';
+  html += '<select id="c_name" onchange="onNameChange()">';
+  html += '<option value="">— 请选择 —</option>';
+  employNames.forEach(function(e) {
+    html += '<option value="' + e.name + '"' + (careerForm.name === e.name ? ' selected' : '') + '>' + e.name + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
   html += formField('c_gender', '性别', 'select', careerForm.gender, true, '', ['男','女']);
   html += formField('c_politics', '政治面貌', 'select', careerForm.politics, true, '', ['中共党员','中共预备党员','共青团员','民主党派','群众']);
-  html += formField('c_ethnicity', '民族', 'text', careerForm.ethnicity, true, '例如：汉族');
-  html += formField('c_nativePlace', '籍贯', 'text', careerForm.nativePlace, true, '省+市/县');
+  html += formField('c_ethnicity', '民族', 'select', careerForm.ethnicity, true, '', ETHNIC_GROUPS);
+  // 籍贯 — 省市区三级联动
+  html += '<div class="form-field"><label>籍贯 <span class="required">*</span></label><div style="display:flex;gap:6px;">';
+  html += '<select id="c_nativeProvince" onchange="onProvinceChange()" style="flex:1;"><option value="">省</option>';
+  PROVINCE_LIST.forEach(function(p) { html += '<option value="' + p + '"' + (careerForm.nativeProvince === p ? ' selected' : '') + '>' + p + '</option>'; });
+  html += '</select>';
+  html += '<select id="c_nativeCity" onchange="onCityChange()" style="flex:1;"><option value="">市</option></select>';
+  html += '<select id="c_nativeDistrict" onchange="careerForm.nativeDistrict=this.value;" style="flex:1;"><option value="">区/县</option></select>';
+  html += '</div></div>';
   html += formField('c_education', '文化程度', 'select', careerForm.education, true, '', ['博士','硕士','本科','大专','中专及以下']);
   html += '</div>';
   html += '<div class="form-grid" style="margin-top:16px;">';
@@ -997,25 +1255,25 @@ function renderCareerForm() {
   html += '</div>';
   html += '</div>';
 
-  // Group: 家庭信息
+  // Group: 家庭信息（若无配偶，整组置灰）
   html += '<div class="form-group-section">';
   html += '<div class="section-label">家庭信息</div>';
   html += '<div class="form-grid">';
-  html += formField('c_spouseName', '配偶姓名', 'text', careerForm.spouseName, false, '若无配偶填"无"');
-  html += formField('c_spouseWorkUnit', '配偶工作单位', 'text', careerForm.spouseWorkUnit, false, '若无填"无"');
+  html += '<div class="form-field"><label>配偶姓名</label><input type="text" id="c_spouseName" value="' + escapeHtml(careerForm.spouseName) + '" placeholder="若无配偶填"无"" oninput="careerForm.spouseName=this.value;updateSpouseFields();"></div>';
+  html += '<div class="form-field"><label>配偶工作单位</label><input type="text" id="c_spouseWorkUnit" value="' + escapeHtml(careerForm.spouseWorkUnit) + '" placeholder="若无填"无"" oninput="careerForm.spouseWorkUnit=this.value;"></div>';
   html += '</div>';
   html += '</div>';
 
-  // Group: 原单位信息
+  // Group: 原单位信息（若无原单位，整组置灰）
   html += '<div class="form-group-section">';
   html += '<div class="section-label">原单位信息</div>';
   html += '<div class="form-grid">';
-  html += formField('c_previousJob', '原工作单位', 'text', careerForm.previousJob, false, '若无填"无"', null, true);
+  html += '<div class="form-field full-width"><label>原工作单位</label><input type="text" id="c_previousJob" value="' + escapeHtml(careerForm.previousJob) + '" placeholder="若无填"无"" oninput="careerForm.previousJob=this.value;updatePreviousJobFields();"></div>';
   html += '</div>';
   html += '<div class="form-grid" style="margin-top:16px;">';
-  html += formField('c_orgNature', '单位性质', 'select', careerForm.orgNature, true, '', ['事业单位','行政机关','企业','其他']);
-  html += formField('c_fundingSource', '经费来源', 'select', careerForm.fundingSource, true, '', ['财政全额拨款','财政差额拨款','自收自支']);
-  html += formField('c_cadreOrWorker', '干部或工人', 'select', careerForm.cadreOrWorker, true, '', ['干部','工人']);
+  html += formField('c_orgNature', '单位性质', 'select', careerForm.orgNature, false, '', ['事业单位','行政机关','企业','其他']);
+  html += formField('c_fundingSource', '经费来源', 'select', careerForm.fundingSource, false, '', ['财政全额拨款','财政差额拨款','自收自支']);
+  html += formField('c_cadreOrWorker', '干部或工人', 'select', careerForm.cadreOrWorker, false, '', ['干部','工人']);
   html += formField('c_title', '职务职称', 'text', careerForm.title, false, '如：一级教师');
   html += '</div>';
   html += '</div>';
@@ -1024,9 +1282,18 @@ function renderCareerForm() {
   html += '<div class="form-group-section">';
   html += '<div class="section-label">入编信息</div>';
   html += '<div class="form-grid">';
-  html += formField('c_assignPosition', '拟分配岗位', 'text', careerForm.assignPosition, true, '岗位名称', null, true);
+  html += '<div class="form-field full-width">';
+  html += '<label>拟分配岗位 <span class="required">*</span></label>';
+  html += '<select id="c_assignPosition" onchange="onPositionChange()">';
+  html += '<option value="">— 请选择 —</option>';
+  positions.forEach(function(p) {
+    html += '<option value="' + p.positionName + '"' + (careerForm.assignPosition === p.positionName ? ' selected' : '') + '>' + p.positionName + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
   html += '</div>';
   html += '<div class="form-grid" style="margin-top:16px;">';
+  html += formField('c_assignCategoryLevel', '拟分配岗位类别及等级', 'text', careerForm.assignCategoryLevel || '', false, '选择岗位后自动带出', null, true, true);
   html += formField('c_entryMethod', '入编方式', 'select', careerForm.entryMethod, true, '', ['统一公开招聘','单位自主实施招聘','中高级人才招聘','引进高层次人才','调动','其他']);
   html += formField('c_docNumber', '依据文号', 'text', careerForm.docNumber, true, '入编依据的文件编号');
   html += '</div>';
@@ -1048,21 +1315,25 @@ function renderCareerForm() {
   if (reaEl) {
     reaEl.addEventListener('input', function() { document.getElementById('c_reason_count').textContent = this.value.length; });
   }
+  // 初始化置灰状态 + 籍贯级联
+  updateSpouseFields();
+  updatePreviousJobFields();
+  rebuildNativeCascades();
 }
 
-function formField(id, label, type, value, required, hint, selectOptions, fullWidth) {
+function formField(id, label, type, value, required, hint, selectOptions, fullWidth, readonly) {
   var cls = 'form-field' + (fullWidth ? ' full-width' : '');
   var html = '<div class="' + cls + '">';
   html += '<label>' + label + (required ? '<span class="required">*</span>' : '') + '</label>';
   if (type === 'select') {
-    html += '<select id="' + id + '" onchange="careerForm.' + id.replace('c_','') + '=this.value;">';
+    html += '<select id="' + id + '" onchange="careerForm.' + id.replace('c_','') + '=this.value;"' + (readonly ? ' disabled' : '') + '>';
     if (!required) html += '<option value="">— 无 —</option>';
     selectOptions.forEach(function(opt) {
       html += '<option value="' + opt + '"' + (value === opt ? ' selected' : '') + '>' + opt + '</option>';
     });
     html += '</select>';
   } else {
-    html += '<input type="' + type + '" id="' + id + '" value="' + escapeHtml(value) + '" placeholder="' + (hint || '') + '" oninput="careerForm.' + id.replace('c_','') + '=this.value;">';
+    html += '<input type="' + type + '" id="' + id + '" value="' + escapeHtml(value) + '" placeholder="' + (hint || '') + '" oninput="careerForm.' + id.replace('c_','') + '=this.value;"' + (readonly ? ' readonly' : '') + '>';
   }
   html += '</div>';
   return html;
@@ -1260,18 +1531,23 @@ function submitForm() {
     var requiredFields = [
       { key: 'name', label: '姓名' }, { key: 'gender', label: '性别' },
       { key: 'politics', label: '政治面貌' }, { key: 'ethnicity', label: '民族' },
-      { key: 'nativePlace', label: '籍贯' }, { key: 'education', label: '文化程度' },
+      { key: 'nativeProvince', label: '籍贯（省）' }, { key: 'nativeCity', label: '籍贯（市）' }, { key: 'nativeDistrict', label: '籍贯（区/县）' }, { key: 'education', label: '文化程度' },
       { key: 'graduateInfo', label: '毕业院校及专业' },
-      { key: 'orgNature', label: '单位性质' }, { key: 'fundingSource', label: '经费来源' },
-      { key: 'cadreOrWorker', label: '干部或工人' }, { key: 'assignPosition', label: '拟分配岗位' },
+      { key: 'assignPosition', label: '拟分配岗位' },
       { key: 'entryMethod', label: '入编方式' }, { key: 'docNumber', label: '依据文号' },
       { key: 'reason', label: '申请使用编制的主要理由' }
     ];
+    // 原单位信息：仅当有原单位时必填
+    var hasPrevJob = careerForm.previousJob && careerForm.previousJob !== '无';
+    if (hasPrevJob) {
+      requiredFields.push({ key: 'orgNature', label: '单位性质' });
+      requiredFields.push({ key: 'fundingSource', label: '经费来源' });
+      requiredFields.push({ key: 'cadreOrWorker', label: '干部或工人' });
+    }
     for (var i = 0; i < requiredFields.length; i++) {
       var f = requiredFields[i];
       if (!careerForm[f.key]) { showToast('请填写：' + f.label, 'warning'); return; }
     }
-    if (careerForm.name.length < 2 || careerForm.name.length > 20) { showToast('姓名需2-20个字符', 'warning'); return; }
     if (careerForm.reason.length > 500) { showToast('申请理由不超过500字', 'warning'); return; }
     if (careerMaterials.notice.length === 0) { showToast('请上传：柳州市事业单位岗位增补计划下达通知书', 'warning'); return; }
     if (careerMaterials.idCard.length === 0) { showToast('请上传：个人身份证', 'warning'); return; }
@@ -1314,17 +1590,18 @@ function submitForm() {
   record.unitName = sd.unitName;
   if (staffingType === 'career') {
     record.orgLevel = sd.orgLevel; record.orgNature = sd.orgNature;
-    record.authCareerStaff = sd.authCareerStaff; record.currentCareerStaff = sd.currentCareerStaff;
+    record.careerStaffQuota = sd.careerStaffQuota; record.currentCareerStaff = sd.currentCareerStaff;
     record.unusedCareerPlan = sd.unusedCareerPlan;
     record.authLeader = sd.authLeader; record.actualLeader = sd.actualLeader;
     record.actualOtherLeader = sd.actualOtherLeader;
     record.applicants = [{ name: careerForm.name, gender: careerForm.gender, politics: careerForm.politics,
-      ethnicity: careerForm.ethnicity, nativePlace: careerForm.nativePlace,
+      ethnicity: careerForm.ethnicity, nativeProvince: careerForm.nativeProvince, nativeCity: careerForm.nativeCity, nativeDistrict: careerForm.nativeDistrict, nativePlace: careerForm.nativeProvince + careerForm.nativeCity + careerForm.nativeDistrict,
       education: careerForm.education, graduateInfo: careerForm.graduateInfo,
       spouseName: careerForm.spouseName, spouseWorkUnit: careerForm.spouseWorkUnit,
       previousJob: careerForm.previousJob, orgNature: careerForm.orgNature,
       fundingSource: careerForm.fundingSource, cadreOrWorker: careerForm.cadreOrWorker,
       title: careerForm.title, assignPosition: careerForm.assignPosition,
+      assignCategoryLevel: careerForm.assignCategoryLevel,
       entryMethod: careerForm.entryMethod, docNumber: careerForm.docNumber,
       reason: careerForm.reason
     }];
@@ -1418,12 +1695,13 @@ function goBack() {
       if (staffingType === 'career' && app) {
         careerForm = {
           name: app.name || '', gender: app.gender || '', politics: app.politics || '',
-          ethnicity: app.ethnicity || '', nativePlace: app.nativePlace || '',
+          ethnicity: app.ethnicity || '', nativeProvince: app.nativeProvince || '', nativeCity: app.nativeCity || '', nativeDistrict: app.nativeDistrict || '',
           education: app.education || '', graduateInfo: app.graduateInfo || '',
           spouseName: app.spouseName || '', spouseWorkUnit: app.spouseWorkUnit || '',
           previousJob: app.previousJob || '', orgNature: app.orgNature || '',
           fundingSource: app.fundingSource || '', cadreOrWorker: app.cadreOrWorker || '',
           title: app.title || '', assignPosition: app.assignPosition || '',
+          assignCategoryLevel: app.assignCategoryLevel || '',
           entryMethod: app.entryMethod || '', docNumber: app.docNumber || '',
           reason: app.reason || ''
         };
