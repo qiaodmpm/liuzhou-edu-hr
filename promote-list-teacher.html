@@ -109,6 +109,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .batch-card-status { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 500; flex-shrink: 0; }
 .batch-card-status.open { background: #EFF6FF; color: var(--primary); }
 .batch-card-status.closed { background: #F1F5F9; color: #64748B; }
+.batch-card-status.pending { background: #FEF3C7; color: #92400E; }
 .batch-card-meta { font-size: 11px; color: var(--text-light); margin-bottom: 10px; display: flex; gap: 16px; flex-wrap: wrap; }
 .batch-card-levels { margin-bottom: 10px; }
 .level-tags { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -161,6 +162,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .toast.success { background: var(--success); }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 </style>
+  <script src="src/demo-batches.js"></script>
 </head>
 <body>
 
@@ -174,7 +176,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
     <div class="topnav-user" onclick="toggleUserMenu()">
       <div class="avatar">张</div><span>张淑芳</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="login-demo.html" class="logout">退出登录</a></div>
+      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div>
     </div>
   </div>
 </nav>
@@ -307,16 +309,6 @@ function setCurrentTeacher(id) {
 
 // ===== DEMO DATA =====
 var CATEGORY_MAP = { manage: '管理岗位', professional: '专业技术岗位', skill: '工勤技能岗位' };
-var DEMO_BATCHES = [
-  { id: 'PB20260501001', name: '2026年春季岗位晋升', schoolName: '柳州市第八中学', createdBy: 'school', year: 2026, status: 'open',
-    promoteTypes: ['mgmt','prof','labor'], allowedLevels: [],
-    startTime: '2026-05-01', endTime: '2026-06-30',
-    remark: '面向本校全体教师的常规晋升批次' },
-  { id: 'PB20260415001', name: '2026年春季岗位晋升', schoolName: '柳州高级中学', createdBy: 'school', year: 2026, status: 'open',
-    promoteTypes: ['prof'], allowedLevels: ['五级','六级','七级','八级'],
-    startTime: '2026-04-15', endTime: '2026-06-15',
-    remark: '' }
-];
 
 var DEMO_RECORDS = [
   { id: 'PR20260518001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
@@ -362,17 +354,17 @@ var DEMO_RECORDS = [
 var STATUS_LABEL_MAP = {
   pending_first: '待一审',
   first_approved: '一审通过',
-  first_rejected: '一审驳回',
+  first_rejected: '晋升失败',
   pending_second: '待二审',
   second_approved: '二审通过',
   second_rejected: '二审驳回',
+  hr_rejected: '人社驳回',
   pending_third: '待三审',
-  third_rejected: '三审驳回',
-  completed: '已完成'
+
 };
 
 var REVIEWING_STATUSES = ['pending_first', 'first_approved', 'pending_second', 'second_approved', 'pending_third'];
-var REJECTED_STATUSES = ['first_rejected', 'second_rejected', 'third_rejected'];
+var REJECTED_STATUSES = ['first_rejected', 'second_rejected', 'hr_rejected'];
 
 var currentRole = 'teacher';
 var selectedBatchId = null;
@@ -381,10 +373,23 @@ var currentStatusFilter = 'all';
 // ===== DATA LAYER =====
 function loadBatches() {
   var s = localStorage.getItem('promote_batches');
-  if (s) { try { return JSON.parse(s); } catch(e) {} }
+  if (s) {
+  try {
+  var data = JSON.parse(s);
+  DEMO_BATCHES.forEach(function(db) {
+  var existing = data.filter(function(b) { return b.id === db.id; });
+  if (existing.length > 0) {
+  existing.forEach(function(eb) { eb.status = db.status; });
+  } else {
+  data.push(JSON.parse(JSON.stringify(db)));
+}
+  });
+  return data;
+  } catch(e) {}
+  }
   localStorage.setItem('promote_batches', JSON.stringify(DEMO_BATCHES));
   return JSON.parse(JSON.stringify(DEMO_BATCHES));
-}
+  }
 
 function loadRecords() {
   var s = localStorage.getItem('promote_records');
@@ -505,7 +510,7 @@ function renderBatchCards() {
     h += '<div class="batch-card' + (isSelected ? ' selected' : '') + '" onclick="selectBatch(\'' + b.id + '\')">';
     h += '<div class="batch-card-header">';
     h += '<span class="batch-card-name" onclick="event.stopPropagation();showBatchDetail(\'' + b.id + '\')" title="点击查看批次详情">' + b.name + '</span>';
-    h += '<span class="batch-card-status ' + b.status + '">' + (b.status === 'open' ? '进行中' : '已关闭') + '</span>';
+    h += '<span class="batch-card-status ' + b.status + '">' + ({ pending: '未开始', open: '进行中', closed: '已关闭' })[b.status] || b.status + '</span>';
     h += '</div>';
     h += '<div class="batch-card-meta">';
     h += '<span>📅 ' + b.startTime + ' ~ ' + b.endTime + '</span>';
@@ -517,7 +522,7 @@ function renderBatchCards() {
     }
     h += '<div class="batch-card-actions">';
     var hasActiveApplication = myBatchRecords.some(function(r) {
-      return r.status !== 'first_rejected' && r.status !== 'second_rejected' && r.status !== 'third_rejected';
+      return r.status !== 'first_rejected' && r.status !== 'second_rejected' && r.status !== 'hr_rejected';
     });
     if (hasApplied) {
       h += '<span style="font-size:11px;color:var(--text-light);">已申报 ' + myBatchRecords.length + ' 次</span>';
@@ -577,14 +582,14 @@ function renderRightColumn() {
       h += '<tr>';
       h += '<td class="col-id">' + r.id + '</td>';
       h += '<td>' + (r.batchName||'—') + '</td>';
-      h += '<td>' + (r.fromLevel||'') + ' → ' + (r.targetLevel||'—') + '</td>';
+      h += '<td>' + (r.fromLevel||'') + ' ' + (r.borrowFromLevel ? '&#x26A1;' : '→') + ' ' + (r.targetLevel||'—') + '</td>';
       h += '<td>' + (r.submitTime||'—').substring(0, 10) + '</td>';
       var cls = getStatusBadgeClass(r.status);
       h += '<td><span class="status-badge ' + cls + '">' + (STATUS_LABEL_MAP[r.status]||r.status) + '</span></td>';
       h += '<td><div class="action-links">';
-      if (r.status === 'first_rejected') {
+      if (r.status === 'first_rejected' || r.status === 'completed') {
         h += '<a class="action-link" onclick="viewDetail(\'' + r.id + '\')">查看</a>';
-        h += '<a class="action-link" onclick="editRecord(\'' + r.id + '\')">编辑重提</a>';
+        
       } else {
         h += '<a class="action-link" onclick="viewDetail(\'' + r.id + '\')">查看</a>';
       }

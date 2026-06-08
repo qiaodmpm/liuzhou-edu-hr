@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>岗位晋升详情 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 240px;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+}
+
+/* ===== TOP NAVBAR ===== */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo {
+  width: 38px; height: 38px; background: rgba(255,255,255,0.18);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+}
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell {
+  position: relative; cursor: pointer; color: rgba(255,255,255,0.85);
+  padding: 6px; border-radius: 6px; transition: var(--transition);
+}
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.topnav-user {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px;
+  transition: var(--transition); font-size: 13px; position: relative;
+}
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+}
+.user-dropdown {
+  display: none; position: absolute; top: 46px; right: 0;
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  min-width: 160px; z-index: 200; overflow: hidden;
+}
+.user-dropdown.show { display: block; }
+.user-dropdown a {
+  display: block; padding: 12px 18px; font-size: 13px; color: var(--text);
+  text-decoration: none; transition: var(--transition);
+}
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w);
+  background: #1E3A8A; z-index: 90; overflow-y: auto;
+  display: flex; flex-direction: column; transition: width var(--transition);
+}
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label,
+.sidebar.collapsed .menu-group,
+.sidebar.collapsed .menu-badge,
+.sidebar.collapsed .role-switcher-label,
+.sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group {
+  padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.menu-item {
+  display: flex; align-items: center; padding: 10px 20px; cursor: pointer;
+  font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7);
+  transition: var(--transition); position: relative; text-decoration: none;
+  border-left: 3px solid transparent;
+}
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active {
+  background: rgba(255,255,255,0.08); color: #fff; font-weight: 500;
+  border-left-color: var(--accent);
+}
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+}
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5);
+  transition: var(--transition);
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+.role-switcher {
+  padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08);
+}
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  transition: var(--transition); border: 1px solid transparent;
+  background: transparent; font-family: inherit; width: 100%; text-align: left;
+}
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active {
+  background: rgba(59,130,246,0.2); color: #fff;
+  border-color: rgba(59,130,246,0.4); font-weight: 500;
+}
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
+/* ===== MAIN ===== */
+.main {
+  margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px;
+  min-height: calc(100vh - 56px); transition: margin-left var(--transition);
+}
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+
+/* Two-column detail layout */
+.detail-layout { display: flex; gap: 24px; }
+.detail-main { flex: 1; min-width: 0; }
+.detail-sidebar { width: 360px; flex-shrink: 0; }
+
+/* Page header */
+.page-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+.page-header h1 { font-size: 20px; font-weight: 700; }
+.page-header .header-right { display: flex; align-items: center; gap: 12px; }
+
+/* Status stamp */
+.status-stamp {
+  display: inline-block; padding: 6px 16px; border: 2px solid;
+  transform: rotate(-5deg); font-weight: 700; font-size: 14px; background: #fff;
+}
+.status-stamp.pending { color: #F59E0B; border-color: #F59E0B; }
+.status-stamp.approved { color: #10B981; border-color: #10B981; }
+.status-stamp.rejected { color: #EF4444; border-color: #EF4444; }
+.status-stamp.completed { color: #8B5CF6; border-color: #8B5CF6; }
+
+/* Status hint */
+.status-hint { padding: 10px 16px; background: var(--primary-light); border-radius: 6px; font-size: 12px; color: var(--primary); margin-bottom: 16px; border-left: 3px solid var(--primary); }
+.status-hint.rejected { background: #FEF2F2; color: #991B1B; border-left-color: var(--danger); }
+.status-hint.success { background: #F0FDF4; color: #065F46; border-left-color: var(--success); }
+
+/* Progress bar */
+.progress-bar { display: flex; align-items: center; padding: 16px 20px; background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 20px; }
+.step { display: flex; align-items: center; gap: 6px; }
+.step-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 2px solid var(--border); color: var(--text-light); flex-shrink: 0; }
+.step.done .step-dot { background: var(--success); color: #fff; border-color: var(--success); }
+.step.current .step-dot { background: var(--primary); color: #fff; border-color: var(--primary); }
+.step.rejected .step-dot { background: var(--danger); color: #fff; border-color: var(--danger); }
+.step-text { font-size: 11px; color: var(--text-light); white-space: nowrap; }
+.step.current .step-text { color: var(--primary); font-weight: 500; }
+.step.done .step-text { color: var(--success); }
+.step.rejected .step-text { color: var(--danger); }
+.step-line { flex: 1; height: 2px; background: var(--border); margin: 0 8px; min-width: 20px; }
+.step-line.done { background: var(--success); }
+.step-line.rejected { background: #FECACA; }
+
+/* Form cards (read-only) */
+.form-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+.form-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.info-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.info-item { font-size: 12px; }
+.info-item.full { grid-column: 1 / -1; }
+.info-item .lbl { color: var(--text-light); font-size: 11px; display: block; }
+.info-item .val { font-weight: 500; margin-top: 2px; display: block; font-size: 13px; }
+
+/* Attachments */
+.attachments-section h4 { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin: 12px 0 8px; }
+.att-item { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--gray-bg); border-radius: 6px; font-size: 12px; margin-right: 8px; margin-bottom: 6px; }
+.att-item a { color: var(--primary); text-decoration: none; cursor: pointer; }
+.att-item a:hover { text-decoration: underline; }
+
+/* HR result */
+.hr-attachment { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--gray-bg); border-radius: 6px; margin-top: 12px; font-size: 12px; }
+.hr-attachment .file-name { flex: 1; font-weight: 500; }
+.hr-attachment a { color: var(--primary); cursor: pointer; text-decoration: none; }
+
+/* Modification history */
+.mod-list { border: 1px solid #FED7AA; border-radius: 6px; overflow: hidden; }
+.mod-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 11px; border-bottom: 1px solid #FED7AA; background: #FFFBF5; }
+.mod-item:last-child { border-bottom: none; }
+.mod-item .mod-field { font-weight: 600; min-width: 70px; }
+.mod-item .mod-old { color: var(--danger); text-decoration: line-through; }
+.mod-item .mod-new { color: var(--success); font-weight: 500; }
+.mod-item .mod-operator { color: var(--text-secondary); margin-left: auto; }
+.mod-item .mod-time { color: var(--text-light); white-space: nowrap; }
+
+/* Sidebar */
+.sidebar-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+.sidebar-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.sidebar-info { font-size: 12px; }
+.sidebar-info .si-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.sidebar-info .si-row:last-child { border-bottom: none; }
+.sidebar-info .si-label { color: var(--text-light); }
+.sidebar-info .si-value { font-weight: 500; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px;
+  width: 2px; background: var(--border);
+}
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot {
+  position: absolute; left: -24px; top: 4px;
+  width: 14px; height: 14px; border-radius: 50%; z-index: 1;
+}
+.timeline-dot.submit { background: var(--accent); }
+.timeline-dot.reject { background: var(--danger); }
+.timeline-dot.resubmit { background: var(--warning); }
+.timeline-dot.approve { background: var(--success); }
+.timeline-content .tlc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.timeline-content .tlc-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.timeline-content .tlc-time { font-size: 11px; color: var(--text-light); }
+.timeline-content .tlc-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.timeline-content .tlc-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;
+}
+.tlc-tag.reject-reason { background: #FEE2E2; color: var(--danger); }
+.tlc-tag.resubmit-tag { background: #FEF3C7; color: #D97706; }
+.tlc-tag.approve-tag { background: #D1FAE5; color: #059669; }
+
+/* Action bar */
+.action-bar { margin-top: 20px; padding: 16px 20px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); display: flex; gap: 12px; justify-content: flex-end; }
+.action-bar .btn { padding: 8px 20px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.action-bar .btn-primary { background: var(--primary); color: #fff; border: none; }
+.action-bar .btn-primary:hover { background: var(--primary-dark); }
+.action-bar .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.action-bar .btn-outline:hover { background: var(--gray-bg); }
+
+/* Back link */
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; text-decoration: none; }
+.back-link:hover { color: var(--primary); }
+
+/* Toast */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px;
+  font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease;
+  box-shadow: var(--shadow-lg);
+}
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.success { background: var(--success); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+@media (max-width: 1024px) {
+  .detail-layout { flex-direction: column; }
+  .detail-sidebar { width: 100%; }
+  .info-grid { grid-template-columns: repeat(2, 1fr); }
+  .info-grid-2col { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP NAVBAR ===== -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/>
+        <line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/>
+        <line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/>
+      </svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">3</span>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">张</div>
+      <span id="userName">张建国</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="#">个人中心</a><a href="#">修改密码</a>
+        <div class="divider"></div>
+        <a href="index.html" class="logout">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span></button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      <span class="menu-label">收起菜单</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp;
+    <a href="promote-list-admin.html" id="breadcrumbList">岗位晋升申请</a> &nbsp;/&nbsp;
+    <span>岗位晋升详情</span>
+    <button class="btn btn-outline" style="margin-left:16px;padding:4px 12px;font-size:12px;" onclick="resetDemoData()">重置演示数据</button>
+  </div>
+
+  <a class="back-link" onclick="goBack()">&#8592; 返回列表</a>
+
+  <div class="detail-layout">
+    <!-- ===== MAIN COLUMN ===== -->
+    <div class="detail-main" id="detailMain">
+      <div class="empty-state" style="text-align:center;padding:60px 20px;color:var(--text-light);">
+        <div style="font-size:40px;margin-bottom:12px;">&#128269;</div>
+        <div style="font-size:14px;margin-bottom:8px;">未找到记录</div>
+        <div style="font-size:12px;">请检查链接参数是否正确</div>
+      </div>
+    </div>
+
+    <!-- ===== SIDEBAR COLUMN ===== -->
+    <div class="detail-sidebar" id="detailSidebar"></div>
+  </div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script>
+// ===== ICONS =====
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+};
+
+var MENU_ICONS = {
+  workbench: 'home', dashboard: 'chart',
+  entry: 'userp', staffing: 'monitor', exit: 'userx',
+  promote: 'arrowup', postset: 'shield', recruit: 'search',
+  employ: 'file',
+  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  account: 'users', org: 'building', perm: 'key', log: 'list'
+};
+
+var ROLES = {
+  city: {
+    name: '张建国', short: '市', org: '柳州市教育局', role: 'city',
+    sidebar: { top: [
+      { id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }
+    ], groups: [
+      { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请', badge: 3 }, { id: 'exit', label: '教师出编管理' }] },
+      { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 5 }, { id: 'recruit', label: '招聘岗位申请' }] },
+      { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
+      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
+    ] }
+  },
+  district: {
+    name: '李振华', short: '区', org: '鱼峰区教育局', role: 'district',
+    sidebar: { top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }], groups: [
+      { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请', badge: 1 }, { id: 'exit', label: '教师出编管理' }] },
+      { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 3 }, { id: 'recruit', label: '招聘岗位申请' }] },
+      { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
+      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+    ] }
+  },
+  school: {
+    name: '王玉兰', short: '校', org: '柳州市第八中学', role: 'school',
+    sidebar: { top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'dashboard', icon: 'chart', label: '数据概览' }], groups: [
+      { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
+      { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 2 }, { id: 'recruit', label: '招聘岗位申请' }] },
+      { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
+      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+    ] }
+  },
+  teacher: {
+    name: '陈明辉', short: '师', org: '柳州市第八中学', role: 'teacher',
+    sidebar: { top: [{ id: 'workbench', icon: 'home', label: '工作台' }], groups: [
+      { name: '业务申请', items: [{ id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] }
+    ] }
+  }
+};
+
+// ===== SCHOOL CATEGORY MAP =====
+var SCHOOL_CATEGORY_MAP = {
+  '柳州市第八中学': '鱼峰区属',
+  '鱼峰区实验小学': '鱼峰区属',
+  '鱼峰区机关幼儿园': '鱼峰区属',
+  '鱼峰区第一小学': '鱼峰区属',
+  '柳州高级中学': '市直属',
+  '柳州市第一中学': '市直属',
+  '柳州市特色实验高中': '市直属',
+  '柳州市第二中学': '市直属'
+};
+
+// ===== STATUS ENUMS =====
+var STATUS_HINTS = {
+  pending_first: '当前环节：学校一审。请等待学校管理员审核。',
+  first_approved: '学校一审已通过，等待学校管理员批量提交至主管部门。',
+  first_rejected: '学校一审驳回。请根据驳回原因修改后重新提交。',
+  pending_second: '当前环节：主管部门二审（材料审核）。请等待审核结果。',
+  second_approved: '二审通过。请等待学校管理员录入人社批复结果。',
+  second_rejected: '主管部门二审驳回。学校管理员已收到通知。',
+  pending_third: '当前环节：主管部门三审（最终确认）。请等待最终确认。',
+  completed: '岗位晋升流程已完成。教师岗位等级已更新。'
+};
+
+var STATUS_LABELS = {
+  pending_first: '待一审', first_approved: '一审通过', first_rejected: '一审驳回',
+  pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回',
+  pending_third: '待三审', third_rejected: '三审驳回', completed: '已完成'
+};
+
+var PROGRESS_STEPS = [
+  '教师提交', '学校一审', '主管部门二审', '录入人社结果', '主管部门三审', '晋升成功'
+];
+
+// ===== DEMO DATA =====
+var DEMO_RECORDS = [
+  // completed record with full history
+  {
+    id: 'PR20260420001', batchId: 'PB20260401001', batchName: '2026年鱼峰区专项晋升',
+    teacherName: '周文斌', gender: '男', ethnicity: '汉族', birthDate: '1980-02-14',
+    politicalStatus: '中共党员', education: '本科', graduateTime: '2002-07', workStartTime: '2002-09',
+    currentPost: '专业技术岗位七级', currentTitle: '高级教师', appointTime: '2016-09-01',
+    promotionType: 'regular', targetLevel: '六级', fromLevel: '七级',
+    assessments: ['优秀', '合格', '优秀'], senior3Form: null,
+    schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    attachments: [{ name: '高级教师证书.pdf', size: 220000 }],
+    schoolAttachments: [{ name: '推荐函.pdf', size: 140000 }],
+    status: 'completed',
+    firstReviewer: '周敏', firstReviewTime: '2026-04-05 10:00:00',
+    secondReviewer: '李振华', secondReviewTime: '2026-04-10 14:00:00', secondReviewOpinion: '同意晋升',
+    hrResult: { approvedLevel: '专业技术六级', docNumber: '柳人社函〔2026〕056号', remark: '' },
+    hrApprovalAttachment: { name: '人社批复_周文斌.pdf', size: 450000 },
+    thirdReviewer: '李振华', thirdReviewTime: '2026-04-22 09:00:00',
+    thirdModifications: [
+      { time: '2026-04-22 08:50:00', field: '任职时间', oldValue: '2016-09-01', newValue: '2016-09-05', operator: '李振华' }
+    ],
+    timeline: [
+      { time: '2026-04-03 08:00:00', action: '教师提交申报', operator: '周文斌' },
+      { time: '2026-04-05 10:00:00', action: '学校一审通过', operator: '周敏' },
+      { time: '2026-04-05 11:00:00', action: '学校批量提交至主管部门', operator: '周敏' },
+      { time: '2026-04-10 14:00:00', action: '二审通过', operator: '李振华', opinion: '同意晋升' },
+      { time: '2026-04-18 09:00:00', action: '录入人社结果并提交三审', operator: '周敏' },
+      { time: '2026-04-22 09:00:00', action: '三审确认通过', operator: '李振华' }
+    ],
+    submitTime: '2026-04-03 08:00:00', completeTime: '2026-04-22 09:00:00'
+  },
+  // pending_first (for teacher viewing)
+  {
+    id: 'PR20260515001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '李明华', gender: '男', ethnicity: '汉族', birthDate: '1975-03-15',
+    politicalStatus: '中共党员', education: '本科', graduateTime: '1997-07', workStartTime: '1997-09',
+    currentPost: '专业技术岗位七级', currentTitle: '高级教师', appointTime: '2020-09-01',
+    promotionType: 'regular', targetLevel: '六级', fromLevel: '七级',
+    assessments: ['优秀', '合格', '合格'], senior3Form: null,
+    schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    attachments: [{ name: '高级教师资格证.pdf', size: 234000 }],
+    schoolAttachments: [],
+    status: 'pending_first',
+    firstReviewer: null, firstReviewTime: null, firstRejectReason: null,
+    secondReviewer: null, secondReviewTime: null,
+    hrResult: null, hrApprovalAttachment: null,
+    thirdReviewer: null, thirdReviewTime: null, thirdModifications: [],
+    timeline: [{ time: '2026-05-15 09:00:00', action: '教师提交申报', operator: '李明华' }],
+    submitTime: '2026-05-15 09:00:00', completeTime: null
+  },
+  // pending_third (for admin viewing)
+  {
+    id: 'PR20260501001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '赵国庆', gender: '男', ethnicity: '汉族', birthDate: '1976-10-01',
+    politicalStatus: '中共党员', education: '本科', graduateTime: '1999-07', workStartTime: '1999-09',
+    currentPost: '专业技术岗位十级', currentTitle: '一级教师', appointTime: '2019-09-01',
+    promotionType: 'regular', targetLevel: '九级', fromLevel: '十级',
+    assessments: ['合格', '合格', '合格'], senior3Form: null,
+    schoolName: '柳州高级中学', schoolCategory: '市直属',
+    attachments: [{ name: '一级教师证书.pdf', size: 200000 }],
+    schoolAttachments: [],
+    status: 'pending_third',
+    firstReviewer: '陈丽华', firstReviewTime: '2026-05-02 09:00:00',
+    secondReviewer: '张建国', secondReviewTime: '2026-05-05 14:00:00', secondReviewOpinion: '同意',
+    hrResult: { approvedLevel: '专业技术九级', docNumber: '柳人社函〔2026〕089号', remark: '' },
+    hrApprovalAttachment: { name: '人社批复_赵国庆.pdf', size: 567000 },
+    thirdReviewer: null, thirdReviewTime: null, thirdModifications: [],
+    timeline: [
+      { time: '2026-05-01 10:00:00', action: '教师提交申报', operator: '赵国庆' },
+      { time: '2026-05-02 09:00:00', action: '学校一审通过', operator: '陈丽华' },
+      { time: '2026-05-02 10:00:00', action: '学校批量提交至主管部门', operator: '陈丽华' },
+      { time: '2026-05-05 14:00:00', action: '二审通过', operator: '张建国', opinion: '同意' },
+      { time: '2026-05-18 09:00:00', action: '录入人社结果并提交三审', operator: '陈丽华' }
+    ],
+    submitTime: '2026-05-01 10:00:00', completeTime: null
+  }
+];
+
+// ===== STATE =====
+var currentRole = 'district';
+var record = null;
+var recordId = null;
+
+// ===== PERSISTENCE =====
+function loadRecords() {
+  var s = localStorage.getItem('promote_records');
+  if (s) { try { return JSON.parse(s); } catch(e) {} }
+  return JSON.parse(JSON.stringify(DEMO_RECORDS));
+}
+
+function saveRecords(records) {
+  localStorage.setItem('promote_records', JSON.stringify(records));
+}
+
+function findRecord(id) {
+  return loadRecords().find(function(r) { return r.id === id; }) || null;
+}
+
+function resetDemoData() {
+  localStorage.removeItem('promote_records');
+  location.reload();
+}
+
+// ===== HELPERS =====
+function formatSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + 'KB';
+  return (bytes / 1048576).toFixed(1) + 'MB';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatTime(t) {
+  if (!t) return '—';
+  return t.substring(0, 16);
+}
+
+// ===== PROGRESS STATE =====
+function getProgressState(status) {
+  // Returns array of states for 6 steps: 'done', 'current', 'rejected', 'pending'
+  var steps = ['pending', 'pending', 'pending', 'pending', 'pending', 'pending'];
+
+  function markDone(n) { for (var i = 0; i < n; i++) steps[i] = 'done'; }
+
+  switch(status) {
+    case 'pending_first':
+      steps[0] = 'current';
+      break;
+    case 'first_approved':
+      markDone(2); // 教师提交 + 学校一审 = done
+      steps[1] = 'current'; // 当前在"学校一审"完成
+      break;
+    case 'first_rejected':
+      steps[0] = 'done';
+      steps[1] = 'rejected';
+      break;
+    case 'pending_second':
+      markDone(2); // 教师提交 + 学校一审 done
+      steps[2] = 'current'; // 主管部门二审
+      break;
+    case 'second_approved':
+      markDone(3); // 教师提交 + 学校一审 + 主管部门二审 done
+      steps[3] = 'current'; // 录入人社结果
+      break;
+    case 'second_rejected':
+      markDone(2);
+      steps[2] = 'rejected';
+      break;
+    case 'pending_third':
+      markDone(4); // 教师提交 + 学校一审 + 主管部门二审 + 录入人社结果 done
+      steps[4] = 'current'; // 主管部门三审
+      break;
+    case 'completed':
+      markDone(6); // all done
+      break;
+  }
+
+  return steps;
+}
+
+function getStatusBadgeClass(status) {
+	if (status === 'pending_first' || status === 'pending_second' || status === 'pending_third') return 'pending';
+	if (status === 'first_approved' || status === 'second_approved') return 'approved';
+	if (status === 'first_rejected' || status === 'second_rejected' || status === 'third_rejected') return 'rejected';
+	if (status === 'completed') return 'completed';
+	return 'pending';
+}
+
+// ===== RENDER PROGRESS =====
+function renderProgress() {
+  var states = getProgressState(record.status);
+  var html = '<div class="progress-bar">';
+
+  for (var i = 0; i < PROGRESS_STEPS.length; i++) {
+    var s = states[i];
+    var icon = '';
+    if (s === 'done') icon = '✓';
+    else if (s === 'rejected') icon = '✗';
+    else icon = (i + 1);
+
+    html += '<div class="step ' + s + '">';
+    html += '<div class="step-dot">' + icon + '</div>';
+    html += '<span class="step-text">' + PROGRESS_STEPS[i] + '</span>';
+    html += '</div>';
+
+    if (i < PROGRESS_STEPS.length - 1) {
+      var lineClass = 'step-line';
+      if (s === 'done') lineClass += ' done';
+      else if (s === 'rejected') lineClass += ' rejected';
+      html += '<div class="' + lineClass + '"></div>';
+    }
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// ===== RENDER STATUS HINT =====
+function renderStatusHint() {
+  var hintText = STATUS_HINTS[record.status] || '未知状态';
+  var cls = 'status-hint';
+  if (record.status === 'first_rejected' || record.status === 'second_rejected') {
+    cls += ' rejected';
+  } else if (record.status === 'completed') {
+    cls += ' success';
+  }
+  return '<div class="' + cls + '">' + hintText + '</div>';
+}
+
+// ===== RENDER TEACHER FORM =====
+function renderTeacherForm() {
+  var html = '';
+
+  if (record.promotionType === 'senior_3') {
+    // Senior_3 type form
+    html += '<div class="form-card"><h3>基本信息</h3><div class="info-grid">';
+    html += infoItem('姓名', record.teacherName);
+    html += infoItem('性别', record.gender);
+    html += infoItem('民族', record.ethnicity);
+    html += infoItem('出生年月', record.birthDate);
+    html += infoItem('政治面貌', record.politicalStatus);
+    html += infoItem('学历', record.education);
+    html += '</div></div>';
+
+    html += '<div class="form-card"><h3>专业技术资格</h3><div class="info-grid">';
+    var sf = record.senior3Form || {};
+    html += infoItem('从事本专业时间', sf.professionalStartTime || '—');
+    html += infoItem('资格名称', sf.qualificationName || '—');
+    html += infoItem('取得时间', sf.qualificationTime || '—');
+    html += '</div></div>';
+
+    html += '<div class="form-card"><h3>聘用信息</h3><div class="info-grid">';
+    html += infoItem('当前聘用时间', record.appointTime);
+    html += infoItem('拟聘岗位', sf.planPost || '—');
+    html += infoItem('拟聘时间', sf.planAppointTime || '—');
+    html += '</div></div>';
+
+    html += '<div class="form-card"><h3>岗位数据</h3><div class="info-grid-2col">';
+    html += infoItem('正高级岗位总数', (sf.seniorTotal || '—'));
+    html += infoItem('已核准三级岗位数', (sf.approvedLevel3 || '—'));
+    html += '</div></div>';
+
+    html += '<div class="form-card"><h3>公示信息</h3><div class="info-grid-2col">';
+    html += infoItem('公示方式', sf.announceMethod || '—');
+    html += infoItem('公示时间', sf.announceTime || '—');
+    html += '</div></div>';
+  } else {
+    // Regular type form
+    html += '<div class="form-card"><h3>基本信息</h3><div class="info-grid">';
+    html += infoItem('姓名', record.teacherName);
+    html += infoItem('性别', record.gender);
+    html += infoItem('民族', record.ethnicity);
+    html += infoItem('出生年月', record.birthDate);
+    html += infoItem('政治面貌', record.politicalStatus);
+    html += infoItem('学历', record.education);
+    html += infoItem('毕业时间', record.graduateTime);
+    html += infoItem('参加工作时间', record.workStartTime);
+    html += '</div></div>';
+
+    html += '<div class="form-card"><h3>岗位信息</h3><div class="info-grid">';
+    html += infoItem('现任岗位', record.currentPost);
+    html += infoItem('现任职务', record.currentTitle);
+    html += infoItem('任职时间', record.appointTime);
+    html += '</div></div>';
+
+    html += '<div class="form-card"><h3>考核情况</h3><div class="info-grid">';
+    var assessments = record.assessments || [];
+    html += infoItem('2023年度考核', assessments[0] || '—');
+    html += infoItem('2024年度考核', assessments[1] || '—');
+    html += infoItem('2025年度考核', assessments[2] || '—');
+    html += '</div></div>';
+
+    html += '<div class="form-card"><h3>申报目标</h3><div class="info-grid">';
+    html += infoItem('目标等级', record.fromLevel + ' → ' + record.targetLevel);
+    html += infoItem('晋升类型', record.transferType === 'transfer' ? '转岗' : '晋升');
+    html += '</div></div>';
+  }
+
+  // 批次公示信息
+  if (record.batchPublicity) {
+    var bp = record.batchPublicity;
+    html += '<div class="form-card"><h3>公示信息</h3><div class="info-grid">';
+    html += infoItem('公示方式', bp.method || '—');
+    html += infoItem('公示起止时间', (bp.startDate || '') + ' 至 ' + (bp.endDate || ''));
+    html += infoItem('公示材料', bp.fileName || '—');
+    html += infoItem('提交时间', bp.submitTime || '—');
+    html += '</div></div>';
+  }
+
+  return html;
+}
+
+function infoItem(label, value) {
+  return '<div class="info-item"><span class="lbl">' + label + '</span><span class="val">' + escapeHtml(String(value)) + '</span></div>';
+}
+
+// ===== RENDER ATTACHMENTS =====
+function renderAttachments() {
+  var attachments = record.attachments || [];
+  var schoolAttachments = record.schoolAttachments || [];
+
+  if (!attachments.length && !schoolAttachments.length && !record.hrApprovalAttachment) {
+    return '';
+  }
+
+  var html = '<div class="form-card"><h3>附件材料</h3><div class="attachments-section">';
+
+  if (attachments.length > 0) {
+    html += '<h4>教师上传</h4>';
+    attachments.forEach(function(f) {
+      html += '<span class="att-item"><span>📎 ' + escapeHtml(f.name) + '</span><a onclick="showToast(\'预览：' + escapeHtml(f.name) + '（演示）\')">预览</a><a onclick="showToast(\'下载功能演示\')">下载</a></span>';
+    });
+  }
+
+  if (schoolAttachments.length > 0) {
+    html += '<h4>学校补充（如有）</h4>';
+    schoolAttachments.forEach(function(f) {
+      html += '<span class="att-item"><span>📎 ' + escapeHtml(f.name) + '</span><a onclick="showToast(\'预览：' + escapeHtml(f.name) + '（演示）\')">预览</a><a onclick="showToast(\'下载功能演示\')">下载</a></span>';
+    });
+  }
+
+  html += '</div></div>';
+  return html;
+}
+
+// ===== RENDER HR RESULT =====
+function renderHrResult() {
+  if (!record.hrResult) return '';
+
+  var hr = record.hrResult;
+  var html = '<div class="form-card"><h3>人社核准结果</h3>';
+  html += '<div class="info-grid-2col">';
+  html += infoItem('核准等级', hr.approvedLevel || '—');
+  html += infoItem('依据文号', hr.docNumber || '—');
+  html += '<div class="info-item full"><span class="lbl">备注</span><span class="val">' + (hr.remark || '无') + '</span></div>';
+  html += '</div>';
+
+  if (record.hrApprovalAttachment) {
+    html += '<div class="hr-attachment">';
+    html += '<span>📄</span>';
+    html += '<span class="file-name">' + escapeHtml(record.hrApprovalAttachment.name) + '</span>';
+    html += '<a class="file-download" onclick="showToast(\'下载功能演示\')">下载</a>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// ===== RENDER MODIFICATION HISTORY =====
+function renderModHistory() {
+  var mods = record.thirdModifications;
+  if (!mods || !mods.length) return '';
+
+  var html = '<div class="form-card"><h3>三审修改记录</h3>';
+  html += '<div class="mod-list">';
+
+  mods.forEach(function(m) {
+    html += '<div class="mod-item">';
+    html += '<span class="mod-field">' + escapeHtml(m.field) + '</span>';
+    html += '<span class="mod-old">' + escapeHtml(m.oldValue) + '</span> → ';
+    html += '<span class="mod-new">' + escapeHtml(m.newValue) + '</span>';
+    html += '<span class="mod-operator">' + escapeHtml(m.operator) + '</span>';
+    html += '<span class="mod-time">' + formatTime(m.time) + '</span>';
+    html += '</div>';
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+// ===== RENDER ACTION BAR =====
+function renderActionBar() {
+  var actions = getActions();
+  if (!actions.length) return '';
+
+  var html = '<div class="action-bar">';
+  actions.forEach(function(a) {
+    if (a.type === 'primary') {
+      html += '<a class="btn btn-primary" href="' + a.href + '" ' + (a.onclick ? 'onclick="' + a.onclick + '"' : '') + '>' + a.label + '</a>';
+    } else {
+      html += '<button class="btn btn-outline" onclick="' + a.onclick + '">' + a.label + '</button>';
+    }
+  });
+  html += '</div>';
+
+  return html;
+}
+
+function getActions() {
+  var s = record.status;
+  var actions = [];
+
+  function isMyJurisdiction() {
+    var cat = record.schoolCategory || '';
+    if (currentRole === 'district') return cat === '鱼峰区属';
+    if (currentRole === 'city') return cat === '市直属';
+    return false;
+  }
+
+  // Teacher role actions
+  if (currentRole === 'teacher') {
+    if (s === 'first_rejected') {
+      actions.push({ type: 'primary', label: '编辑重提', href: 'promote-form.html?id=' + record.id + '&mode=edit' });
+    }
+    if (s === 'completed') {
+      actions.push({ type: 'outline', label: '下载PDF', onclick: 'showToast(\'下载功能演示\')' });
+    }
+    return actions;
+  }
+
+  // School role actions
+  if (currentRole === 'school') {
+    if (s === 'pending_first') {
+      actions.push({ type: 'primary', label: '审核', href: 'promote-audit-school.html?id=' + record.id });
+    }
+    if (s === 'second_approved') {
+      actions.push({ type: 'primary', label: '录入人社结果', href: 'promote-hr-entry.html?id=' + record.id });
+    }
+    if (s === 'second_rejected') {
+      actions.push({ type: 'primary', label: '修改资料', href: 'promote-audit-school.html?id=' + record.id + '&mode=modify' });
+    }
+    if (s === 'completed') {
+      actions.push({ type: 'outline', label: '下载PDF', onclick: 'showToast(\'下载功能演示\')' });
+    }
+    return actions;
+  }
+
+  // Admin role actions (city/district)
+  if (currentRole === 'city' || currentRole === 'district') {
+    if (!isMyJurisdiction() && s !== 'completed') {
+      return [];
+    }
+    if (s === 'pending_third') {
+      actions.push({ type: 'primary', label: '确认', href: 'promote-audit-third.html?id=' + record.id + '&role=' + currentRole });
+    }
+    if (s === 'completed') {
+      actions.push({ type: 'outline', label: '下载PDF', onclick: 'showToast(\'下载功能演示\')' });
+    }
+    return actions;
+  }
+
+  // Fallback: completed action for any role
+  if (s === 'completed') {
+    actions.push({ type: 'outline', label: '下载PDF', onclick: 'showToast(\'下载功能演示\')' });
+  }
+
+  return actions;
+}
+
+// ===== RENDER SIDEBAR INFO =====
+function renderSidebarInfo() {
+  var catLabel = record.schoolCategory === '市直属' ? '市直属' : (record.schoolCategory || '—');
+
+  var html = '<div class="sidebar-card"><h4>申报信息</h4>';
+  html += '<div class="sidebar-info">';
+  html += '<div class="si-row"><span class="si-label">编号</span><span class="si-value">' + escapeHtml(record.id) + '</span></div>';
+  html += '<div class="si-row"><span class="si-label">批次</span><span class="si-value">' + escapeHtml(record.batchName || '—') + '</span></div>';
+  html += '<div class="si-row"><span class="si-label">学校</span><span class="si-value">' + escapeHtml(record.schoolName) + '</span></div>';
+  html += '<div class="si-row"><span class="si-label">类别</span><span class="si-value">' + catLabel + '</span></div>';
+  html += '<div class="si-row"><span class="si-label">提交时间</span><span class="si-value">' + formatTime(record.submitTime) + '</span></div>';
+  if (record.completeTime) {
+    html += '<div class="si-row"><span class="si-label">完成时间</span><span class="si-value">' + formatTime(record.completeTime) + '</span></div>';
+  }
+  html += '</div></div>';
+
+  return html;
+}
+
+// ===== RENDER TIMELINE =====
+function renderTimeline() {
+  var items = record.timeline || [];
+
+  var html = '<div class="sidebar-card"><h4>申报履历</h4>';
+  if (!items.length) {
+    html += '<div style="color:var(--text-light);font-size:12px;">暂无记录</div>';
+    html += '</div>';
+    return html;
+  }
+
+  html += '<div class="timeline">';
+
+  items.forEach(function(item) {
+    var action = item.action || '';
+    var actionType = 'submit';
+    var tagHtml = '';
+
+    if (action.indexOf('驳回') >= 0) {
+      actionType = 'reject';
+      tagHtml = '<span class="tlc-tag reject-reason">驳回</span>';
+    } else if (action.indexOf('通过') >= 0 || action.indexOf('确认') >= 0) {
+      actionType = 'approve';
+      tagHtml = '<span class="tlc-tag approve-tag">通过</span>';
+    } else if (action.indexOf('修改') >= 0 || action.indexOf('重提') >= 0) {
+      actionType = 'resubmit';
+      tagHtml = '<span class="tlc-tag resubmit-tag">修改</span>';
+    }
+
+    var desc = (item.operator || '');
+    if (item.opinion) {
+      desc += (desc ? '，意见：' : '意见：') + item.opinion;
+    }
+    if (record.firstRejectReason && action.indexOf('驳回') >= 0 && action.indexOf('学校') >= 0) {
+      desc += (desc ? '，' : '') + '驳回原因：' + record.firstRejectReason;
+    }
+    if (record.secondRejectReason && action.indexOf('驳回') >= 0 && action.indexOf('主管') >= 0) {
+      desc += (desc ? '，' : '') + '驳回原因：' + record.secondRejectReason;
+    }
+
+    html += '<div class="timeline-item">';
+    html += '<div class="timeline-dot ' + actionType + '"></div>';
+    html += '<div class="timeline-content">';
+    html += '<div class="tlc-header">';
+    html += '<span class="tlc-title">' + escapeHtml(action) + '</span>';
+    html += '<span class="tlc-time">' + formatTime(item.time) + '</span>';
+    if (tagHtml) html += tagHtml;
+    html += '</div>';
+    if (desc) html += '<div class="tlc-desc">' + escapeHtml(desc) + '</div>';
+    html += '</div></div>';
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+// ===== RENDER ALL =====
+function renderAll() {
+  if (!record) {
+    document.getElementById('detailMain').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:var(--text-light);">' +
+      '<div style="font-size:40px;margin-bottom:12px;">&#128269;</div>' +
+      '<div style="font-size:14px;margin-bottom:8px;">未找到记录</div>' +
+      '<div style="font-size:12px;">请检查链接参数是否正确</div></div>';
+    document.getElementById('detailSidebar').innerHTML = '';
+    return;
+  }
+
+  var statusLabel = STATUS_LABELS[record.status] || record.status;
+  var badgeClass = getStatusBadgeClass(record.status);
+
+  var mainHtml = '';
+
+  // Page header
+  mainHtml += '<div class="page-header">';
+  mainHtml += '<div><h1>岗位晋升详情</h1></div>';
+  mainHtml += '<div class="header-right">';
+  mainHtml += '<span style="font-size:15px;font-weight:600;">' + escapeHtml(record.teacherName) + '</span>';
+  mainHtml += '<span class="status-stamp ' + badgeClass + '">' + statusLabel + '</span>';
+  mainHtml += '</div></div>';
+
+  // Status hint
+  mainHtml += renderStatusHint();
+
+  // Progress bar
+  mainHtml += renderProgress();
+
+  // Teacher form
+  mainHtml += renderTeacherForm();
+
+  // Attachments
+  mainHtml += renderAttachments();
+
+  // HR result
+  mainHtml += renderHrResult();
+
+  // Modification history
+  mainHtml += renderModHistory();
+
+  // Action bar
+  mainHtml += renderActionBar();
+
+  document.getElementById('detailMain').innerHTML = mainHtml;
+
+  // Sidebar
+  var sidebarHtml = renderSidebarInfo() + renderTimeline();
+  document.getElementById('detailSidebar').innerHTML = sidebarHtml;
+}
+
+// ===== NAVIGATION =====
+function goBack() {
+  if (currentRole === 'teacher') {
+    window.location.href = 'promote-list-teacher.html';
+  } else if (currentRole === 'school') {
+    window.location.href = 'promote-list-school.html';
+  } else {
+    window.location.href = 'promote-list-admin.html?role=' + currentRole;
+  }
+}
+
+// ===== TOAST =====
+function showToast(msg, type) {
+  type = type || '';
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(function() { el.remove(); }, 2000);
+}
+
+// ===== SIDEBAR =====
+function toggleUserMenu() {
+  document.getElementById('userDropdown').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.topnav-user')) {
+    document.getElementById('userDropdown').classList.remove('show');
+  }
+});
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function switchRole(role) {
+  if (role === currentRole) return;
+  var url = new URL(window.location.href);
+  url.searchParams.set('role', role);
+  url.searchParams.delete('id');
+  if (role === 'teacher') {
+    url.pathname = url.pathname.replace(/\/[^/]*$/, '/promote-list-teacher.html');
+  } else if (role === 'school') {
+    url.pathname = url.pathname.replace(/\/[^/]*$/, '/promote-list-school.html');
+  } else {
+    url.pathname = url.pathname.replace(/\/[^/]*$/, '/promote-list-admin.html');
+  }
+  window.location.href = url.toString();
+}
+
+function renderSidebar() {
+  var roleData = ROLES[currentRole];
+  if (!roleData) { document.getElementById('sidebarMenu').innerHTML = ''; return; }
+  var sidebar = roleData.sidebar;
+  var html = '';
+  (sidebar.top || []).forEach(function(item) {
+    html += '<a class="menu-item' + (item.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[item.icon] || '') + '<span class="menu-label">' + item.label + '</span></a>';
+  });
+  (sidebar.groups || []).forEach(function(group) {
+    html += '<div class="menu-group">' + group.name + '</div>';
+    group.items.forEach(function(item) {
+      html += '<a class="menu-item' + (item.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span>' + (item.badge ? '<span class="menu-badge">' + item.badge + '</span>' : '') + '</a>';
+    });
+  });
+  document.getElementById('sidebarMenu').innerHTML = html;
+
+  var btns = document.querySelectorAll('.role-switch-btn');
+  btns.forEach(function(b) { b.classList.toggle('active', b.dataset.role === currentRole); });
+
+  document.getElementById('userAvatar').textContent = roleData.short;
+  document.getElementById('userName').textContent = roleData.name;
+}
+
+function sidebarClick(el, id) {
+  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
+  el.classList.add('active');
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'promote') return;
+  if (id === 'entry') {
+    if (currentRole === 'school') { window.location.href = '教师入编管理（学校管理员视角）.html'; }
+    else { window.location.href = '教师入编管理（主管单位视角）.html'; }
+    return;
+  }
+  if (id === 'exit') {
+    if (currentRole === 'school') { window.location.href = '教师出编管理（学校管理员视角）.html'; }
+    else { window.location.href = '教师出编管理（主管单位视角）.html'; }
+    return;
+  }
+  if (id === 'postset') { window.location.href = 'post-list-admin.html?role=' + currentRole; return; }
+  if (id === 'recruit') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+    return;
+  }
+  showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
+}
+
+// ===== INIT =====
+(function init() {
+  var params = new URLSearchParams(window.location.search);
+  recordId = params.get('id');
+  var urlRole = params.get('role');
+
+  if (urlRole === 'city' || urlRole === 'district' || urlRole === 'school' || urlRole === 'teacher') {
+    currentRole = urlRole;
+  }
+
+  if (recordId) {
+    record = findRecord(recordId);
+  }
+
+  renderSidebar();
+  renderAll();
+})();
+</script>
+
+</body>
+</html>

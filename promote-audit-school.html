@@ -292,6 +292,13 @@ body {
 }
 .school-upload-item .remove-file:hover { opacity: 0.7; }
 
+
+/* ===== BORROW BANNER ===== */
+.borrow-banner {
+  margin-top: 8px; padding: 10px 14px;
+  background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 6px;
+  font-size: 12px; color: #92400E; line-height: 1.5;
+}
 /* Quota hint */
 .quota-hint {
   display: inline-flex; align-items: center; gap: 6px;
@@ -617,10 +624,12 @@ var ROLES = {
 var STATUS_MAP = {
   pending_first: '学校待一审',
   first_approved: '学校一审通过',
-  first_rejected: '学校一审驳回',
+  first_rejected: '晋升失败',
   second_review: '主管二审中',
   second_approved: '主管二审通过',
-  second_rejected: '主管二审驳回',
+  second_rejected: '二审驳回',
+    hr_rejected: '人社驳回',
+  hr_rejected: '人社驳回',
   hr_recorded: '人社会审登记',
   third_review: '主管三审中',
   completed: '晋升完成'
@@ -647,7 +656,16 @@ var PROMOTE_QUOTA = {
     '13': { authorized: 4, employed: 3 }
   }
 };
-
+// ===== LEVEL TIER CONSTANTS =====
+var LEVEL_TIER = {
+  1:"senior", 2:"senior", 3:"senior", 4:"senior",
+  5:"vice_senior", 6:"vice_senior", 7:"vice_senior",
+  8:"mid", 9:"mid", 10:"mid",
+  11:"junior", 12:"junior", 13:"junior"
+};
+var TIER_ORDER = ["senior","vice_senior","mid","junior"];
+var TIER_LABEL = { senior:"正高级", vice_senior:"副高级", mid:"中级", junior:"初级" };
+var NUM_CN_MAP = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10,"十一":11,"十二":12,"十三":13};
 // ===== DEMO DATA =====
 var DEMO_RECORDS = [
   {
@@ -793,16 +811,51 @@ function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('collapsed');
 }
 
-function getRemainingQuota(school, levelStr) {
-  var level = levelStr.replace('级', '');
-  var q = PROMOTE_QUOTA[school] && PROMOTE_QUOTA[school][level];
-  if (!q) return 999;
-  return q.authorized - q.employed;
+function getLevelQuota(schoolName, levelNum) {
+  var schoolQuota = PROMOTE_QUOTA[schoolName];
+  if (!schoolQuota) return null;
+  var q = schoolQuota[String(levelNum)];
+  if (!q) return null;
+  var records = loadRecords();
+  var pending = records.filter(function(r) {
+    var lv = parseInt(((r.targetLevel || "").replace("级", "")));
+    return lv === levelNum
+      && r.status !== "completed"
+      && r.status !== "first_rejected" && r.status !== "second_rejected"
+      && r.status !== "hr_rejected" ;
+  }).length;
+  var borrowedOut = records.filter(function(r) {
+    return r.borrowFromLevel && parseInt((r.borrowFromLevel.replace("级", ""))) === levelNum
+      && r.status !== "completed"
+      && r.status !== "first_rejected" && r.status !== "second_rejected"
+      && r.status !== "hr_rejected" ;
+  }).length;
+  return {
+    authorized: q.authorized,
+    employed: q.employed,
+    pending: pending,
+    borrowedOut: borrowedOut,
+    remaining: q.authorized - q.employed - pending - borrowedOut
+  };
 }
 
-function isExemptFromQuota(levelStr) {
-  var n = parseInt(levelStr.replace('级', ''));
-  return n >= 8 && n <= 13;
+function getBorrowOptions(schoolName, targetLevelNum) {
+  var tier = LEVEL_TIER[targetLevelNum];
+  var tierIdx = TIER_ORDER.indexOf(tier);
+  var options = [];
+  if (targetLevelNum <= 3) return options;
+  var recs = loadRecords();
+  for (var lv = targetLevelNum - 1; lv >= 1; lv--) {
+    var lvTier = LEVEL_TIER[lv];
+    var lvTierIdx = TIER_ORDER.indexOf(lvTier);
+    var quota = getLevelQuota(schoolName, lv);
+    if (!quota || quota.remaining <= 0) continue;
+    if (tier === "mid" && lvTier === "vice_senior") continue;
+    if (tier === "junior" && (lvTier === "vice_senior" || lvTier === "senior")) continue;
+    if (tier === "mid" && lvTier === "senior") continue;
+    options.push({ level: lv, label: NUM_CN_MAP[lv] + "级", tier: TIER_LABEL[lvTier], remaining: quota.remaining });
+  }
+  return options;
 }
 
 // ===== DATA PERSISTENCE =====
@@ -1139,24 +1192,27 @@ function renderSchoolUploads(r) {
 }
 
 function renderQuotaHint(r) {
-  var levelStr = r.targetLevel;
-  var isExempt = isExemptFromQuota(levelStr);
-  var remaining = getRemainingQuota(r.schoolName, levelStr);
-  var cls = 'quota-hint';
-  var icon = '';
-
-  if (isExempt) {
-    cls += ' exempt';
-    return '<div class="' + cls + '">&#x1F6C8; 八级及以下岗位不受岗位比例限制</div>';
+    var levelStr = r.targetLevel;
+    var levelNum = parseInt(levelStr.replace("级", ""));
+    var q = getLevelQuota(r.schoolName, levelNum);
+    if (!q) return "";
+    var cls = "quota-hint" + (q.remaining < 0 ? " danger" : "");
+    var icon = q.remaining < 0 ? "&#x26A0;" : "";
+    var parts = [];
+    parts.push('<div class="' + cls + '">');
+    parts.push(icon);
+    parts.push(" " + r.schoolName + " " + levelStr);
+    parts.push("岗位：核定" + q.authorized);
+    parts.push(" 实聘" + q.employed);
+    parts.push(" 待审" + q.pending);
+    parts.push(" 剩余<strong>" + q.remaining + "</strong></div>");
+    var hint = parts.join("");
+    if (r.borrowFromLevel) {
+      hint += '<div class="borrow-banner">&#x26A1; 该申报涉及借岗：目标等级"' + levelStr + '"已满，从"' + r.borrowFromLevel + '"借岗1个名额</div>';
+    }
+    return hint;
   }
-
-  if (remaining <= 0) {
-    cls += ' danger';
-    icon = '&#x26A0;';
-  }
-
-  return '<div class="' + cls + '">' + icon + ' ' + r.schoolName + ' ' + levelStr + '岗位剩余名额：<strong>' + remaining + '</strong></div>';
-}
+  
 
 function renderTimeline(r) {
   var items = r.timeline || [];
@@ -1197,7 +1253,7 @@ function renderActionSidebar(r) {
 function getStatusStampClass(status) {
   if (status === 'pending_first') return 'pending';
   if (status === 'first_approved' || status === 'second_approved') return 'approved';
-  if (status === 'first_rejected' || status === 'second_rejected') return 'rejected';
+  if (status === 'first_rejected' || status === 'second_rejected' || status === 'hr_rejected') return 'rejected';
   if (status === 'pending_second' || status === 'pending_third') return 'in-review';
   if (status === 'completed') return 'completed';
   return 'pending';
@@ -1276,7 +1332,7 @@ function renderPage() {
   if (!isModifyMode) {
     html += '<div class="audit-bottom-bar">';
     html += '<span class="opinion-hint">审核意见将在点击按钮后填写</span>';
-    html += '<button type="button" class="btn-reject" onclick="showRejectModal()">审核驳回</button>';
+    html += '<button type="button" class="btn-reject" onclick="doRejectNoPromotion()">不予晋升</button>';
     html += '<button type="button" class="btn-approve" onclick="showApproveModal()">审核通过</button>';
     html += '</div>';
   }
@@ -1419,68 +1475,26 @@ function doApprove() {
   setTimeout(function() { window.location.href = 'promote-list-school.html'; }, 1000);
 }
 
-function showRejectModal() {
+function doRejectNoPromotion() {
   if (!currentRecord) return;
-
-  var modalHtml =
-    '<div class="modal-overlay" id="rejectModal">' +
-      '<div class="modal-container">' +
-        '<h3>驳回申请</h3>' +
-        '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">' +
-          '驳回后教师将收到通知，可根据驳回原因修改后重新提交。' +
-        '</div>' +
-        '<div class="form-group">' +
-          '<label>驳回原因 <span style="color:var(--danger)">*</span></label>' +
-          '<textarea id="rejectReason" rows="4" placeholder="请详细说明驳回原因，以便教师修改"></textarea>' +
-        '</div>' +
-        '<div class="modal-buttons">' +
-          '<button class="btn-cancel" id="cancelReject">取消</button>' +
-          '<button class="btn-confirm danger" id="confirmReject">确认驳回</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-  document.getElementById('cancelReject').onclick = function() { document.getElementById('rejectModal').remove(); };
-  document.getElementById('confirmReject').onclick = doReject;
-}
-
-function doReject() {
-  var reason = document.getElementById('rejectReason').value.trim();
-  if (!reason) { showToast('请填写驳回原因', 'warning'); return; }
-  document.getElementById('rejectModal').remove();
-
-  if (!currentRecord) return;
-
+  if (!confirm('确认不予晋升？该教师本次晋升申请将终止，无法恢复。')) return;
   var records = loadRecords();
   var idx = records.findIndex(function(r) { return r.id === currentRecord.id; });
   if (idx === -1) { showToast('记录不存在', 'warning'); return; }
-
   var approverName = ROLES[currentRole].name;
   var time = now();
-
-  // Merge school upload files
   if (schoolFiles.length > 0) {
     if (!records[idx].schoolAttachments) records[idx].schoolAttachments = [];
-    schoolFiles.forEach(function(f) {
-      records[idx].schoolAttachments.push(f);
-    });
+    schoolFiles.forEach(function(f) { records[idx].schoolAttachments.push(f); });
   }
-
   records[idx].status = 'first_rejected';
   records[idx].firstReviewer = approverName;
   records[idx].firstReviewTime = time;
-  records[idx].firstRejectReason = reason;
-
+  records[idx].firstRejectReason = '学校审核不予晋升';
   records[idx].timeline = records[idx].timeline || [];
-  records[idx].timeline.push({
-    time: time,
-    action: '学校一审驳回',
-    operator: approverName,
-    opinion: reason
-  });
-
+  records[idx].timeline.push({ time: time, action: '学校不予晋升', operator: approverName, opinion: '学校审核不予晋升' });
   saveRecords(records);
-  showToast('已驳回', 'success');
+  showToast('已标记为不予晋升', 'success');
   setTimeout(function() { window.location.href = 'promote-list-school.html'; }, 1000);
 }
 
@@ -1614,7 +1628,7 @@ function updateRoleUI() {
   } else {
     // No ID provided - show the first pending_first record for demo
     var records = loadRecords();
-    currentRecord = records.find(function(r) { return r.status === 'pending_first' || r.status === 'second_rejected'; }) || records[0] || null;
+    currentRecord = records.find(function(r) { return r.status === 'pending_first' || r.status === 'second_rejected' || r.status === 'hr_rejected'; }) || records[0] || null;
   }
 
   // Initialize schoolFiles from current record's pending school attachments

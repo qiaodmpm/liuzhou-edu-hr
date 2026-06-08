@@ -321,7 +321,7 @@ body {
       <div class="user-dropdown" id="userDropdown">
         <a href="#">个人中心</a><a href="#">修改密码</a>
         <div class="divider"></div>
-        <a href="login-demo.html" class="logout">退出登录</a>
+        <a href="index.html" class="logout">退出登录</a>
       </div>
     </div>
   </div>
@@ -463,18 +463,21 @@ var SCHOOL_CATEGORY_MAP = {
 var STATUS_HINTS = {
   pending_first: '当前环节：学校一审。请等待学校管理员审核。',
   first_approved: '学校一审已通过，等待学校管理员批量提交至主管部门。',
-  first_rejected: '学校一审驳回。请根据驳回原因修改后重新提交。',
+  first_rejected: '晋升失败，流程已终止。',
   pending_second: '当前环节：主管部门二审（材料审核）。请等待审核结果。',
   second_approved: '二审通过。请等待学校管理员录入人社批复结果。',
-  second_rejected: '主管部门二审驳回。学校管理员已收到通知。',
+  second_rejected: '二审驳回',
+  hr_rejected: '人社核准驳回。学校管理员已收到通知。',
+  hr_result_entered: '人社通过',
   pending_third: '当前环节：主管部门三审（最终确认）。请等待最终确认。',
   completed: '岗位晋升流程已完成。教师岗位等级已更新。'
 };
 
 var STATUS_LABELS = {
-  pending_first: '待一审', first_approved: '一审通过', first_rejected: '一审驳回',
-  pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回',
-  pending_third: '待三审', third_rejected: '三审驳回', completed: '已完成'
+  pending_first: '待一审', first_approved: '一审通过', first_rejected: '晋升失败',
+  pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回', hr_rejected: '人社驳回',
+  pending_third: '待三审',
+  completed: '晋升成功'
 };
 
 var PROGRESS_STEPS = [
@@ -631,6 +634,7 @@ function getProgressState(status) {
       steps[3] = 'current'; // 录入人社结果
       break;
     case 'second_rejected':
+    case 'hr_rejected':
       markDone(2);
       steps[2] = 'rejected';
       break;
@@ -649,7 +653,7 @@ function getProgressState(status) {
 function getStatusBadgeClass(status) {
 	if (status === 'pending_first' || status === 'pending_second' || status === 'pending_third') return 'pending';
 	if (status === 'first_approved' || status === 'second_approved') return 'approved';
-	if (status === 'first_rejected' || status === 'second_rejected' || status === 'third_rejected') return 'rejected';
+	if (status === 'first_rejected' || status === 'second_rejected' || status === 'hr_rejected' ) return 'rejected';
 	if (status === 'completed') return 'completed';
 	return 'pending';
 }
@@ -687,7 +691,7 @@ function renderProgress() {
 function renderStatusHint() {
   var hintText = STATUS_HINTS[record.status] || '未知状态';
   var cls = 'status-hint';
-  if (record.status === 'first_rejected' || record.status === 'second_rejected') {
+  if (record.status === 'first_rejected' || record.status === 'second_rejected' || record.status === 'hr_rejected') {
     cls += ' rejected';
   } else if (record.status === 'completed') {
     cls += ' success';
@@ -759,8 +763,19 @@ function renderTeacherForm() {
     html += '</div></div>';
 
     html += '<div class="form-card"><h3>申报目标</h3><div class="info-grid">';
-    html += infoItem('目标等级', record.fromLevel + ' → ' + record.targetLevel);
+    html += infoItem('目标等级', record.fromLevel + ' ' + (record.borrowFromLevel ? '&#x26A1;借岗' : '→') + ' ' + record.targetLevel);
     html += infoItem('晋升类型', record.transferType === 'transfer' ? '转岗' : '晋升');
+    html += '</div></div>';
+  }
+
+  // 批次公示信息
+  if (record.batchPublicity) {
+    var bp = record.batchPublicity;
+    html += '<div class="form-card"><h3>公示信息</h3><div class="info-grid">';
+    html += infoItem('公示方式', bp.method || '—');
+    html += infoItem('公示起止时间', (bp.startDate || '') + ' 至 ' + (bp.endDate || ''));
+    html += infoItem('公示材料', bp.fileName || '—');
+    html += infoItem('提交时间', bp.submitTime || '—');
     html += '</div></div>';
   }
 
@@ -1154,7 +1169,7 @@ function sidebarClick(el, id) {
 // ===== INIT =====
 (function init() {
   var params = new URLSearchParams(window.location.search);
-  recordId = params.get('id');
+  recordId = params.get('id') || 'PR20260420001';
   var urlRole = params.get('role');
 
   if (urlRole === 'city' || urlRole === 'district' || urlRole === 'school' || urlRole === 'teacher') {

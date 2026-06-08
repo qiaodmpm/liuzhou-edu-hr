@@ -454,7 +454,7 @@ body {
       <div class="user-dropdown" id="userDropdown">
         <a href="#">个人中心</a><a href="#">修改密码</a>
         <div class="divider"></div>
-        <a href="login-demo.html" class="logout">退出登录</a>
+        <a href="index.html" class="logout">退出登录</a>
       </div>
     </div>
   </div>
@@ -1094,7 +1094,7 @@ function showApproveModal() {
         '<div class="form-group"><label>审批意见（可选）</label>' +
         '<textarea id="approveOpinion" class="optional" rows="3" placeholder="输入审批意见..."></textarea></div>' +
         '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">' +
-          '确认通过后，' + typeLabel + ' ' + count + ' 人状态将更新为"已出编"。' +
+          '确认通过后，' + typeLabel + ' ' + count + ' 人状态将更新为"已出编"，系统将自动冻结对应教师的系统账号。' +
           (currentRecord.staffingType === 'career'
             ? '实有在编人数将减少，剩余编制数将相应增加。'
             : '现有控制数人员将减少，剩余可用控制数将相应增加。') +
@@ -1135,7 +1135,7 @@ function doApprove() {
   doPostApproveActions(records[idx]);
 
   saveRecords(records);
-  showToast('审批通过 — 人员库、编制统计、台账已自动更新', 'success');
+  showToast('审批通过 — 人员库、编制统计、台账已自动更新，教师账号已冻结', 'success');
   setTimeout(function() { goBack(); }, 1500);
 }
 
@@ -1218,6 +1218,26 @@ function doPostApproveActions(record) {
     });
   }
   localStorage.setItem('exit_ledger', JSON.stringify(ledger));
+
+  // Freeze teacher accounts on exit approval
+  var accounts = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+  var frozenCount = 0;
+  applicants.forEach(function(a) {
+    if (!a.idCard) return;
+    var match = accounts.filter(function(t) { return t.idCard === a.idCard && t.status === 'active'; });
+    match.forEach(function(acct) {
+      acct.status = 'frozen';
+      acct.frozenAt = new Date().toISOString();
+      acct.frozenReason = 'exit';
+      if (acct.exitRecords.indexOf(record.id) === -1) {
+        acct.exitRecords.push(record.id);
+      }
+      frozenCount++;
+    });
+  });
+  if (frozenCount > 0) {
+    localStorage.setItem('teacher_accounts', JSON.stringify(accounts));
+  }
 }
 
 // ===== NAVIGATION =====
@@ -1280,6 +1300,7 @@ function sidebarClick(el, id) {
   if (id === 'promote') { window.location.href = 'promote-list-admin.html?role=' + currentRole; return; }
   if (id === 'postset') { window.location.href = 'post-list-admin.html?role=' + currentRole; return; }
   if (id === 'recruit') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+  if (id === 'account') { window.location.href = 'account-management.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

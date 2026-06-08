@@ -229,6 +229,12 @@ body {
 .grade-table .ratio-cell { background: #F8FAFC; color: var(--text-secondary); font-size: 12px; font-weight: 500; }
 .grade-table .sub-total { font-weight: 600; color: var(--primary); }
 .grade-table .layer-header { background: #EFF6FF; color: var(--primary); font-weight: 600; }
+.limit-hint { font-size: 11px; color: var(--text-light); font-weight: 400; margin-left: 6px; }
+.limit-hint.error { color: var(--danger); }
+.ratio-hint-row { background: #F8FAFC; color: var(--text-light); font-size: 11px; padding: 4px 10px !important; text-align: left !important; border-top: none !important; }
+.labor-th-hint { display: block; font-size: 10px; font-weight: 400; color: var(--text-light); margin-top: 2px; }
+.labor-footnote { font-size: 11px; color: var(--text-light); margin-top: 6px; }
+
 .diff-cell { background: #FFF7ED; color: #C2410C; font-weight: 600; }
 
 /* Summary table */
@@ -465,6 +471,22 @@ var STATUS_MAP = {
   first_rejected: '一审驳回', second_review: '待二审', completed: '已完成'
 };
 
+
+var PROF_RATIO_LIMITS = {
+  '自治区示范高中': { senior: 3, vice: 30, middle: 52, junior: 15 },
+  '自治区特色高中': { senior: 2.5, vice: 25.5, middle: 52, junior: 20 },
+  '普通高中': { senior: 2, vice: 25, middle: 52, junior: 21 },
+  '初中': { senior: 1.5, vice: 21.5, middle: 54, junior: 23 },
+  '小学': { senior: 1, vice: 12, middle: 56, junior: 31 },
+  '幼儿园': { senior: 1, vice: 12, middle: 56, junior: 31 }
+};
+var LEVEL_INTERNAL_RATIOS = {
+  senior: { '3': 30, '4': 70 },
+  vice: { '5': 20, '6': 40, '7': 40 },
+  middle: { '8': 30, '9': 40, '10': 30 },
+  junior: { '11': 50, '12': 50 }
+};
+var LABOR_RATIO_LIMITS = { total_1_2: 10, level_1: 4, level_2: 6, level_3: 20, level_4: 40, level_5_min: 30 };
 var MGMT_GRADE_LABELS = { '4': '四级', '5': '五级', '6': '六级', '7': '七级', '8': '八级', '9': '九级', '10': '十级' };
 var PROF_LAYER_CONFIG = [
   { key: 'senior', label: '正高级', grades: ['3', '4'], gradeLabels: { '3': '三级', '4': '四级' } },
@@ -786,7 +808,7 @@ var POST_EMPLOYED_DATA = {
 
 var DEMO_RECORDS = [
   {
-    id: 'PS20260522001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_review',
+    id: 'PS20260523001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_approved',
     orgLevel: '正科级', fundType: '全额拨款', totalControlQuota: 104, highlandPosts: 0,
     careerStaffQuota: 88, authControlNo: 16,
     totalPosts: 104, mgmtPosts: 8, profPosts: 80, laborPosts: 16,
@@ -798,6 +820,35 @@ var DEMO_RECORDS = [
       junior: { total: 20, levels: { '11': 8, '12': 8, '13': 4 } }
     },
     laborLevels: { '1': 0, '2': 1, '3': 2, '4': 5, '5': 6, 'common': 2 },
+    attachments: [],
+    employedSnapshot: {
+      mgmt: { '4': { career: 0, control: 0, over: 0 }, '5': { career: 1, control: 0, over: 0 }, '6': { career: 1, control: 0, over: 0 }, '7': { career: 1, control: 0, over: 0 }, '8': { career: 1, control: 0, over: 0 }, '9': { career: 1, control: 0, over: 0 }, '10': { career: 0, control: 0, over: 0 } },
+      prof: { '3': { career: 0, control: 0, over: 0 }, '4': { career: 0, control: 0, over: 0 }, '5': { career: 2, control: 1, over: 0 }, '6': { career: 4, control: 1, over: 0 }, '7': { career: 4, control: 2, over: 0 }, '8': { career: 11, control: 2, over: 0 }, '9': { career: 14, control: 2, over: 0 }, '10': { career: 9, control: 2, over: 0 }, '11': { career: 5, control: 2, over: 0 }, '12': { career: 5, control: 2, over: 0 }, '13': { career: 2, control: 0, over: 0 } },
+      labor: { '1': { career: 0, control: 0, over: 0 }, '2': { career: 1, control: 0, over: 0 }, '3': { career: 2, control: 0, over: 0 }, '4': { career: 4, control: 0, over: 0 }, '5': { career: 5, control: 0, over: 0 }, 'common': { career: 2, control: 0, over: 0 } }
+    },
+    timeline: [
+      { time: '2026-05-23 08:30:00', action: '学校提交一审', operator: '周敏' },
+      { time: '2026-05-24 10:00:00', action: '一审通过', operator: '李振华', opinion: '同意申报方案' }
+    ],
+    firstReviewOpinion: '同意申报方案', firstReviewer: '李振华', firstReviewTime: '2026-05-24 10:00:00',
+    firstRejectReason: null,
+    hrResult: null, hrApprovalAttachment: null,
+    secondReviewModifications: [], secondReviewer: null, secondReviewTime: null,
+    completeTime: null, submitTime: '2026-05-23 08:30:00'
+  },
+  {
+    id: 'PS20260522001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_review',
+    orgLevel: '正科级', fundType: '全额拨款', totalControlQuota: 104, highlandPosts: 0,
+    careerStaffQuota: 88, authControlNo: 16,
+    totalPosts: 105, mgmtPosts: 9, profPosts: 82, laborPosts: 14,
+    mgmtLevels: { '5': 2, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
+    profLevels: {
+      senior: { total: 1, levels: { '3': 0, '4': 1 } },
+      vice: { total: 16, levels: { '5': 3, '6': 7, '7': 6 } },
+      middle: { total: 45, levels: { '8': 14, '9': 18, '10': 13 } },
+      junior: { total: 20, levels: { '11': 8, '12': 8, '13': 4 } }
+    },
+    laborLevels: { '1': 0, '2': 0, '3': 2, '4': 5, '5': 5, 'common': 2 },
     attachments: [],
     timeline: [{ time: '2026-05-22 09:00:00', action: '学校提交一审', operator: '周敏' }],
     submitTime: '2026-05-22 09:00:00',
@@ -1103,11 +1154,14 @@ function renderTotalSection() {
   var tp = r.totalPosts || ((r.mgmtPosts || 0) + (r.profPosts || 0) + (r.laborPosts || 0));
   var hr = r.hrResult;
   var hasHr = hr && (hr.mgmtPosts !== undefined || hr.profPosts !== undefined || hr.laborPosts !== undefined);
-  var h = '<div class="card"><div class="card-header">岗位总量</div><div class="card-body">';
+  var maxTotal = (r.totalControlQuota || 0) - (r.highlandPosts || 0);
+  var totalClass = tp > maxTotal && maxTotal > 0 ? ' style="color:var(--danger);font-weight:700;"' : '';
+  var totalHint = maxTotal > 0 ? '（核定总量上限：' + maxTotal + '）' : '';
+  var h = '<div class="card"><div class="card-header">岗位总量<span class="limit-hint">' + totalHint + '</span></div><div class="card-body">';
   h += '<table class="total-table"><thead><tr><th>项目</th><th>岗位总量</th><th>管理岗位数量</th><th>占比</th><th>专技岗位数量</th><th>占比</th><th>工勤技能岗位数量</th><th>占比</th></tr></thead>';
   h += '<tbody>';
   h += '<tr><td>申报数</td>';
-  h += '<td><span class="auto-val">' + tp + '</span></td>';
+  h += '<td><span class="auto-val"' + totalClass + '>' + tp + '</span></td>';
   h += '<td>' + (r.mgmtPosts || 0) + '</td>';
   h += '<td class="ratio-val">' + pct(r.mgmtPosts, tp) + '%</td>';
   h += '<td>' + (r.profPosts || 0) + '</td>';
@@ -1163,8 +1217,13 @@ function renderProfTable() {
   PROF_LAYER_CONFIG.forEach(function(layer) {
     var ld = r.profLevels && r.profLevels[layer.key] ? r.profLevels[layer.key] : { total: 0, levels: {} };
     profGrand += ld.total || 0;
+    var limits = r.schoolType ? PROF_RATIO_LIMITS[r.schoolType] : null;
+    var limitPct = limits ? limits[layer.key] : null;
+    var actualPct = r.profPosts > 0 ? (ld.total / r.profPosts * 100).toFixed(1) : '0.0';
+    var limitHint = limitPct !== null ? '（上限 ' + limitPct + '%，当前 ' + actualPct + '%）' : '';
+    var limitClass = limitPct !== null && parseFloat(actualPct) > limitPct ? ' style="color:var(--danger)"' : '';
 
-    h += '<table class="grade-table"><thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '</th></tr>';
+    h += '<table class="grade-table" style="margin-bottom:16px"><thead><tr><th class="layer-header" colspan="' + (layer.grades.length + 2) + '">' + layer.label + '<span class="limit-hint"' + limitClass + '>' + limitHint + '</span></th></tr>';
     h += '<tr><th></th>';
     layer.grades.forEach(function(g) { h += '<th>' + layer.gradeLabels[g] + '</th>'; });
     h += '<th>合计</th></tr></thead><tbody>';
@@ -1182,6 +1241,16 @@ function renderProfTable() {
       h += '<td>' + v + '</td>';
     });
     h += '<td class="sub-total">' + (ld.total || 0) + '</td></tr>';
+
+    var iRatios = LEVEL_INTERNAL_RATIOS[layer.key];
+    if (iRatios) {
+      var hintLabels = [], hintVals = [], iKeys = Object.keys(iRatios);
+      iKeys.forEach(function(k) { hintLabels.push(layer.gradeLabels[k]); hintVals.push(iRatios[k] / 10); });
+      var hintText = '等级内比例参考：' + hintLabels.join(' : ') + ' = ' + hintVals.join(' : ');
+      if (layer.key === 'junior') hintText += '（十三级不限）';
+      h += '<tr><td colspan="' + (layer.grades.length + 2) + '" class="ratio-hint-row">' + hintText + '</td></tr>';
+    }
+
     h += '</tbody></table>';
   });
 
@@ -1193,9 +1262,21 @@ function renderProfTable() {
 function renderLaborTable() {
   var r = currentRecord;
   var laborGrades = ['1', '2', '3', '4', '5', 'common'];
+  var LABOR_HINTS = {
+    '1': '≤' + LABOR_RATIO_LIMITS.level_1 + '%',
+    '2': '≤' + LABOR_RATIO_LIMITS.level_2 + '%',
+    '3': '≤' + LABOR_RATIO_LIMITS.level_3 + '%',
+    '4': '≤' + LABOR_RATIO_LIMITS.level_4 + '%',
+    '5': '≥' + LABOR_RATIO_LIMITS.level_5_min + '%',
+    'common': ''
+  };
   var h = '<div class="card"><div class="card-header">工勤技能岗位明细</div><div class="card-body">';
   h += '<table class="grade-table"><thead><tr><th></th>';
-  laborGrades.forEach(function(g) { h += '<th>' + LABOR_GRADE_LABELS[g] + '</th>'; });
+  laborGrades.forEach(function(g) {
+    h += '<th>' + LABOR_GRADE_LABELS[g];
+    if (LABOR_HINTS[g]) h += '<span class="labor-th-hint">' + LABOR_HINTS[g] + '</span>';
+    h += '</th>';
+  });
   h += '<th>合计</th></tr></thead><tbody>';
   h += '<tr><td class="ratio-cell">比例</td>';
   laborGrades.forEach(function(g) {
@@ -1210,7 +1291,9 @@ function renderLaborTable() {
     h += '<td>' + v + '</td>';
   });
   h += '<td class="sub-total">' + laborSum + '</td></tr>';
-  h += '</tbody></table></div></div>';
+  h += '</tbody></table>';
+  h += '<div class="labor-footnote">* 一级+二级合计 ≤ ' + LABOR_RATIO_LIMITS.total_1_2 + '%</div>';
+  h += '</div></div>';
   return h;
 }
 
@@ -1675,7 +1758,8 @@ function toggleUserMenu() {
   document.getElementById('userDropdown').classList.toggle('show');
 }
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show');
+  var dd = document.getElementById('userDropdown');
+  if (dd && !e.target.closest('.topnav-user')) dd.classList.remove('show');
 });
 
 function toggleSidebar() {

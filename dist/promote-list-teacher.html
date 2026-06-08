@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的岗位晋升申请 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ===== TOP NAVBAR ===== */
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+/* ===== SIDEBAR ===== */
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
+/* ===== MAIN ===== */
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.page-header-left h1 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.page-header-left .subtitle { font-size: 12px; color: var(--text-light); }
+.page-header-right { display: flex; gap: 10px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition); border: 1px solid transparent; font-family: inherit; text-decoration: none; }
+.btn-primary { background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%); color: #fff; }
+.btn-primary:hover { box-shadow: 0 4px 12px rgba(30,64,175,0.3); transform: translateY(-1px); }
+.btn-outline { background: #fff; color: var(--primary); border-color: var(--border); }
+.btn-outline:hover { border-color: var(--primary); background: var(--primary-light); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-outline-sm { padding: 4px 12px; font-size: 12px; background: #fff; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-family: inherit; }
+.btn-outline-sm:hover { background: var(--gray-bg); }
+
+/* ===== TWO-COLUMN LAYOUT ===== */
+.two-col-row { display: flex; gap: 20px; align-items: flex-start; }
+.two-col-row .col-left { flex: 0 0 360px; min-width: 0; }
+.two-col-row .col-right { flex: 1; min-width: 0; }
+@media (max-width: 1400px) { .two-col-row { flex-direction: column; } .two-col-row .col-left { flex: none; width: 100%; } }
+
+/* ===== BATCH CARDS ===== */
+.batch-list { display: flex; flex-direction: column; gap: 10px; }
+.batch-card { background: #fff; border-radius: var(--radius-lg); padding: 16px 18px; border: 1.5px solid var(--border); cursor: pointer; transition: var(--transition); }
+.batch-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.batch-card.selected { border-color: var(--primary); background: var(--primary-light); }
+.batch-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.batch-card-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; cursor: pointer; }
+.batch-card-name:hover { color: var(--primary); }
+.batch-card-status { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 500; flex-shrink: 0; }
+.batch-card-status.open { background: #EFF6FF; color: var(--primary); }
+.batch-card-status.closed { background: #F1F5F9; color: #64748B; }
+.batch-card-meta { font-size: 11px; color: var(--text-light); margin-bottom: 10px; display: flex; gap: 16px; flex-wrap: wrap; }
+.batch-card-levels { margin-bottom: 10px; }
+.level-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.level-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; background: var(--gray-bg); color: var(--text-secondary); }
+.batch-card-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.batch-card-actions .btn { font-size: 11px; padding: 4px 12px; }
+.col-left-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.col-left-header .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+
+/* ===== RIGHT COLUMN ===== */
+.col-right-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.col-right-header .section-title { font-size: 14px; font-weight: 600; color: var(--text); }
+
+/* Status filter buttons */
+.status-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.status-fbtn { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--transition); border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-family: inherit; }
+.status-fbtn:hover { border-color: var(--accent); color: var(--primary); }
+.status-fbtn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Table */
+.table-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.list-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+.list-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tr:hover { background: #FAFBFC; }
+.list-table .col-id { color: var(--primary); font-weight: 500; }
+
+/* Status badges */
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.status-badge.review { background: #DBEAFE; color: #1E40AF; }
+.status-badge.approved { background: #D1FAE5; color: #065F46; }
+.status-badge.rejected { background: #FEE2E2; color: #991B1B; }
+.status-badge.completed { background: #E0E7FF; color: #3730A3; }
+
+/* Action links */
+.action-links { display: flex; gap: 8px; justify-content: center; }
+.action-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.action-link:hover { text-decoration: underline; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state .empty-text { font-size: 14px; margin-bottom: 16px; }
+
+/* Toast */
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease; box-shadow: var(--shadow-lg); }
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.success { background: var(--success); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge">1</span></div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar">张</div><span>张淑芳</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div>
+    </div>
+  </div>
+</nav>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span></button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg><span class="menu-label">收起菜单</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>我的岗位晋升申请</span>
+    <span style="margin-left:16px;font-size:12px;color:var(--text-light)">当前身份：</span>
+    <select id="teacherSelect" onchange="switchTeacher(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;background:#fff"></select>
+    <button class="btn-outline-sm" style="margin-left:8px" onclick="resetDemoData()">重置演示数据</button>
+  </div>
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>我的岗位晋升申请</h1>
+      <div class="subtitle">查看可申报批次，提交岗位晋升申请</div>
+    </div>
+    <div class="page-header-right">
+      <button class="btn btn-primary" onclick="newApplication()">+ 新建申报</button>
+    </div>
+  </div>
+
+  <div id="mainContent"></div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script>
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+};
+var MENU_ICONS = { workbench:'home', dashboard:'chart', entry:'userp', staffing:'monitor', exit:'userx', promote:'arrowup', postset:'shield', recruit:'search', employ:'file', retire:'clock', salary:'dollar', ethics:'warn', honor:'star', account:'users', org:'building', perm:'key', log:'list' };
+
+var ROLES = {
+  city: { name:'张建国', short:'市', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'dashboard',icon:'chart',label:'数据概览'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:3},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:5},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'},{id:'perm',label:'角色权限'},{id:'log',label:'操作日志'}]}]}},
+  district: { name:'李振华', short:'区', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'dashboard',icon:'chart',label:'数据概览'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:1},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:3},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'}]}]}},
+  school: { name:'王玉兰', short:'校', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'dashboard',icon:'chart',label:'数据概览'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'}]}]}},
+  teacher: { name:'李明华', short:'李', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]}]}}
+};
+
+// ===== TEACHERS =====
+var TEACHERS = [
+  { id:'t1', name:'张淑芳', short:'张', gender:'女', ethnicity:'汉族', birthDate:'1968-08',
+    education:'硕士研究生', graduateTime:'1992-07', workStartTime:'1992-09',
+    currentPost:'专业技术岗位四级', currentTitle:'正高级教师', appointTime:'2015-03',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t2', name:'李明华', short:'李', gender:'男', ethnicity:'汉族', birthDate:'1975-03',
+    education:'本科', graduateTime:'1997-07', workStartTime:'1997-09',
+    currentPost:'专业技术岗位七级', currentTitle:'高级教师', appointTime:'2020-09',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t3', name:'王小燕', short:'王', gender:'女', ethnicity:'壮族', birthDate:'1982-11',
+    education:'硕士研究生', graduateTime:'2005-06', workStartTime:'2005-08',
+    currentPost:'专业技术岗位十级', currentTitle:'一级教师', appointTime:'2021-03',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'群众' },
+  { id:'t4', name:'赵伟强', short:'赵', gender:'男', ethnicity:'汉族', birthDate:'1983-12',
+    education:'本科', graduateTime:'2006-06', workStartTime:'2006-08',
+    currentPost:'专业技术岗位九级', currentTitle:'一级教师', appointTime:'2022-09',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t5', name:'周国庆', short:'周', gender:'男', ethnicity:'汉族', birthDate:'1972-05',
+    education:'本科', graduateTime:'1994-07', workStartTime:'1994-09',
+    currentPost:'管理岗位七级', currentTitle:'副校长', appointTime:'2017-03',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'中共党员' },
+  { id:'t6', name:'吴小娟', short:'吴', gender:'女', ethnicity:'壮族', birthDate:'1985-07',
+    education:'大专', graduateTime:'2007-07', workStartTime:'2007-09',
+    currentPost:'工勤技能岗位三级', currentTitle:'高级工', appointTime:'2019-06',
+    schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', politicalStatus:'群众' }
+];
+
+function loadTeacherProfiles() {
+  try { return JSON.parse(localStorage.getItem('teacher_profiles') || '{}'); } catch(e) { return {}; }
+}
+
+function getCurrentTeacher() {
+  var id = localStorage.getItem('current_teacher_id') || 't1';
+  var t = null;
+  for (var i = 0; i < TEACHERS.length; i++) { if (TEACHERS[i].id === id) { t = TEACHERS[i]; break; } }
+  t = t || TEACHERS[0];
+  if (!t) return null;
+  var profiles = loadTeacherProfiles();
+  var p = profiles[t.name];
+  if (p) {
+    return {
+      id: t.id, name: p.name || t.name, short: t.short,
+      gender: p.gender || t.gender, ethnicity: p.ethnicity || t.ethnicity,
+      birthDate: p.birthDate || t.birthDate, politicalStatus: p.politicalStatus || t.politicalStatus,
+      education: p.education || t.education, graduateTime: p.graduateTime || t.graduateTime,
+      workStartTime: p.workStartTime || t.workStartTime,
+      currentPost: t.currentPost, currentTitle: t.currentTitle, appointTime: t.appointTime,
+      schoolName: t.schoolName, schoolCategory: t.schoolCategory
+    };
+  }
+  return t;
+}
+
+function setCurrentTeacher(id) {
+  localStorage.setItem('current_teacher_id', id);
+}
+
+// ===== DEMO DATA =====
+var CATEGORY_MAP = { manage: '管理岗位', professional: '专业技术岗位', skill: '工勤技能岗位' };
+var DEMO_BATCHES = [
+  { id: 'PB20260501001', name: '2026年春季岗位晋升', schoolName: '柳州市第八中学', createdBy: 'school', year: 2026, status: 'open',
+    promoteTypes: ['mgmt','prof','labor'], allowedLevels: [],
+    startTime: '2026-05-01', endTime: '2026-06-30',
+    remark: '面向本校全体教师的常规晋升批次' },
+  { id: 'PB20260415001', name: '2026年春季岗位晋升', schoolName: '柳州高级中学', createdBy: 'school', year: 2026, status: 'open',
+    promoteTypes: ['prof'], allowedLevels: ['五级','六级','七级','八级'],
+    startTime: '2026-04-15', endTime: '2026-06-15',
+    remark: '' }
+];
+
+var DEMO_RECORDS = [
+  { id: 'PR20260518001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '张淑芳', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'senior_3', targetLevel: '三级', fromLevel: '四级',
+    status: 'pending_first', submitTime: '2026-05-18 14:30:00' },
+  { id: 'PR20260515001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '张淑芳', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '九级', fromLevel: '十级',
+    status: 'first_rejected', submitTime: '2026-05-10 08:30:00',
+    firstRejectReason: '近三年考核结果未填写完整' },
+  { id: 'PR20260512001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '李明华', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '六级', fromLevel: '七级',
+    status: 'pending_first', submitTime: '2026-05-12 09:00:00' },
+  { id: 'PR20260510001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '李明华', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '九级', fromLevel: '十级',
+    status: 'first_rejected', submitTime: '2026-05-10 08:30:00',
+    firstRejectReason: '近三年考核结果未填写完整' },
+  { id: 'PR20260505001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '王小燕', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '九级', fromLevel: '十级',
+    status: 'completed', submitTime: '2026-05-05 08:00:00', completeTime: '2026-05-20 09:00:00' },
+  { id: 'PR20260503001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
+    teacherName: '赵伟强', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '八级', fromLevel: '九级',
+    status: 'pending_first', submitTime: '2026-05-03 09:00:00' },
+  { id: 'PR20260420001', batchId: 'PB20260415001', batchName: '2026年鱼峰区专项晋升',
+    teacherName: '张淑芳', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '六级', fromLevel: '七级',
+    status: 'completed', submitTime: '2026-04-03 08:00:00', completeTime: '2026-04-22 09:00:00' },
+  { id: 'PR20260520001', batchId: 'PB20260501001', batchName: '2026年春季岗位晋升',
+    teacherName: '周国庆', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '六级', fromLevel: '七级',
+    status: 'pending_first', submitTime: '2026-05-20 10:00:00' },
+  { id: 'PR20260521001', batchId: 'PB20260501001', batchName: '2026年春季岗位晋升',
+    teacherName: '吴小娟', schoolName: '柳州市第八中学', schoolCategory: '鱼峰区属',
+    promotionType: 'regular', targetLevel: '二级', fromLevel: '三级',
+    status: 'pending_first', submitTime: '2026-05-21 09:00:00' }
+];
+
+var STATUS_LABEL_MAP = {
+  pending_first: '待一审',
+  first_approved: '一审通过',
+  first_rejected: '一审驳回',
+  pending_second: '待二审',
+  second_approved: '二审通过',
+  second_rejected: '二审驳回',
+  pending_third: '待三审',
+  third_rejected: '三审驳回',
+  completed: '已完成'
+};
+
+var REVIEWING_STATUSES = ['pending_first', 'first_approved', 'pending_second', 'second_approved', 'pending_third'];
+var REJECTED_STATUSES = ['first_rejected', 'second_rejected', 'third_rejected'];
+
+var currentRole = 'teacher';
+var selectedBatchId = null;
+var currentStatusFilter = 'all';
+
+// ===== DATA LAYER =====
+function loadBatches() {
+  var s = localStorage.getItem('promote_batches');
+  if (s) { try { return JSON.parse(s); } catch(e) {} }
+  localStorage.setItem('promote_batches', JSON.stringify(DEMO_BATCHES));
+  return JSON.parse(JSON.stringify(DEMO_BATCHES));
+}
+
+function loadRecords() {
+  var s = localStorage.getItem('promote_records');
+  if (s) { try { return JSON.parse(s); } catch(e) {} }
+  localStorage.setItem('promote_records', JSON.stringify(DEMO_RECORDS));
+  return JSON.parse(JSON.stringify(DEMO_RECORDS));
+}
+
+function resetDemoData() {
+  localStorage.removeItem('promote_records');
+  localStorage.removeItem('promote_batches');
+  location.reload();
+}
+
+// ===== UI HELPERS =====
+function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function switchRole(role) {
+  if (role === 'teacher') return;
+  if (role === 'school') { window.location.href = 'promote-list-school.html'; }
+  else if (role === 'city' || role === 'district') { window.location.href = 'promote-list-admin.html?role=' + role; }
+}
+
+// ===== SIDEBAR =====
+function renderSidebar() {
+  var roleData = ROLES[currentRole]; if (!roleData) return;
+  var s = roleData.sidebar, html = '';
+  (s.top||[]).forEach(function(i) { html += '<a class="menu-item" onclick="sidebarClick(\'' + i.id + '\')">' + (ICONS[i.icon]||'') + '<span class="menu-label">' + i.label + '</span></a>'; });
+  (s.groups||[]).forEach(function(g) { html += '<div class="menu-group">' + g.name + '</div>'; g.items.forEach(function(i) { html += '<a class="menu-item' + (i.id==='promote'?' active':'') + '" onclick="sidebarClick(\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id]||'file']) + '<span class="menu-label">' + i.label + '</span>' + (i.badge?'<span class="menu-badge">'+i.badge+'</span>':'') + '</a>'; }); });
+  document.getElementById('sidebarMenu').innerHTML = html;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
+  var t = getCurrentTeacher();
+  var n = document.querySelector('.topnav-user span'); if(n) n.textContent = t.name;
+  var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = t.short;
+}
+
+function sidebarClick(id) {
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'promote') return;
+  if (id === 'recruit') { showToast('无权限访问', 'warning'); return; }
+  showToast('跳转至：' + id);
+}
+
+// ===== DATA HELPERS =====
+function getAvailableBatches() {
+  var batches = loadBatches();
+  var teacher = getCurrentTeacher();
+  var school = teacher ? teacher.schoolName : '';
+  return batches.filter(function(b) {
+    return b.schoolName === school;
+  });
+}
+
+function getMyRecords() {
+  var records = loadRecords();
+  var t = getCurrentTeacher();
+  return records.filter(function(r) { return r.teacherName === t.name; });
+}
+
+function getFilteredRecords() {
+  var records = getMyRecords();
+  if (selectedBatchId) {
+    records = records.filter(function(r) { return r.batchId === selectedBatchId; });
+  }
+  if (currentStatusFilter === 'reviewing') records = records.filter(function(r) { return REVIEWING_STATUSES.indexOf(r.status) >= 0; });
+  else if (currentStatusFilter === 'completed') records = records.filter(function(r) { return r.status === 'completed'; });
+  else if (currentStatusFilter === 'rejected') records = records.filter(function(r) { return REJECTED_STATUSES.indexOf(r.status) >= 0; });
+  return records;
+}
+
+function getStatusBadgeClass(status) {
+  if (REVIEWING_STATUSES.indexOf(status) >= 0) return 'review';
+  if (REJECTED_STATUSES.indexOf(status) >= 0) return 'rejected';
+  if (status === 'completed') return 'completed';
+  return 'review';
+}
+
+function showBatchDetail(batchId) {
+  var batches = loadBatches();
+  var batch = null;
+  for (var i = 0; i < batches.length; i++) { if (batches[i].id === batchId) { batch = batches[i]; break; } }
+  if (!batch) return;
+  var myRecords = getMyRecords().filter(function(r) { return r.batchId === batchId; });
+  var TYPE_LABEL = { mgmt: '管理岗位', prof: '专业技术岗位', labor: '工勤技能岗位', manage: '管理岗位', professional: '专业技术岗位', skill: '工勤技能岗位' };
+  var typeLabels = (batch.promoteTypes && batch.promoteTypes.length ? batch.promoteTypes : (batch.category ? [batch.category] : [])).map(function(t) { return TYPE_LABEL[t] || t; });
+  var h = '<div class="modal-header"><h3>批次详情</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  h += '<div class="modal-body">';
+  h += '<table class="detail-table"><tbody>';
+  h += '<tr><td class="dt-label">批次名称</td><td>' + batch.name + '</td></tr>';
+  h += '<tr><td class="dt-label">批次编号</td><td>' + batch.id + '</td></tr>';
+  h += '<tr><td class="dt-label">晋升类别</td><td>' + (typeLabels.length > 0 ? typeLabels.join('、') : '—') + '</td></tr>';
+  h += '<tr><td class="dt-label">年度</td><td>' + (batch.year || '—') + '</td></tr>';
+  h += '<tr><td class="dt-label">申报时间</td><td>' + batch.startTime + ' ~ ' + batch.endTime + '</td></tr>';
+  h += '<tr><td class="dt-label">备注说明</td><td>' + (batch.remark || '—') + '</td></tr>';
+  h += '</tbody></table>';
+  h += '<div style="margin-top:12px"><strong style="font-size:13px">我的申报</strong></div>';
+  h += '<div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">共 ' + myRecords.length + ' 条申报记录</div>';
+  h += '</div>';
+  h += '<div class="modal-footer"><button class="btn-outline" onclick="closeModal()">关闭</button></div>';
+  openModal(h);
+}
+
+// ===== RENDER BATCH CARDS =====
+function renderBatchCards() {
+  var batches = getAvailableBatches();
+  if (batches.length === 0) {
+    return '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无可用的晋升批次</div></div>';
+  }
+  var h = '<div class="batch-list">';
+  batches.forEach(function(b) {
+    var isSelected = b.id === selectedBatchId;
+    var myBatchRecords = getMyRecords().filter(function(r) { return r.batchId === b.id; });
+    var hasApplied = myBatchRecords.length > 0;
+
+    h += '<div class="batch-card' + (isSelected ? ' selected' : '') + '" onclick="selectBatch(\'' + b.id + '\')">';
+    h += '<div class="batch-card-header">';
+    h += '<span class="batch-card-name" onclick="event.stopPropagation();showBatchDetail(\'' + b.id + '\')" title="点击查看批次详情">' + b.name + '</span>';
+    h += '<span class="batch-card-status ' + b.status + '">' + (b.status === 'open' ? '进行中' : '已关闭') + '</span>';
+    h += '</div>';
+    h += '<div class="batch-card-meta">';
+    h += '<span>📅 ' + b.startTime + ' ~ ' + b.endTime + '</span>';
+    h += '</div>';
+    if (b.allowedLevels && b.allowedLevels.length > 0) {
+      h += '<div class="batch-card-levels"><div class="level-tags">';
+      b.allowedLevels.forEach(function(l) { h += '<span class="level-tag">' + l + '</span>'; });
+      h += '</div></div>';
+    }
+    h += '<div class="batch-card-actions">';
+    var hasActiveApplication = myBatchRecords.some(function(r) {
+      return r.status !== 'first_rejected' && r.status !== 'second_rejected' && r.status !== 'third_rejected';
+    });
+    if (hasApplied) {
+      h += '<span style="font-size:11px;color:var(--text-light);">已申报 ' + myBatchRecords.length + ' 次</span>';
+    }
+    if (b.status === 'open') {
+      if (hasActiveApplication) {
+        h += '<span style="font-size:11px;color:var(--success);">✓ 已申报</span>';
+      } else {
+        h += '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();applyBatch(\'' + b.id + '\')">申报</button>';
+      }
+    }
+    h += '</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+// ===== RENDER RIGHT COLUMN =====
+function renderRightColumn() {
+  var allRecords = getMyRecords();
+  if (selectedBatchId) {
+    allRecords = allRecords.filter(function(r) { return r.batchId === selectedBatchId; });
+  }
+  var counts = {
+    all: allRecords.length,
+    reviewing: allRecords.filter(function(r) { return REVIEWING_STATUSES.indexOf(r.status) >= 0; }).length,
+    completed: allRecords.filter(function(r) { return r.status === 'completed'; }).length,
+    rejected: allRecords.filter(function(r) { return REJECTED_STATUSES.indexOf(r.status) >= 0; }).length
+  };
+
+  var batchLabel = selectedBatchId ? getAvailableBatches().find(function(b){return b.id===selectedBatchId;}) : null;
+  var h = '<div class="col-right-header"><span class="section-title">' + (batchLabel ? batchLabel.name : '全部申报记录') + '</span></div>';
+
+  // Status pills
+  h += '<div class="status-filters">';
+  var filters = [
+    { key: 'all', label: '全部 (' + counts.all + ')' },
+    { key: 'reviewing', label: '审核中 (' + counts.reviewing + ')' },
+    { key: 'completed', label: '已通过 (' + counts.completed + ')' },
+    { key: 'rejected', label: '已驳回 (' + counts.rejected + ')' }
+  ];
+  filters.forEach(function(f) {
+    h += '<button class="status-fbtn' + (currentStatusFilter===f.key?' active':'') + '" onclick="setStatusFilter(\'' + f.key + '\')">' + f.label + '</button>';
+  });
+  h += '</div>';
+
+  // Table
+  var records = getFilteredRecords();
+  if (records.length === 0) {
+    h += '<div class="table-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无申报记录</div></div></div>';
+  } else {
+    h += '<div class="table-card"><div class="table-scroll"><table class="list-table"><thead><tr>';
+    h += '<th>申请编号</th><th>申报批次</th><th>目标等级</th><th>提交时间</th><th>状态</th><th>操作</th>';
+    h += '</tr></thead><tbody>';
+    records.forEach(function(r) {
+      h += '<tr>';
+      h += '<td class="col-id">' + r.id + '</td>';
+      h += '<td>' + (r.batchName||'—') + '</td>';
+      h += '<td>' + (r.fromLevel||'') + ' → ' + (r.targetLevel||'—') + '</td>';
+      h += '<td>' + (r.submitTime||'—').substring(0, 10) + '</td>';
+      var cls = getStatusBadgeClass(r.status);
+      h += '<td><span class="status-badge ' + cls + '">' + (STATUS_LABEL_MAP[r.status]||r.status) + '</span></td>';
+      h += '<td><div class="action-links">';
+      if (r.status === 'first_rejected') {
+        h += '<a class="action-link" onclick="viewDetail(\'' + r.id + '\')">查看</a>';
+        h += '<a class="action-link" onclick="editRecord(\'' + r.id + '\')">编辑重提</a>';
+      } else {
+        h += '<a class="action-link" onclick="viewDetail(\'' + r.id + '\')">查看</a>';
+      }
+      h += '</div></td></tr>';
+    });
+    h += '</tbody></table></div></div>';
+  }
+  return h;
+}
+
+// ===== RENDER MAIN =====
+function renderMain() {
+  var h = '<div class="two-col-row">';
+  h += '<div class="col-left">';
+  h += '<div class="col-left-header"><span class="section-title">可申报批次</span></div>';
+  h += renderBatchCards();
+  h += '</div>';
+  h += '<div class="col-right">';
+  h += renderRightColumn();
+  h += '</div>';
+  h += '</div>';
+  document.getElementById('mainContent').innerHTML = h;
+}
+
+// ===== INTERACTIONS =====
+function selectBatch(id) {
+  if (selectedBatchId === id) { selectedBatchId = null; } else { selectedBatchId = id; }
+  currentStatusFilter = 'all';
+  renderMain();
+}
+
+function setStatusFilter(f) { currentStatusFilter = f; renderMain(); }
+
+function newApplication() { window.location.href = 'promote-form.html?teacher=' + getCurrentTeacher().id; }
+function applyBatch(batchId) { window.location.href = 'promote-form.html?batch=' + batchId + '&teacher=' + getCurrentTeacher().id; }
+function viewDetail(id) { window.location.href = 'promote-detail.html?id=' + id; }
+function editRecord(id) { window.location.href = 'promote-form.html?id=' + id + '&mode=edit&teacher=' + getCurrentTeacher().id; }
+
+// ===== TEACHER SWITCH =====
+function initTeacherSelect() {
+  var sel = document.getElementById('teacherSelect');
+  if (!sel) return;
+  var currentId = localStorage.getItem('current_teacher_id') || 't1';
+  sel.innerHTML = '';
+  TEACHERS.forEach(function(t) {
+    var opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name + '（' + t.currentPost + '）';
+    if (t.id === currentId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function switchTeacher(teacherId) {
+  setCurrentTeacher(teacherId);
+  selectedBatchId = null;
+  currentStatusFilter = 'all';
+  renderSidebar();
+  initTeacherSelect();
+  renderMain();
+}
+
+// ===== INIT =====
+function init() {
+  initTeacherSelect();
+  renderSidebar();
+  renderMain();
+}
+init();
+</script>
+</body>
+</html>

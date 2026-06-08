@@ -1,0 +1,2417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>入编申请 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 240px;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+}
+
+/* ===== TOP NAVBAR ===== */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo {
+  width: 38px; height: 38px; background: rgba(255,255,255,0.18);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+}
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell {
+  position: relative; cursor: pointer; color: rgba(255,255,255,0.85);
+  padding: 6px; border-radius: 6px; transition: var(--transition);
+}
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.topnav-user {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px;
+  transition: var(--transition); font-size: 13px; position: relative;
+}
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+}
+.user-dropdown {
+  display: none; position: absolute; top: 46px; right: 0;
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  min-width: 160px; z-index: 200; overflow: hidden;
+}
+.user-dropdown.show { display: block; }
+.user-dropdown a {
+  display: block; padding: 12px 18px; font-size: 13px; color: var(--text);
+  text-decoration: none; transition: var(--transition);
+}
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w);
+  background: #1E3A8A; z-index: 90; overflow-y: auto;
+  display: flex; flex-direction: column; transition: width var(--transition);
+}
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label,
+.sidebar.collapsed .menu-group,
+.sidebar.collapsed .menu-badge,
+.sidebar.collapsed .role-switcher-label,
+.sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group {
+  padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.menu-item {
+  display: flex; align-items: center; padding: 10px 20px; cursor: pointer;
+  font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7);
+  transition: var(--transition); position: relative; text-decoration: none;
+  border-left: 3px solid transparent;
+}
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active {
+  background: rgba(255,255,255,0.08); color: #fff; font-weight: 500;
+  border-left-color: var(--accent);
+}
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+}
+
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5);
+  transition: var(--transition);
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+.role-switcher {
+  padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08);
+}
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  transition: var(--transition); border: 1px solid transparent;
+  background: transparent; font-family: inherit; width: 100%; text-align: left;
+}
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active {
+  background: rgba(59,130,246,0.2); color: #fff;
+  border-color: rgba(59,130,246,0.4); font-weight: 500;
+}
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px;
+  min-height: calc(100vh - 56px); transition: margin-left var(--transition);
+}
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+
+.page-header { margin-bottom: 24px; display: flex; align-items: flex-start; justify-content: space-between; }
+.page-header h1 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.page-header .subtitle { font-size: 12px; color: var(--text-light); }
+
+/* Form card */
+.form-card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.form-card-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* Type selector */
+.type-selector { display: flex; gap: 12px; }
+.type-option {
+  flex: 1; padding: 16px; border: 2px solid var(--border); border-radius: var(--radius-lg);
+  cursor: pointer; text-align: center; transition: var(--transition); background: #fff;
+}
+.type-option:hover { border-color: var(--accent); }
+.type-option.selected { border-color: var(--primary); background: var(--primary-light); }
+.type-option .type-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.type-option .type-form { font-size: 12px; color: var(--text-secondary); }
+.type-option .type-badge {
+  display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 500;
+}
+.type-badge.career { background: #DBEAFE; color: #1E40AF; }
+.type-badge.control { background: #E0E7FF; color: #3730A3; }
+.type-option .type-desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+/* Unit info readonly grid */
+.unit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.unit-grid .info-item {
+  padding: 10px 14px; background: #F8FAFC; border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.unit-grid .info-item.full-width { grid-column: 1 / -1; }
+.unit-grid .info-label { font-size: 11px; color: var(--text-light); margin-bottom: 4px; font-weight: 500; }
+.unit-grid .info-value {
+  font-size: 14px; font-weight: 600; color: var(--text);
+}
+.unit-grid .info-value.calculated {
+  color: var(--primary); font-size: 14px;
+}
+.info-value.select-like {
+  font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 0;
+}
+
+/* Unit info: 控制数类型 selector (in unit info section) */
+.unit-grid select {
+  width: 100%; padding: 4px 8px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 4px; font-family: inherit;
+  background: #fff; color: var(--text); margin-top: 4px;
+}
+
+/* Quota summary bar */
+.quota-summary {
+  display: flex; gap: 16px; margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.quota-item {
+  flex: 1; text-align: center; padding: 10px; background: #F8FAFC;
+  border-radius: 8px;
+}
+.quota-item .q-label { font-size: 11px; color: var(--text-light); margin-bottom: 4px; }
+.quota-item .q-value { font-size: 18px; font-weight: 700; }
+.quota-item .q-value.ok { color: #10B981; }
+.quota-item .q-value.warn { color: #F59E0B; }
+.quota-item .q-value.error { color: #EF4444; }
+.quota-detail { font-size: 11px; color: var(--text-light); margin-top: 4px; line-height: 1.5; }
+input[readonly], select[disabled] { background: #F1F5F9; color: #64748B; cursor: not-allowed; }
+
+/* Career form groups */
+.form-group-section {
+  margin-bottom: 24px;
+}
+.form-group-section .section-label {
+  font-size: 12px; font-weight: 600; color: var(--primary);
+  margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px dashed var(--border);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.form-grid .full-width { grid-column: 1 / -1; }
+.form-field { }
+.form-field label {
+  display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px;
+}
+.form-field label .required { color: var(--danger); margin-left: 2px; }
+.form-field input, .form-field select, .form-field textarea {
+  width: 100%; padding: 8px 12px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 6px;
+  font-family: inherit; outline: none; transition: var(--transition);
+  background: #fff; color: var(--text);
+}
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+.form-field textarea { resize: vertical; min-height: 80px; }
+
+/* Control table */
+.entry-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.entry-table th {
+  padding: 10px 12px; text-align: center; font-weight: 600; font-size: 12px;
+  color: var(--text-secondary); background: #F8FAFC; border: 1px solid var(--border);
+}
+.entry-table td {
+  padding: 8px; border: 1px solid var(--border); text-align: center;
+}
+.entry-table td input, .entry-table td select {
+  width: 100%; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border);
+  border-radius: 4px; font-family: inherit; outline: none;
+}
+.entry-table td input:focus, .entry-table td select:focus {
+  border-color: var(--accent);
+}
+.entry-table .row-actions button {
+  padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none;
+  cursor: pointer; font-family: inherit; transition: var(--transition);
+}
+.btn-delete-row { background: #FEF2F2; color: var(--danger); }
+.btn-delete-row:hover { background: #FEE2E2; }
+.btn-add-row {
+  margin-top: 12px; padding: 8px 20px; font-size: 13px;
+  background: #fff; color: var(--primary); border: 1px dashed var(--accent);
+  border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition);
+}
+.btn-add-row:hover { background: var(--primary-light); }
+.row-materials-section { font-size: 11px; text-align: left; }
+.row-materials-section .row-upload-btn {
+  font-size: 11px; padding: 3px 10px; background: #F8FAFC; border: 1px solid var(--border);
+  border-radius: 4px; cursor: pointer; color: var(--primary);
+}
+.row-materials-section .file-list { font-size: 11px; margin-top: 4px; }
+.row-materials-section .file-list .file-tag {
+  display: inline-block; background: #F0FDF4; padding: 1px 8px; border-radius: 3px;
+  margin-right: 4px; margin-bottom: 2px; cursor: pointer;
+}
+
+/* Materials upload */
+.upload-area {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 24px; text-align: center; cursor: pointer; transition: var(--transition);
+  margin-bottom: 4px;
+}
+.upload-area:hover { border-color: var(--accent); background: #F8FAFC; }
+.upload-area.drag-over { border-color: var(--primary); background: var(--primary-light); }
+.upload-area .upload-icon { font-size: 32px; margin-bottom: 4px; }
+.upload-area .upload-text { font-size: 13px; color: var(--text-secondary); }
+.upload-area .upload-hint { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+.upload-file-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+  background: #F0FDF4; border-radius: 6px; margin-top: 8px; font-size: 13px;
+}
+.upload-file-item .remove { color: var(--danger); cursor: pointer; margin-left: auto; font-size: 16px; }
+
+/* ===== Material Inline Row ===== */
+.material-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; margin: 0 -10px; min-height: 36px;
+  border-radius: 6px; font-size: 13px;
+  transition: background 0.15s; flex-wrap: wrap;
+}
+.material-row:hover { background: #F8FAFC; }
+.material-row .mat-marker { width: 16px; flex-shrink: 0; text-align: center; font-size: 13px; }
+.material-row .mat-marker.red { color: var(--danger); font-weight: 700; }
+.material-row .mat-marker.gray { color: var(--text-light); font-size: 12px; }
+.material-row .mat-label { flex: 1; min-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--text); }
+.material-row .mat-note { font-size: 10px; color: var(--text-light); flex-shrink: 0; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* File chip */
+.file-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; font-size: 11px; line-height: 1.5;
+  background: #EFF6FF; color: #1E40AF;
+  border-radius: 4px; max-width: 130px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.file-chip .file-del {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 3px;
+  font-size: 12px; color: #94A3B8; cursor: pointer; margin-left: 2px; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.file-chip .file-del:hover { background: #FEE2E2; color: var(--danger); }
+.file-chip-more {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; font-size: 11px; line-height: 1.5;
+  background: #F1F5F9; color: var(--text-secondary);
+  border-radius: 4px; cursor: default;
+}
+
+/* Status chip */
+.status-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 500; flex-shrink: 0; line-height: 1.5;
+}
+.status-chip.done { background: #ECFDF5; color: #059669; }
+.status-chip.pending { background: #FFFBEB; color: #D97706; }
+.status-chip.none { background: transparent; color: var(--text-light); font-weight: 400; }
+
+/* Select file button */
+.btn-file-select {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 14px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 6px; background: #fff; cursor: pointer;
+  transition: all 0.15s; flex-shrink: 0;
+  font-family: inherit; line-height: 1.5;
+}
+.btn-file-select:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+
+/* Section header */
+.mat-section-header {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  padding: 8px 0 4px; margin-bottom: 2px;
+}
+.mat-section-header.opt { color: var(--text-secondary); }
+.mat-section-header .bar {
+  display: inline-block; width: 3px; height: 14px;
+  background: var(--primary); border-radius: 2px; margin-right: 6px; vertical-align: middle;
+}
+.mat-section-header.opt .bar { background: var(--text-light); }
+
+/* Progress bar */
+.mat-progress {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);
+}
+.mat-progress-bar { flex: 1; max-width: 180px; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; }
+.mat-progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); border-radius: 4px; transition: width 0.3s; }
+
+/* Placeholder */
+.mat-placeholder { padding: 24px 0; text-align: center; font-size: 13px; color: var(--text-light); }
+
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; font-size: 13px; font-weight: 500;
+  border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition);
+  border: 1px solid transparent; text-decoration: none;
+}
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+.btn-lg { padding: 10px 28px; font-size: 14px; }
+.form-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0; margin-top: 8px;
+}
+
+/* Toast */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px;
+  font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease;
+  box-shadow: var(--shadow-lg);
+}
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.success { background: var(--success); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* Empty / error */
+.field-error { border-color: var(--danger) !important; }
+.field-error-msg { font-size: 11px; color: var(--danger); margin-top: 2px; }
+
+/* Unit info detail table */
+.info-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.info-table td { padding: 8px 14px; border: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+.info-table .ilabel { background: var(--gray-bg); color: var(--text-secondary); font-weight: 500; width: 180px; white-space: nowrap; }
+.info-table .ivalue { background: #fff; color: var(--text); font-weight: 600; }
+.info-section-label { font-size: 13px; font-weight: 600; color: var(--primary); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px dashed var(--border); }
+.info-subtable { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+.info-subtable > tbody > tr > td { vertical-align: top; padding: 0; }
+.isub-left { width: 50%; padding-right: 8px !important; }
+.isub-right { width: 50%; padding-left: 8px !important; }
+.info-mini { width: 100%; border-collapse: collapse; }
+.info-mini td, .info-mini th { padding: 6px 10px; border: 1px solid var(--border); font-size: 12px; text-align: left; }
+.info-mini th { background: var(--gray-bg); color: var(--text-secondary); font-weight: 500; }
+.info-mini td { background: #fff; }
+.info-mini td:last-child, .info-mini th:last-child { text-align: center; width: 120px; }
+
+.btn-edit-org {
+  margin-left: auto; padding: 4px 14px; font-size: 12px; font-weight: 400;
+  background: #fff; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 4px; cursor: pointer; transition: var(--transition);
+}
+.btn-edit-org:hover { background: var(--primary-light); }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP NAVBAR ===== -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/>
+        <line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/>
+        <line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/>
+      </svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">3</span>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar">王</div>
+      <span>王玉兰</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="#">个人中心</a>
+        <a href="#">修改密码</a>
+        <div class="divider"></div>
+        <a href="index.html" class="logout">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher" id="roleSwitcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')">
+        <span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span>
+      </button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')">
+        <span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span>
+      </button>
+      <button class="role-switch-btn active" data-role="school" onclick="switchRole('school')">
+        <span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span>
+      </button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')">
+        <span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span>
+      </button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      <span class="menu-label">收起菜单</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp;
+    <a href="教师入编管理（学校管理员视角）.html">入编管理</a> &nbsp;/&nbsp;
+    <span id="breadcrumbPage">入编申请</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1 id="pageTitle">入编申请</h1>
+      <div class="subtitle" id="pageSubtitle">请选择编制类型并填写申请人信息</div>
+    </div>
+  </div>
+
+  <!-- Type Selector -->
+  <div class="form-card" id="typeSelectCard">
+    <div class="form-card-title">编制类型</div>
+    <div class="type-selector" id="typeSelector"></div>
+  </div>
+
+  <!-- Staffing Batch Selector (需求一) -->
+  <div class="form-card" id="staffingBatchCard" style="display:none;">
+    <div class="form-card-title">
+      <span>关联编制使用申请</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+      选择已审批通过的编制使用申请，以关联编制有效期和剩余可用名额
+    </div>
+    <div id="staffingBatchArea"></div>
+  </div>
+
+  <!-- Unit Info (read-only) -->
+  <div class="form-card" id="unitInfoCard">
+    <div class="form-card-title" id="unitInfoTitle">
+      <span id="unitInfoTitleText">单位信息</span>
+      <button class="btn-edit-org" id="btnEditOrg" onclick="editOrgInfo()" style="display:none;">编辑信息</button>
+    </div>
+    <div id="unitInfoContent"></div>
+    <div id="controlInfoCard" style="display:none;"></div>
+    <div class="quota-summary" id="quotaSummary"></div>
+  </div>
+
+  <!-- Applicant Info -->
+  <div class="form-card" id="applicantCard">
+    <div class="form-card-title" id="applicantTitle">申请人信息</div>
+    <div id="applicantArea"></div>
+  </div>
+
+  <!-- Materials Upload -->
+  <div class="form-card" id="materialsCard">
+    <div class="form-card-title">
+      <span>上传材料</span>
+      <span id="materialsTitleActions"></span>
+    </div>
+    <div id="materialsArea"></div>
+  </div>
+
+  <!-- Submit -->
+  <div class="form-footer">
+    <button class="btn btn-outline btn-lg" onclick="goBack()">返回</button>
+    <button class="btn btn-primary btn-lg" id="submitBtn" onclick="submitForm()">提交申请</button>
+  </div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script>
+// ===== SVG ICONS =====
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+};
+
+var MENU_ICONS = {
+  workbench: 'home', dashboard: 'chart',
+  entry: 'userp', staffing: 'monitor', exit: 'userx',
+  promote: 'arrowup', postset: 'shield', recruit: 'search',
+  employ: 'file',
+  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  account: 'users', org: 'building', perm: 'key', log: 'list'
+};
+
+// ===== ROLES DATA =====
+var ROLES = {
+  city: {
+    name: '张建国', short: '市', org: '柳州市教育局', role: 'city',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请', badge: 3 },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请', badge: 5 },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [
+          { id: 'account', label: '账号管理' },
+          { id: 'org', label: '机构管理' },
+          { id: 'perm', label: '角色权限' },
+          { id: 'log', label: '操作日志' }
+        ]}
+      ]
+    }
+  },
+  district: {
+    name: '李振华', short: '区', org: '鱼峰区教育局', role: 'district',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请', badge: 1 },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请', badge: 3 },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+      ]
+    }
+  },
+  school: {
+    name: '王玉兰', short: '校', org: '柳州市第八中学', role: 'school',
+    sidebar: {
+      top: [
+        { id: 'workbench', icon: 'home', label: '工作台' },
+        { id: 'dashboard', icon: 'chart', label: '数据概览' }
+      ],
+      groups: [
+        { name: '编制管理', items: [
+          { id: 'staffing', label: '编制使用申请' },
+          { id: 'entry', label: '入编申请' },
+          { id: 'exit', label: '教师出编管理' }
+        ]},
+        { name: '岗位管理', items: [
+          { id: 'postset', label: '岗位设置申请' },
+          { id: 'promote', label: '岗位晋升申请', badge: 2 },
+          { id: 'recruit', label: '招聘岗位申请' }
+        ]},
+        { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '人事管理', items: [
+          { id: 'retire', label: '退休呈报' },
+          { id: 'salary', label: '工资核定申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]},
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+      ]
+    }
+  },
+  teacher: {
+    name: '陈明辉', short: '师', org: '柳州市第八中学', role: 'teacher',
+    sidebar: {
+      top: [{ id: 'workbench', icon: 'home', label: '工作台' }],
+      groups: [
+        { name: '业务申请', items: [
+          { id: 'promote', label: '岗位晋升申请' },
+          { id: 'ethics', label: '师德师风举报' },
+          { id: 'honor', label: '荣誉申请' }
+        ]}
+      ]
+    }
+  }
+};
+
+// ===== SCHOOL DATA =====
+var SCHOOL_DATA = {
+  '柳州市第八中学': {
+    schoolType: '鱼峰区属',
+    unitName: '柳州市第八中学',
+    orgLevel: '正科级', orgNature: '全额拨款事业单位',
+    careerStaffQuota: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
+    authLeader: 5, actualLeader: 4, actualOtherLeader: 3,
+    authControlNo: 16, currentControlStaff: 14
+  },
+  '柳州市第一中学': {
+    schoolType: '市直属',
+    unitName: '柳州市第一中学',
+    orgLevel: '正处级', orgNature: '全额拨款事业单位',
+    careerStaffQuota: 120, currentCareerStaff: 110, unusedCareerPlan: 2,
+    authLeader: 8, actualLeader: 7, actualOtherLeader: 5,
+    authControlNo: 25, currentControlStaff: 22
+  },
+  '柳州铁一中学': {
+    schoolType: '市直属',
+    unitName: '柳州铁一中学',
+    creditCode: '12450200498597851Y',
+    orgLevel: '其他未定级',
+    fundingSource: '全额拨款',
+    orgNature: '全额拨款事业单位',
+    careerStaffQuota: 628,
+    currentCareerStaff: 584,
+    unusedCareerPlan: 44,
+    postBreakdown: {
+      adminAuth: 0, adminActual: 4,
+      techAuth: 0, techActual: 580,
+      logisticsAuth: 0, logisticsActual: 0
+    },
+    leaderBreakdown: {
+      deptLevel: { auth: 0, actual: 0 },
+      divisionLevel: { auth: 0, actual: 5 },
+      sectionLevel: { auth: 0, actual: 0 }
+    },
+    authLeader: 0, actualLeader: 5, actualOtherLeader: 0,
+    authControlNo: 30, currentControlStaff: 25
+  }
+};
+
+// ===== DEMO: 编制使用申请通过记录（用于展示可申请入编编制数明细） =====
+var DEMO_STAFFING_SUBMISSIONS = [
+  { id: 'S2026-001', schoolName: '柳州铁一中学', batchName: '2026年度第一批', staffingType: 'career', status: 'approved',
+    useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 0, talent: 1 },
+    schoolFinalConfirm: { validityStart: '2026-03-01', validityEnd: '2027-02-28', totalFinalCount: 2,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 2, finalNum: 2 }, { type: '引进高层次人才', code: 'talent', schoolNum: 1, finalNum: 0 }] } },
+  { id: 'S2026-002', schoolName: '柳州铁一中学', batchName: '2026年度第一批', staffingType: 'career', status: 'approved',
+    useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 0, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2026-03-15', validityEnd: '2027-03-14', totalFinalCount: 1,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 1, finalNum: 1 }] } },
+  { id: 'S2026-003', schoolName: '柳州铁一中学', batchName: '2026年度第二批', staffingType: 'control', status: 'approved',
+    useForms: { transfer: 0, publicRecruit: 3, selfRecruit: 0, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2026-04-01', validityEnd: '2027-03-31', totalFinalCount: 3,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 3, finalNum: 3 }] } },
+  // 柳州市第八中学演示数据 — 带有效期
+  { id: 'S2026-C05', schoolName: '柳州市第八中学', batchName: '2026年度鱼峰区计划', staffingType: 'career', status: 'approved',
+    useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 1, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2026-04-01', validityEnd: '2027-03-31', totalFinalCount: 2,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 2, finalNum: 2 }, { type: '单位自主实施招聘', code: 'selfRecruit', schoolNum: 1, finalNum: 0 }] } },
+  { id: 'S2026-A01', schoolName: '柳州市第八中学', batchName: '2026年度自主申报', staffingType: 'control', status: 'approved',
+    useForms: { transfer: 1, publicRecruit: 0, selfRecruit: 0, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2026-02-01', validityEnd: '2027-01-31', totalFinalCount: 1,
+      details: [{ type: '调动', code: 'transfer', schoolNum: 1, finalNum: 1 }] } },
+  // 有效期已过期演示数据
+  { id: 'S2026-EXP-C', schoolName: '柳州铁一中学', batchName: '2025年度第三批', staffingType: 'career', status: 'approved',
+    useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 0, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2025-03-01', validityEnd: '2026-04-30', totalFinalCount: 2,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 2, finalNum: 2 }] } },
+  { id: 'S2026-EXP-K', schoolName: '柳州铁一中学', batchName: '2025年度第三批', staffingType: 'control', status: 'approved',
+    useForms: { transfer: 1, publicRecruit: 1, selfRecruit: 0, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2025-06-01', validityEnd: '2026-05-15', totalFinalCount: 2,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 1, finalNum: 1 }, { type: '调动', code: 'transfer', schoolNum: 1, finalNum: 1 }] } },
+  // 即将到期演示数据（剩余30天内）
+  { id: 'S2026-DUE-C', schoolName: '柳州铁一中学', batchName: '2026年度第三批', staffingType: 'career', status: 'approved',
+    useForms: { transfer: 0, publicRecruit: 1, selfRecruit: 1, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2026-01-01', validityEnd: '2026-06-20', totalFinalCount: 2,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 1, finalNum: 1 }, { type: '单位自主实施招聘', code: 'selfRecruit', schoolNum: 1, finalNum: 1 }] } },
+  { id: 'S2026-DUE-K', schoolName: '柳州铁一中学', batchName: '2026年度第三批', staffingType: 'control', status: 'approved',
+    useForms: { transfer: 0, publicRecruit: 2, selfRecruit: 0, talent: 0 },
+    schoolFinalConfirm: { validityStart: '2026-02-01', validityEnd: '2026-06-25', totalFinalCount: 2,
+      details: [{ type: '统一公开招聘', code: 'publicRecruit', schoolNum: 2, finalNum: 2 }] } }
+];
+
+// ===== DEMO: 招聘岗位申请审核通过的岗位（用于拟分配岗位下拉选） =====
+var DEMO_RECRUIT_POSITIONS = [
+  { id: 'RP001', schoolName: '柳州铁一中学', positionName: '高中语文教师', categoryLevel: '专业技术岗位 十二级', status: 'approved' },
+  { id: 'RP002', schoolName: '柳州铁一中学', positionName: '高中数学教师', categoryLevel: '专业技术岗位 十级', status: 'approved' },
+  { id: 'RP003', schoolName: '柳州铁一中学', positionName: '高中英语教师', categoryLevel: '专业技术岗位 十二级', status: 'approved' },
+  { id: 'RP004', schoolName: '柳州铁一中学', positionName: '高中物理教师', categoryLevel: '专业技术岗位 十一级', status: 'approved' },
+  { id: 'RP005', schoolName: '柳州铁一中学', positionName: '高中化学教师', categoryLevel: '专业技术岗位 十二级', status: 'approved' },
+  { id: 'RP006', schoolName: '柳州铁一中学', positionName: '高中历史教师', categoryLevel: '专业技术岗位 十级', status: 'approved' }
+];
+
+// ===== DEMO: 聘用手续办理完成、待入编人员 =====
+var DEMO_EMPLOY_RECORDS = [
+  { id: 'EMP001', schoolName: '柳州铁一中学', name: '张三', gender: '男', status: 'employed' },
+  { id: 'EMP002', schoolName: '柳州铁一中学', name: '李丽', gender: '女', status: 'employed' },
+  { id: 'EMP003', schoolName: '柳州铁一中学', name: '王强', gender: '男', status: 'employed' },
+  { id: 'EMP004', schoolName: '柳州铁一中学', name: '赵芳', gender: '女', status: 'employed' }
+];
+
+// ===== 民族枚举 =====
+var ETHNIC_GROUPS = ['汉族','蒙古族','回族','藏族','维吾尔族','苗族','彝族','壮族','布依族','朝鲜族','满族','侗族','瑶族','白族','土家族','哈尼族','哈萨克族','傣族','黎族','傈僳族','佤族','畲族','高山族','拉祜族','水族','东乡族','纳西族','景颇族','柯尔克孜族','土族','达斡尔族','仫佬族','羌族','布朗族','撒拉族','毛南族','仡佬族','锡伯族','阿昌族','普米族','塔吉克族','怒族','乌孜别克族','俄罗斯族','鄂温克族','德昂族','保安族','裕固族','京族','塔塔尔族','独龙族','鄂伦春族','赫哲族','门巴族','珞巴族','基诺族'];
+
+// ===== 籍贯枚举（省市区县三级联动） =====
+var REGION_DATA = {
+  '北京': { '北京市': ['东城区','西城区','朝阳区','丰台区','石景山区','海淀区','门头沟区','房山区','通州区','顺义区','昌平区','大兴区','怀柔区','平谷区','密云区','延庆区'] },
+  '天津': { '天津市': ['和平区','河东区','河西区','南开区','河北区','红桥区','东丽区','西青区','津南区','北辰区','武清区','宝坻区','滨海新区','宁河区','静海区','蓟州区'] },
+  '上海': { '上海市': ['黄浦区','徐汇区','长宁区','静安区','普陀区','虹口区','杨浦区','闵行区','宝山区','嘉定区','浦东新区','金山区','松江区','青浦区','奉贤区','崇明区'] },
+  '重庆': { '重庆市': ['万州区','涪陵区','渝中区','大渡口区','江北区','沙坪坝区','九龙坡区','南岸区','北碚区','綦江区','大足区','渝北区','巴南区','黔江区','长寿区','江津区','合川区','永川区','南川区'] },
+  '河北': { '石家庄市':['长安区','桥西区','新华区','裕华区','藁城区','鹿泉区','栾城区'],'唐山市':['路南区','路北区','古冶区','开平区','丰南区','丰润区'],'保定市':['竞秀区','莲池区','满城区','清苑区','徐水区'],'邯郸市':['邯山区','丛台区','复兴区','峰峰矿区'] },
+  '山西': { '太原市':['小店区','迎泽区','杏花岭区','尖草坪区','万柏林区','晋源区'],'大同市':['平城区','云冈区','新荣区','云州区'],'临汾市':['尧都区'],'运城市':['盐湖区'] },
+  '辽宁': { '沈阳市':['和平区','沈河区','大东区','皇姑区','铁西区','苏家屯区','浑南区','沈北新区','于洪区'],'大连市':['中山区','西岗区','沙河口区','甘井子区','旅顺口区','金州区'],'鞍山市':['铁东区','铁西区','立山区','千山区'],'抚顺市':['新抚区','东洲区','望花区','顺城区'] },
+  '吉林': { '长春市':['南关区','宽城区','朝阳区','二道区','绿园区','双阳区','九台区'],'吉林市':['昌邑区','龙潭区','船营区','丰满区'],'四平市':['铁西区','铁东区'],'延边朝鲜族自治州':['延吉市','图们市','敦化市'] },
+  '黑龙江': { '哈尔滨市':['道里区','南岗区','道外区','平房区','松北区','香坊区','呼兰区','阿城区'],'齐齐哈尔市':['龙沙区','建华区','铁锋区','昂昂溪区'],'牡丹江市':['东安区','阳明区','爱民区','西安区'],'大庆市':['萨尔图区','龙凤区','让胡路区','红岗区'] },
+  '江苏': { '南京市':['玄武区','秦淮区','建邺区','鼓楼区','浦口区','栖霞区','雨花台区','江宁区','六合区'],'苏州市':['姑苏区','虎丘区','吴中区','相城区','吴江区'],'无锡市':['梁溪区','锡山区','惠山区','滨湖区','新吴区'],'常州市':['天宁区','钟楼区','新北区','武进区','金坛区'],'徐州市':['鼓楼区','云龙区','贾汪区','泉山区','铜山区'] },
+  '浙江': { '杭州市':['上城区','拱墅区','西湖区','滨江区','萧山区','余杭区','富阳区','临安区'],'宁波市':['海曙区','江北区','北仑区','镇海区','鄞州区','奉化区'],'温州市':['鹿城区','龙湾区','瓯海区'],'绍兴市':['越城区','柯桥区','上虞区'] },
+  '安徽': { '合肥市':['瑶海区','庐阳区','蜀山区','包河区'],'芜湖市':['镜湖区','鸠江区','弋江区'],'蚌埠市':['龙子湖区','蚌山区','禹会区','淮上区'],'马鞍山市':['花山区','雨山区','博望区'] },
+  '福建': { '福州市':['鼓楼区','台江区','仓山区','马尾区','晋安区','长乐区'],'厦门市':['思明区','湖里区','集美区','海沧区','同安区','翔安区'],'泉州市':['鲤城区','丰泽区','洛江区','泉港区'],'漳州市':['芗城区','龙文区'] },
+  '江西': { '南昌市':['东湖区','西湖区','青云谱区','青山湖区','新建区','红谷滩区'],'九江市':['濂溪区','浔阳区','柴桑区'],'赣州市':['章贡区','南康区','赣县区'],'上饶市':['信州区','广丰区','广信区'] },
+  '山东': { '济南市':['历下区','市中区','槐荫区','天桥区','历城区','长清区','章丘区'],'青岛市':['市南区','市北区','黄岛区','崂山区','李沧区','城阳区','即墨区'],'烟台市':['芝罘区','福山区','牟平区','莱山区','蓬莱区'],'潍坊市':['潍城区','寒亭区','坊子区','奎文区'] },
+  '河南': { '郑州市':['中原区','二七区','管城回族区','金水区','上街区','惠济区'],'洛阳市':['老城区','西工区','瀍河回族区','涧西区','洛龙区'],'开封市':['龙亭区','顺河回族区','鼓楼区','禹王台区','祥符区'],'南阳市':['宛城区','卧龙区'] },
+  '湖北': { '武汉市':['江岸区','江汉区','硚口区','汉阳区','武昌区','青山区','洪山区','东西湖区','汉南区','蔡甸区','江夏区','黄陂区','新洲区'],'宜昌市':['西陵区','伍家岗区','点军区','猇亭区','夷陵区'],'襄阳市':['襄城区','樊城区','襄州区'],'荆州市':['沙市区','荆州区'] },
+  '湖南': { '长沙市':['芙蓉区','天心区','岳麓区','开福区','雨花区','望城区'],'株洲市':['荷塘区','芦淞区','石峰区','天元区'],'湘潭市':['雨湖区','岳塘区'],'衡阳市':['珠晖区','雁峰区','石鼓区','蒸湘区','南岳区'] },
+  '广东': { '广州市':['越秀区','海珠区','荔湾区','天河区','白云区','黄埔区','番禺区','花都区','南沙区','从化区','增城区'],'深圳市':['罗湖区','福田区','南山区','宝安区','龙岗区','盐田区','龙华区','坪山区','光明区'],'珠海市':['香洲区','斗门区','金湾区'],'佛山市':['禅城区','南海区','顺德区','三水区','高明区'],'东莞市':['莞城街道','南城街道','东城街道','万江街道'] },
+  '广西': { '南宁市':['青秀区','兴宁区','江南区','西乡塘区','良庆区','邕宁区','武鸣区','横州市','宾阳县','上林县','马山县','隆安县'],'柳州市':['城中区','鱼峰区','柳南区','柳北区','柳江区','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县'],'桂林市':['秀峰区','叠彩区','象山区','七星区','雁山区','临桂区','阳朔县','灵川县','全州县','兴安县','永福县','灌阳县','龙胜各族自治县','资源县','平乐县','恭城瑶族自治县','荔浦市'],'梧州市':['万秀区','长洲区','龙圩区','苍梧县','藤县','蒙山县','岑溪市'],'北海市':['海城区','银海区','铁山港区','合浦县'],'防城港市':['港口区','防城区','上思县','东兴市'],'钦州市':['钦南区','钦北区','灵山县','浦北县'],'贵港市':['港北区','港南区','覃塘区','平南县','桂平市'],'玉林市':['玉州区','福绵区','容县','陆川县','博白县','兴业县','北流市'],'百色市':['右江区','田阳区','田东县','平果市','德保县','靖西市','那坡县','凌云县','乐业县','田林县','西林县','隆林各族自治县'],'贺州市':['八步区','平桂区','昭平县','钟山县','富川瑶族自治县'],'河池市':['金城江区','宜州区','南丹县','天峨县','凤山县','东兰县','罗城仫佬族自治县','环江毛南族自治县','巴马瑶族自治县','都安瑶族自治县','大化瑶族自治县'],'来宾市':['兴宾区','忻城县','象州县','武宣县','金秀瑶族自治县','合山市'],'崇左市':['江州区','扶绥县','宁明县','龙州县','大新县','天等县','凭祥市'] },
+  '海南': { '海口市':['秀英区','龙华区','琼山区','美兰区'],'三亚市':['海棠区','吉阳区','天涯区','崖州区'],'儋州市':['那大镇'] },
+  '四川': { '成都市':['锦江区','青羊区','金牛区','武侯区','成华区','龙泉驿区','青白江区','新都区','温江区','双流区','郫都区'],'绵阳市':['涪城区','游仙区','安州区'],'德阳市':['旌阳区','罗江区'],'宜宾市':['翠屏区','南溪区','叙州区'] },
+  '贵州': { '贵阳市':['南明区','云岩区','花溪区','乌当区','白云区','观山湖区'],'遵义市':['红花岗区','汇川区','播州区'],'六盘水市':['钟山区','水城区'],'安顺市':['西秀区','平坝区'] },
+  '云南': { '昆明市':['五华区','盘龙区','官渡区','西山区','东川区','呈贡区','晋宁区'],'曲靖市':['麒麟区','沾益区','马龙区'],'玉溪市':['红塔区','江川区'],'大理白族自治州':['大理市'] },
+  '西藏': { '拉萨市':['城关区','堆龙德庆区','达孜区'],'日喀则市':['桑珠孜区'],'昌都市':['卡若区'] },
+  '陕西': { '西安市':['新城区','碑林区','莲湖区','灞桥区','未央区','雁塔区','阎良区','临潼区','长安区','高陵区','鄠邑区'],'宝鸡市':['渭滨区','金台区','陈仓区'],'咸阳市':['秦都区','渭城区'],'延安市':['宝塔区','安塞区'] },
+  '甘肃': { '兰州市':['城关区','七里河区','西固区','安宁区','红古区'],'天水市':['秦州区','麦积区'],'酒泉市':['肃州区'],'庆阳市':['西峰区'] },
+  '青海': { '西宁市':['城东区','城中区','城西区','城北区','湟中区'],'海东市':['乐都区','平安区'] },
+  '宁夏': { '银川市':['兴庆区','西夏区','金凤区','灵武市'],'石嘴山市':['大武口区','惠农区'],'吴忠市':['利通区','红寺堡区'] },
+  '新疆': { '乌鲁木齐市':['天山区','沙依巴克区','新市区','水磨沟区','头屯河区','达坂城区','米东区'],'克拉玛依市':['克拉玛依区','独山子区'],'吐鲁番市':['高昌区'],'哈密市':['伊州区'] },
+  '内蒙古': { '呼和浩特市':['新城区','回民区','玉泉区','赛罕区'],'包头市':['东河区','昆都仑区','青山区','石拐区'],'鄂尔多斯市':['东胜区','康巴什区'],'赤峰市':['红山区','元宝山区','松山区'] }
+};
+var PROVINCE_LIST = Object.keys(REGION_DATA);
+
+// ===== STATE =====
+var currentRole = 'school';
+var schoolName = '柳州铁一中学';
+var staffingType = 'career';           // 'career' | 'control'
+var controlType = '中小学校聘用教师控制数';
+var isEditMode = false;
+var editRecordId = null;
+var selectedStaffingBatchId = null;
+var selectedStaffingBatchData = null;
+
+// career form state
+var careerForm = {
+  name: '', gender: '', politics: '', ethnicity: '', nativeProvince: '', nativeCity: '', nativeDistrict: '',
+  education: '', graduateInfo: '',
+  spouseName: '', spouseWorkUnit: '',
+  previousJob: '', orgNature: '', fundingSource: '', cadreOrWorker: '', title: '',
+  assignPosition: '', assignCategoryLevel: '', entryMethod: '统一公开招聘', docNumber: '',
+  reason: ''
+};
+
+// control table state: [{ name, gender, idCard, docNumber, entryMethod, idMaterials: [] }]
+var controlRows = [{ name: '', gender: '男', idCard: '', docNumber: '', entryMethod: '统一公开招聘', rowMaterials: [] }];
+
+var controlNoticeMaterials = [];
+
+// ===== CAREER MATERIAL CATALOG =====
+// All possible material items with metadata
+var MATERIAL_CATALOG = {
+  summary_table: { name: '编制使用申请汇总表', required: true },
+  register_book: { name: '编制本', required: true },
+  post_notice: { name: '岗位增补计划下达通知书', required: true },
+  education_cert: { name: '学历证书', required: false, note: '如批复中无要求可不提供' },
+  degree_cert: { name: '学位证书', required: false, note: '如批复中无要求可不提供' },
+  title_cert: { name: '职称证书', required: false, note: '如批复中无要求可不提供' },
+  license_cert: { name: '执业资格证书', required: false, note: '如批复中无要求可不提供' },
+  id_card: { name: '个人身份证（正反面）', required: true },
+  application_form: { name: '个人编制使用申请表', required: true },
+  appointment_doc: { name: '任命文件或干部调动通知', required: true },
+  military_order: { name: '军转干部安置任务通知文件', required: true },
+  military_intro: { name: '军转干部行政介绍信', required: true },
+  retiree_order: { name: '退役士兵安置任务通知文件', required: true },
+  family_doc: { name: '调动通知或岗位增补计划下达通知书', required: true },
+  transfer_form: { name: '商调表', required: true },
+  employment_agreement: { name: '就业协议', required: true },
+  roster: { name: '划转人员花名册', required: true },
+  control_form: { name: '聘用控制数转实名编教师考核登记表', required: true }
+};
+
+// Entry method → material key mapping
+var ENTRY_METHOD_MAP = {
+  '统一公开招聘': { common: ['summary_table','register_book','post_notice','id_card','application_form'], optional: ['education_cert','degree_cert','title_cert','license_cert'] },
+  '单位自主实施招聘': { common: ['summary_table','register_book','post_notice','id_card','application_form'], optional: ['education_cert','degree_cert','title_cert','license_cert'] },
+  '中高级人才招聘': { common: ['summary_table','register_book','post_notice','id_card','application_form'], optional: ['education_cert','degree_cert','title_cert','license_cert'] },
+  '引进高层次人才': { common: ['summary_table','register_book','post_notice','id_card','application_form'], optional: ['education_cert','degree_cert','title_cert','license_cert'] },
+  '调动': {
+    perSubtype: true,
+    subTypes: {
+      '一': { label: '组织任命（处级领导）', required: ['summary_table','register_book','id_card','application_form','appointment_doc'], optional: [] },
+      '五': { label: '军转干部安置', required: ['summary_table','register_book','id_card','application_form','military_order','military_intro'], optional: [] },
+      '六': { label: '退役士兵安置', required: ['summary_table','register_book','id_card','application_form','retiree_order','post_notice'], optional: [] },
+      '七': { label: '随军家属安置', required: ['summary_table','register_book','id_card','application_form','family_doc','transfer_form'], optional: [] },
+      '八': { label: '非参公事业单位调动', required: ['summary_table','register_book','id_card','application_form','post_notice','transfer_form'], optional: ['education_cert','degree_cert','title_cert','license_cert'] }
+    }
+  },
+  '其他': {
+    perSubtype: true,
+    subTypes: {
+      '十': { label: '免费师范生、定向医学生等', required: ['summary_table','register_book','post_notice','id_card','application_form','employment_agreement'], optional: ['education_cert','degree_cert','title_cert','license_cert'] },
+      '十一': { label: '划转、整建制划转', required: ['summary_table','register_book','id_card','application_form','roster','post_notice'], optional: [], note: '划转人员花名册和岗位增补计划下达通知书二选一，或两者均上传' },
+      '十二': { label: '中小学聘用教师控制数考核入实名编', required: ['summary_table','register_book','post_notice','id_card','application_form','control_form'], optional: [] }
+    }
+  }
+};
+
+// User upload state: careerUploadState['materialKey'] = { files: [] }
+var careerUploadState = {};
+(function() {
+  var keys = Object.keys(MATERIAL_CATALOG);
+  for (var i = 0; i < keys.length; i++) {
+    careerUploadState[keys[i]] = { files: [] };
+  }
+})();
+var selectedTransferSubType = '';
+var selectedOtherSubType = '';
+
+// ===== UPLOAD RULES =====
+var ALLOWED_EXTS = ['.pdf','.jpg','.jpeg','.png','.bmp','.gif','.doc','.docx','.xls','.xlsx'];
+var BLOCKED_EXTS = ['.zip','.rar','.7z','.tar','.gz','.bz2','.xz','.tgz'];
+var MAX_FILE_SIZE = 10 * 1024 * 1024;
+var MAX_FILES_PER_ITEM = 10;
+
+function validateFile(file) {
+  var ext = '.' + file.name.split('.').pop().toLowerCase();
+  if (BLOCKED_EXTS.indexOf(ext) >= 0) return '不支持压缩包格式（' + ext + '），请解压后上传';
+  if (ALLOWED_EXTS.indexOf(ext) < 0) return '不支持的文件格式：' + ext;
+  if (file.size > MAX_FILE_SIZE) return '文件过大（' + (file.size / 1024 / 1024).toFixed(1) + 'MB），单个文件不能超过 10MB';
+  return null;
+}
+
+// ===== TOAST =====
+function showToast(msg, type) {
+  type = type || '';
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(function() { el.remove(); }, 2200);
+}
+
+// ===== SIDEBAR =====
+function toggleUserMenu() {
+  document.getElementById('userDropdown').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.topnav-user')) {
+    document.getElementById('userDropdown').classList.remove('show');
+  }
+});
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function switchRole(role) {
+  currentRole = role;
+  // redirect to appropriate page
+  if (role === 'city' || role === 'district') {
+    window.location.href = '教师入编管理（主管单位视角）.html';
+  } else if (role === 'school') {
+    window.location.href = '教师入编管理（学校管理员视角）.html';
+  } else {
+    showToast('教师角色无入编管理权限', 'warning');
+  }
+}
+
+function renderSidebar() {
+  var roleData = ROLES[currentRole];
+  if (!roleData) { document.getElementById('sidebarMenu').innerHTML = ''; return; }
+  var sidebar = roleData.sidebar;
+  var html = '';
+  (sidebar.top || []).forEach(function(item) {
+    html += '<a class="menu-item' + (item.id === 'entry' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[item.icon] || '') + '<span class="menu-label">' + item.label + '</span></a>';
+  });
+  (sidebar.groups || []).forEach(function(group) {
+    html += '<div class="menu-group">' + group.name + '</div>';
+    group.items.forEach(function(item) {
+      html += '<a class="menu-item' + (item.id === 'entry' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span>' + (item.badge ? '<span class="menu-badge">' + item.badge + '</span>' : '') + '</a>';
+    });
+  });
+  document.getElementById('sidebarMenu').innerHTML = html;
+  // update role switcher active state
+  var btns = document.querySelectorAll('.role-switch-btn');
+  btns.forEach(function(b) { b.classList.toggle('active', b.dataset.role === currentRole); });
+  // update topnav user name
+  var nameEl = document.querySelector('.topnav-user span');
+  if (nameEl) nameEl.textContent = roleData.name;
+  var avatarEl = document.querySelector('.topnav-user .avatar');
+  if (avatarEl) avatarEl.textContent = roleData.short;
+}
+
+function sidebarClick(el, id) {
+  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
+  el.classList.add('active');
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'entry') {
+    if (currentRole === 'school') { window.location.href = '教师入编管理（学校管理员视角）.html'; }
+    else if (currentRole === 'city' || currentRole === 'district') { window.location.href = '教师入编管理（主管单位视角）.html'; }
+    else { showToast('无权限访问', 'warning'); }
+    return;
+  }
+  if (id === 'exit') {
+    if (currentRole === 'school') { window.location.href = '教师出编管理（学校管理员视角）.html'; }
+    else if (currentRole === 'city' || currentRole === 'district') { window.location.href = '教师出编管理（主管单位视角）.html'; }
+    else { showToast('无权限访问', 'warning'); }
+    return;
+  }
+  if (id === 'promote') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'promote-list-admin.html?role=' + currentRole; }
+    else if (currentRole === 'school') { window.location.href = 'promote-list-school.html'; }
+    else { showToast('无权限访问', 'warning'); }
+    return;
+  }
+  if (id === 'postset') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'post-list-admin.html?role=' + currentRole; }
+    else if (currentRole === 'school') { window.location.href = 'post-list-school.html'; }
+    else { showToast('无权限访问', 'warning'); }
+    return;
+  }
+  if (id === 'recruit') {
+    if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+    if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+    showToast('无权限访问', 'warning');
+    return;
+  }
+  showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
+}
+
+// ===== TYPE SELECTOR =====
+function renderTypeSelector() {
+  var html = '';
+  var types = [
+    { value: 'career', name: '事业编' },
+    { value: 'control', name: '控制数' }
+  ];
+  types.forEach(function(t) {
+    html += '<div class="type-option' + (staffingType === t.value ? ' selected' : '') + '" onclick="selectType(\'' + t.value + '\')">';
+    html += '<div class="type-name">' + t.name + '</div>';
+    html += '</div>';
+  });
+  document.getElementById('typeSelector').innerHTML = html;
+}
+
+function selectType(type) {
+  staffingType = type;
+  selectedStaffingBatchId = null;
+  selectedStaffingBatchData = null;
+  renderTypeSelector();
+  renderStaffingBatchSelector();
+  renderUnitInfo();
+  renderApplicantArea();
+  renderMaterialsArea();
+}
+
+// ===== UNIT INFO =====
+function renderUnitInfo() {
+  var sd = SCHOOL_DATA[schoolName] || SCHOOL_DATA['柳州市第八中学'];
+  var hasDetail = !!sd.postBreakdown;
+
+  document.getElementById('unitInfoTitleText').textContent = '单位信息 — 申请使用编制单位情况';
+
+  var btnEdit = document.getElementById('btnEditOrg');
+  if (btnEdit) btnEdit.style.display = currentRole === 'school' ? '' : 'none';
+
+  if (hasDetail) {
+    document.getElementById('unitInfoContent').innerHTML = renderDetailedUnitInfo(sd);
+  } else {
+    document.getElementById('unitInfoContent').innerHTML = renderLegacyUnitInfo(sd);
+  }
+
+  if (staffingType === 'control') {
+    document.getElementById('controlInfoCard').style.display = '';
+    document.getElementById('controlInfoCard').innerHTML = renderControlInfoCard(sd);
+  } else {
+    document.getElementById('controlInfoCard').style.display = 'none';
+  }
+
+  renderQuotaSummary(sd);
+}
+
+function renderDetailedUnitInfo(sd) {
+  var html = '';
+  html += '<table class="info-table">';
+  html += '<tr><td class="ilabel">单位全称</td><td class="ivalue" colspan="3">' + sd.unitName + '</td></tr>';
+  html += '<tr><td class="ilabel">统一社会信用代码(或事登证号)</td><td class="ivalue" colspan="3">' + (sd.creditCode || '—') + '</td></tr>';
+  html += '<tr><td class="ilabel">机构级别</td><td class="ivalue">' + sd.orgLevel + '</td>';
+  html += '<td class="ilabel">经费来源</td><td class="ivalue">' + (sd.fundingSource || sd.orgNature || '—') + '</td></tr>';
+  html += '<tr><td class="ilabel">核定编制数(名)</td><td class="ivalue">' + sd.careerStaffQuota + '</td>';
+  html += '<td class="ilabel">现有人数(人)</td><td class="ivalue">' + sd.currentCareerStaff + '</td></tr>';
+  html += '</table>';
+
+  if (sd.postBreakdown) {
+    var pb = sd.postBreakdown;
+    html += '<div class="info-section-label">岗位分类</div>';
+    html += '<table class="info-subtable"><tr>';
+    html += '<td class="isub-left"><table class="info-mini">';
+    html += '<tr><th>岗位类别</th><th>核定岗位</th></tr>';
+    html += '<tr><td>行政管理</td><td>' + pb.adminAuth + '</td></tr>';
+    html += '<tr><td>专业技术</td><td>' + pb.techAuth + '</td></tr>';
+    html += '<tr><td>后勤服务</td><td>' + pb.logisticsAuth + '</td></tr>';
+    html += '</table></td>';
+    html += '<td class="isub-right"><table class="info-mini">';
+    html += '<tr><th>岗位类别</th><th>实有人员</th></tr>';
+    html += '<tr><td>行政管理岗位人数</td><td>' + pb.adminActual + '</td></tr>';
+    html += '<tr><td>专业技术岗位人数</td><td>' + pb.techActual + '</td></tr>';
+    html += '<tr><td>后勤服务岗位人数</td><td>' + pb.logisticsActual + '</td></tr>';
+    html += '</table></td>';
+    html += '</tr></table>';
+  }
+
+  if (sd.leaderBreakdown) {
+    var lb = sd.leaderBreakdown;
+    html += '<div class="info-section-label">领导职数</div>';
+    html += '<table class="info-subtable"><tr>';
+    html += '<td class="isub-left"><table class="info-mini">';
+    html += '<tr><th>职级</th><th>核定职数</th></tr>';
+    html += '<tr><td>厅级</td><td>' + lb.deptLevel.auth + '</td></tr>';
+    html += '<tr><td>处级</td><td>' + lb.divisionLevel.auth + '</td></tr>';
+    html += '<tr><td>科级</td><td>' + lb.sectionLevel.auth + '</td></tr>';
+    html += '</table></td>';
+    html += '<td class="isub-right"><table class="info-mini">';
+    html += '<tr><th>职级</th><th>实配人数</th></tr>';
+    html += '<tr><td>厅级</td><td>' + lb.deptLevel.actual + '</td></tr>';
+    html += '<tr><td>处级</td><td>' + lb.divisionLevel.actual + '</td></tr>';
+    html += '<tr><td>科级</td><td>' + lb.sectionLevel.actual + '</td></tr>';
+    html += '</table></td>';
+    html += '</tr></table>';
+  }
+
+  return html;
+}
+
+function renderLegacyUnitInfo(sd) {
+  var html = '';
+  html += '<div class="unit-grid">';
+  html += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + sd.unitName + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + sd.orgLevel + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + sd.orgNature + '</div></div>';
+  html += '<div class="info-item"><!-- placeholder --></div>';
+  html += '<div class="info-item"><div class="info-label">核定事业编制数（名）</div><div class="info-value">' + sd.careerStaffQuota + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">在编人数（人）</div><div class="info-value">' + sd.currentCareerStaff + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">剩余可用计划数</div><div class="info-value">' + sd.unusedCareerPlan + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">核定单位领导职数</div><div class="info-value">' + sd.authLeader + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">实配单位领导人数</div><div class="info-value">' + sd.actualLeader + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">实配单位其他领导人数</div><div class="info-value">' + sd.actualOtherLeader + '</div></div>';
+  html += '</div>';
+  return html;
+}
+
+function renderControlInfoCard(sd) {
+  var applicantCount = controlRows.length;
+  var afterFiling = sd.currentControlStaff + applicantCount;
+  var html = '';
+  html += '<div class="form-card-title" style="margin-top:16px;">控制数信息</div>';
+  html += '<div class="unit-grid">';
+  html += '<div class="info-item full-width"><div class="info-label">控制数类型</div><select id="controlTypeSelect" onchange="controlType=this.value;">';
+  var ctOptions = ['中小学校聘用教师控制数','中职中专学校教职人员控制数','高等职业学校教职人员控制数'];
+  ctOptions.forEach(function(opt) {
+    html += '<option value="' + opt + '"' + (controlType === opt ? ' selected' : '') + '>' + opt + '</option>';
+  });
+  html += '</select></div>';
+  html += '<div class="info-item"><div class="info-label">核定控制数</div><div class="info-value">' + sd.authControlNo + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">现有控制数人员</div><div class="info-value">' + sd.currentControlStaff + '</div></div>';
+  html += '<div class="info-item"><!-- placeholder --></div>';
+  html += '<div class="info-item"><div class="info-label">本次备案控制数人员</div><div class="info-value calculated" id="thisFiling">' + applicantCount + '</div></div>';
+  html += '<div class="info-item"><div class="info-label">备案后控制数人员</div><div class="info-value calculated" id="afterFiling">' + afterFiling + '</div></div>';
+  html += '<div class="info-item"><!-- placeholder --></div>';
+  html += '</div>';
+  return html;
+}
+
+function renderQuotaSummary(sd) {
+  var summary = document.getElementById('quotaSummary');
+  if (staffingType === 'career') {
+    // 优先使用已选批次的数据，否则回退到汇总
+    var breakdown = [];
+    var totalQuota = 0;
+    if (selectedStaffingBatchData && selectedStaffingBatchData.useForms) {
+      var uf = selectedStaffingBatchData.useForms;
+      var ufKeys = Object.keys(uf);
+      for (var qi = 0; qi < ufKeys.length; qi++) {
+        var k = ufKeys[qi];
+        var count = uf[k] || 0;
+        if (count > 0) {
+          breakdown.push({ type: USE_FORM_LABEL[k] || k, count: count });
+        }
+        totalQuota += count;
+      }
+      // 如果存在核定数，用核定数替代
+      if (selectedStaffingBatchData.schoolFinalConfirm && selectedStaffingBatchData.schoolFinalConfirm.totalFinalCount != null) {
+        totalQuota = selectedStaffingBatchData.schoolFinalConfirm.totalFinalCount;
+      }
+    } else {
+      breakdown = getApprovedUseFormBreakdown(schoolName);
+      for (var qi = 0; qi < breakdown.length; qi++) {
+        totalQuota += breakdown[qi].count;
+      }
+    }
+    var breakdownHtml = '';
+    if (breakdown.length > 0) {
+      var parts = [];
+      for (var qi = 0; qi < breakdown.length; qi++) {
+        var b = breakdown[qi];
+        parts.push(b.type + b.count + '人');
+      }
+      breakdownHtml = '<div class="quota-detail">（' + parts.join('/') + '）</div>';
+    }
+    var remaining = totalQuota - 1;
+    summary.innerHTML =
+      '<div class="quota-item">' +
+        '<div class="q-label">可申请入编的编制数</div>' +
+        '<div class="q-value ok">' + totalQuota + '</div>' +
+        breakdownHtml +
+      '</div>' +
+      '<div class="quota-item"><div class="q-label">本次申请使用人数</div><div class="q-value" id="applyCount">1</div></div>' +
+      '<div class="quota-item"><div class="q-label">剩余可申请入编编制数</div><div class="q-value ok" id="remainingQuota">' + remaining + '</div></div>';
+  } else {
+    // 控制数：优先使用已选批次的数据
+    var totalQuotaCtrl = sd.authControlNo - sd.currentControlStaff;
+    var breakdownCtrl = [];
+    if (selectedStaffingBatchData && selectedStaffingBatchData.useForms) {
+      breakdownCtrl = [];
+      totalQuotaCtrl = 0;
+      var ufc = selectedStaffingBatchData.useForms;
+      var ufcKeys = Object.keys(ufc);
+      for (var qi2 = 0; qi2 < ufcKeys.length; qi2++) {
+        var k2 = ufcKeys[qi2];
+        var cnt2 = ufc[k2] || 0;
+        if (cnt2 > 0) {
+          breakdownCtrl.push({ type: USE_FORM_LABEL[k2] || k2, count: cnt2 });
+        }
+        totalQuotaCtrl += cnt2;
+      }
+      if (selectedStaffingBatchData.schoolFinalConfirm && selectedStaffingBatchData.schoolFinalConfirm.totalFinalCount != null) {
+        totalQuotaCtrl = selectedStaffingBatchData.schoolFinalConfirm.totalFinalCount;
+      }
+    }
+    var breakdownHtmlCtrl = '';
+    if (breakdownCtrl.length > 0) {
+      var partsCtrl = [];
+      for (var qi2 = 0; qi2 < breakdownCtrl.length; qi2++) {
+        partsCtrl.push(breakdownCtrl[qi2].type + breakdownCtrl[qi2].count + '人');
+      }
+      breakdownHtmlCtrl = '<div class="quota-detail">（' + partsCtrl.join('/') + '）</div>';
+    }
+    var applicantCount = controlRows.length;
+    var remainingCtrl = totalQuotaCtrl - applicantCount;
+    summary.innerHTML =
+      '<div class="quota-item">' +
+        '<div class="q-label">可申请控制数</div>' +
+        '<div class="q-value ok">' + totalQuotaCtrl + '</div>' +
+        breakdownHtmlCtrl +
+      '</div>' +
+      '<div class="quota-item"><div class="q-label">本次申请使用人数</div><div class="q-value" id="applyCount">' + applicantCount + '</div></div>' +
+      '<div class="quota-item"><div class="q-label">剩余可申请控制数</div><div class="q-value ok" id="remainingControlQuota">' + Math.max(0, remainingCtrl) + '</div></div>';
+  }
+  summary.style.display = 'flex';
+}
+
+function editOrgInfo() {
+  showToast('机构信息页面暂未开放', 'warning');
+}
+
+// ===== HELPERS: 编制使用申请 + 招聘岗位 =====
+var USE_FORM_LABEL = {
+  transfer: '调动',
+  publicRecruit: '统一公开招聘',
+  selfRecruit: '单位自主实施招聘',
+  talent: '引进人才',
+  talentMid: '中高级人才招聘',
+  talentHigh: '引进高层次人才',
+  other: '其他'
+};
+
+function getApprovedUseFormBreakdown(school) {
+  var stored = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+  var matchingStored = stored.filter(function(s) {
+    return s.schoolName === school && s.staffingType === 'career' && s.status === 'approved';
+  });
+  var source = matchingStored.length > 0 ? stored : DEMO_STAFFING_SUBMISSIONS;
+  var approved = source.filter(function(s) {
+    return s.schoolName === school && s.staffingType === 'career' && s.status === 'approved';
+  });
+  var agg = {};
+  approved.forEach(function(s) {
+    var uf = s.useForms || {};
+    Object.keys(uf).forEach(function(k) {
+      agg[k] = (agg[k] || 0) + uf[k];
+    });
+  });
+  var result = [];
+  Object.keys(agg).forEach(function(k) {
+    result.push({ type: USE_FORM_LABEL[k] || k, count: agg[k] });
+  });
+  return result;
+}
+
+function getApprovedRecruitPositions(school) {
+  var stored = JSON.parse(localStorage.getItem('recruit_positions') || '[]');
+  var matchingStored = stored.filter(function(p) {
+    return p.schoolName === school && p.status === 'approved';
+  });
+  var source = matchingStored.length > 0 ? stored : DEMO_RECRUIT_POSITIONS;
+  return source.filter(function(p) {
+    return p.schoolName === school && p.status === 'approved';
+  });
+}
+
+function onPositionChange() {
+  var sel = document.getElementById('c_assignPosition');
+  var val = sel ? sel.value : '';
+  careerForm.assignPosition = val;
+  var positions = getApprovedRecruitPositions(schoolName);
+  var found = null;
+  for (var i = 0; i < positions.length; i++) {
+    if (positions[i].positionName === val) { found = positions[i]; break; }
+  }
+  careerForm.assignCategoryLevel = found ? found.categoryLevel : '';
+  var catEl = document.getElementById('c_assignCategoryLevel');
+  if (catEl) catEl.value = careerForm.assignCategoryLevel;
+}
+
+function getAvailableEmployNames(school) {
+  var stored = JSON.parse(localStorage.getItem('employ_records') || '[]');
+  var matchingStored = stored.filter(function(e) {
+    return e.schoolName === school && e.status === 'employed';
+  });
+  var source = matchingStored.length > 0 ? stored : DEMO_EMPLOY_RECORDS;
+  return source.filter(function(e) {
+    return e.schoolName === school && e.status === 'employed';
+  });
+}
+
+function onNameChange() {
+  var sel = document.getElementById('c_name');
+  var val = sel ? sel.value : '';
+  careerForm.name = val;
+  var employList = getAvailableEmployNames(schoolName);
+  var found = null;
+  for (var i = 0; i < employList.length; i++) {
+    if (employList[i].name === val) { found = employList[i]; break; }
+  }
+  if (found && found.gender) {
+    careerForm.gender = found.gender;
+    var genderEl = document.getElementById('c_gender');
+    if (genderEl) genderEl.value = found.gender;
+  }
+}
+
+function updateSpouseFields() {
+  var spouseName = document.getElementById('c_spouseName');
+  var spouseWork = document.getElementById('c_spouseWorkUnit');
+  if (!spouseWork) return;
+  var isEmpty = !careerForm.spouseName || careerForm.spouseName === '无';
+  spouseWork.disabled = isEmpty;
+  if (isEmpty) { careerForm.spouseWorkUnit = ''; spouseWork.value = ''; }
+}
+
+function onProvinceChange() {
+  var sel = document.getElementById('c_nativeProvince');
+  careerForm.nativeProvince = sel ? sel.value : '';
+  careerForm.nativeCity = '';
+  careerForm.nativeDistrict = '';
+  rebuildCitySelect();
+  rebuildDistrictSelect();
+}
+
+function onCityChange() {
+  var sel = document.getElementById('c_nativeCity');
+  careerForm.nativeCity = sel ? sel.value : '';
+  careerForm.nativeDistrict = '';
+  rebuildDistrictSelect();
+}
+
+function rebuildCitySelect() {
+  var cityEl = document.getElementById('c_nativeCity');
+  var distEl = document.getElementById('c_nativeDistrict');
+  if (!cityEl) return;
+  var prov = careerForm.nativeProvince;
+  var cityMap = REGION_DATA[prov] || {};
+  var cities = Object.keys(cityMap);
+  var html = '<option value="">市</option>';
+  cities.forEach(function(c) { html += '<option value="' + c + '">' + c + '</option>'; });
+  cityEl.innerHTML = html;
+  if (distEl) { distEl.innerHTML = '<option value="">区/县</option>'; }
+}
+
+function rebuildDistrictSelect() {
+  var distEl = document.getElementById('c_nativeDistrict');
+  if (!distEl) return;
+  var prov = careerForm.nativeProvince;
+  var city = careerForm.nativeCity;
+  var districts = (REGION_DATA[prov] || {})[city] || [];
+  var html = '<option value="">区/县</option>';
+  districts.forEach(function(d) { html += '<option value="' + d + '">' + d + '</option>'; });
+  distEl.innerHTML = html;
+}
+
+function rebuildNativeCascades() {
+  // populate city/district dropdowns from current careerForm state
+  var prov = careerForm.nativeProvince;
+  if (!prov) { rebuildCitySelect(); return; }
+  rebuildCitySelect();
+  var cityEl = document.getElementById('c_nativeCity');
+  if (cityEl && careerForm.nativeCity) { cityEl.value = careerForm.nativeCity; }
+  rebuildDistrictSelect();
+  var distEl = document.getElementById('c_nativeDistrict');
+  if (distEl && careerForm.nativeDistrict) { distEl.value = careerForm.nativeDistrict; }
+}
+
+function updatePreviousJobFields() {
+  var fields = ['c_orgNature','c_fundingSource','c_cadreOrWorker','c_title'];
+  var isEmpty = !careerForm.previousJob || careerForm.previousJob === '无';
+  fields.forEach(function(fid) {
+    var el = document.getElementById(fid);
+    if (!el) return;
+    el.disabled = isEmpty;
+    if (isEmpty) {
+      var key = fid.replace('c_','');
+      careerForm[key] = '';
+      el.value = '';
+    }
+  });
+}
+
+function updateControlCalculated() {
+  var sd = SCHOOL_DATA[schoolName] || SCHOOL_DATA['柳州市第八中学'];
+  var cnt = controlRows.length;
+  var afterEl = document.getElementById('afterFiling');
+  var thisEl = document.getElementById('thisFiling');
+  var applyEl = document.getElementById('applyCount');
+  var remainEl = document.getElementById('remainingControlQuota');
+  if (thisEl) thisEl.textContent = cnt;
+  if (afterEl) afterEl.textContent = sd.currentControlStaff + cnt;
+  if (applyEl) applyEl.textContent = cnt;
+  if (remainEl) remainEl.textContent = Math.max(0, (sd.authControlNo - sd.currentControlStaff) - cnt);
+  var controlCard = document.getElementById('controlInfoCard');
+  if (controlCard && controlCard.style.display !== 'none') {
+    controlCard.innerHTML = renderControlInfoCard(sd);
+  }
+}
+
+// ===== CAREER FORM =====
+function renderCareerForm() {
+  var html = '';
+  var employNames = getAvailableEmployNames(schoolName);
+  var positions = getApprovedRecruitPositions(schoolName);
+
+  // Group: 身份信息
+  html += '<div class="form-group-section">';
+  html += '<div class="section-label">身份信息</div>';
+  html += '<div class="form-grid">';
+  // 姓名 — 下拉选（聘用手续办理完成、未入编人员）
+  html += '<div class="form-field">';
+  html += '<label>姓名 <span class="required">*</span></label>';
+  html += '<select id="c_name" onchange="onNameChange()">';
+  html += '<option value="">— 请选择 —</option>';
+  employNames.forEach(function(e) {
+    html += '<option value="' + e.name + '"' + (careerForm.name === e.name ? ' selected' : '') + '>' + e.name + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
+  html += formField('c_gender', '性别', 'select', careerForm.gender, true, '', ['男','女']);
+  html += formField('c_politics', '政治面貌', 'select', careerForm.politics, true, '', ['中共党员','中共预备党员','共青团员','民主党派','群众']);
+  html += formField('c_ethnicity', '民族', 'select', careerForm.ethnicity, true, '', ETHNIC_GROUPS);
+  // 籍贯 — 省市区三级联动
+  html += '<div class="form-field"><label>籍贯 <span class="required">*</span></label><div style="display:flex;gap:6px;">';
+  html += '<select id="c_nativeProvince" onchange="onProvinceChange()" style="flex:1;"><option value="">省</option>';
+  PROVINCE_LIST.forEach(function(p) { html += '<option value="' + p + '"' + (careerForm.nativeProvince === p ? ' selected' : '') + '>' + p + '</option>'; });
+  html += '</select>';
+  html += '<select id="c_nativeCity" onchange="onCityChange()" style="flex:1;"><option value="">市</option></select>';
+  html += '<select id="c_nativeDistrict" onchange="careerForm.nativeDistrict=this.value;" style="flex:1;"><option value="">区/县</option></select>';
+  html += '</div></div>';
+  html += formField('c_education', '文化程度', 'select', careerForm.education, true, '', ['博士','硕士','本科','大专','中专及以下']);
+  html += '</div>';
+  html += '<div class="form-grid" style="margin-top:16px;">';
+  html += formField('c_graduateInfo', '毕业院校及专业', 'text', careerForm.graduateInfo, true, '院校+专业', null, true);
+  html += '</div>';
+  html += '</div>';
+
+  // Group: 家庭信息（若无配偶，整组置灰）
+  html += '<div class="form-group-section">';
+  html += '<div class="section-label">家庭信息</div>';
+  html += '<div class="form-grid">';
+  html += '<div class="form-field"><label>配偶姓名</label><input type="text" id="c_spouseName" value="' + escapeHtml(careerForm.spouseName) + '" placeholder="若无配偶填"无"" oninput="careerForm.spouseName=this.value;updateSpouseFields();"></div>';
+  html += '<div class="form-field"><label>配偶工作单位</label><input type="text" id="c_spouseWorkUnit" value="' + escapeHtml(careerForm.spouseWorkUnit) + '" placeholder="若无填"无"" oninput="careerForm.spouseWorkUnit=this.value;"></div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Group: 原单位信息（若无原单位，整组置灰）
+  html += '<div class="form-group-section">';
+  html += '<div class="section-label">原单位信息</div>';
+  html += '<div class="form-grid">';
+  html += '<div class="form-field full-width"><label>原工作单位</label><input type="text" id="c_previousJob" value="' + escapeHtml(careerForm.previousJob) + '" placeholder="若无填"无"" oninput="careerForm.previousJob=this.value;updatePreviousJobFields();"></div>';
+  html += '</div>';
+  html += '<div class="form-grid" style="margin-top:16px;">';
+  html += formField('c_orgNature', '单位性质', 'select', careerForm.orgNature, false, '', ['事业单位','行政机关','企业','其他']);
+  html += formField('c_fundingSource', '经费来源', 'select', careerForm.fundingSource, false, '', ['财政全额拨款','财政差额拨款','自收自支']);
+  html += formField('c_cadreOrWorker', '干部或工人', 'select', careerForm.cadreOrWorker, false, '', ['干部','工人']);
+  html += formField('c_title', '职务职称', 'text', careerForm.title, false, '如：一级教师');
+  html += '</div>';
+  html += '</div>';
+
+  // Group: 入编信息
+  html += '<div class="form-group-section">';
+  html += '<div class="section-label">入编信息</div>';
+  html += '<div class="form-grid">';
+  html += '<div class="form-field full-width">';
+  html += '<label>拟分配岗位 <span class="required">*</span></label>';
+  html += '<select id="c_assignPosition" onchange="onPositionChange()">';
+  html += '<option value="">— 请选择 —</option>';
+  positions.forEach(function(p) {
+    html += '<option value="' + p.positionName + '"' + (careerForm.assignPosition === p.positionName ? ' selected' : '') + '>' + p.positionName + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="form-grid" style="margin-top:16px;">';
+  html += formField('c_assignCategoryLevel', '拟分配岗位类别及等级', 'text', careerForm.assignCategoryLevel || '', false, '选择岗位后自动带出', null, true, true);
+  // Entry method with material area refresh
+  html += '<div class="form-field">';
+  html += '<label>入编方式 <span class="required">*</span></label>';
+  html += '<select id="c_entryMethod" onchange="careerForm.entryMethod=this.value;selectedTransferSubType=\'\';selectedOtherSubType=\'\';renderMaterialsArea();">';
+  var _entryOptions = ['统一公开招聘','单位自主实施招聘','中高级人才招聘','引进高层次人才','调动','其他'];
+  _entryOptions.forEach(function(opt) {
+    html += '<option value="' + opt + '"' + (careerForm.entryMethod === opt ? ' selected' : '') + '>' + opt + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
+  html += formField('c_docNumber', '依据文号', 'text', careerForm.docNumber, true, '入编依据的文件编号');
+  html += '</div>';
+  html += '</div>';
+
+  // Group: 申请理由
+  html += '<div class="form-group-section">';
+  html += '<div class="section-label">申请理由</div>';
+  html += '<div class="form-grid">';
+  html += '<div class="form-field full-width"><label>申请使用编制的主要理由 <span class="required">*</span></label><textarea id="c_reason" maxlength="500" rows="3" oninput="careerForm.reason=this.value;">' + escapeHtml(careerForm.reason) + '</textarea><div style="font-size:11px;color:var(--text-light);text-align:right;"><span id="c_reason_count">' + careerForm.reason.length + '</span>/500</div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('applicantArea').innerHTML = html;
+  document.getElementById('applicantTitle').textContent = '申请人信息 — 事业编（1人）';
+
+  // reason char counter
+  var reaEl = document.getElementById('c_reason');
+  if (reaEl) {
+    reaEl.addEventListener('input', function() { document.getElementById('c_reason_count').textContent = this.value.length; });
+  }
+  // 初始化置灰状态 + 籍贯级联
+  updateSpouseFields();
+  updatePreviousJobFields();
+  rebuildNativeCascades();
+}
+
+function formField(id, label, type, value, required, hint, selectOptions, fullWidth, readonly) {
+  var cls = 'form-field' + (fullWidth ? ' full-width' : '');
+  var html = '<div class="' + cls + '">';
+  html += '<label>' + label + (required ? '<span class="required">*</span>' : '') + '</label>';
+  if (type === 'select') {
+    html += '<select id="' + id + '" onchange="careerForm.' + id.replace('c_','') + '=this.value;"' + (readonly ? ' disabled' : '') + '>';
+    if (!required) html += '<option value="">— 无 —</option>';
+    selectOptions.forEach(function(opt) {
+      html += '<option value="' + opt + '"' + (value === opt ? ' selected' : '') + '>' + opt + '</option>';
+    });
+    html += '</select>';
+  } else {
+    html += '<input type="' + type + '" id="' + id + '" value="' + escapeHtml(value) + '" placeholder="' + (hint || '') + '" oninput="careerForm.' + id.replace('c_','') + '=this.value;"' + (readonly ? ' readonly' : '') + '>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function collectCareerForm() {
+  // already live via oninput/onchange
+  // read textareas
+  var rea = document.getElementById('c_reason');
+  if (rea) careerForm.reason = rea.value;
+}
+
+// ===== CONTROL TABLE =====
+function renderControlTable() {
+  var html = '<table class="entry-table"><thead><tr>';
+  html += '<th>序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>依据文号</th><th>增人形式</th><th>材料（身份证）</th><th>操作</th>';
+  html += '</tr></thead><tbody id="controlTableBody">';
+  controlRows.forEach(function(row, idx) {
+    html += buildControlRowHtml(row, idx);
+  });
+  html += '</tbody></table>';
+  html += '<button class="btn-add-row" onclick="addControlRow()">+ 添加申请人</button>';
+  document.getElementById('applicantArea').innerHTML = html;
+  document.getElementById('applicantTitle').textContent = '申请人信息 — 控制数（' + controlRows.length + '人）';
+}
+
+function buildControlRowHtml(row, idx) {
+  var entryOptions = ['统一公开招聘','单位自主实施招聘','中高级人才招聘','引进高层次人才','调动','其他'];
+  var html = '<tr id="controlRow_' + idx + '">';
+  html += '<td>' + (idx + 1) + '</td>';
+  html += '<td><input type="text" value="' + escapeHtml(row.name) + '" oninput="controlRows[' + idx + '].name=this.value;" placeholder="姓名"></td>';
+  html += '<td><select onchange="controlRows[' + idx + '].gender=this.value;">';
+  html += '<option value="男"' + (row.gender === '男' ? ' selected' : '') + '>男</option>';
+  html += '<option value="女"' + (row.gender === '女' ? ' selected' : '') + '>女</option>';
+  html += '</select></td>';
+  html += '<td><input type="text" value="' + escapeHtml(row.idCard) + '" oninput="controlRows[' + idx + '].idCard=this.value;" placeholder="18位身份证号" maxlength="18"></td>';
+  html += '<td><input type="text" value="' + escapeHtml(row.docNumber) + '" oninput="controlRows[' + idx + '].docNumber=this.value;" placeholder="文件编号"></td>';
+  html += '<td><select onchange="controlRows[' + idx + '].entryMethod=this.value;">';
+  entryOptions.forEach(function(opt) {
+    html += '<option value="' + opt + '"' + (row.entryMethod === opt ? ' selected' : '') + '>' + opt + '</option>';
+  });
+  html += '</select></td>';
+  html += '<td class="row-materials-section">';
+  html += '<button class="row-upload-btn" onclick="triggerRowUpload(' + idx + ')">上传</button>';
+  if (row.rowMaterials && row.rowMaterials.length > 0) {
+    html += '<div class="file-list">';
+    row.rowMaterials.forEach(function(f, fi) {
+      html += '<span class="file-tag" title="' + escapeHtml(f.name) + '">' + escapeHtml(f.name.substring(0, 10)) + '...</span>';
+    });
+    html += '</div>';
+  }
+  html += '<input type="file" id="rowFileInput_' + idx + '" accept=".pdf,.jpg,.jpeg,.png,.bmp,.gif,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleRowFile(' + idx + ', event)">';
+  html += '</td>';
+  html += '<td class="row-actions"><button class="btn-delete-row" onclick="deleteControlRow(' + idx + ')">×</button></td>';
+  html += '</tr>';
+  return html;
+}
+
+function addControlRow() {
+  controlRows.push({ name: '', gender: '男', idCard: '', docNumber: '', entryMethod: '统一公开招聘', rowMaterials: [] });
+  renderControlTable();
+  updateControlCalculated();
+  renderMaterialsArea();
+  refreshQuotaSummary();
+}
+
+function deleteControlRow(idx) {
+  if (controlRows.length <= 1) { showToast('至少保留1名申请人', 'warning'); return; }
+  controlRows.splice(idx, 1);
+  renderControlTable();
+  updateControlCalculated();
+  renderMaterialsArea();
+  refreshQuotaSummary();
+}
+
+function refreshQuotaSummary() {
+  var sd = SCHOOL_DATA[schoolName] || SCHOOL_DATA['柳州市第八中学'];
+  renderQuotaSummary(sd);
+}
+
+function triggerRowUpload(idx) {
+  document.getElementById('rowFileInput_' + idx).click();
+}
+
+function handleRowFile(idx, event) {
+  if (!event.target.files || !event.target.files[0]) return;
+  var file = event.target.files[0];
+  var err = validateFile(file);
+  if (err) { showToast(err, 'warning'); return; }
+  if (!controlRows[idx].rowMaterials) controlRows[idx].rowMaterials = [];
+  if (controlRows[idx].rowMaterials.length >= MAX_FILES_PER_ITEM) {
+    showToast('每项材料最多上传' + MAX_FILES_PER_ITEM + '个文件', 'warning'); return;
+  }
+  controlRows[idx].rowMaterials.push(file);
+  renderControlTable();
+  event.target.value = '';
+}
+
+// ===== RENDER APPLICANT AREA =====
+function renderApplicantArea() {
+  if (staffingType === 'career') {
+    renderCareerForm();
+  } else {
+    renderControlTable();
+  }
+}
+
+// ===== MATERIALS AREA =====
+function renderMaterialsArea() {
+  var html = '';
+  if (staffingType === 'career') {
+    html = renderCareerMaterials();
+  } else {
+    var titleActions = document.getElementById('materialsTitleActions');
+    if (titleActions) titleActions.innerHTML = '';
+    html += buildMaterialUpload('ctrlNotice', '市人社局下发的岗位增补计划下达通知书', true, controlNoticeMaterials);
+    html += '<div style="margin-top:16px; font-size:12px; color:var(--text-light);">注：申请人个人身份证请在表格中逐人上传</div>';
+  }
+  document.getElementById('materialsArea').innerHTML = html;
+}
+
+function renderCareerMaterials() {
+  var em = careerForm.entryMethod || '统一公开招聘';
+  var map = ENTRY_METHOD_MAP[em];
+  if (!map) {
+    return '<div style="padding:20px;color:var(--text-light);text-align:center;">请先选择入编方式</div>';
+  }
+
+  // Dispatch: perSubtype types (调动/其他) vs direct types (招聘类)
+  if (map.perSubtype) {
+    return renderPerSubtypeMaterials(map, em);
+  }
+  return renderDirectMaterials(map, em);
+}
+
+// Render for 招聘类 (direct full list)
+function renderDirectMaterials(map, em) {
+  return renderMaterialListInline(map.common, map.optional, true);
+}
+
+// Render for 调动/其他 (dropdown first, then conditional full list)
+function renderPerSubtypeMaterials(map, em) {
+  var prefix = em === '调动' ? 'transfer' : 'other';
+  var selected = em === '调动' ? selectedTransferSubType : selectedOtherSubType;
+  var typeLabel = em === '调动' ? '调动类型' : '入编类型';
+
+  var html = '';
+  // Subtype dropdown
+  html += '<div style="margin-bottom:10px;">';
+  html += '<label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px;">' + typeLabel + ' <span class="required">*</span></label>';
+  html += '<select id="subtypeSelect" onchange="onSubtypeChange(\'' + prefix + '\', this.value)" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:#fff;cursor:pointer;color:var(--text);">';
+  html += '<option value="">— 请选择 —</option>';
+  var keys = Object.keys(map.subTypes);
+  keys.forEach(function(k) {
+    var st = map.subTypes[k];
+    html += '<option value="' + k + '"' + (selected === k ? ' selected' : '') + '>' + st.label + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
+
+  if (!selected || !map.subTypes[selected]) {
+    // No selection → placeholder
+    html += '<div class="mat-placeholder">请先选择上方' + typeLabel + '，将展示对应的材料清单</div>';
+    html += '<div style="margin-top:12px;padding:8px 14px;background:#F0F9FF;border-radius:6px;font-size:11px;color:#1E40AF;">📌 <strong>提示：</strong>实名制Key盘为线下硬件设备，无需上传，请按规定携带至现场办理。<br>📌 所有上传材料请提供原件扫描件或高清照片，支持 PDF/Word/Excel/JPG/PNG 格式，单个文件不超过10MB。</div>';
+    return html;
+  }
+
+  var st = map.subTypes[selected];
+  html += renderMaterialListInline(st.required, st.optional, true, st.note);
+  return html;
+}
+
+// Render compact inline material list
+function renderMaterialListInline(requiredKeys, optionalKeys, showHint, note) {
+  var html = '';
+  var allKeys = (requiredKeys || []).concat(optionalKeys || []);
+  var totalItems = allKeys.length;
+  var uploadedItems = 0;
+  allKeys.forEach(function(k) {
+    if (careerUploadState[k] && careerUploadState[k].files.length > 0) uploadedItems++;
+  });
+  var pct = totalItems > 0 ? Math.round(uploadedItems / totalItems * 100) : 0;
+
+  // Progress bar
+  html += '<div class="mat-progress">';
+  html += '<span>📎 已上传 <strong>' + uploadedItems + '</strong>/' + totalItems + ' 项</span>';
+  html += '<div class="mat-progress-bar"><div class="mat-progress-fill" style="width:' + pct + '%;"></div></div>';
+  html += '<span style="font-size:11px;color:var(--text-light);">' + pct + '%</span>';
+  html += '</div>';
+
+  // Required materials as inline rows
+  if (requiredKeys && requiredKeys.length > 0) {
+    html += '<div class="mat-section-header"><span class="bar"></span>必传材料</div>';
+    requiredKeys.forEach(function(k) {
+      html += buildInlineRow(k, true);
+    });
+  }
+
+  // Optional materials as inline rows
+  if (optionalKeys && optionalKeys.length > 0) {
+    html += '<div class="mat-section-header opt"><span class="bar"></span>选传材料</div>';
+    optionalKeys.forEach(function(k) {
+      html += buildInlineRow(k, false);
+    });
+  }
+
+  // Subtype note
+  if (note) {
+    html += '<div style="font-size:11px;color:var(--text-secondary);margin:4px 0;padding:4px 10px;background:#FAFAFA;border-radius:4px;">💡 ' + note + '</div>';
+  }
+
+  // Key hint
+  if (showHint) {
+    html += '<div style="margin-top:10px;padding:8px 14px;background:#F0F9FF;border-radius:6px;font-size:11px;color:#1E40AF;line-height:1.6;">📌 <strong>提示：</strong>实名制Key盘为线下硬件设备，无需上传，请按规定携带至现场办理。<br>📌 所有上传材料请提供原件扫描件或高清照片，支持 PDF/Word/Excel/JPG/PNG 格式，单个文件不超过10MB。</div>';
+  }
+
+  return html;
+}
+
+// Compact single-row material upload item
+function buildInlineRow(key, isRequired) {
+  var cat = MATERIAL_CATALOG[key];
+  if (!cat) return '';
+  var state = careerUploadState[key] || { files: [] };
+  var files = state.files;
+  var label = cat.name;
+  var note = cat.note || '';
+
+  var html = '<div class="material-row" id="matRow_' + key + '">';
+  // Required/optional marker
+  if (isRequired) {
+    html += '<span class="mat-marker red">*</span>';
+  } else {
+    html += '<span class="mat-marker gray">☐</span>';
+  }
+  // Label
+  html += '<span class="mat-label">' + label + '</span>';
+  // Note for optional items
+  if (note && !isRequired) {
+    html += '<span class="mat-note">— ' + note + '</span>';
+  }
+  // File chips
+  if (files.length > 0) {
+    var shown = files.slice(0, 2);
+    shown.forEach(function(f, fi) {
+      var fname = escapeHtml(f.name);
+      html += '<span class="file-chip" title="' + fname + '">📎' + fname + '<span class="file-del" onclick="event.stopPropagation();removeFile(\'' + key + '\',' + fi + ')" title="删除">✕</span></span>';
+    });
+    if (files.length > 2) {
+      html += '<span class="file-chip-more">+' + (files.length - 2) + '</span>';
+    }
+  }
+  // [选择文件] button
+  html += '<button type="button" class="btn-file-select" onclick="document.getElementById(\'fileInput_' + key + '\').click()">📄 选择文件</button>';
+  // Status
+  if (files.length > 0) {
+    html += '<span class="status-chip done">✅ ' + files.length + '个</span>';
+  } else if (isRequired) {
+    html += '<span class="status-chip pending">⚠ 未上传</span>';
+  } else {
+    html += '<span class="status-chip none">无</span>';
+  }
+  html += '</div>';
+  // Hidden file input
+  html += '<input type="file" id="fileInput_' + key + '" accept=".pdf,.jpg,.jpeg,.png,.bmp,.gif,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFile(event,\'' + key + '\')">';
+
+  return html;
+}
+
+function onSubtypeChange(prefix, value) {
+  if (prefix === 'transfer') {
+    selectedTransferSubType = value;
+  } else {
+    selectedOtherSubType = value;
+  }
+  renderMaterialsArea();
+}
+
+// Keep buildMaterialUpload for control type
+function buildMaterialUpload(key, label, required, fileList) {
+  var html = '<div class="form-field" style="margin-bottom:4px;">';
+  html += '<label>' + label + (required ? ' <span class="required">*</span>' : '') + '</label>';
+  html += '<div class="upload-area" id="uploadArea_' + key + '"';
+  html += ' onclick="document.getElementById(\'fileInput_' + key + '\').click()"';
+  html += ' ondragover="event.preventDefault();this.classList.add(\'drag-over\');"';
+  html += ' ondragleave="this.classList.remove(\'drag-over\');"';
+  html += ' ondrop="event.preventDefault();this.classList.remove(\'drag-over\');handleDrop(event,\'' + key + '\');">';
+  html += '<div class="upload-icon">📄</div>';
+  html += '<div class="upload-text">点击上传或拖拽文件到此处</div>';
+  html += '<div class="upload-hint">支持 PDF、Word、Excel、图片格式，单个文件不超过 10MB，最多10个文件，不支持压缩包</div>';
+  html += '</div>';
+  html += '<input type="file" id="fileInput_' + key + '" accept=".pdf,.jpg,.jpeg,.png,.bmp,.gif,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFile(event,\'' + key + '\')">';
+  html += '<div id="fileList_' + key + '">';
+  if (fileList && fileList.length > 0) {
+    fileList.forEach(function(f, i) {
+      html += '<div class="upload-file-item"><span>📎 ' + escapeHtml(f.name) + '</span><span style="font-size:11px;color:var(--text-light);">(' + formatSize(f.size) + ')</span><span class="remove" onclick="removeFile(\'' + key + '\',' + i + ')">✕</span></div>';
+    });
+  }
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + 'KB';
+  return (bytes / 1048576).toFixed(1) + 'MB';
+}
+
+function handleFile(event, key) {
+  if (!event.target.files || !event.target.files[0]) return;
+  var file = event.target.files[0];
+  var err = validateFile(file);
+  if (err) { showToast(err, 'warning'); event.target.value = ''; return; }
+  var fileList = getFileListRef(key);
+  if (fileList.length >= MAX_FILES_PER_ITEM) {
+    showToast('每项材料最多上传' + MAX_FILES_PER_ITEM + '个文件', 'warning'); event.target.value = ''; return;
+  }
+  fileList.push(file);
+  renderMaterialsArea();
+  event.target.value = '';
+}
+
+function handleDrop(event, key) {
+  var files = event.dataTransfer.files;
+  if (!files || !files.length) return;
+  var fileList = getFileListRef(key);
+  for (var i = 0; i < files.length; i++) {
+    var err = validateFile(files[i]);
+    if (err) { showToast(err, 'warning'); continue; }
+    if (fileList.length >= MAX_FILES_PER_ITEM) { showToast('每项材料最多' + MAX_FILES_PER_ITEM + '个文件', 'warning'); break; }
+    fileList.push(files[i]);
+  }
+  renderMaterialsArea();
+}
+
+function removeFile(key, idx) {
+  var fileList = getFileListRef(key);
+  fileList.splice(idx, 1);
+  renderMaterialsArea();
+}
+
+// ===== STAFFING BATCH SELECTOR (需求一) =====
+function renderStaffingBatchSelector() {
+  if (staffingType !== 'career' && staffingType !== 'control') {
+    document.getElementById('staffingBatchCard').style.display = 'none';
+    return;
+  }
+  document.getElementById('staffingBatchCard').style.display = '';
+
+  // Load approved staffing submissions from localStorage
+  var stored = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+  var approved = stored.filter(function(s) {
+    return (s.school === schoolName) && s.staffingType === staffingType &&
+           s.status === 'approved';
+  });
+
+  // Fallback to demo data if localStorage is empty
+  if (approved.length === 0) {
+    approved = DEMO_STAFFING_SUBMISSIONS.filter(function(s) {
+      return s.schoolName === schoolName && s.staffingType === staffingType && s.status === 'approved';
+    });
+  }
+
+  var area = document.getElementById('staffingBatchArea');
+  if (approved.length === 0) {
+    var typeLabel = (staffingType === 'career' ? '事业编' : '控制数');
+    area.innerHTML = '<div class="empty-state" style="padding:20px;"><div class="empty-text" style="font-size:13px;">暂无已通过审批的' + typeLabel + '编制使用申请，请先在"编制使用申请"模块提交' + typeLabel + '申请并完成审批</div></div>';
+    return;
+  }
+
+  // Build dropdown + detail panel
+  var html = '';
+  html += '<select id="staffingBatchSelect" onchange="onBatchSelectChange(this.value)" style="width:100%;padding:10px 14px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:#fff;cursor:pointer;color:var(--text);">';
+  html += '<option value="">— 请选择关联的编制使用申请 —</option>';
+  for (var i = 0; i < approved.length; i++) {
+    var s = approved[i];
+    var isSelected = (selectedStaffingBatchId === s.id);
+    var statusSuffix = '';
+    if (s.schoolFinalConfirm && s.schoolFinalConfirm.validityEnd) {
+      var now = new Date();
+      var endDate = new Date(s.schoolFinalConfirm.validityEnd);
+      var daysLeft = Math.ceil((endDate - now) / 86400000);
+      if (daysLeft < 0) statusSuffix = ' [已过期]';
+      else if (daysLeft <= 30) statusSuffix = ' [即将到期·剩' + daysLeft + '天]';
+      else statusSuffix = ' [有效]';
+    }
+    var label = s.id + ' · ' + (s.batchName || '自主申报')
+      + ' | ' + (s.staffingType === 'career' ? '事业编' : '控制数')
+      + ' | 核定' + (s.schoolFinalConfirm ? s.schoolFinalConfirm.totalFinalCount : '?') + '名'
+      + statusSuffix;
+    html += '<option value="' + s.id + '"' + (isSelected ? ' selected' : '') + '>' + label + '</option>';
+  }
+  html += '</select>';
+
+  // Detail panel
+  html += '<div id="staffingBatchDetail" style="margin-top:12px;' + (selectedStaffingBatchData ? '' : 'display:none;') + '">';
+  if (selectedStaffingBatchData) {
+    html += buildBatchDetailHtml(selectedStaffingBatchData);
+  }
+  html += '</div>';
+
+  area.innerHTML = html;
+}
+
+function onBatchSelectChange(id) {
+  if (!id) {
+    selectedStaffingBatchId = null;
+    selectedStaffingBatchData = null;
+    document.getElementById('staffingBatchDetail').style.display = 'none';
+    renderUnitInfo();
+    return;
+  }
+  selectStaffingBatch(id);
+}
+
+function buildBatchDetailHtml(s) {
+  var totalCount = 0;
+  var uf = s.useForms || {};
+  var ufKeys = Object.keys(uf);
+  for (var k = 0; k < ufKeys.length; k++) {
+    totalCount += (uf[ufKeys[k]] || 0);
+  }
+  var finalCount = s.schoolFinalConfirm ? s.schoolFinalConfirm.totalFinalCount : null;
+
+  var validityHtml = '';
+  if (s.schoolFinalConfirm && s.schoolFinalConfirm.validityStart) {
+    var vStart = s.schoolFinalConfirm.validityStart;
+    var vEnd = s.schoolFinalConfirm.validityEnd;
+    var now = new Date();
+    var endDate = new Date(vEnd);
+    var daysLeft = Math.ceil((endDate - now) / 86400000);
+    if (daysLeft < 0) {
+      validityHtml = '<span style="color:var(--danger);font-size:12px;">🔴 已过期（' + vStart + ' ~ ' + vEnd + '）</span>';
+    } else if (daysLeft <= 30) {
+      validityHtml = '<span style="color:var(--warning);font-size:12px;">⚠ 即将到期 ' + vStart + ' ~ ' + vEnd + '（剩余' + daysLeft + '天）</span>';
+    } else {
+      validityHtml = '<span style="color:var(--success);font-size:12px;">✅ 有效期 ' + vStart + ' ~ ' + vEnd + '（剩余' + daysLeft + '天）</span>';
+    }
+  } else {
+    validityHtml = '<span style="color:var(--text-light);font-size:12px;">⏳ 有效期未设定</span>';
+  }
+
+  var detailParts = [];
+  if (s.schoolFinalConfirm && s.schoolFinalConfirm.details) {
+    for (var di = 0; di < s.schoolFinalConfirm.details.length; di++) {
+      var d = s.schoolFinalConfirm.details[di];
+      if (d.finalNum > 0) {
+        detailParts.push(d.type + d.finalNum + '人');
+      }
+    }
+  }
+
+  var typeBadge = s.staffingType === 'career'
+    ? '<span style="display:inline-block;font-size:11px;padding:2px 10px;border-radius:4px;background:#DBEAFE;color:#1E40AF;font-weight:500;">事业编</span>'
+    : '<span style="display:inline-block;font-size:11px;padding:2px 10px;border-radius:4px;background:#E0E7FF;color:#3730A3;font-weight:500;">控制数</span>';
+
+  var html = '<div style="padding:16px 18px;background:#F8FAFC;border:1px solid var(--border);border-radius:8px;">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+  html += '<div><span style="font-weight:600;font-size:14px;color:var(--text);">' + s.id + ' · ' + (s.batchName || '自主申报') + '</span> ' + typeBadge + '</div>';
+  html += '<div style="font-size:12px;color:var(--text-secondary);">申请数：' + totalCount + ' 名' + (finalCount !== null ? ' | 核定数：<strong>' + finalCount + ' 名</strong>' : '') + '</div>';
+  html += '</div>';
+  html += '<div style="margin-bottom:8px;">' + validityHtml + '</div>';
+  if (detailParts.length > 0) {
+    html += '<div style="font-size:12px;color:var(--text-secondary);border-top:1px dashed var(--border);padding-top:8px;">核定数明细：' + detailParts.join(' / ') + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function selectStaffingBatch(id) {
+  selectedStaffingBatchId = id;
+  // Find the full data record
+  var stored = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+  var found = null;
+  for (var i = 0; i < stored.length; i++) {
+    if (stored[i].id === id) { found = stored[i]; break; }
+  }
+  if (!found) {
+    for (var i = 0; i < DEMO_STAFFING_SUBMISSIONS.length; i++) {
+      if (DEMO_STAFFING_SUBMISSIONS[i].id === id) { found = DEMO_STAFFING_SUBMISSIONS[i]; break; }
+    }
+  }
+  selectedStaffingBatchData = found;
+  // Update dropdown selected option
+  var selectEl = document.getElementById('staffingBatchSelect');
+  if (selectEl) selectEl.value = id;
+  // Update detail panel
+  var detail = document.getElementById('staffingBatchDetail');
+  if (detail && found) {
+    detail.innerHTML = buildBatchDetailHtml(found);
+    detail.style.display = '';
+  }
+  renderUnitInfo();
+}
+
+// ===== FILE LIST REF =====
+function collectCareerMaterialFiles() {
+  var result = {};
+  var keys = Object.keys(careerUploadState);
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    if (careerUploadState[k].files.length > 0) {
+      result[k] = careerUploadState[k].files.map(function(f) { return f.name; });
+    }
+  }
+  return result;
+}
+
+function getFileListRef(key) {
+  if (staffingType === 'career') {
+    return (careerUploadState[key] || { files: [] }).files;
+  }
+  if (key === 'ctrlNotice') return controlNoticeMaterials;
+  return [];
+}
+
+// ===== SUBMIT =====
+function submitForm() {
+  collectCareerForm();
+
+  // Validate
+  if (staffingType === 'career') {
+    var requiredFields = [
+      { key: 'name', label: '姓名' }, { key: 'gender', label: '性别' },
+      { key: 'politics', label: '政治面貌' }, { key: 'ethnicity', label: '民族' },
+      { key: 'nativeProvince', label: '籍贯（省）' }, { key: 'nativeCity', label: '籍贯（市）' }, { key: 'nativeDistrict', label: '籍贯（区/县）' }, { key: 'education', label: '文化程度' },
+      { key: 'graduateInfo', label: '毕业院校及专业' },
+      { key: 'assignPosition', label: '拟分配岗位' },
+      { key: 'entryMethod', label: '入编方式' }, { key: 'docNumber', label: '依据文号' },
+      { key: 'reason', label: '申请使用编制的主要理由' }
+    ];
+    // 原单位信息：仅当有原单位时必填
+    var hasPrevJob = careerForm.previousJob && careerForm.previousJob !== '无';
+    if (hasPrevJob) {
+      requiredFields.push({ key: 'orgNature', label: '单位性质' });
+      requiredFields.push({ key: 'fundingSource', label: '经费来源' });
+      requiredFields.push({ key: 'cadreOrWorker', label: '干部或工人' });
+    }
+    for (var i = 0; i < requiredFields.length; i++) {
+      var f = requiredFields[i];
+      if (!careerForm[f.key]) { showToast('请填写：' + f.label, 'warning'); return; }
+    }
+    if (careerForm.reason.length > 500) { showToast('申请理由不超过500字', 'warning'); return; }
+    // Validate career materials dynamically based on entry method
+    var em = careerForm.entryMethod || '统一公开招聘';
+    var emMap = ENTRY_METHOD_MAP[em];
+    if (emMap) {
+      var checkKeys = [];
+      if (emMap.perSubtype) {
+        var prefix = em === '调动' ? 'transfer' : 'other';
+        var selected = em === '调动' ? selectedTransferSubType : selectedOtherSubType;
+        if (!selected) {
+          showToast('请选择' + em + '的具体类型', 'warning'); return;
+        }
+        var st = (emMap.subTypes || {})[selected];
+        if (st) checkKeys = (st.required || []).slice();
+      } else {
+        checkKeys = (emMap.common || []).slice();
+      }
+      var missing = [];
+      checkKeys.forEach(function(k) {
+        var state = careerUploadState[k];
+        if (!state || state.files.length === 0) {
+          var cat = MATERIAL_CATALOG[k];
+          if (cat && cat.required) missing.push(cat.name);
+        }
+      });
+      if (missing.length > 0) {
+        showToast('请上传以下必传材料：' + missing.join('、'), 'warning');
+        return;
+      }
+    }
+  } else {
+    for (var j = 0; j < controlRows.length; j++) {
+      var r = controlRows[j];
+      if (!r.name || r.name.length < 2 || r.name.length > 20) { showToast('第' + (j+1) + '行：姓名需2-20个字符', 'warning'); return; }
+      if (!r.gender) { showToast('第' + (j+1) + '行：请选择性别', 'warning'); return; }
+      if (!r.idCard || r.idCard.length !== 18 || !/^\d{17}[\dXx]$/.test(r.idCard)) { showToast('第' + (j+1) + '行：身份证号格式错误', 'warning'); return; }
+      if (!r.docNumber) { showToast('第' + (j+1) + '行：请填写依据文号', 'warning'); return; }
+      if (!r.entryMethod) { showToast('第' + (j+1) + '行：请选择增人形式', 'warning'); return; }
+    }
+    if (controlNoticeMaterials.length === 0) { showToast('请上传：市人社局下发的岗位增补计划下达通知书', 'warning'); return; }
+  }
+
+  // Validate staffing batch selection (需求一)
+  if (!selectedStaffingBatchId) {
+    showToast('请选择关联的编制使用申请', 'warning');
+    return;
+  }
+  // Check validity period
+  if (selectedStaffingBatchData && selectedStaffingBatchData.schoolFinalConfirm && selectedStaffingBatchData.schoolFinalConfirm.validityEnd) {
+    var endDate = new Date(selectedStaffingBatchData.schoolFinalConfirm.validityEnd);
+    if (endDate < new Date()) {
+      showToast('关联的编制使用申请已超过有效期（' + selectedStaffingBatchData.schoolFinalConfirm.validityEnd + '），请重新选择', 'warning');
+      return;
+    }
+  }
+
+  // Check quota (不能超过可申请数)
+  var maxQuota = selectedStaffingBatchData && selectedStaffingBatchData.schoolFinalConfirm
+    ? selectedStaffingBatchData.schoolFinalConfirm.totalFinalCount : null;
+  if (maxQuota == null && selectedStaffingBatchData && selectedStaffingBatchData.useForms) {
+    var ufTot = selectedStaffingBatchData.useForms;
+    maxQuota = 0;
+    var ufKeysTot = Object.keys(ufTot);
+    for (var ti = 0; ti < ufKeysTot.length; ti++) {
+      maxQuota += (ufTot[ufKeysTot[ti]] || 0);
+    }
+  }
+  if (maxQuota != null) {
+    var applyCount = staffingType === 'career' ? 1 : controlRows.length;
+    if (applyCount > maxQuota) {
+      showToast('申请人数（' + applyCount + '人）已超过该批次可申请数（' + maxQuota + '人），请减少申请人数或重新选择批次', 'warning');
+      return;
+    }
+  }
+
+  // Generate ID
+  var now = new Date();
+  var datePart = now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate());
+  var stored = JSON.parse(localStorage.getItem('entry_seq') || '{"date":"","seq":0}');
+  if (stored.date !== datePart) { stored.date = datePart; stored.seq = 0; }
+  stored.seq++;
+  localStorage.setItem('entry_seq', JSON.stringify(stored));
+  var newId = 'RN' + datePart + pad3(stored.seq);
+
+  // Build record
+  var record = {
+    id: isEditMode ? editRecordId : newId,
+    schoolName: schoolName,
+    schoolType: SCHOOL_DATA[schoolName] ? SCHOOL_DATA[schoolName].schoolType : '鱼峰区属',
+    staffingType: staffingType,
+    controlType: staffingType === 'control' ? controlType : null,
+    status: 'pending',
+    submitTime: now.toISOString().replace('T',' ').substring(0,19),
+    approveTime: null, approver: null, approverRole: null,
+    opinion: null, rejectReason: null,
+    staffingBatchId: selectedStaffingBatchId,
+    staffingBatchName: selectedStaffingBatchData ? (selectedStaffingBatchData.batchName || '自主申报') : null,
+    staffingBatchValidity: (selectedStaffingBatchData && selectedStaffingBatchData.schoolFinalConfirm)
+      ? { start: selectedStaffingBatchData.schoolFinalConfirm.validityStart, end: selectedStaffingBatchData.schoolFinalConfirm.validityEnd }
+      : null
+  };
+
+  // Unit info
+  var sd = SCHOOL_DATA[schoolName] || SCHOOL_DATA['柳州市第八中学'];
+  record.unitName = sd.unitName;
+  if (staffingType === 'career') {
+    record.orgLevel = sd.orgLevel; record.orgNature = sd.orgNature;
+    record.careerStaffQuota = sd.careerStaffQuota; record.currentCareerStaff = sd.currentCareerStaff;
+    record.unusedCareerPlan = sd.unusedCareerPlan;
+    record.authLeader = sd.authLeader; record.actualLeader = sd.actualLeader;
+    record.actualOtherLeader = sd.actualOtherLeader;
+    record.applicants = [{ name: careerForm.name, gender: careerForm.gender, politics: careerForm.politics,
+      ethnicity: careerForm.ethnicity, nativeProvince: careerForm.nativeProvince, nativeCity: careerForm.nativeCity, nativeDistrict: careerForm.nativeDistrict, nativePlace: careerForm.nativeProvince + careerForm.nativeCity + careerForm.nativeDistrict,
+      education: careerForm.education, graduateInfo: careerForm.graduateInfo,
+      spouseName: careerForm.spouseName, spouseWorkUnit: careerForm.spouseWorkUnit,
+      previousJob: careerForm.previousJob, orgNature: careerForm.orgNature,
+      fundingSource: careerForm.fundingSource, cadreOrWorker: careerForm.cadreOrWorker,
+      title: careerForm.title, assignPosition: careerForm.assignPosition,
+      assignCategoryLevel: careerForm.assignCategoryLevel,
+      entryMethod: careerForm.entryMethod, docNumber: careerForm.docNumber,
+      reason: careerForm.reason
+    }];
+  } else {
+    record.authControlNo = sd.authControlNo; record.currentControlStaff = sd.currentControlStaff;
+    record.applicants = controlRows.map(function(r) {
+      return { name: r.name, gender: r.gender, idCard: r.idCard,
+        docNumber: r.docNumber, entryMethod: r.entryMethod,
+        hasIdMaterials: r.rowMaterials && r.rowMaterials.length > 0 };
+    });
+  }
+
+  // Materials (file names only for demo)
+  record.materials = staffingType === 'career'
+    ? collectCareerMaterialFiles()
+    : {
+        notice: controlNoticeMaterials.map(function(f) { return f.name; }),
+        idCards: controlRows.map(function(r) { return (r.rowMaterials || []).map(function(f) { return f.name; }); })
+      };
+
+  // Timeline
+  record.timeline = [{
+    time: record.submitTime,
+    operator: ROLES[currentRole].name,
+    action: '学校提交入编申请',
+    opinion: staffingType === 'career'
+      ? '使用事业编制1名（' + careerForm.name + '，' + careerForm.assignPosition + '）'
+      : '使用控制数合计' + controlRows.length + '名（' + controlRows.map(function(r){return r.name;}).join('、') + '）'
+  }];
+  record.versionHistory = [];
+
+  // Save
+  if (isEditMode) {
+    var all = JSON.parse(localStorage.getItem('entry_records') || '[]');
+    var idx = -1;
+    for (var k = 0; k < all.length; k++) { if (all[k].id === editRecordId) { idx = k; break; } }
+    if (idx >= 0) {
+      record.versionHistory = (all[idx].versionHistory || []).concat([{
+        time: record.submitTime, previous: JSON.parse(JSON.stringify(all[idx]))
+      }]);
+      record.id = editRecordId;
+      all[idx] = record;
+    } else { all.push(record); }
+    localStorage.setItem('entry_records', JSON.stringify(all));
+  } else {
+    var allRecords = JSON.parse(localStorage.getItem('entry_records') || '[]');
+    allRecords.push(record);
+    localStorage.setItem('entry_records', JSON.stringify(allRecords));
+  }
+
+  showToast(isEditMode ? '修改提交成功，编号：' + record.id : '提交成功！编号：' + record.id, 'success');
+  setTimeout(function() {
+    window.location.href = '教师入编管理（学校管理员视角）.html?role=school';
+  }, 1500);
+}
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function pad3(n) { return n < 10 ? '00' + n : (n < 100 ? '0' + n : '' + n); }
+
+function goBack() {
+  window.location.href = '教师入编管理（学校管理员视角）.html?role=school';
+}
+
+// ===== INIT =====
+(function init() {
+  // URL params
+  var params = new URLSearchParams(window.location.search);
+  var urlRole = params.get('role');
+  if (urlRole === 'city' || urlRole === 'district' || urlRole === 'school') {
+    currentRole = urlRole;
+  }
+  var urlType = params.get('type');
+  if (urlType === 'career' || urlType === 'control') {
+    staffingType = urlType;
+  }
+  var editId = params.get('id');
+  if (editId) {
+    isEditMode = true;
+    editRecordId = editId;
+    var all = JSON.parse(localStorage.getItem('entry_records') || '[]');
+    var found = null;
+    for (var i = 0; i < all.length; i++) { if (all[i].id === editId) { found = all[i]; break; } }
+    if (found) {
+      staffingType = found.staffingType;
+      if (found.controlType) controlType = found.controlType;
+      if (found.schoolName) schoolName = found.schoolName;
+      if (found.staffingBatchId) {
+        selectedStaffingBatchId = found.staffingBatchId;
+        // Try to look up the batch data
+        var stored = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+        for (var si = 0; si < stored.length; si++) {
+          if (stored[si].id === found.staffingBatchId) {
+            selectedStaffingBatchData = stored[si];
+            break;
+          }
+        }
+        if (!selectedStaffingBatchData) {
+          for (var si = 0; si < DEMO_STAFFING_SUBMISSIONS.length; si++) {
+            if (DEMO_STAFFING_SUBMISSIONS[si].id === found.staffingBatchId) {
+              selectedStaffingBatchData = DEMO_STAFFING_SUBMISSIONS[si];
+              break;
+            }
+          }
+        }
+      }
+      var app = found.applicants[0];
+      if (staffingType === 'career' && app) {
+        careerForm = {
+          name: app.name || '', gender: app.gender || '', politics: app.politics || '',
+          ethnicity: app.ethnicity || '', nativeProvince: app.nativeProvince || '', nativeCity: app.nativeCity || '', nativeDistrict: app.nativeDistrict || '',
+          education: app.education || '', graduateInfo: app.graduateInfo || '',
+          spouseName: app.spouseName || '', spouseWorkUnit: app.spouseWorkUnit || '',
+          previousJob: app.previousJob || '', orgNature: app.orgNature || '',
+          fundingSource: app.fundingSource || '', cadreOrWorker: app.cadreOrWorker || '',
+          title: app.title || '', assignPosition: app.assignPosition || '',
+          assignCategoryLevel: app.assignCategoryLevel || '',
+          entryMethod: app.entryMethod || '', docNumber: app.docNumber || '',
+          reason: app.reason || ''
+        };
+      } else if (staffingType === 'control' && found.applicants) {
+        controlRows = found.applicants.map(function(a) {
+          return { name: a.name || '', gender: a.gender || '男', idCard: a.idCard || '',
+                   docNumber: a.docNumber || '', entryMethod: a.entryMethod || '统一公开招聘',
+                   rowMaterials: [] };
+        });
+      }
+      document.getElementById('pageTitle').textContent = '修改入编申请';
+      document.getElementById('pageSubtitle').textContent = '编辑被驳回的申请信息，重新提交';
+      document.getElementById('breadcrumbPage').textContent = '修改申请';
+      document.getElementById('submitBtn').textContent = '重新提交';
+    }
+  }
+
+  renderSidebar();
+  renderTypeSelector();
+  renderStaffingBatchSelector();
+  renderUnitInfo();
+  renderApplicantArea();
+  renderMaterialsArea();
+})();
+</script>
+
+</body>
+</html>

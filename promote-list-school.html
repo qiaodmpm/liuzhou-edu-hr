@@ -284,6 +284,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .year-filter-select { padding: 5px 10px; font-size: 11px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; color: var(--text-secondary); cursor: pointer; outline: none; }
 .year-filter-select:focus { border-color: var(--accent); }
 </style>
+  <script src="src/demo-batches.js"></script>
 </head>
 <body>
 
@@ -375,18 +376,6 @@ var ROLES = {
 // ===== DEMO DATA =====
 var CATEGORY_MAP = { manage: '管理岗位', professional: '专业技术岗位', skill: '工勤技能岗位' };
 
-var DEMO_BATCHES = [
-  { id: 'PB20260501001', name: '2026年春季岗位晋升', year: 2026, status: 'open',
-    schoolName: '柳州市第八中学', createdBy: 'school',
-    promoteTypes: ['mgmt','prof','labor'], allowedLevels: [],
-    startTime: '2026-05-01', endTime: '2026-06-30',
-    remark: '面向本校全体教师的常规晋升批次' },
-  { id: 'PB20260415001', name: '2026年春季岗位晋升', year: 2026, status: 'closed',
-    schoolName: '柳州市第八中学', createdBy: 'school',
-    promoteTypes: ['prof'], allowedLevels: ['五级','六级','七级','八级'],
-    startTime: '2026-04-15', endTime: '2026-05-15',
-    remark: '' }
-];
 
 var DEMO_RECORDS = [
   { id: 'PR20260515001', batchId: 'PB20260501001', batchName: '2026年春季专业技术岗位晋升',
@@ -458,9 +447,9 @@ var STATUS_LABEL_MAP = {
   pending_second: '待二审',
   second_approved: '二审通过',
   second_rejected: '二审驳回',
+    hr_rejected: '人社驳回',
   pending_third: '待三审',
-  third_rejected: '三审驳回',
-  completed: '已完成'
+
 };
 
 // ===== POSITION EMPLOYED DATA (for summary table) =====
@@ -660,7 +649,20 @@ var searchQuery = '';
 // ===== DATA LAYER =====
 function loadBatches() {
   var s = localStorage.getItem('promote_batches');
-  if (s) { try { return JSON.parse(s); } catch(e) {} }
+  if (s) {
+    try {
+      var data = JSON.parse(s);
+      DEMO_BATCHES.forEach(function(db) {
+        var existing = data.filter(function(b) { return b.id === db.id; });
+        if (existing.length > 0) {
+          existing.forEach(function(eb) { eb.status = db.status; });
+        } else {
+          data.push(JSON.parse(JSON.stringify(db)));
+        }
+      });
+      return data;
+    } catch(e) {}
+  }
   localStorage.setItem('promote_batches', JSON.stringify(DEMO_BATCHES));
   return JSON.parse(JSON.stringify(DEMO_BATCHES));
 }
@@ -747,7 +749,7 @@ function getBatchStats(batchId) {
     total: records.length,
     pending: records.filter(function(r) { return r.status === 'pending_first' || r.status === 'pending_second' || r.status === 'pending_third'; }).length,
     approved: records.filter(function(r) { return r.status === 'first_approved' || r.status === 'second_approved' || r.status === 'completed'; }).length,
-    rejected: records.filter(function(r) { return r.status === 'first_rejected' || r.status === 'second_rejected' || r.status === 'third_rejected'; }).length
+    rejected: records.filter(function(r) { return r.status === 'first_rejected' || r.status === 'second_rejected' || r.status === 'hr_rejected'; }).length
   };
 }
 
@@ -758,7 +760,7 @@ function getFilteredRecords() {
   }
   if (currentStatusFilter === 'pending') records = records.filter(function(r) { return r.status === 'pending_first' || r.status === 'pending_second' || r.status === 'pending_third'; });
   else if (currentStatusFilter === 'approved') records = records.filter(function(r) { return r.status === 'first_approved' || r.status === 'second_approved' || r.status === 'completed'; });
-  else if (currentStatusFilter === 'rejected') records = records.filter(function(r) { return r.status === 'first_rejected' || r.status === 'second_rejected' || r.status === 'third_rejected'; });
+  else if (currentStatusFilter === 'rejected') records = records.filter(function(r) { return r.status === 'first_rejected' || r.status === 'second_rejected' ; });
   if (searchQuery) {
     var q = searchQuery.toLowerCase();
     records = records.filter(function(r) { return (r.teacherName||'').toLowerCase().indexOf(q) >= 0 || (r.currentPost||'').toLowerCase().indexOf(q) >= 0; });
@@ -770,7 +772,7 @@ function getStatusBadgeClass(status) {
   if (status === 'pending_first' || status === 'pending_second' || status === 'pending_third') return 'review';
   if (status === 'first_approved') return 'pending';
   if (status === 'second_approved') return 'approved';
-  if (status === 'first_rejected' || status === 'second_rejected' || status === 'third_rejected') return 'rejected';
+  if (status === 'first_rejected' || status === 'second_rejected' ) return 'rejected';
   if (status === 'completed') return 'completed';
   return 'pending';
 }
@@ -795,7 +797,7 @@ function renderBatchCards() {
     h += '<div class="batch-card' + (isSelected ? ' selected' : '') + '" onclick="selectBatch(\'' + b.id + '\')">';
     h += '<div class="batch-card-header">';
     h += '<span class="batch-card-name" onclick="event.stopPropagation();showBatchDetail(\'' + b.id + '\')" title="点击查看批次详情">' + b.name + '</span>';
-    h += '<span class="batch-card-status ' + b.status + '">' + (b.status === 'open' ? '进行中' : '已关闭') + '</span>';
+    h += '<span class="batch-card-status ' + b.status + '">' + ({ pending: '未开始', open: '进行中', closed: '已关闭' })[b.status] || b.status + '</span>';
     h += '</div>';
     h += '<div class="batch-card-meta">';
     h += '<span>📅 ' + b.startTime + ' ~ ' + b.endTime + '</span>';
@@ -807,13 +809,22 @@ function renderBatchCards() {
     if (pendingPct > 0) h += '<div class="progress-fill reviewing" style="width:' + pendingPct + '%"></div>';
     if (rejectedPct > 0) h += '<div class="progress-fill warning" style="width:' + rejectedPct + '%"></div>';
     h += '</div></div>';
-    if (b.status === 'open') {
+        if (b.status === 'pending') {
+      h += '<div class="batch-card-actions">';
+      h += '<button class="batch-card-action-btn" onclick="event.stopPropagation();showEditModal(\'' + b.id + '\')">编辑</button>';
+      h += '<button class="batch-card-action-btn" onclick="event.stopPropagation();startBatch(\'' + b.id + '\')" style="color:var(--success)">开启</button>';
+      h += '<button class="batch-card-action-btn danger" onclick="event.stopPropagation();deleteBatch(\'' + b.id + '\')">删除</button>';
+      h += '</div>';
+    } else if (b.status === 'open') {
       h += '<div class="batch-card-actions">';
       h += '<button class="batch-card-action-btn" onclick="event.stopPropagation();showEditModal(\'' + b.id + '\')">编辑</button>';
       h += '<button class="batch-card-action-btn danger" onclick="event.stopPropagation();closeBatch(\'' + b.id + '\')">关闭</button>';
       h += '</div>';
-    }
-    h += '</div>';
+    } else if (b.status === 'closed') {
+      h += '<div class="batch-card-actions">';
+      h += '<button class="batch-card-action-btn" onclick="event.stopPropagation();showEditModal(\'' + b.id + '\')">编辑</button>';
+      h += '</div>';
+    }    h += '</div>';
   });
   h += '</div>';
   return h;
@@ -829,7 +840,7 @@ function renderRightColumn() {
     all: allRecords.length,
     pending: allRecords.filter(function(r) { return r.status === 'pending_first' || r.status === 'pending_second' || r.status === 'pending_third'; }).length,
     approved: allRecords.filter(function(r) { return r.status === 'first_approved' || r.status === 'second_approved' || r.status === 'completed'; }).length,
-    rejected: allRecords.filter(function(r) { return r.status === 'first_rejected' || r.status === 'second_rejected' || r.status === 'third_rejected'; }).length
+    rejected: allRecords.filter(function(r) { return r.status === 'first_rejected' || r.status === 'second_rejected' ; }).length
   };
 
   var batchLabel = selectedBatchId ? getSchoolBatches().find(function(b){return b.id===selectedBatchId;}) : null;
@@ -934,7 +945,7 @@ function getActionLinks(record) {
     h += '<a class="action-link" onclick="auditRecord(\'' + record.id + '\')">审核</a>';
   } else if (s === 'second_rejected') {
     h += '<a class="action-link" onclick="modifyRecord(\'' + record.id + '\')">修改</a>';
-    h += '<a class="action-link warn" onclick="rejectToTeacher(\'' + record.id + '\')">驳回教师</a>';
+    h += '<a class="action-link warn" onclick="abortPromotion(\'' + record.id + '\')">本次不晋升</a>';
   } else if (s === 'second_approved') {
     h += '<a class="action-link" onclick="enterHrResult(\'' + record.id + '\')">录入人社结果</a>';
   } else {
@@ -985,6 +996,14 @@ function switchSchool(schoolName) {
 
 // ===== RENDER MAIN =====
 function renderMain() {
+  // Auto-select latest open batch
+  if (!selectedBatchId) {
+    var openBatches = getSchoolBatches().filter(function(b) { return b.status === 'open'; });
+    if (openBatches.length > 0) {
+      openBatches.sort(function(a, b) { return (b.startTime || '').localeCompare(a.startTime || ''); });
+      selectedBatchId = openBatches[0].id;
+    }
+  }
   initSchoolSelect();
   var h = '<div class="two-col-row">';
   h += '<div class="col-left">';
@@ -1333,6 +1352,17 @@ function showBatchSubmitModal() {
   var selected = records.filter(function(r) { return ids.indexOf(r.id) >= 0; });
   var schoolName = CURRENT_SCHOOL;
 
+  // 批次状态一致性校验：同一批次下不允许存在未审核或不予晋升的记录
+  var batchIds = {};
+  selected.forEach(function(r) { batchIds[r.batchId] = true; });
+  var blockMsg = null;
+  Object.keys(batchIds).forEach(function(bid) {
+    var batchRecords = records.filter(function(r) { return r.batchId === bid; });
+    var hasPending = batchRecords.some(function(r) { return r.status === 'pending_first'; });
+    if (hasPending) blockMsg = '本批次仍有记录处于「一审待审核」状态，请先完成审核后再批量提交';
+  });
+  if (blockMsg) { showToast(blockMsg, 'warning'); return; }
+
   var c = '<div class="modal-header"><h3>批量提交确认</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body">';
   c += '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">确认将以下 <strong>' + selected.length + '</strong> 条记录提交至主管部门进行二审：</p>';
@@ -1372,14 +1402,18 @@ function auditRecord(id) { window.location.href = 'promote-audit-school.html?id=
 function modifyRecord(id) { window.location.href = 'promote-audit-school.html?id=' + id + '&mode=modify'; }
 function enterHrResult(id) { window.location.href = 'promote-hr-entry.html?id=' + id; }
 function viewDetail(id) { window.location.href = 'promote-detail.html?id=' + id; }
-function rejectToTeacher(id) {
+function abortPromotion(id) {
+  if (!confirm('确认取消该教师的本次晋升资格？')) return;
   var records = loadRecords();
-  var r = records.find(function(x) { return x.id === id; });
-  if (!r) return;
-  r.status = 'first_rejected';
-  r.firstRejectReason = '主管部门驳回后退回教师';
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].id === id) {
+      records[i].status = 'first_rejected';
+      records[i].completeTime = new Date().toISOString().substring(0, 19).replace('T', ' ');
+      break;
+    }
+  }
   saveRecords(records);
-  showToast('已驳回至教师', 'success');
+  showToast('已取消本次晋升资格', 'success');
   renderMain();
 }
 
@@ -1506,7 +1540,86 @@ function closeBatch(id) {
   }
   saveBatches(batches);
   showToast('批次已关闭', 'success');
+  renderCards();
   renderMain();
+}
+
+function startBatch(id) {
+  var batches = loadBatches();
+  var batch = batches.find(function(b) { return b.id === id; });
+  if (!batch || batch.status !== 'pending') { showToast('只能开启未开始的批次', 'warning'); return; }
+
+  var h = '<div class="modal-header"><h3>开启批次</h3><button class="modal-close" onclick="closeModal()">✕</button></div>';
+  h += '<div class="modal-body">';
+  h += '<div style="margin-bottom:16px;padding:12px 16px;background:var(--bg);border-radius:6px;">';
+  h += '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">' + escapeHtml(batch.name) + '</div>';
+  h += '<div style="font-size:12px;color:var(--text-secondary);">晋升类别：';
+  (batch.promoteTypes || []).forEach(function(t) {
+    var typeLabels = { mgmt: '管理岗位', prof: '专技岗位', labor: '工勤技能岗位' };
+    h += '<span class="type-tag ' + t + '">' + (typeLabels[t] || t) + '</span>';
+  });
+  h += '</div></div>';
+
+  h += '<div class="form-group"><label>申报开始时间 <span class="required-star">*</span></label>';
+  h += '<input type="date" id="batchStartTime" value="' + escapeHtml(batch.startTime || '') + '"></div>';
+  h += '<div class="form-group"><label>申报截止时间 <span class="required-star">*</span></label>';
+  h += '<input type="date" id="batchEndTime" value="' + escapeHtml(batch.endTime || '') + '"></div>';
+  h += '<div class="form-group"><label>备注说明 <span style="color:var(--text-light);font-weight:400;">(选填)</span></label>';
+  h += '<textarea id="batchRemark" placeholder="选填">' + escapeHtml(batch.remark || '') + '</textarea></div>';
+  h += '</div>';
+  h += '<div class="modal-footer">';
+  h += '<button class="btn-cancel" onclick="closeModal()">取消</button>';
+  h += '<button class="btn btn-primary" onclick="doStartBatch(\'' + id + '\')">确认开启</button>';
+  h += '</div>';
+
+  openModal(h);
+}
+
+function doStartBatch(id) {
+  var startTime = document.getElementById('batchStartTime').value;
+  var endTime = document.getElementById('batchEndTime').value;
+  var remark = document.getElementById('batchRemark').value.trim();
+  if (!startTime || !endTime) { showToast('请填写申报时间', 'warning'); return; }
+  if (startTime >= endTime) { showToast('截止时间必须晚于开始时间', 'warning'); return; }
+  var batches = loadBatches();
+  var batch = batches.find(function(b) { return b.id === id; });
+  if (!batch || batch.status !== 'pending') { showToast('只能开启未开始的批次', 'warning'); closeModal(); return; }
+  batch.startTime = startTime;
+  batch.endTime = endTime;
+  batch.remark = remark;
+  batch.status = 'open';
+  saveBatches(batches);
+  closeModal();
+  renderCards();
+  showToast('批次已开启，教师可开始申报', 'success');
+}
+
+function deleteBatch(id) {
+  var batches = loadBatches();
+  var idx = batches.findIndex(function(b) { return b.id === id; });
+  if (idx === -1 || batches[idx].status !== 'pending') { showToast('只能删除未开始的批次', 'warning'); return; }
+
+  var h = '<div class="modal-header"><h3>确认删除</h3><button class="modal-close" onclick="closeModal()">✕</button></div>';
+  h += '<div class="modal-body">';
+  h += '<p style="font-size:14px;color:var(--text);line-height:1.8;">确定要删除批次「' + escapeHtml(batches[idx].name) + '」吗？<br>删除后不可恢复，该批次下的所有申报记录也将被删除。</p>';
+  h += '</div>';
+  h += '<div class="modal-footer">';
+  h += '<button class="btn-cancel" onclick="closeModal()">取消</button>';
+  h += '<button class="btn btn-primary" style="background:var(--danger);border-color:var(--danger);" onclick="doDeleteBatch(\'' + id + '\')">确认删除</button>';
+  h += '</div>';
+
+  openModal(h);
+}
+
+function doDeleteBatch(id) {
+  var batches = loadBatches();
+  var idx = batches.findIndex(function(b) { return b.id === id; });
+  if (idx === -1 || batches[idx].status !== 'pending') { showToast('只能删除未开始的批次', 'warning'); closeModal(); return; }
+  batches.splice(idx, 1);
+  saveBatches(batches);
+  closeModal();
+  renderCards();
+  showToast('批次已删除', 'success');
 }
 
 // ===== INIT =====

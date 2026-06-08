@@ -105,6 +105,15 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .batch-card-stats { display: flex; gap: 12px; font-size: 11px; }
 .batch-card-stats span { color: var(--text-secondary); }
 .batch-card-stats b { color: var(--primary); }
+.batch-card-progress { margin-bottom: 8px; }
+.batch-card-progress .progress-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
+.batch-card-progress .progress-bar { height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; display: flex; }
+.batch-card-progress .progress-fill { height: 100%; transition: width var(--transition); }
+.batch-card-progress .progress-fill.approved { background: var(--success); }
+.batch-card-progress .progress-fill.pending { background: var(--accent); }
+.batch-card-progress .progress-fill.rejected { background: var(--danger); }
+.batch-card-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 4px; }
+.batch-card-actions .btn { font-size: 11px; padding: 4px 12px; }
 
 /* Status filters */
 .status-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -151,11 +160,32 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .school-list-item .remind-btn.reminded { border-color: var(--border); background: #F1F5F9; color: var(--text-light); cursor: default; }
 .badge-readonly { font-size: 10px; color: var(--text-light); margin-left: 6px; }
 
-/* Toast */
+.card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 28px 32px; margin-bottom: 20px; }
+.card-title { font-size: 15px; font-weight: 600; color: var(--text); padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+
 .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease; box-shadow: var(--shadow-lg); }
 .toast.warning { background: var(--warning); color: #1E293B; }
 .toast.success { background: var(--success); }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+.modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { cursor: pointer; color: var(--text-light); font-size: 20px; padding: 4px; border: none; background: none; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.modal-body .form-group { margin-bottom: 16px; }
+.modal-body .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+.modal-body .form-group input, .modal-body .form-group select, .modal-body .form-group textarea { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; outline: none; }
+.modal-body .form-group input:focus, .modal-body .form-group select:focus, .modal-body .form-group textarea:focus { border-color: var(--accent); }
+.modal-body .form-group textarea { resize: vertical; min-height: 80px; }
+.modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+.batch-detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid #F1F5F9; }
+.batch-detail-row .bdl { color: var(--text-secondary); }
+.batch-detail-row .bdv { color: var(--text); font-weight: 500; }
 </style>
 </head>
 <body>
@@ -170,7 +200,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
     <div class="topnav-user" onclick="toggleUserMenu()">
       <div class="avatar">张</div><span>张建国</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="login-demo.html" class="logout">退出登录</a></div>
+      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div>
     </div>
   </div>
 </nav>
@@ -200,9 +230,6 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
     <div class="page-header-left">
       <h1>招聘岗位审核管理</h1>
       <div class="subtitle" id="roleSubtitle">查看和管理全市学校的招聘岗位申报</div>
-    </div>
-    <div class="page-header-right">
-      <button class="btn btn-outline" onclick="window.location.href='recruit-batch.html?role='+currentRole">管理批次</button>
     </div>
   </div>
 
@@ -354,9 +381,17 @@ var DEMO_RECORDS = [
   }
 ];
 
+var DEMO_BATCHES = [
+  { id: 'RCB20260501001', name: '2026年柳州市教师自主招聘（第一批）', year: '2026', recruitmentType: 'independent', scope: '全市', scopeAreas: [], status: 'open', createTime: '2026-05-01 09:00:00' },
+  { id: 'RCB20260401001', name: '2026年鱼峰区统一公招', year: '2026', recruitmentType: 'public', scope: '区属', scopeAreas: ['鱼峰区'], status: 'open', createTime: '2026-04-01 09:00:00' }
+];
+
 function seedDemoData() {
   if (!localStorage.getItem('recruit_records')) {
     localStorage.setItem('recruit_records', JSON.stringify(DEMO_RECORDS));
+  }
+  if (!localStorage.getItem('recruit_batches')) {
+    localStorage.setItem('recruit_batches', JSON.stringify(DEMO_BATCHES));
   }
 }
 
@@ -371,6 +406,10 @@ function loadBatches() {
   var s = localStorage.getItem('recruit_batches');
   if (s) { try { return JSON.parse(s); } catch(e) {} }
   return [];
+}
+
+function saveBatches(batches) {
+  localStorage.setItem('recruit_batches', JSON.stringify(batches));
 }
 
 function getTotalCount(formData) {
@@ -416,6 +455,7 @@ function getUnsubmittedSchools(batchId) {
 }
 
 // ===== UI HELPERS =====
+function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
 function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
 document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
@@ -470,6 +510,7 @@ function sidebarClick(el, id) {
   if (id==='postset') { window.location.href='post-list-admin.html?role=' + currentRole; return; }
   if (id==='promote') { window.location.href='promote-list-admin.html?role=' + currentRole; return; }
   if (id==='recruit') return;
+  if (id==='account') { window.location.href='account-management.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label')?el.querySelector('.menu-label').textContent:id));
 }
 
@@ -509,7 +550,7 @@ function renderBatchCards() {
     batches = batches.filter(function(b) { return b.year === yearFilter; });
   }
   if (batches.length === 0) {
-    document.getElementById('batchCardsArea').innerHTML = '<div class="col-left-header"><span class="section-title">招聘批次</span></div><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无招聘批次</div></div>';
+    document.getElementById('batchCardsArea').innerHTML = '<div class="col-left-header"><span class="section-title">招聘批次</span><button class="btn btn-primary btn-sm" onclick="showCreateBatchModal()">+ 新建批次</button></div><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无招聘批次</div></div>';
     return;
   }
 
@@ -519,33 +560,55 @@ function renderBatchCards() {
 
   var h = '<div class="col-left-header">';
   h += '<span class="section-title">招聘批次</span>';
+  h += '<div style="display:flex;align-items:center;gap:8px;">';
   if (years.length > 1) {
     h += '<select onchange="setYearFilter(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;">';
     h += '<option value="all"' + (yearFilter==='all'?' selected':'') + '>全部年份</option>';
     years.forEach(function(y) { h += '<option value="' + y + '"' + (yearFilter===y?' selected':'') + '>' + y + '年</option>'; });
     h += '</select>';
   }
-  h += '</div><div class="batch-list">';
+  h += '<button class="btn btn-primary btn-sm" onclick="showCreateBatchModal()">+ 新建批次</button>';
+  h += '</div></div><div class="batch-list">';
 
   batches.forEach(function(b) {
     var isSelected = b.id === selectedBatchId;
     var stats = getBatchStats(b.id);
     var typeLabel = RECRUITMENT_TYPE_MAP[b.recruitmentType] || b.recruitmentType;
+    var total = stats.total;
+    var approvedPct = total > 0 ? Math.round(stats.completed / total * 100) : 0;
+    var pendingPct = total > 0 ? Math.round((stats.pending_first + stats.pending_second + (stats.approved||0)) / total * 100) : 0;
+    var rejectedPct = total > 0 ? Math.round(stats.rejected / total * 100) : 0;
     h += '<div class="batch-card' + (isSelected ? ' selected' : '') + '" onclick="selectBatch(\'' + b.id + '\')">';
     h += '<div class="batch-card-header">';
-    h += '<span class="batch-card-name">' + b.name + '</span>';
+    h += '<span class="batch-card-name" onclick="event.stopPropagation();showBatchDetail(\'' + b.id + '\')">' + b.name + '</span>';
     h += '<span class="batch-card-status ' + b.status + '">' + (b.status === 'open' ? '进行中' : '已关闭') + '</span>';
     h += '</div>';
     h += '<div class="batch-card-meta">';
     h += '<span>' + typeLabel + '</span><span>' + (b.year||'') + '</span>';
     h += '<span>' + (b.scope==='全市' ? '全市' : (b.scopeAreas||[]).join('、')) + '</span>';
     h += '</div>';
+    // Progress bar
+    h += '<div class="batch-card-progress">';
+    h += '<div class="progress-labels"><span>共 ' + total + ' 条</span><span>待审 ' + (stats.pending_first+stats.pending_second) + ' | 完成 ' + stats.completed + '</span></div>';
+    h += '<div class="progress-bar">';
+    if (approvedPct > 0) h += '<div class="progress-fill approved" style="width:' + approvedPct + '%"></div>';
+    if (pendingPct > 0) h += '<div class="progress-fill pending" style="width:' + pendingPct + '%"></div>';
+    if (rejectedPct > 0) h += '<div class="progress-fill rejected" style="width:' + rejectedPct + '%"></div>';
+    h += '</div></div>';
+    // Batch card stats
     h += '<div class="batch-card-stats">';
     h += '<span>待一审 <b>' + stats.pending_first + '</b></span>';
     h += '<span>待二审 <b>' + stats.pending_second + '</b></span>';
     h += '<span>已驳回 <b>' + stats.rejected + '</b></span>';
     h += '<span>已完成 <b>' + stats.completed + '</b></span>';
-    h += '</div></div>';
+    h += '</div>';
+    // Action buttons
+    if (b.status === 'open') {
+      h += '<div class="batch-card-actions">';
+      h += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showEditBatchModal(\'' + b.id + '\')">编辑</button>';
+      h += '</div>';
+    }
+    h += '</div>';
   });
 
   h += '</div>';
@@ -560,6 +623,131 @@ function selectBatch(id) {
 }
 
 function setYearFilter(y) { yearFilter = y; selectedBatchId = null; renderBatchCards(); renderRightColumn(); }
+
+// ===== BATCH MANAGEMENT MODALS =====
+function showBatchDetail(id) {
+  var batches = loadBatches();
+  var b = batches.find(function(x) { return x.id === id; });
+  if (!b) return;
+  var stats = getBatchStats(b.id);
+  var typeLabel = RECRUITMENT_TYPE_MAP[b.recruitmentType] || b.recruitmentType;
+
+  var html = '<div class="modal-overlay show" id="modalOverlay" onclick="if(event.target===this)closeModal()">';
+  html += '<div class="modal" style="width:520px;">';
+  html += '<div class="modal-header"><h3>批次详情</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>';
+  html += '<div class="modal-body">';
+  html += '<div class="batch-detail-row"><span class="bdl">批次编号</span><span class="bdv">' + b.id + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">批次名称</span><span class="bdv">' + b.name + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">年度</span><span class="bdv">' + (b.year||'') + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">招聘类型</span><span class="bdv">' + typeLabel + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">适用范围</span><span class="bdv">' + (b.scope==='全市' ? '全市' : (b.scopeAreas||[]).join('、')) + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">状态</span><span class="bdv">' + (b.status==='open' ? '进行中' : '已关闭') + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">创建时间</span><span class="bdv">' + (b.createTime||'') + '</span></div>';
+  html += '<div style="margin-top:16px;font-weight:600;font-size:13px;">申报统计</div>';
+  html += '<div class="batch-detail-row"><span class="bdl">总申报数</span><span class="bdv">' + stats.total + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">待一审</span><span class="bdv">' + stats.pending_first + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">待二审</span><span class="bdv">' + stats.pending_second + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">已驳回</span><span class="bdv" style="color:var(--danger);">' + stats.rejected + '</span></div>';
+  html += '<div class="batch-detail-row"><span class="bdl">已完成</span><span class="bdv" style="color:var(--success);">' + stats.completed + '</span></div>';
+  html += '</div>';
+  html += '<div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">关闭</button></div>';
+  html += '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function showCreateBatchModal() {
+  var html = '<div class="modal-overlay show" id="modalOverlay" onclick="if(event.target===this)closeModal()">';
+  html += '<div class="modal" style="width:520px;">';
+  html += '<div class="modal-header"><h3>新建招聘批次</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>';
+  html += '<div class="modal-body">';
+  html += '<div class="form-group"><label>批次名称 <span style="color:var(--danger);">*</span></label><input id="newBatchName" placeholder="如：2026年柳州市教师自主招聘（第二批）"></div>';
+  html += '<div class="form-group"><label>年度 <span style="color:var(--danger);">*</span></label><select id="newBatchYear">';
+  var currentYear = new Date().getFullYear();
+  for (var y = currentYear; y >= currentYear - 3; y--) { html += '<option value="' + y + '">' + y + '年</option>'; }
+  html += '</select></div>';
+  html += '<div class="form-group"><label>招聘类型 <span style="color:var(--danger);">*</span></label><select id="newBatchType"><option value="independent">自主招聘</option><option value="public">统一公招</option><option value="senior">中高级招聘</option></select></div>';
+  html += '<div class="form-group"><label>适用范围 <span style="color:var(--danger);">*</span></label><select id="newBatchScope" onchange="var v=this.value;document.getElementById(\'scopeAreasGroup\').style.display=v===\'指定区\'?\'block\':\'none\'">';
+  html += '<option value="全市">全市</option><option value="指定区">指定区</option></select></div>';
+  html += '<div class="form-group" id="scopeAreasGroup" style="display:none;"><label>选择区域</label><div style="display:flex;gap:8px;flex-wrap:wrap;">';
+  ['鱼峰区','城中区','柳北区','柳南区'].forEach(function(area) {
+    html += '<label style="font-size:12px;display:flex;align-items:center;gap:4px;"><input type="checkbox" value="' + area + '" class="scopeAreaChk"> ' + area + '</label>';
+  });
+  html += '</div></div>';
+  html += '</div>';
+  html += '<div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="createBatch()">创建批次</button></div>';
+  html += '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function createBatch() {
+  var name = document.getElementById('newBatchName').value.trim();
+  var year = document.getElementById('newBatchYear').value;
+  var type = document.getElementById('newBatchType').value;
+  var scope = document.getElementById('newBatchScope').value;
+  if (!name) { showToast('请输入批次名称', 'warning'); return; }
+  var scopeAreas = [];
+  if (scope === '指定区') {
+    document.querySelectorAll('.scopeAreaChk:checked').forEach(function(cb) { scopeAreas.push(cb.value); });
+    if (scopeAreas.length === 0) { showToast('请至少选择一个区域', 'warning'); return; }
+  }
+  var batches = loadBatches();
+  var id = 'RCB' + year + ('0'+(new Date().getMonth()+1)).slice(-2) + ('0'+new Date().getDate()).slice(-2) + ('00'+(batches.length+1)).slice(-2);
+  batches.push({
+    id: id, name: name, year: year, recruitmentType: type,
+    scope: scope, scopeAreas: scopeAreas, status: 'open',
+    createTime: new Date().toISOString().replace('T',' ').substring(0,19)
+  });
+  saveBatches(batches);
+  closeModal();
+  showToast('批次创建成功', 'success');
+  renderBatchCards();
+  renderRightColumn();
+}
+
+function showEditBatchModal(id) {
+  var batches = loadBatches();
+  var b = batches.find(function(x) { return x.id === id; });
+  if (!b) return;
+  var typeLabel = RECRUITMENT_TYPE_MAP[b.recruitmentType] || b.recruitmentType;
+
+  var html = '<div class="modal-overlay show" id="modalOverlay" onclick="if(event.target===this)closeModal()">';
+  html += '<div class="modal" style="width:520px;">';
+  html += '<div class="modal-header"><h3>编辑批次</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>';
+  html += '<div class="modal-body">';
+  html += '<div class="form-group"><label>批次名称</label><input id="editBatchName" value="' + escapeHtml(b.name) + '"></div>';
+  html += '<div class="form-group"><label>招聘类型</label><select id="editBatchType">';
+  ['independent','public','senior'].forEach(function(t) {
+    html += '<option value="' + t + '"' + (b.recruitmentType===t?' selected':'') + '>' + (RECRUITMENT_TYPE_MAP[t]||t) + '</option>';
+  });
+  html += '</select></div>';
+  html += '<div class="form-group"><label>状态</label><select id="editBatchStatus">';
+  html += '<option value="open"' + (b.status==='open'?' selected':'') + '>进行中</option>';
+  html += '<option value="closed"' + (b.status==='closed'?' selected':'') + '>已关闭</option>';
+  html += '</select></div>';
+  html += '</div>';
+  html += '<div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="updateBatch(\'' + id + '\')">保存修改</button></div>';
+  html += '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function updateBatch(id) {
+  var batches = loadBatches();
+  var idx = batches.findIndex(function(x) { return x.id === id; });
+  if (idx === -1) return;
+  batches[idx].name = document.getElementById('editBatchName').value.trim();
+  batches[idx].recruitmentType = document.getElementById('editBatchType').value;
+  batches[idx].status = document.getElementById('editBatchStatus').value;
+  saveBatches(batches);
+  closeModal();
+  showToast('批次信息已更新', 'success');
+  renderBatchCards();
+  renderRightColumn();
+}
+
+function closeModal() {
+  var el = document.getElementById('modalOverlay');
+  if (el) el.remove();
+}
 
 // ===== RENDER RIGHT COLUMN =====
 function renderRightColumn() {

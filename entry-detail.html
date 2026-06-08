@@ -321,6 +321,91 @@ body {
 }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
+/* Modal overlay */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 9998;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.show { display: flex; align-items: center; justify-content: center; }
+.modal {
+  background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg);
+  max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 6px; border: none;
+  background: transparent; font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--text-light);
+  transition: var(--transition);
+}
+.modal-close:hover { background: var(--gray-bg); color: var(--text); }
+.modal-body { padding: 20px; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Download button */
+.btn-download {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; font-size: 11px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 4px;
+  background: #fff; color: var(--primary); transition: var(--transition);
+  font-family: inherit; margin-left: 4px;
+}
+.btn-download:hover { background: var(--primary-light); border-color: var(--primary); }
+
+/* Staffing batch card */
+.batch-card {
+  background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; margin-bottom: 16px; overflow: hidden;
+}
+.batch-card .row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 13px; }
+.batch-card .label { color: var(--text-light); font-size: 11px; }
+.batch-card .value { font-weight: 500; color: var(--text); }
+.batch-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 500;
+}
+.batch-status.valid { background: #ECFDF5; color: #059669; }
+.batch-status.expiring { background: #FFFBEB; color: #D97706; }
+.batch-status.expired { background: #FEF2F2; color: #EF4444; }
+
+/* Staffing batch dashboard */
+.batch-card { overflow: hidden; }
+.batch-header { margin-bottom: 14px; }
+.bh-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+.bh-label { color: var(--text-light); min-width: 70px; font-size: 12px; }
+.bh-value { color: var(--text); font-weight: 500; }
+.d-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.d-panel {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px 12px 12px; text-align: center; box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.d-panel:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.d-title { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
+.d-number { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.d-unit { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.d-divider { height: 1px; background: var(--border); margin: 8px 0; }
+.d-items { text-align: left; font-size: 11px; color: var(--text-secondary); min-height: 20px; }
+.d-item { padding: 2px 0; display: flex; justify-content: space-between; }
+.d-num { font-weight: 600; color: var(--text); }
+.d-progress { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
+.dp-header { font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+.dp-bar { display: flex; align-items: center; gap: 10px; }
+.dp-bar-bg { flex: 1; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; }
+.dp-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #3B82F6, #1E40AF); transition: width 0.3s; }
+.dp-pct { font-size: 13px; font-weight: 700; min-width: 40px; text-align: right; }
+.dp-desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+@media (max-width: 900px) { .d-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .d-grid { grid-template-columns: 1fr; } }
+
 @media (max-width: 1024px) {
   .detail-layout { flex-direction: column; }
   .detail-side { width: 100%; }
@@ -668,6 +753,113 @@ var DEMO_RECORDS = [
     materials: { notice: ['通知书.pdf'], idCards: [['id1.pdf'], ['id2.pdf']] } }
 ];
 
+
+var MATERIAL_CATALOG = {
+  summary_table: { name: '编制使用申请汇总表', required: true },
+  register_book: { name: '编制本', required: true },
+  post_notice: { name: '岗位增补计划下达通知书', required: true },
+  education_cert: { name: '学历证书', required: false },
+  degree_cert: { name: '学位证书', required: false },
+  title_cert: { name: '职称证书', required: false },
+  license_cert: { name: '执业资格证书', required: false },
+  id_card: { name: '个人身份证（正反面）', required: true },
+  application_form: { name: '个人编制使用申请表', required: true },
+  appointment_doc: { name: '任命文件或干部调动通知', required: true },
+  military_order: { name: '军转干部安置任务通知文件', required: true },
+  military_intro: { name: '军转干部行政介绍信', required: true },
+  retiree_order: { name: '退役士兵安置任务通知文件', required: true },
+  family_doc: { name: '调动通知或岗位增补计划下达通知书', required: true },
+  transfer_form: { name: '商调表', required: true },
+  employment_agreement: { name: '就业协议', required: true },
+  roster: { name: '划转人员花名册', required: true },
+  control_form: { name: '聘用控制数转实名编教师考核登记表', required: true }
+};
+
+var DEMO_BATCH_LOOKUP = {
+  '柳州铁一中学': { career: { id: 'SP20260601001', name: '2026年第二批公开招聘', validity: { start: '2026-06-01', end: '2026-12-31' }, totalFinalCount: 5, useForms: { publicRecruit: 3, talent: 1, transfer: 1 } }, control: { id: 'SP20260601002', name: '2026年控制数招聘计划', validity: { start: '2026-06-01', end: '2026-12-31' }, totalFinalCount: 8, useForms: { publicRecruit: 5, selfRecruit: 3 } } },
+  '柳州市第八中学': { career: { id: 'SP20260501001', name: '2026年第一批公开招聘', validity: { start: '2026-05-01', end: '2026-12-31' }, totalFinalCount: 3, useForms: { publicRecruit: 2, selfRecruit: 1 } }, control: { id: 'SP20260501002', name: '2026年控制数招聘计划', validity: { start: '2026-05-01', end: '2026-12-31' }, totalFinalCount: 5, useForms: { transfer: 1, publicRecruit: 4 } } },
+  '柳州高级中学': { career: { id: 'SP20260502001', name: '2026年人才引进计划', validity: { start: '2026-05-15', end: '2026-12-31' }, totalFinalCount: 6, useForms: { talentHigh: 4, publicRecruit: 2 } } },
+  '鱼峰区实验小学': { career: { id: 'SP20260503001', name: '2026年区属学校招聘', validity: { start: '2026-05-10', end: '2026-11-30' }, totalFinalCount: 4, useForms: { publicRecruit: 3, selfRecruit: 1 } } },
+  '柳州市一中': { career: { id: 'SP20260502002', name: '2026年公开招聘', validity: { start: '2026-05-01', end: '2026-10-31' }, totalFinalCount: 5, useForms: { publicRecruit: 5 } } }
+};
+
+var NEW_FORMAT_RECORDS = [
+  { id: 'RN20260604001', schoolName: '柳州铁一中学', schoolType: '市直属', staffingType: 'career',
+    status: 'pending', submitTime: '2026-06-04 09:30:00', approveTime: null, approverRole: null,
+    unitName: '柳州铁一中学', orgLevel: '其他未定级', orgNature: '全额拨款事业单位',
+    careerStaffQuota: 628, currentCareerStaff: 584, unusedCareerPlan: 44,
+    authLeader: 8, actualLeader: 7, actualOtherLeader: 5,
+    applicants: [{ name: '赵刚', gender: '男', politics: '中共党员', ethnicity: '汉族', nativePlace: '广西柳州',
+      education: '本科', graduateInfo: '广西师范大学 数学与应用数学',
+      spouseName: '李梅', spouseWorkUnit: '柳州市人民医院',
+      previousJob: '某中学数学教师', orgNature: '事业单位', fundingSource: '财政全额拨款', cadreOrWorker: '干部', title: '一级教师',
+      assignPosition: '数学教师', entryMethod: '调动', docNumber: '柳教人〔2026〕30号',
+      reason: '家庭原因申请调入' }],
+    transferSubType: '八',
+    materials: {
+      summary_table: ['编制使用申请汇总表.pdf'],
+      register_book: ['编制本.pdf'],
+      id_card: ['身份证_赵刚.pdf'],
+      application_form: ['个人编制使用申请表_赵刚.pdf'],
+      post_notice: ['岗位增补计划下达通知书_2026-30号.pdf'],
+      transfer_form: ['商调表_赵刚.pdf'],
+      education_cert: ['学历证书_赵刚.pdf'],
+      degree_cert: ['学位证书_赵刚.pdf']
+    },
+    staffingBatchId: 'SP20260601001',
+    staffingBatchName: '2026年第二批公开招聘',
+    staffingBatchValidity: { start: '2026-06-01', end: '2026-12-31' }
+  },
+  { id: 'RN20260604002', schoolName: '柳州铁一中学', schoolType: '市直属', staffingType: 'career',
+    status: 'approved', submitTime: '2026-06-02 10:00:00', approveTime: '2026-06-04 11:20:00', approverRole: 'city',
+    approver: '张建国', opinion: '材料齐全，同意入编',
+    unitName: '柳州铁一中学', orgLevel: '其他未定级', orgNature: '全额拨款事业单位',
+    careerStaffQuota: 628, currentCareerStaff: 584, unusedCareerPlan: 44,
+    authLeader: 8, actualLeader: 7, actualOtherLeader: 5,
+    applicants: [{ name: '陈丽华', gender: '女', politics: '群众', ethnicity: '汉族', nativePlace: '广西柳州',
+      education: '硕士研究生', graduateInfo: '华中师范大学 汉语言文学',
+      spouseName: '王强', spouseWorkUnit: '柳州市政府办公室',
+      previousJob: '某高中语文教师', orgNature: '事业单位', fundingSource: '财政全额拨款', cadreOrWorker: '干部', title: '高级教师',
+      assignPosition: '语文教师', entryMethod: '统一公开招聘', docNumber: '柳教人〔2026〕31号',
+      reason: '学校扩班，语文教师紧缺' }],
+    materials: {
+      summary_table: ['编制使用申请汇总表.pdf'],
+      register_book: ['编制本.pdf'],
+      post_notice: ['岗位增补计划下达通知书_2026-31号.pdf'],
+      id_card: ['身份证_陈丽华.pdf'],
+      application_form: ['个人编制使用申请表_陈丽华.pdf']
+    },
+    staffingBatchId: 'SP20260601001',
+    staffingBatchName: '2026年第二批公开招聘',
+    staffingBatchValidity: { start: '2026-06-01', end: '2026-12-31' }
+  }
+];
+
+function resolveBatchForRecord(r) {
+  if (r.staffingBatchId) return null;
+  var sl = DEMO_BATCH_LOOKUP[r.schoolName];
+  if (!sl) return null;
+  var tk = r.staffingType === 'career' ? 'career' : 'control';
+  var td = sl[tk];
+  if (!td) return null;
+  return { staffingBatchId: td.id, staffingBatchName: td.name, staffingBatchValidity: td.validity, totalFinalCount: td.totalFinalCount, useForms: td.useForms };
+}
+
+function calcBatchUsage(bid, eid) {
+  var recs = loadRecords();
+  var appr = {}, pend = {};
+  var uc = 0, pc = 0;
+  recs.forEach(function(r) {
+    if (r.staffingBatchId === bid && r.id !== eid) {
+      (r.applicants || []).forEach(function(a) {
+        var em = a.entryMethod || '其他';
+        if (r.status === 'approved') { appr[em] = (appr[em] || 0) + 1; uc++; }
+        else if (r.status === 'pending') { pend[em] = (pend[em] || 0) + 1; pc++; }
+      });
+    }
+  });
+  return { used: { count: uc, details: appr }, pending: { count: pc, details: pend } };
+}
 // ===== DATA =====
 function loadRecords() {
   var stored = JSON.parse(localStorage.getItem('entry_records') || '[]');
@@ -675,6 +867,7 @@ function loadRecords() {
   stored.forEach(function(r) { ids[r.id] = true; });
   var merged = stored.slice();
   DEMO_RECORDS.forEach(function(r) { if (!ids[r.id]) { merged.push(r); ids[r.id] = true; } });
+  NEW_FORMAT_RECORDS.forEach(function(r) { if (!ids[r.id]) { merged.push(r); ids[r.id] = true; } });
   return merged;
 }
 
@@ -925,40 +1118,75 @@ function renderApplicants() {
 
 function renderMaterials() {
   var r = currentRecord;
+  var isNew = r.materials && (r.materials.summary_table !== undefined || r.materials.register_book !== undefined);
+  var html = '<div class="card"><div class="card-header">材料附件</div><div class="card-body">';
+  if (isNew) { html += renderNewFmt(r); } else { html += renderOldFmt(r); }
+  html += '<div id="previewModalContainer"></div></div></div>';
+  return html;
+}
+function renderOldFmt(r) {
   var items = [];
-
   if (r.staffingType === 'career') {
-    items.push({ name: '柳州市事业单位岗位增补计划下达通知书', required: true, files: (r.materials && r.materials.notice) || [] });
-    items.push({ name: '个人身份证', required: true, files: (r.materials && r.materials.idCard) || [] });
+    items.push({ name: '岗位增补计划下达通知书', key: 'post_notice', required: true, files: (r.materials && r.materials.notice) || [] });
+    items.push({ name: '个人身份证', key: 'id_card', required: true, files: (r.materials && r.materials.idCard) || [] });
   } else {
-    items.push({ name: '市人社局下发的岗位增补计划下达通知书', required: true, files: (r.materials && r.materials.notice) || [] });
-    var idCards = (r.materials && r.materials.idCards) || [];
-    for (var i = 0; i < idCards.length; i++) {
-      var name = r.applicants && r.applicants[i] ? r.applicants[i].name : '申请人' + (i + 1);
-      items.push({ name: '个人身份证（' + name + '）', required: true, files: idCards[i] || [] });
-    }
+    items.push({ name: '市人社局下发的岗位增补计划下达通知书', key: 'post_notice', required: true, files: (r.materials && r.materials.notice) || [] });
+    var ic = (r.materials && r.materials.idCards) || [];
+    for (var i = 0; i < ic.length; i++) { var pn = r.applicants && r.applicants[i] ? r.applicants[i].name : '申请人'+(i+1); items.push({ name: '个人身份证（'+pn+'）', key: 'id_card', required: true, files: ic[i] || [] }); }
   }
-
-  var html = '';
+  var em = r.entryMethod || (r.applicants && r.applicants[0] && r.applicants[0].entryMethod) || '—';
+  var h = '<div style="margin-bottom:8px;font-size:12px;color:var(--text-secondary);">入编方式：<strong>'+em+'</strong></div>';
+  var up = 0; items.forEach(function(it) { if (it.files.length > 0) up++; });
+  var pct = items.length > 0 ? Math.round(up/items.length*100) : 0;
+  h += '<div style="margin-bottom:8px;font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;"><span>📎 已上传 <strong>'+up+'</strong>/'+items.length+' 项</span><div style="flex:1;max-width:120px;height:4px;background:#E2E8F0;border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--primary),var(--success));border-radius:2px;"></div></div><span style="font-size:10px;color:var(--text-light);">'+pct+'%</span></div>';
+  h += renderMatItems(items);
+  return h;
+}
+function renderNewFmt(r) {
+  var em = r.entryMethod || '统一公开招聘';
+  var sh = '';
+  if (em === '调动' && r.transferSubType) { var sl = {'一':'组织任命','五':'军转干部','六':'退役士兵','七':'随军家属','八':'非参公事业单位调动'}; sh = ' → '+ (sl[r.transferSubType]||r.transferSubType); }
+  else if (em === '其他' && r.otherSubType) { var sl2 = {'十':'免费师范生','十一':'划转','十二':'控制数转实名编'}; sh = ' → '+ (sl2[r.otherSubType]||r.otherSubType); }
+  var mk = Object.keys(r.materials).filter(function(k){return MATERIAL_CATALOG[k];});
+  mk.sort(function(a,b){var ca=MATERIAL_CATALOG[a],cb=MATERIAL_CATALOG[b]; if (!ca) return 1; if (!cb) return -1; if (ca.required && !cb.required) return -1; if (!ca.required && cb.required) return 1; return 0; });
+  var uc = 0; mk.forEach(function(k){if(r.materials[k]&&r.materials[k].length>0)uc++;});
+  var h = '<div style="margin-bottom:8px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;"><span>入编方式：<strong>'+em+'</strong>'+sh+'</span><span style="margin-left:auto;font-size:11px;color:var(--text-light);">📎 '+uc+'/'+mk.length+' 项</span></div>';
+  var pct2 = mk.length>0?Math.round(uc/mk.length*100):0;
+  h += '<div style="height:4px;background:#E2E8F0;border-radius:2px;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:'+pct2+'%;background:linear-gradient(90deg,var(--primary),var(--success));border-radius:2px;transition:width 0.3s;"></div></div>';
+  var items = mk.map(function(k){var c=MATERIAL_CATALOG[k];return {name:c.name,key:k,required:c.required,files:r.materials[k]||[]};});
+  h += renderMatItems(items);
+  return h;
+}
+function renderMatItems(items) {
+  var h = '';
   for (var j = 0; j < items.length; j++) {
-    var item = items[j];
-    var filesHtml = (item.files || []).map(function(f) {
-      return '<span class="file-chip" onclick="showToast(\'预览: ' + f + '（模拟）\')">📄 ' + f + '</span>';
-    }).join('');
-    html += '<div class="material-item">' +
-      '<div style="flex:1;">' +
-        '<div class="material-name">' +
-          '<span class="material-tag ' + (item.required ? 'required' : 'optional') + '">' + (item.required ? '必传' : '选传') + '</span>' +
-          item.name +
-        '</div>' +
-        (filesHtml ? '<div class="material-files">' + filesHtml + '</div>' : '<div style="font-size:11px;color:var(--text-light);margin-top:4px;">未上传</div>') +
-      '</div>' +
-    '</div>';
+    var it = items[j], fs = it.files || [];
+    var fh = fs.map(function(f){var sn=f.replace(/'/g,"\\'");return '<span class="file-chip" onclick="showFilePreview(\''+sn+'\')" title="预览">📄 '+f+'</span><button class="btn-download" onclick="downloadFile(\''+sn+'\')" title="下载">⬇ 下载</button>';}).join('');
+    h += '<div class="material-item"><div style="flex:1;"><div class="material-name"><span class="material-tag '+(it.required?'required':'optional')+'">'+(it.required?'必传':'选传')+'</span>'+it.name+'</div>'+(fs.length>0?'<div class="material-files" style="margin-top:6px;">'+fh+'</div>':'<div style="font-size:11px;color:var(--text-light);margin-top:4px;">⚠ 未上传</div>')+'</div></div>';
   }
-
-  return '<div class="card"><div class="card-header">材料附件</div><div class="card-body">' + html + '</div></div>';
+  return h;
 }
 
+
+function showFilePreview(fn) {
+  var ext = fn.split('.').pop().toLowerCase();
+  var viewable = ['pdf','jpg','jpeg','png','gif','bmp'].indexOf(ext)>=0;
+  var b = viewable
+    ? '<div style="text-align:center;padding:20px 0;"><div style="font-size:48px;margin-bottom:12px;">📄</div><div style="font-size:14px;font-weight:500;margin-bottom:8px;">'+fn+'</div><div style="font-size:12px;color:var(--text-light);margin-bottom:16px;">此为演示系统，文件内容为模拟展示</div><button class="btn-download" onclick="downloadFile(\''+fn.replace(/'/g,"\\'")+'\')" style="padding:6px 20px;font-size:13px;">⬇ 下载文件</button></div>'
+    : '<div style="text-align:center;padding:20px 0;"><div style="font-size:48px;margin-bottom:12px;">📄</div><div style="font-size:14px;font-weight:500;margin-bottom:8px;">'+fn+'</div><div style="font-size:12px;color:var(--text-light);margin-bottom:16px;">该格式暂不支持在线预览，请下载后查看</div><button class="btn-download" onclick="downloadFile(\''+fn.replace(/'/g,"\\'")+'\')" style="padding:6px 20px;font-size:13px;">⬇ 下载文件</button></div>';
+  var h = '<div class="modal-overlay show" onclick="if(event.target===this)closeModal()"><div class="modal" style="max-width:520px;"><div class="modal-header"><h3>📋 文件预览</h3><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body">'+b+'</div></div></div>';
+  var c = document.getElementById('previewModalContainer');
+  if (c) c.innerHTML = h;
+}
+function closeModal() { var c = document.getElementById('previewModalContainer'); if (c) c.innerHTML = ''; }
+function downloadFile(fn) {
+  var t = '柳州教育人事管理平台 — 文件下载\n================================\n\n文件名：'+fn+'\n申请编号：'+(currentRecord?currentRecord.id:'—')+'\n学校名称：'+(currentRecord?currentRecord.schoolName:'—')+'\n下载时间：'+new Date().toLocaleString('zh-CN')+'\n\n================================\n此为演示系统，文件内容为模拟数据。\n实际部署后，将从服务器获取真实文件。\n';
+  var blob = new Blob([t], {type:'text/plain;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = fn+'.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 function renderTimeline() {
   var r = currentRecord;
   var dotClassMap = { submit: 'submit', approve: 'approve', reject: 'reject', resubmit: 'resubmit' };
@@ -1019,6 +1247,100 @@ function renderActionBar() {
   return '<div class="card"><div class="action-bar">' + html + '</div></div>';
 }
 
+
+function renderStaffingBatchCard() {
+  var r = currentRecord;
+  var bid = r.staffingBatchId, bnm = r.staffingBatchName, bvl = r.staffingBatchValidity, btot = null, buf = null;
+  if (!bid) {
+    var res = resolveBatchForRecord(r);
+    if (res) { bid = res.staffingBatchId; bnm = res.staffingBatchName; bvl = res.staffingBatchValidity; btot = res.totalFinalCount; buf = res.useForms; }
+    else { return '<div class="batch-card"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">📦 关联编制使用申请</div><div style="font-size:12px;color:var(--text-light);">该申请提交时未关联编制使用申请批次，或关联数据已清理</div></div>'; }
+  }
+
+  // Validity status
+  var vh = '';
+  if (bvl && bvl.start && bvl.end) {
+    var nw = new Date(), en = new Date(bvl.end), dl = Math.ceil((en-nw)/86400000),
+        sc = dl<0?'expired':(dl<=30?'expiring':'valid'),
+        sl = dl<0?'🔴 已过期':(dl<=30?'🟡 即将到期（剩'+dl+'天）':'🟢 有效（剩余'+dl+'天）');
+    vh = '<span class="batch-status '+sc+'">'+sl+'</span>';
+  }
+
+  // Total from useForms if not directly provided
+  var tn = btot;
+  if (buf && tn == null) { tn = 0; Object.keys(buf).forEach(function(k){tn+=buf[k];}); }
+  tn = Number(tn)||0;
+
+  // Display name mapping
+  var ufl = {publicRecruit:'统一公开招聘',selfRecruit:'单位自主实施招聘',talent:'引进人才',talentMid:'中高级人才招聘',talentHigh:'引进高层次人才',transfer:'调动',other:'其他'};
+
+  // Usage stats
+  var usg = calcBatchUsage(bid, r.id);
+  var uc = usg.used.count, pc = usg.pending.count;
+  var rm = tn - uc - pc;
+  var rate = tn > 0 ? Math.round((uc+pc)/tn*100) : 0;
+  var rateColor = rate > 85 ? '#EF4444' : (rate > 60 ? '#F59E0B' : '#3B82F6');
+
+  // Helper: build detail item list from map
+  function buildItems(map) {
+    var keys = Object.keys(map);
+    if (!keys.length) return '<div style="color:var(--text-light);text-align:center;padding:4px 0;font-size:11px;">暂无数据</div>';
+    return keys.map(function(k) {
+      return '<div class="d-item">'+k+' <span class="d-num">'+map[k]+'</span></div>';
+    }).join('');
+  }
+
+  // Panel 1: 编办核定数
+  var pq = '';
+  if (buf) {
+    pq = Object.keys(buf).filter(function(k){return buf[k]>0;}).map(function(k) {
+      return '<div class="d-item">'+(ufl[k]||k)+' <span class="d-num">'+buf[k]+'</span></div>';
+    }).join('');
+  } else {
+    pq = '<div style="color:var(--text-light);text-align:center;padding:4px 0;font-size:11px;">暂无核定明细</div>';
+  }
+
+  // Panel 2: 已使用
+  var pu = buildItems(usg.used.details);
+
+  // Panel 3: 待审核
+  var pp = buildItems(usg.pending.details);
+
+  // Panel 4: 剩余可申请 (skip zero items)
+  var prItems = '', hasRemaining = false;
+  if (buf) {
+    Object.keys(buf).forEach(function(k) {
+      if (buf[k] > 0) {
+        var dn = ufl[k]||k;
+        var usedN = usg.used.details[dn]||0, pendN = usg.pending.details[dn]||0;
+        var rem = buf[k] - usedN - pendN;
+        if (rem > 0) { hasRemaining = true; prItems += '<div class="d-item">'+dn+' 剩<span class="d-num">'+rem+'</span></div>'; }
+      }
+    });
+  }
+  if (!hasRemaining) prItems = '<div style="color:var(--text-light);text-align:center;padding:4px 0;font-size:11px;">所有来源名额已用完</div>';
+
+  var nmColor = rm < 0 ? '#EF4444' : '#1E40AF';
+
+  return '<div class="batch-card">'+
+    '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">📦 关联编制使用申请</div>'+
+    '<div class="batch-header">'+
+    '<div class="bh-row"><span class="bh-label">申请编号</span><span class="bh-value" style="font-family:monospace;">'+bid+'</span></div>'+
+    '<div class="bh-row"><span class="bh-label">批次名称</span><span class="bh-value">'+(bnm||'—')+'</span></div>'+
+    '<div class="bh-row"><span class="bh-label">有效期</span><span class="bh-value">'+(bvl&&bvl.start?bvl.start:'')+' ~ '+(bvl&&bvl.end?bvl.end:'')+' '+vh+'</span></div>'+
+    '</div>'+
+    '<div class="d-grid">'+
+    '<div class="d-panel"><div class="d-title">编办核定数</div><div class="d-number" style="color:#1E40AF;">'+tn+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+pq+'</div></div>'+
+    '<div class="d-panel"><div class="d-title">已使用</div><div class="d-number" style="color:#10B981;">'+uc+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+pu+'</div></div>'+
+    '<div class="d-panel"><div class="d-title">待审核</div><div class="d-number" style="color:#F59E0B;">'+pc+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+pp+'</div></div>'+
+    '<div class="d-panel"><div class="d-title">剩余可申请</div><div class="d-number" style="color:'+nmColor+';">'+Math.max(0,rm)+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+prItems+'</div></div>'+
+    '</div>'+
+    '<div class="d-progress">'+
+    '<div class="dp-header">使用率</div>'+
+    '<div class="dp-bar"><div class="dp-bar-bg"><div class="dp-bar-fill" style="width:'+rate+'%;background:'+rateColor+'"></div></div><span class="dp-pct" style="color:'+rateColor+';">'+rate+'%</span></div>'+
+    '<div class="dp-desc">已使用 '+uc+' + 待审核 '+pc+' = '+(uc+pc)+' / 编办核定 '+tn+'</div>'+
+    '</div></div>';
+}
 function renderWarning() {
   if (currentRecord.status !== 'approved') return '';
   var days = getDaysSinceApproval();
@@ -1027,6 +1349,24 @@ function renderWarning() {
     return '<div class="warning-banner">⚠ 该申请已于 ' + days + ' 天前审批通过。审批通过后 30 天内，原审批人可将结果修改为驳回（剩余 ' + (30 - days) + ' 天）。</div>';
   }
   return '<div class="warning-banner" style="background:#F1F5F9;border-color:#E2E8F0;color:#64748B;">该申请已审批通过超过 30 天，无法修改审核结果。</div>';
+}
+
+function renderAccountPrompt() {
+  var r = currentRecord;
+  if (r.status !== 'approved') return '';
+  var user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  if (user.role === 'teacher') return '';
+  var accounts = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+  var matched = accounts.filter(function(a) { return a.entryRecords.indexOf(r.id) !== -1; });
+  if (matched.length > 0) {
+    return '<div class="warning-banner" style="background:#EFF6FF;border-color:#3B82F6;color:#1E40AF;">' +
+      '🔑 该入编申请已为 <strong>' + matched.length + '</strong> 名教师自动创建系统账号。' +
+      '请前往 <a href="account-management.html" style="color:#1E40AF;font-weight:600;text-decoration:underline;">系统设置 → 账号管理</a> 查看初始密码并分发。' +
+      '</div>';
+  }
+  return '<div class="warning-banner" style="background:#F8FAFC;border-color:#E2E8F0;color:#64748B;">' +
+    '📋 该申请已审批通过。如需创建教师系统账号，请前往 <a href="account-management.html" style="color:var(--primary);font-weight:600;text-decoration:underline;">系统设置 → 账号管理</a> 操作。' +
+    '</div>';
 }
 
 function renderPage() {
@@ -1050,10 +1390,13 @@ function renderPage() {
     '<span class="status-stamp ' + r.status + '">' + (STATUS_MAP[r.status]||r.status) + '</span>' +
     '</div>' +
     renderWarning() +
+    renderAccountPrompt() +
+
     '<div class="detail-layout">' +
     '<div class="detail-main">' +
     renderProgress() +
     renderUnitInfo() +
+    renderStaffingBatchCard() +
     renderApplicants() +
     renderMaterials() +
     '</div>' +
@@ -1121,7 +1464,7 @@ function renderSidebar() {
   (sidebar.groups || []).forEach(function(group) {
     html += '<div class="menu-group">' + group.name + '</div>';
     group.items.forEach(function(item) {
-      html += '<a class="menu-item' + (item.id === 'entry' ? ' active' : '') + '" onclick="sidebarClick(\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span></a>';
+      html += '<a class="menu-item' + (item.id === 'entry' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span></a>';
     });
   });
   document.getElementById('sidebarMenu').innerHTML = html;
@@ -1161,6 +1504,7 @@ function sidebarClick(el, id) {
     showToast('无权限访问', 'warning');
     return;
   }
+  if (id === 'account') { window.location.href = 'account-management.html'; return; }
   showToast('跳转至：' + el.querySelector('.menu-label').textContent);
 }
 
@@ -1186,7 +1530,7 @@ function showToast(msg) {
   updateRoleUI();
   renderSidebar();
 
-  var recordId = params.get('id') || 'RN20260515001';
+  var recordId = params.get('id') || 'RN20260604001';
   currentRecord = findRecord(recordId);
   if (!currentRecord) { var all = loadRecords(); currentRecord = all.length > 0 ? all[0] : null; }
   renderPage();

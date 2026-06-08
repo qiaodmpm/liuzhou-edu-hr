@@ -120,6 +120,19 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .status-fbtn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
 /* Filter bar */
+
+
+/* Tabs */
+.admin-tabs { display:flex; gap:0; margin-bottom:16px; border-bottom:2px solid var(--border); }
+.admin-tab { padding:10px 20px; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-secondary); border-bottom:2px solid transparent; margin-bottom:-2px; transition:var(--transition); }
+.admin-tab:hover { color:var(--text); }
+.admin-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.school-list-table { width:100%; border-collapse:collapse; font-size:13px; background:#fff; border-radius:8px; overflow:hidden; }
+.school-list-table th { padding:10px 14px; text-align:left; font-weight:600; font-size:12px; color:var(--text-secondary); background:#F8FAFC; border-bottom:1px solid var(--border); }
+.school-list-table td { padding:10px 14px; border-bottom:1px solid var(--border); }
+.school-list-table tr:hover td { background:#FAFBFC; }
+.action-link { color:var(--primary); cursor:pointer; font-size:13px; text-decoration:none; }
+.action-link:hover { text-decoration:underline; }
 .filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .filter-bar select, .filter-bar input { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; outline: none; }
 .filter-bar select:focus, .filter-bar input:focus { border-color: var(--accent); }
@@ -229,9 +242,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
       <h1>岗位晋升审核管理</h1>
       <div class="subtitle">按学校分组查看与审核教师岗位晋升申请</div>
     </div>
-    <div class="page-header-right">
-      <button class="btn btn-outline" onclick="showExportModal()">导出数据</button>
-    </div>
+    <div class="page-header-right"></div>
   </div>
 
   <div id="mainContent"></div>
@@ -409,12 +420,11 @@ var STATUS_MAP = {
 
 var currentRole = 'city';
 var currentStatusFilter = 'all';
-var yearFilter = 'all';
+var yearFilter = 'all';var currentAuditTab = 'second'; // 'second' | 'third'
+
 
 // ===== DATA LAYER =====
 function loadRecords() {
-  var s = localStorage.getItem('promote_records');
-  if (s) { try { return JSON.parse(s); } catch(e) {} }
   localStorage.setItem('promote_records', JSON.stringify(DEMO_RECORDS));
   return JSON.parse(JSON.stringify(DEMO_RECORDS));
 }
@@ -430,6 +440,8 @@ function resetDemoData() {
 // ===== PERMISSION =====
 function getPermittedRecords() {
   var records = loadRecords();
+  // 主管单位只能查看学校已批量提交的记录
+  records = records.filter(function(r) { return r.status !== 'pending_first' && r.status !== 'first_approved'; });
   if (currentRole === 'district') {
     return records.filter(function(r) { return r.schoolCategory === '鱼峰区属'; });
   }
@@ -492,6 +504,9 @@ function remindSchool(schoolName) {
   var c = '<div class="modal-header"><h3>提醒申报</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body"><p style="font-size:14px;">确认提醒「' + schoolName + '」提交申报材料？</p><p style="font-size:12px;color:var(--text-light);margin-top:8px;">该校有一审通过但尚未提交至主管部门的申报记录，提醒后学校管理员将收到通知。每个学校每天最多提醒一次。</p></div>';
   c += '<div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doRemindSchool(\'' + schoolName.replace(/'/g,"\\'") + '\')">确认提醒</button></div>';
+    document.getElementById('exportArea').onchange = function() { document.getElementById('exportPreview').innerHTML = renderExportPreview(); };
+  document.getElementById('exportSchool').onchange = function() { document.getElementById('exportPreview').innerHTML = renderExportPreview(); };
+  document.querySelectorAll('.export-status-cb').forEach(function(cb) { cb.onchange = function() { document.getElementById('exportPreview').innerHTML = renderExportPreview(); }; });
   openModal(c);
 }
 
@@ -654,79 +669,131 @@ function getSchoolBatchGroups(records) {
 }
 
 function getStatusCounts(records) {
-  return {
-    all: records.length,
-    pending: records.filter(function(r) {
-      var s = r.status;
-      return s === 'pending_school' || s === 'first_approved' || s === 'pending_second' || s === 'pending_third';
-    }).length,
-    completed: records.filter(function(r) { return r.status === 'completed'; }).length,
-    rejected: records.filter(function(r) { return r.status === 'first_rejected' || r.status === 'second_rejected' || r.status === 'third_rejected'; }).length
-  };
+  var c = {};
+  c.pending_second = records.filter(function(r) { return r.status === 'pending_second'; }).length;
+  c.second_approved = records.filter(function(r) { return r.status === 'second_approved'; }).length;
+  c.hr_result_entered = records.filter(function(r) { return r.status === 'hr_result_entered'; }).length;
+  c.pending_third = records.filter(function(r) { return r.status === 'pending_third'; }).length;
+  c.completed = records.filter(function(r) { return r.status === 'completed'; }).length;
+  c.second_rejected = records.filter(function(r) { return r.status === 'second_rejected'; }).length;
+  c.hr_rejected = records.filter(function(r) { return r.status === 'hr_rejected'; }).length;
+  c.first_rejected = records.filter(function(r) { return r.status === 'first_rejected'; }).length;
+  c.all = c.pending_second + c.second_approved + c.hr_result_entered + c.pending_third + c.completed + c.second_rejected + c.hr_rejected + c.first_rejected;
+  return c;
 }
 
-function renderSchoolGroups(records) {
+function renderMain() {
+  var years = getAvailableYears();
+  var allRecords = getPermittedRecords();
+  var counts = getStatusCounts(allRecords);
+
+  var filteredRecords = allRecords;
+  if (yearFilter !== 'all') {
+    filteredRecords = filteredRecords.filter(function(r) { return (r.submitTime || '').substring(0, 4) === yearFilter; });
+  }
+  if (currentStatusFilter !== 'all') {
+    filteredRecords = filteredRecords.filter(function(r) { return r.status === currentStatusFilter; });
+  }
+
+  var h = '';
+  h += '<div class="status-filters">';
+  var filters = [
+    { key: 'all', label: '全部 (' + counts.all + ')' },
+    { key: 'pending_second', label: '待二审 (' + counts.pending_second + ')' },
+    { key: 'second_approved', label: '二审通过 (' + counts.second_approved + ')' },
+    { key: 'hr_result_entered', label: '人社通过 (' + counts.hr_result_entered + ')' },
+    { key: 'pending_third', label: '待三审 (' + counts.pending_third + ')' },
+    { key: 'completed', label: '晋升成功 (' + counts.completed + ')' },
+    { key: 'second_rejected', label: '二审驳回 (' + counts.second_rejected + ')' },
+    { key: 'hr_rejected', label: '人社驳回 (' + counts.hr_rejected + ')' },
+    { key: 'first_rejected', label: '晋升失败 (' + counts.first_rejected + ')' }
+  ];
+  filters.forEach(function(f) {
+    h += '<button class="status-fbtn' + (currentStatusFilter===f.key?' active':'') + '" onclick="setStatusFilter(\'' + f.key + '\')">' + f.label + '</button>';
+  });
+  h += '</div>';
+
+  h += '<div class="filter-bar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">';
+  h += '<div style="display:flex;align-items:center;gap:12px;">';
+  h += '<span style="font-size:12px;color:var(--text-secondary);">年度筛选</span>';
+  h += '<select onchange="yearFilter=this.value;renderMain()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:#fff;">';
+  h += '<option value="all"' + (yearFilter==='all'?' selected':'') + '>全部年度</option>';
+  years.forEach(function(y) { h += '<option value="' + y + '"' + (yearFilter===y?' selected':'') + '>' + y + '年</option>'; });
+  h += '</select>';
+  h += '</div>';
+  h += '<button class="btn btn-primary btn-sm" onclick="showExportModal()">📥 导出数据</button>';
+  h += '</div>';
+  h += renderSchoolGroups(filteredRecords, allRecords);
+  document.getElementById('mainContent').innerHTML = h;
+}
+
+function setStatusFilter(f) { currentStatusFilter = f; renderMain(); }
+
+function renderSchoolGroups(records, allRecords) {
   if (records.length === 0) {
-    return '<div class="table-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无匹配的申报记录</div></div></div>';
+    return '<div class="table-card"><div class="empty-state"><div class="empty-icon">\u{1F4CB}</div><div class="empty-text">暂无匹配的申报记录</div></div></div>';
   }
   var groups = getSchoolBatchGroups(records);
-  var h = '';
-  groups.forEach(function(g) {
-    var hasPendingSecond = g.statusCounts['pending_second'] > 0;
-    var hasPendingThird = g.statusCounts['pending_third'] > 0;
-    var canAuditSchool = hasPendingSecond || hasPendingThird;
-    var statusLabels = { pending_first: '待一审', first_approved: '一审通过', first_rejected: '一审驳回', pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回', pending_third: '待三审', third_rejected: '三审驳回', completed: '已完成' };
-    var typeNames = { mgmt: '管理岗', prof: '专技岗', labor: '工勤岗' };
-    var statusParts = [];
-    Object.keys(statusLabels).forEach(function(k) {
-      if (g.statusCounts[k]) statusParts.push(statusLabels[k] + ' ' + g.statusCounts[k]);
-    });
-    var typeParts = [];
-    Object.keys(typeNames).forEach(function(k) {
-      if (g.typeCounts[k]) typeParts.push(typeNames[k] + ' ' + g.typeCounts[k] + '人');
-    });
-
-    h += '<div class="school-group">';
-    h += '<div class="school-group-header open" onclick="toggleSchoolGroup(this)">';
-    h += '<div class="sg-left"><span class="expand-icon">▶</span>';
-    h += '<span class="school-group-name">' + g.schoolName + '</span>';
-    if (g.category) h += '<span class="cat-badge ' + (g.category === '鱼峰区属' ? 'district' : 'city') + '">' + g.category + '</span>';
-    h += '</div>';
-    h += '<span class="school-group-count">共 ' + g.records.length + ' 人</span>';
-    h += '</div>';
-    h += '<div class="school-group-body">';
-    h += '<div class="batch-summary-card">';
-    h += '<div class="summary-header">📋 ' + (g.batchName || '未知批次') + '</div>';
-    h += '<div class="summary-stats">';
-    h += '<span class="stat-item">状态分布：<strong>' + (statusParts.join(' | ') || '—') + '</strong></span>';
-    h += '</div>';
-    h += '<div class="summary-stats">';
-    h += '<span class="stat-item">申报类别：<strong>' + (typeParts.join('、') || '—') + '</strong></span>';
-    h += '</div>';
-    h += '<div class="summary-actions">';
-    h += '<button class="btn btn-outline btn-sm" onclick="viewSchoolDetail(\'' + g.schoolName.replace(/'/g,"\\'") + '\',\'' + (g.batchId||'') + '\')">查看申报详情</button>';
-    if (hasPendingSecond && canAuditSchool) {
-      var firstRec = g.records[0];
-      h += '<button class="btn btn-primary btn-sm" onclick="secondReview(\'' + (firstRec.id||'') + '\',\'' + g.schoolName.replace(/'/g,"\\'") + '\',\'' + (g.batchId||'') + '\')">进入二审</button>';
-    }
-    if (hasPendingThird && canAuditSchool) {
-      var firstRec3 = g.records[0];
-      h += '<button class="btn btn-primary btn-sm" onclick="thirdReview(\'' + (firstRec3.id||'') + '\',\'' + g.schoolName.replace(/'/g,"\\'") + '\',\'' + (g.batchId||'') + '\')">进入三审</button>';
-    }
-    h += '</div>';
-    h += '</div>';
-    h += '</div></div>';
+  // Compute total counts from full dataset for 申报人数 column
+  var allGroups = allRecords ? getSchoolBatchGroups(allRecords) : [];
+  var totalCounts = {};
+  allGroups.forEach(function(ag) {
+    totalCounts[ag.schoolName + '|' + ag.batchId] = ag.records.length;
   });
+  var statLabels = {
+    pending_first: '待一审', first_approved: '一审通过', first_rejected: '晋升失败',
+    pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回',
+    hr_result_entered: '人社通过', hr_rejected: '人社驳回',
+    pending_third: '待三审', completed: '晋升成功'
+  };
+
+  var h = '<table class="school-list-table"><thead><tr>';
+  h += '<th>#</th><th>申报编号</th><th>学校名称</th><th>所属区域</th><th>批次</th>';
+  h += '<th>申报人数</th><th>待审核</th><th>已通过</th><th>已驳回</th><th>操作</th>';
+  h += '</tr></thead><tbody>';
+
+  groups.forEach(function(g, idx) {
+    var numPending = (g.statusCounts['pending_second']||0) + (g.statusCounts['pending_third']||0) + (g.statusCounts['hr_result_entered']||0);
+    var numApproved = (g.statusCounts['second_approved']||0) + (g.statusCounts['completed']||0);
+    var numRejected = (g.statusCounts['second_rejected']||0) + (g.statusCounts['hr_rejected']||0) + (g.statusCounts['first_rejected']||0);
+    var firstRec = g.records[0];
+    var auditLink = '';
+    if (g.statusCounts['pending_second'] > 0) {
+      auditLink = '<a class="action-link" href="promote-audit-second.html?id=' + firstRec.id + '&role=' + currentRole + '">审核</a>';
+    } else if (g.statusCounts['pending_third'] > 0 || g.statusCounts['hr_result_entered'] > 0) {
+      auditLink = '<a class="action-link" href="promote-audit-third.html?id=' + firstRec.id + '">审核</a>';
+    }
+
+    h += '<tr>';
+    h += '<td>' + (idx + 1) + '</td>';
+    h += '<td style="font-size:12px;color:var(--text-light);">' + firstRec.id + '</td>';
+    h += '<td><strong>' + g.schoolName + '</strong></td>';
+    h += '<td>' + (g.category || '\u2014') + '</td>';
+    h += '<td>' + (g.batchName || '\u2014') + '</td>';
+    var totalCount = totalCounts[g.schoolName + '|' + g.batchId] || g.records.length;
+	    h += '<td>' + totalCount + '</td>';
+    h += '<td>' + numPending + '</td>';
+    h += '<td>' + numApproved + '</td>';
+    h += '<td>' + numRejected + '</td>';
+    h += '<td>';
+    if (auditLink) h += auditLink;
+    h += '<a class="action-link" style="margin-left:8px;" onclick="viewSchoolDetail(\'' + g.schoolName.replace(/'/g,"\\'") + '\',\'' + (g.batchId||'') + '\')">查看</a>';
+    h += '</td></tr>';
+  });
+
+  h += '</tbody></table>';
   return h;
 }
-
 function viewSchoolDetail(schoolName, batchId) {
   var records = getPermittedRecords();
   if (yearFilter !== 'all') {
     records = records.filter(function(r) { return (r.submitTime || '').substring(0, 4) === yearFilter; });
   }
-  if (currentStatusFilter !== 'all' && currentStatusFilter !== 'unsubmitted') {
-    records = records.filter(function(r) { return r.status === currentStatusFilter; });
+  // 与列表页保持一致，按当前 tab 过滤
+  if (currentAuditTab === 'second') {
+    records = records.filter(function(r) { return r.status === 'pending_second' || r.status === 'second_approved' || r.status === 'second_rejected'; });
+  } else {
+    records = records.filter(function(r) { return r.status === 'hr_result_entered' || r.status === 'pending_third' || r.status === 'hr_rejected' || r.status === 'completed'; });
   }
   var groups = getSchoolBatchGroups(records);
   var group = null;
@@ -740,118 +807,54 @@ function viewSchoolDetail(schoolName, batchId) {
   }
 
   var statusLabels = {
-    pending_first: '待一审', first_approved: '一审通过', first_rejected: '一审驳回',
     pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回',
-    pending_third: '待三审', third_rejected: '三审驳回', completed: '已完成'
+    hr_result_entered: '人社通过', hr_rejected: '人社驳回',
+    pending_third: '待三审', completed: '晋升成功'
   };
 
   var rows = '';
   group.records.forEach(function(r, idx) {
-    var statusLabel = statusLabels[r.status] || (r.status || '—');
-    var transferLabel = r.transferType === 'transfer' ? '转岗' : '晋升';
-    // 从现聘岗位解析类别，构建完整的拟聘岗位名称
-    var catLabel = '专业技术岗位';
-    if (r.currentPost && r.currentPost.indexOf('管理') >= 0) catLabel = '管理岗位';
-    else if (r.currentPost && r.currentPost.indexOf('工勤') >= 0) catLabel = '工勤技能岗位';
-    var targetFull = (catLabel + (r.targetLevel || '')) || '—';
+    var statusLabel = statusLabels[r.status] || (r.status || '\u2014');
+    var typeLabel = r.promotionType === 'senior_3' ? '专项' : (r.transferType === 'transfer' ? '转岗' : '晋升');
+    var statusCls = r.status === 'completed' ? 'success' : (r.status && r.status.indexOf('rejected') >= 0 ? 'danger' : (r.status && r.status.indexOf('approved') >= 0 ? 'success' : (r.status && r.status.indexOf('pending') >= 0 ? 'warning' : '')));
 
-    var statusCls = '';
-    if (r.status === 'completed') statusCls = 'success';
-    else if (r.status && r.status.indexOf('rejected') >= 0) statusCls = 'danger';
-    else if (r.status && r.status.indexOf('approved') >= 0) statusCls = 'success';
-    else if (r.status && r.status.indexOf('pending') >= 0) statusCls = 'warning';
+    var actionLink = '';
+    if (r.status === 'pending_second') actionLink = '<a href="promote-audit-second.html?id=' + r.id + '&role=' + currentRole + '">二审</a>';
+    else if (r.status === 'second_approved') actionLink = '<a href="promote-hr-entry.html?id=' + r.id + '">人社</a>';
+    else if (r.status === 'hr_result_entered' || r.status === 'pending_third') actionLink = '<a href="promote-audit-third.html?id=' + r.id + '">三审</a>';
+    else actionLink = '<a href="promote-detail.html?id=' + r.id + '">详情</a>';
 
     rows += '<tr>';
     rows += '<td>' + (idx + 1) + '</td>';
-    rows += '<td class="col-name">' + escapeHtml(r.teacherName) + '</td>';
-    rows += '<td>' + (r.gender || '—') + '</td>';
-    rows += '<td>' + (r.ethnicity || '—') + '</td>';
-    rows += '<td>' + (r.birthDate || '—') + '</td>';
-    rows += '<td>' + (r.workStartTime || '—') + '</td>';
-    rows += '<td>' + (r.education || '—') + '</td>';
-    rows += '<td>' + (r.graduateTime || '—') + '</td>';
-    rows += '<td>' + (r.currentPost || '—') + '</td>';
-    rows += '<td>' + (r.appointTime || '—') + '</td>';
-    rows += '<td>' + escapeHtml(targetFull) + '</td>';
-    rows += '<td>' + transferLabel + '</td>';
+    rows += '<td>' + r.teacherName + '</td>';
+    rows += '<td>' + (r.fromLevel||'') + '\u2192' + (r.targetLevel||'') + '</td>';
+    rows += '<td>' + typeLabel + '</td>';
+    rows += '<td style="font-size:12px;color:var(--text-light);">' + (r.submitTime ? r.submitTime.substring(0,10) : '') + '</td>';
     rows += '<td><span class="status-badge ' + statusCls + '">' + statusLabel + '</span></td>';
-    rows += '<td><a href="promote-detail.html?id=' + r.id + '&role=' + currentRole + '" style="color:var(--primary);text-decoration:none;font-weight:500;">查看详情</a></td>';
+    rows += '<td>' + actionLink + '</td>';
     rows += '</tr>';
   });
 
-  var c = '<div class="modal-header"><h3>申报详情</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  var c = '<div class="modal-header"><h3>' + schoolName + ' · ' + (group.batchName||'') + '</h3><button class="modal-close" onclick="closeModal()">\u00D7</button></div>';
   c += '<div class="modal-body" style="padding:4px 24px 20px;">';
-  c += '<div style="margin-bottom:16px;padding:12px 16px;background:var(--bg);border-radius:8px;">';
-  c += '<span style="font-weight:600;font-size:14px;">' + escapeHtml(schoolName) + '</span>';
-  c += '<span style="margin-left:12px;font-size:12px;color:var(--text-secondary);">批次：' + escapeHtml(group.batchName || '—') + '</span>';
-  c += '<span style="margin-left:12px;font-size:12px;color:var(--text-light);">编号：' + escapeHtml(batchId) + '</span>';
-  c += '<span style="margin-left:12px;font-size:12px;color:var(--text-secondary);">共 <strong>' + group.records.length + '</strong> 人</span>';
-  c += '</div>';
-  c += '<div class="table-scroll"><table class="list-table">';
-  c += '<thead><tr>';
-  c += '<th style="width:40px;">序号</th><th>姓名</th><th>性别</th><th>民族</th><th>出生年月</th><th>参加工作时间</th><th>学历</th><th>毕业时间</th><th>现聘岗位（职务）</th><th>现聘岗位时间</th><th>拟聘岗位的类别等级（职务）</th><th>晋升类型</th><th>状态</th><th style="width:80px;">操作</th>';
+  c += '<div style="margin-bottom:12px;font-size:12px;color:var(--text-secondary);">共 <strong>' + group.records.length + '</strong> 人</div>';
+  c += '<table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px;">';
+  c += '<thead><tr style="background:#F8FAFC;">';
+  c += '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);width:40px;">#</th>';
+  c += '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);">姓名</th>';
+  c += '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);">等级</th>';
+  c += '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);">类型</th>';
+  c += '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);">提交时间</th>';
+  c += '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);">状态</th>';
+  c += '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);">操作</th>';
   c += '</tr></thead><tbody>';
   c += rows;
-  c += '</tbody></table></div>';
+  c += '</tbody></table>';
   c += '</div>';
+  c += '<div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">关闭</button></div>';
 
   openModal(c, 'modal-wide');
 }
-
-function toggleSchoolGroup(header) {
-  header.classList.toggle('open');
-}
-
-// ===== RENDER MAIN =====
-function renderMain() {
-  var years = getAvailableYears();
-  var allRecords = getPermittedRecords();
-  var filteredRecords = getFilteredRecords();
-  var counts = getStatusCounts(allRecords);
-
-  var unsubmittedSchools = getUnsubmittedSchools();
-  counts.unsubmitted = unsubmittedSchools.reduce(function(sum, s) { return sum + s.count; }, 0);
-
-  var h = '';
-
-  // Filter bar: year dropdown
-  h += '<div class="filter-bar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">';
-  h += '<div style="display:flex;align-items:center;gap:12px;">';
-  h += '<span style="font-size:12px;color:var(--text-secondary);">年度筛选</span>';
-  h += '<select onchange="yearFilter=this.value;renderMain()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:#fff;">';
-  h += '<option value="all"' + (yearFilter==='all'?' selected':'') + '>全部年度</option>';
-  years.forEach(function(y) { h += '<option value="' + y + '"' + (yearFilter===y?' selected':'') + '>' + y + '年</option>'; });
-  h += '</select>';
-  h += '</div>';
-  h += '</div>';
-
-  // Status filter tabs
-  h += '<div class="status-filters">';
-  var filters = [
-    { key: 'all', label: '全部 (' + counts.all + ')' },
-    { key: 'pending', label: '待审核 (' + counts.pending + ')' },
-    { key: 'completed', label: '已通过 (' + counts.completed + ')' },
-    { key: 'second_rejected', label: '已驳回 (' + counts.rejected + ')' }
-  ];
-  filters.forEach(function(f) {
-    h += '<button class="status-fbtn' + (currentStatusFilter===f.key?' active':'') + '" onclick="setStatusFilter(\'' + f.key + '\')">' + f.label + '</button>';
-  });
-  h += '</div>';
-
-  // Content area
-  if (currentStatusFilter === 'unsubmitted') {
-    h += renderUnsubmittedView(unsubmittedSchools);
-  } else {
-    h += renderSchoolGroups(filteredRecords);
-  }
-
-  document.getElementById('mainContent').innerHTML = h;
-}
-
-// ===== INTERACTIONS =====
-function setStatusFilter(f) { currentStatusFilter = f; renderMain(); }
-
-function viewDetail(id) { window.location.href = 'promote-detail.html?id=' + id; }
 function secondReview(id, schoolName, batchId) {
   window.location.href = 'promote-audit-second.html?id=' + id + '&school=' + encodeURIComponent(schoolName) + '&batch=' + encodeURIComponent(batchId) + '&role=' + currentRole;
 }
@@ -860,6 +863,46 @@ function thirdReview(id, schoolName, batchId) {
 }
 
 // ===== EXPORT =====
+
+
+function renderExportPreview() {
+  var areaVal = (document.getElementById('exportArea')||{}).value || 'all';
+  var schoolVal = (document.getElementById('exportSchool')||{}).value || 'all';
+  var checkedCbs = document.querySelectorAll('.export-status-cb:checked');
+  var statusFilters = [];
+  checkedCbs.forEach(function(cb) { statusFilters.push(cb.value); });
+
+  var records = getPermittedRecords();
+  if (areaVal !== 'all') records = records.filter(function(r) { return r.schoolCategory === areaVal; });
+  if (schoolVal !== 'all') records = records.filter(function(r) { return r.schoolName === schoolVal; });
+  if (statusFilters.length > 0) records = records.filter(function(r) { return statusFilters.indexOf(r.status) >= 0; });
+
+  if (records.length === 0) return '<div style="padding:30px;text-align:center;color:var(--text-light);font-size:13px;">暂无匹配数据</div>';
+
+  var h = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+  h += '<thead><tr style="background:#F8FAFC;position:sticky;top:0;">';
+  h += '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">姓名</th>';
+  h += '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">学校</th>';
+  h += '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">区域</th>';
+  h += '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">等级</th>';
+  h += '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">状态</th>';
+  h += '</tr></thead><tbody>';
+
+  records.forEach(function(r) {
+    var statusLabel = STATUS_MAP[r.status] || r.status;
+    h += '<tr>';
+    h += '<td style="padding:5px 8px;border-bottom:1px solid var(--gray-bg);">' + r.teacherName + '</td>';
+    h += '<td style="padding:5px 8px;border-bottom:1px solid var(--gray-bg);color:var(--text-secondary);">' + r.schoolName + '</td>';
+    h += '<td style="padding:5px 8px;border-bottom:1px solid var(--gray-bg);color:var(--text-secondary);">' + (r.schoolCategory||'') + '</td>';
+    h += '<td style="padding:5px 8px;border-bottom:1px solid var(--gray-bg);">' + (r.targetLevel||'') + '</td>';
+    h += '<td style="padding:5px 8px;border-bottom:1px solid var(--gray-bg);">' + statusLabel + '</td>';
+    h += '</tr>';
+  });
+
+  h += '</tbody></table>';
+  h += '<div style="padding:8px;font-size:12px;color:var(--text-light);text-align:right;">共 ' + records.length + ' 条记录</div>';
+  return h;
+}
 function showExportModal() {
   var records = getPermittedRecords();
   var schools = [];
@@ -879,13 +922,14 @@ function showExportModal() {
   c += '<div class="form-group"><label>状态</label>';
   c += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
   var statusOpts = [
-    { key: 'pending_school', label: '学校一审中' },
-    { key: 'first_approved', label: '学校一审通过' },
     { key: 'pending_second', label: '二审待审核' },
     { key: 'second_approved', label: '二审通过' },
-    { key: 'second_rejected', label: '二审驳回' },
+    { key: 'hr_result_entered', label: '人社通过' },
     { key: 'pending_third', label: '三审待审核' },
-    { key: 'completed', label: '已完成' }
+    { key: 'completed', label: '晋升成功' },
+    { key: 'second_rejected', label: '二审驳回' },
+    { key: 'hr_rejected', label: '人社驳回' },
+    { key: 'first_rejected', label: '晋升失败' }
   ];
   statusOpts.forEach(function(s) {
     c += '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;font-weight:400;">';
@@ -903,7 +947,12 @@ function showExportModal() {
   c += '</select></div>';
 
   c += '</div>';
-  c += '<div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doExport()">确认导出</button></div>';
+  
+  c += '<div style="margin-top:16px;"><h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">教师申报列表</h4>';
+  c += '<div id="exportPreview" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;">';
+  c += renderExportPreview();
+  c += '</div></div>';
+c += '<div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doExport()">确认导出</button></div>';
   openModal(c);
 }
 
