@@ -396,6 +396,8 @@ body {
 <main class="main" id="mainContent">
   <div class="breadcrumb">
     <a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>岗位晋升申报</span>
+    <span style="margin-left:16px;font-size:12px;color:var(--text-light)">当前身份：</span>
+    <select id="teacherSelect" onchange="switchTeacher(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;background:#fff"></select>
   </div>
 
   <div class="page-header">
@@ -797,7 +799,21 @@ function getBorrowOptions(schoolName, targetLevelNum, records) {
   return options;
 }
 
+// ===== PROMOTE QUOTA =====
+var PROMOTE_QUOTA = {
+  '柳州市第八中学': {
+    '3': { authorized: 0, employed: 0 }, '4': { authorized: 0, employed: 0 },
+    '5': { authorized: 3, employed: 3 }, '6': { authorized: 6, employed: 5 },
+    '7': { authorized: 6, employed: 6 }, '8': { authorized: 14, employed: 13 },
+    '9': { authorized: 18, employed: 17 }, '10': { authorized: 13, employed: 12 },
+    '11': { authorized: 8, employed: 7 }, '12': { authorized: 8, employed: 8 },
+    '13': { authorized: 4, employed: 3 }
+  }
+};
+
 // ===== DATA PERSISTENCE =====
+var DEMO_RECORDS = [];
+
 function loadRecords() {
   var s = localStorage.getItem('promote_records');
   if (s) {
@@ -917,6 +933,8 @@ function sidebarClick(el, id) {
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'promote') return; // stay on this page
   if (id === 'recruit') { showToast('无权限访问', 'warning'); return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
   if (id === 'ethics') { showToast('师德师风举报页面开发中'); return; }
   if (id === 'honor') { showToast('荣誉申请页面开发中'); return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
@@ -940,6 +958,12 @@ function getTeacherCategory() {
 
 function getTeacherCategoryLabel() {
   return CATEGORY_LABELS[getTeacherCategory()] || '专业技术岗位';
+}
+
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
 }
 
 // ===== STEP 3: LEVEL SELECT =====
@@ -1669,7 +1693,6 @@ function renderContent() {
       }
       html += '</div>';
     } else if (selectedTransferType === 'transfer') {
-      html += renderTransferSection();    } else if (selectedTransferType === 'transfer') {
       html += renderTransferSection();
     }
   }
@@ -1699,6 +1722,57 @@ function renderContent() {
   bindUploadEvents();
 }
 
+// ===== TEACHER SWITCH =====
+function initTeacherSelect() {
+  var sel = document.getElementById('teacherSelect');
+  if (!sel) return;
+  var currentId = localStorage.getItem('current_teacher_id') || 't1';
+  sel.innerHTML = '';
+  TEACHERS.forEach(function(t) {
+    var opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name + '（' + t.currentPost + '）';
+    if (t.id === currentId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function switchTeacher(teacherId) {
+  setCurrentTeacher(teacherId);
+  // Sync URL so getCurrentTeacher() (which prioritizes URL param) returns the new teacher
+  var url = new URL(window.location.href);
+  url.searchParams.set('teacher', teacherId);
+  window.history.replaceState({}, '', url.toString());
+  CURRENT_TEACHER = getCurrentTeacher();
+
+  // Reset all form state
+  selectedBatch = null;
+  selectedLevel = null;
+  selectedTransferType = null;
+  selectedTransferCategory = null;
+  selectedTransferLevel = null;
+  borrowFromLevel = null;
+  uploadedFiles = [];
+  formAssessments = ['合格', '合格', '合格'];
+  senior3Form = {
+    schoolMajor: '', graduateTime: '', workStartTime: '', profYears: '',
+    qualName: '', qualTime: '', employStart: '', employEnd: '',
+    targetPostName: '专业技术三级', targetStart: '', targetEnd: '',
+    publicMethod: '', publicStart: '', publicEnd: ''
+  };
+  pageMode = 'new';
+  editRecordId = null;
+  rejectInfo = null;
+
+  // Refresh teacher info
+  initFormTeacherInfo(null);
+
+  // Refresh UI
+  renderSidebar();
+  initTeacherSelect();
+  renderContent();
+}
+
 // ===== INIT =====
 function init() {
   var params = new URLSearchParams(window.location.search);
@@ -1711,6 +1785,7 @@ function init() {
     CURRENT_TEACHER = getCurrentTeacher();
   }
 
+  initTeacherSelect();
   renderSidebar();
 
   // Initialize editable teacher info from CURRENT_TEACHER
