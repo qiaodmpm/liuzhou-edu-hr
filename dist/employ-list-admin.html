@@ -99,7 +99,7 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 <body>
 <nav class="topnav"><div class="topnav-left"><div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div><span class="topnav-title">柳州教育人事管理平台</span></div>
   <div class="topnav-right"><div class="topnav-user" onclick="toggleUserMenu()"><div class="avatar" id="userAvatar">张</div><span id="userName">张建国</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div></div></div>
+    <div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a></div></div></div>
 </nav>
 <aside class="sidebar" id="sidebar"><div class="sidebar-menu" id="sidebarMenu"></div>
   <div class="role-switcher"><div class="role-switcher-label">切换演示角色</div>
@@ -255,6 +255,7 @@ function renderList(){
     h+='<div class="card-body"><span class="type-tag '+tCls+'">'+tLabel+'</span> &nbsp;';
     h+='<span class="label">学校：</span>'+escapeHtml(r.schoolName)+' &nbsp; <span class="label">批次：</span>'+escapeHtml(r.recruitBatchName||'')+'<br>';
     h+='<span class="label">提交时间：</span>'+(r.submitTime?r.submitTime.substring(0,16):'—');
+    h+=' &nbsp; <span class="label">人数：</span>'+getPersonCount(r)+' 人';
     h+='</div><div class="card-actions">';
     h+='<a class="action-link" onclick="viewDetail(\''+r.id+'\')">查看</a>';
     if(r.status==='pending_first'){h+='<a class="action-link success" onclick="goFirstAudit(\''+r.id+'\')">一审</a>';}
@@ -262,6 +263,16 @@ function renderList(){
     h+='</div></div>';
   });
   list.innerHTML=h;
+}
+function getPersonCount(r){
+  if(!r.formData)return 0;
+  if(r.businessType==='recruitment'&&r.formData.positions){
+    return r.formData.positions.reduce(function(s,p){return s+(p.rosterRows||[]).length;},0);
+  }
+  if(r.businessType==='transfer'){
+    return(r.formData.transferRows||[]).length;
+  }
+  return 0;
 }
 function viewDetail(id){window.location.href='employ-detail.html?id='+id;}
 function goFirstAudit(id){window.location.href='employ-audit-first.html?id='+id+'&role='+currentRole;}

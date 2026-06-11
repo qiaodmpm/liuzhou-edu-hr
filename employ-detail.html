@@ -154,6 +154,34 @@ function getStampClass(s){
   if(s==='completed')return'completed';return'pending';
 }
 
+function getPersonCount(r){
+  if(!r.formData)return 0;
+  if(r.businessType==='recruitment'&&r.formData.positions){
+    return r.formData.positions.reduce(function(s,p){return s+(p.rosterRows||[]).length;},0);
+  }
+  if(r.businessType==='transfer'){
+    return(r.formData.transferRows||[]).length;
+  }
+  return 0;
+}
+
+function getRosterRows(r){
+  if(!r.formData)return[];
+  if(r.businessType==='recruitment'&&r.formData.positions){
+    var rows=[];
+    r.formData.positions.forEach(function(p){
+      (p.rosterRows||[]).forEach(function(row){
+        rows.push({positionName:p.positionName||'',batchName:p.batchName||'',recordCards:p.recordCards||[],personAttachments:p.personAttachments||{},name:row.name,gender:row.gender,birth:row.birth,education:row.education||row.eduDegree||'',degree:row.degree||'',gradTime:row.gradTime||'',school:row.school||'',major:row.major||'',score:row.score,rank:row.rank,title:row.title,positionCategory:row.positionCategory||row.position||'',positionLevel:row.positionLevel||'',method:row.method,source:row.source,originalUnit:row.originalUnit,spouseName:row.spouseName||row.spouse||'',spouseUnit:row.spouseUnit||'',meetingTime:row.meetingTime,remark:row.remark});
+      });
+    });
+    return rows;
+  }
+  if(r.businessType==='transfer'){
+    return(r.formData.transferRows||[]).map(function(row){return{positionName:'调动',name:row.name,gender:row.gender,birth:row.birth,idNumber:row.idNumber,education:row.education||row.eduDegree||'',degree:row.degree||'',school:row.school||row.gradSchool||'',major:row.major||'',title:row.title,positionGrade:row.positionGrade,staffingAttr:row.staffingAttr,inflow:row.inflow,outflow:row.outflow};});
+  }
+  return[];
+}
+
 function renderPage(){
   if(!currentRecord){document.getElementById('mainContent').innerHTML='<div class="back-link" onclick="goBack()">&#8592; 返回</div><div class="form-card" style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;">&#x1F4CB;</div><div style="font-size:16px;font-weight:600;margin-bottom:8px;">未找到记录</div></div>';return;}
   var r=currentRecord;var typeLabel=r.businessType==='recruitment'?'招聘':'调动';var typeCls=r.businessType;
@@ -166,7 +194,29 @@ function renderPage(){
   html+='<div class="form-card"><h3>基本信息</h3><div style="font-size:12px;line-height:2;">';
   html+='<div>学校：<b>'+escapeHtml(r.schoolName)+'</b></div><div>学校类别：'+escapeHtml(r.schoolCategory||'—')+'</div>';
   html+='<div>业务类型：<b>'+typeLabel+'</b></div><div>关联批次：'+escapeHtml(r.recruitBatchName||'—')+'</div>';
+  html+='<div>人员数量：<b>'+getPersonCount(r)+' 人</b></div>';
   html+='</div></div>';
+  // Personnel roster
+  var rosterRows=getRosterRows(r);
+  if(rosterRows.length>0){
+    html+='<div class="form-card"><h3>人员名单（'+rosterRows.length+'人）</h3>';
+    if(r.businessType==='recruitment'){
+      html+='<div class="table-scroll"><table class="list-table"><thead><tr>';
+      html+='<th>序号</th><th>姓名</th><th>性别</th><th>出生年月</th><th>学历</th><th>学位</th><th>毕业时间</th><th>学校</th><th>专业</th><th>成绩</th><th>排名</th><th>职称</th><th>拟聘岗位类别</th><th>拟聘岗位等级</th><th>聘用方式</th><th>来源</th></tr></thead><tbody>';
+      rosterRows.forEach(function(row,idx){
+        html+='<tr><td>'+(idx+1)+'</td><td>'+escapeHtml(row.name||'—')+'</td><td>'+escapeHtml(row.gender||'—')+'</td><td>'+escapeHtml(row.birth||'—')+'</td><td>'+escapeHtml(row.education||'—')+'</td><td>'+escapeHtml(row.degree||'—')+'</td><td>'+escapeHtml(row.gradTime||'—')+'</td><td>'+escapeHtml(row.school||'—')+'</td><td>'+escapeHtml(row.major||'—')+'</td><td>'+escapeHtml(row.score||'—')+'</td><td>'+escapeHtml(row.rank||'—')+'</td><td>'+escapeHtml(row.title||'—')+'</td><td>'+escapeHtml(row.positionCategory||row.positionName||'—')+'</td><td>'+escapeHtml(row.positionLevel||'—')+'</td><td>'+escapeHtml(row.method||'—')+'</td><td>'+escapeHtml(row.source||'—')+'</td></tr>';
+      });
+      html+='</tbody></table></div>';
+    } else {
+      html+='<div class="table-scroll"><table class="list-table"><thead><tr>';
+      html+='<th>序号</th><th>姓名</th><th>性别</th><th>出生年月</th><th>身份证号</th><th>学历</th><th>学位</th><th>毕业学校</th><th>专业</th><th>职称</th><th>岗位等级</th><th>编制属性</th><th>流入单位</th><th>流出单位</th></tr></thead><tbody>';
+      rosterRows.forEach(function(row,idx){
+        html+='<tr><td>'+(idx+1)+'</td><td>'+escapeHtml(row.name||'—')+'</td><td>'+escapeHtml(row.gender||'—')+'</td><td>'+escapeHtml(row.birth||'—')+'</td><td>'+escapeHtml(row.idNumber||'—')+'</td><td>'+escapeHtml(row.education||'—')+'</td><td>'+escapeHtml(row.degree||'—')+'</td><td>'+escapeHtml(row.school||'—')+'</td><td>'+escapeHtml(row.major||'—')+'</td><td>'+escapeHtml(row.title||'—')+'</td><td>'+escapeHtml(row.positionGrade||'—')+'</td><td>'+escapeHtml(row.staffingAttr||'—')+'</td><td>'+escapeHtml(row.inflow||'—')+'</td><td>'+escapeHtml(row.outflow||'—')+'</td></tr>';
+      });
+      html+='</tbody></table></div>';
+    }
+    html+='</div>';
+  }
   // HR Result
   if(r.hrResult){
     html+='<div class="form-card"><h3>人社核准结果</h3><div style="font-size:12px;line-height:2;">';

@@ -524,7 +524,7 @@ tbody tr:last-child td { border-bottom: none; }
       <span id="userName">张建国</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="user-dropdown" id="userDropdown">
-        <a href="#">👤 个人中心</a>
+        <a href="personal-center.html">个人中心</a>
         <a href="#">🔑 修改密码</a>
         <div class="divider"></div>
         <a href="index.html" class="logout">退出登录</a>
@@ -925,7 +925,7 @@ AUTO_SUBMISSIONS.forEach(function(s) { SUBMISSIONS.push(s); });
 const STAFFING_TYPE_MAP = { career: '事业编', control: '控制数' };
 
 const STATUS_MAP = {
-  submitted: '待一审', first_approved: '一审通过', final_submitted: '待二审', approved: '已通过', rejected: '已驳回'
+  submitted: '待一审', first_approved: '一审通过', final_submitted: '待二审', approved: '已完成', rejected: '一审驳回'
 };
 
 let currentRole = 'city';
@@ -1288,7 +1288,7 @@ function renderSchoolSubmissionTable(batchId) {
   h += '<th>其他</th>';
   h += '<th>附件</th>';
   h += '<th>编办确认材料</th>';
-  h += '<th>审核状态</th>';
+  h += '<th>状态</th>';
   h += '<th>提交时间</th>';
   h += '<th>操作</th>';
   h += '</tr></thead><tbody>';
@@ -1437,7 +1437,7 @@ function renderStatusFilters() {
   var filters = [
     { key: 'all', label: '全部' },
     { key: 'pending', label: '待审核' },
-    { key: 'approved', label: '已通过' },
+    { key: 'approved', label: '已完成' },
     { key: 'rejected', label: '已驳回' }
   ];
   if (currentRole === 'city' || currentRole === 'district') {
@@ -1814,8 +1814,8 @@ function showBatchDetail(id) {
   c += '<div class="batch-detail-row"><span class="bdl">待一审（事业/控制）</span><span class="bdv" style="color:var(--accent);">' + stats.career.submitted + ' / ' + stats.control.submitted + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">一审通过（事业/控制）</span><span class="bdv" style="color:var(--primary);">' + stats.career.firstApproved + ' / ' + stats.control.firstApproved + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">待二审（事业/控制）</span><span class="bdv" style="color:var(--accent);">' + stats.career.finalSubmitted + ' / ' + stats.control.finalSubmitted + '</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">已通过（事业/控制）</span><span class="bdv" style="color:var(--success);">' + stats.career.approved + ' / ' + stats.control.approved + '</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">已驳回（事业/控制）</span><span class="bdv" style="color:var(--danger);">' + stats.career.rejected + ' / ' + stats.control.rejected + '</span></div>';
+  c += '<div class="batch-detail-row"><span class="bdl">已完成（事业/控制）</span><span class="bdv" style="color:var(--success);">' + stats.career.approved + ' / ' + stats.control.approved + '</span></div>';
+  c += '<div class="batch-detail-row"><span class="bdl">一审驳回（事业/控制）</span><span class="bdv" style="color:var(--danger);">' + stats.career.rejected + ' / ' + stats.control.rejected + '</span></div>';
   c += '</div>';
   c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">关闭</button></div>';
   openModal(c);
@@ -2073,7 +2073,7 @@ function exportSingleRecord(id) {
 
   if (s.staffingType === 'career') {
     // 事业编 — 附件2 格式
-    var csv = '﻿申报编号,单位名称,核定编制数,实有在编人数,未使用计划数,申请总数,调动,公开招聘,自主招聘,中高级人才招聘,引进高层次人才,其他,审核状态,提交时间\n';
+    var csv = '﻿申报编号,单位名称,核定编制数,实有在编人数,未使用计划数,申请总数,调动,公开招聘,自主招聘,中高级人才招聘,引进高层次人才,其他,状态,提交时间\n';
     csv += [
       s.id,
       s.school,
@@ -2093,7 +2093,7 @@ function exportSingleRecord(id) {
     downloadCSV(csv, s.id + '_附件2_事业编_' + (s.submitDate || '') + '.csv');
   } else {
     // 控制数 — 附件9 格式
-    var csv = '﻿申报编号,单位名称,核定控制数,实有控制数人数,未使用控制数,申请总数,调动,公开招聘,自主招聘,引进人才,其他,审核状态,提交时间\n';
+    var csv = '﻿申报编号,单位名称,核定控制数,实有控制数人数,未使用控制数,申请总数,调动,公开招聘,自主招聘,引进人才,其他,状态,提交时间\n';
     csv += [
       s.id,
       s.school,
@@ -2160,9 +2160,9 @@ function openExportModal(batchId, mode) {
   c += '<option value="all">全部</option>';
   types.forEach(function(t) { c += '<option value="' + t + '">' + t + '</option>'; });
   c += '</select></div>';
-  c += '<div class="form-group" style="margin-bottom:0;min-width:100px;"><label style="font-size:11px;">审核状态</label><select id="expStatus" onchange="filterExportTable()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;width:100%;">';
+  c += '<div class="form-group" style="margin-bottom:0;min-width:100px;"><label style="font-size:11px;">状态</label><select id="expStatus" onchange="filterExportTable()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;width:100%;">';
   c += '<option value="all">全部</option>';
-  c += '<option value="submitted">待一审</option><option value="first_approved">一审通过</option><option value="final_submitted">待二审</option><option value="approved">已通过</option><option value="rejected">已驳回</option>';
+  c += '<option value="submitted">待一审</option><option value="first_approved">一审通过</option><option value="final_submitted">待二审</option><option value="approved">已完成</option><option value="rejected">一审驳回</option>';
   c += '</select></div>';
   c += '<div style="flex:1;text-align:right;"><span style="font-size:11px;color:var(--text-light);" id="expFilteredCount"></span></div>';
   c += '</div>';
@@ -2175,7 +2175,7 @@ function openExportModal(batchId, mode) {
   c += '<th>申报编号</th><th>编制类型</th><th>申请单位</th><th>所属区域</th>';
   c += '<th style="text-align:right;">核定编制数</th><th style="text-align:right;">在编人数</th>';
   c += '<th style="text-align:right;">控制数</th><th style="text-align:right;">控制数实有</th>';
-  c += '<th style="text-align:right;">申请数</th><th>审核状态</th><th>提交时间</th>';
+  c += '<th style="text-align:right;">申请数</th><th>状态</th><th>提交时间</th>';
   c += '</tr></thead><tbody id="expTableBody">';
   c += '</tbody></table></div>';
 
@@ -2261,7 +2261,7 @@ function doExportChecked(batchId, mode) {
 
   var subs = SUBMISSIONS.filter(function(s) { return ids.indexOf(s.id) !== -1; });
 
-  var csv = '﻿申报编号,编制类型,申请单位,所属区域,核定编制数,在编人数,控制数,控制数实有,申请数,审核状态,提交时间\n';
+  var csv = '﻿申报编号,编制类型,申请单位,所属区域,核定编制数,在编人数,控制数,控制数实有,申请数,状态,提交时间\n';
   subs.forEach(function(s) {
     var useCount = s.useForms ? Object.values(s.useForms).reduce(function(a,b){return a+(b||0);},0) : 0;
     csv += s.id + ',' + (STAFFING_TYPE_MAP[s.staffingType] || '') + ',' + s.school + ',' + (s.schoolType || '') + ',' + (s.totalStaff || '') + ',' + (s.currentStaff || '') + ',' + (s.controlNum || '') + ',' + (s.controlActual || '') + ',' + useCount + ',' + (STATUS_MAP[s.status] || '') + ',' + (s.submitDate || '') + '\n';
@@ -2316,7 +2316,7 @@ function generateYearSummary() {
 function confirmApprove(id, school) {
   var c = '<div class="modal-header"><h3>确认通过</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body"><p style="font-size:14px;">确认通过「' + school + '」的申报？</p><p style="font-size:12px;color:var(--text-light);margin-top:8px;">通过后将冻结对应空编额度。</p></div>';
-  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast(\'已通过 ' + school + ' 的申报\')">确认通过</button></div>';
+  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast(\'已完成 ' + school + ' 的申报\')">确认通过</button></div>';
   openModal(c);
 }
 
@@ -2361,7 +2361,7 @@ function renderSubmissionsTable(subs) {
   h += '<th>核定编制数</th><th>在编人数</th><th>控制数</th><th>控制数实有</th>';
   h += '<th>申请数</th>';
   h += '<th>统一公开招聘</th><th>单位自主实施招聘</th><th>中高级人才招聘</th><th>引进高层次人才</th><th>调动</th><th>其他</th>';
-  h += '<th>附件</th><th>编办确认材料</th><th>审核状态</th><th>提交时间</th><th>操作</th>';
+  h += '<th>附件</th><th>编办确认材料</th><th>状态</th><th>提交时间</th><th>操作</th>';
   h += '</tr></thead><tbody>';
 
   subs.forEach(function(s) {

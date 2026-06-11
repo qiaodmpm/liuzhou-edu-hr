@@ -138,7 +138,44 @@ legend { font-size: 13px; font-weight: 600; color: var(--primary); padding: 0 8p
 .dyn-table .row-del { color: var(--danger); cursor: pointer; text-align: center; font-size: 16px; font-weight: 600; }
 .add-row-btn { padding: 6px 16px; font-size: 12px; color: var(--primary); cursor: pointer; border: 1px dashed var(--border); border-radius: 4px; background: transparent; font-family: inherit; margin-top: 8px; }
 .add-row-btn:hover { background: var(--primary-light); }
+
+/* Roster card */
+.roster-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+.roster-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.roster-card-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #F8FAFC; border-bottom: 1px solid var(--border); }
+.roster-card-seq { font-size: 12px; font-weight: 700; color: var(--primary); min-width: 28px; }
+.roster-card-name { flex: 1; display: flex; align-items: center; gap: 4px; }
+.roster-card-name label { font-size: 11px; color: var(--text-light); white-space: nowrap; }
+.roster-card-name input { flex: 1; padding: 5px 8px; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; }
+.roster-card-name input:focus { border-color: var(--accent); outline: none; }
+.roster-card-gender { display: flex; align-items: center; gap: 4px; }
+.roster-card-gender label { font-size: 11px; color: var(--text-light); }
+.roster-card-gender select { padding: 5px 6px; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; }
+.roster-card-del { width: 24px; height: 24px; border: none; background: none; color: var(--danger); font-size: 18px; cursor: pointer; border-radius: 4px; line-height: 1; }
+.roster-card-del:hover { background: #FEE2E2; }
+.roster-card-body { display: flex; flex-wrap: wrap; gap: 0; padding: 12px 14px; }
+.roster-field { display: flex; align-items: center; gap: 4px; padding: 4px 6px; width: 33.33%; box-sizing: border-box; }
+.roster-field label { font-size: 11px; color: var(--text-light); white-space: nowrap; min-width: fit-content; }
+.roster-field input, .roster-field select { flex: 1; padding: 5px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; min-width: 0; }
+.roster-field input:focus, .roster-field select:focus { border-color: var(--accent); outline: none; }
+.roster-card-footer { display: flex; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--border); background: #FAFBFC; }
+.roster-card-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; }
+.roster-card-link:hover { text-decoration: underline; }
+.roster-card-link.done { color: var(--success); }
 .auto-fill-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; background: #DBEAFE; color: #1E40AF; margin-left: 4px; }
+/* Roster sections */
+.roster-section { margin: 0; padding: 8px 14px; border-bottom: 1px solid #F1F5F9; }
+.roster-section:last-of-type { border-bottom: none; }
+.roster-section-title { font-size: 10px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.roster-section-title::after { content: ''; flex: 1; height: 1px; background: #F1F5F9; }
+.roster-section-grid { display: flex; flex-wrap: wrap; gap: 0; }
+.roster-section-grid .roster-field { width: 33.33%; }
+.roster-field-locked { flex: 1; padding: 5px 8px; font-size: 12px; border: 1px solid #DBEAFE; border-radius: 4px; background: #EFF6FF; color: var(--primary); font-family: inherit; min-width: 0; display: flex; align-items: center; gap: 4px; }
+.roster-field-locked .lock-icon { font-size: 10px; opacity: 0.6; }
+.roster-field-textarea { width: 100% !important; padding: 4px 6px; }
+.roster-field-textarea textarea { width: 100%; padding: 5px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; resize: vertical; min-height: 36px; }
+.roster-field-textarea textarea:focus { border-color: var(--accent); outline: none; }
+.roster-field-wide { width: 66.66% !important; }
 /* File upload */
 .upload-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; margin-bottom: 12px; transition: var(--transition); }
 .upload-area:hover { border-color: var(--accent); background: var(--primary-light); }
@@ -221,7 +258,7 @@ legend { font-size: 13px; font-weight: 600; color: var(--primary); padding: 0 8p
     <div class="topnav-user" onclick="toggleUserMenu()">
       <div class="avatar" id="topAvatar">王</div><span id="topName">王玉兰</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div>
+      <div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a></div>
     </div>
   </div>
 </nav>
@@ -551,47 +588,79 @@ function renderRecruitmentForms() {
     h += '<div><span style="font-size:11px;color:var(--text-secondary);">本次办理聘用（人）</span><div style="font-size:13px;font-weight:500;color:var(--primary);">'+currC+'</div></div>';
     h += '</div>';
 
-    h += '<div class="dyn-table-wrap">';
-    h += '<table class="dyn-table" id="rosterTable_'+pi+'"><colgroup><col style="width:30px"><col style="width:65px"><col style="width:36px"><col style="width:68px"><col style="width:56px"><col style="width:96px"><col style="width:52px"><col style="width:42px"><col style="width:66px"><col style="width:82px"><col style="width:62px"><col style="width:66px"><col style="width:76px"><col style="width:72px"><col style="width:62px"><col style="width:52px"><col style="width:96px"><col style="width:26px"></colgroup>';
-    h += '<thead><tr><th>序号</th><th>拟聘人员姓名 <span class="req">*</span></th><th>性别</th><th>出生年月</th><th>学历学位</th>';
-    h += '<th>毕业时间、学校及专业</th><th>综合成绩</th><th>综合排名</th><th>职称或职业资格</th>';
-    h += '<th>拟聘岗位类别及等级</th><th>用人方式</th><th>原单位</th><th>配偶姓名及单位</th><th>班子会讨论时间</th><th>增人来源</th><th>备注</th>';
-    h += '<th>操作</th><th style="width:30px;"></th></tr></thead><tbody id="rosterBody_'+pi+'">';
+    h += '<div class="roster-cards" id="rosterCards_'+pi+'">';
     var rows = pos.rosterRows || [];
     rows.forEach(function(row, ri) {
       var hasCard = pos.recordCards && pos.recordCards[ri] && pos.recordCards[ri].idNumber;
       var pAtt = (pos.personAttachments||{})[ri] || [];
-      h += '<tr>';
-      h += '<td>'+(ri+1)+'</td>';
-      h += '<td><input value="'+escapeHtml(row.name||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="name"></td>';
-      h += '<td><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="gender"><option value="">&mdash;</option><option value="男"'+(row.gender==='男'?' selected':'')+'>男</option><option value="女"'+(row.gender==='女'?' selected':'')+'>女</option></select></td>';
-      h += '<td><input value="'+escapeHtml(row.birth||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="birth" placeholder="1990-01"></td>';
-      h += '<td><input value="'+escapeHtml(row.eduDegree||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="eduDegree"></td>';
-      h += '<td><input value="'+escapeHtml(row.gradSchool||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="gradSchool"></td>';
-      h += '<td><input value="'+escapeHtml(row.score||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="score" style="max-width:60px;"></td>';
-      h += '<td><input value="'+escapeHtml(row.rank||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="rank" style="max-width:50px;"></td>';
-      h += '<td><input value="'+escapeHtml(row.title||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="title"></td>';
-      h += '<td><input value="'+escapeHtml(row.position||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="position"></td>';
-      h += '<td><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="method"><option value="career"'+(row.method==='career'?' selected':'')+'>实名编制</option><option value="control"'+(row.method==='control'?' selected':'')+'>聘用教师控制数</option></select></td>';
-      h += '<td><input value="'+escapeHtml(row.originalUnit||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="originalUnit"></td>';
-      h += '<td><input value="'+escapeHtml(row.spouse||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="spouse"></td>';
-      h += '<td><input value="'+escapeHtml(row.meetingTime||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="meetingTime" placeholder="2026-06"></td>';
-      h += '<td><input value="'+escapeHtml(row.source||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="source"></td>';
-      h += '<td><input value="'+escapeHtml(row.remark||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="remark"></td>';
-      h += '<td style="white-space:nowrap;">';
-      if (hasCard) {
-        h += '<a onclick="openRecordCardModal('+pi+','+ri+')" style="font-size:11px;color:var(--primary);cursor:pointer;text-decoration:underline;">查看备案表</a>';
+      h += '<div class="roster-card">';
+      h += '<div class="roster-card-header">';
+      h += '<span class="roster-card-seq">#'+(ri+1)+'</span>';
+      h += '<span class="roster-card-name"><label>姓名</label><input value="'+escapeHtml(row.name||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="name" placeholder="拟聘人员姓名"></span>';
+      h += '<span class="roster-card-gender"><label>性别</label><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="gender"><option value="">—</option><option value="男"'+(row.gender==='男'?' selected':'')+'>男</option><option value="女"'+(row.gender==='女'?' selected':'')+'>女</option></select></span>';
+      if (rows.length>1) { h += '<button class="roster-card-del" onclick="removeRosterRow('+pi+','+ri+')">×</button>'; }
+      h += '</div>';
+      var posLocked = !!(pos.positionCategory || pos.employmentMethod); // position info from recruit record
+      h += '<div class="roster-card-body">';
+      // Module 1: 基本信息
+      h += '<div class="roster-section"><div class="roster-section-title">基本信息</div><div class="roster-section-grid">';
+      h += '<div class="roster-field"><label>出生年月</label><input type="month" value="'+escapeHtml(row.birth||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="birth"></div>';
+      h += '</div></div>';
+      // Module 2: 学历背景
+      h += '<div class="roster-section"><div class="roster-section-title">学历背景</div><div class="roster-section-grid">';
+      h += '<div class="roster-field"><label>学历</label><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="education"><option value="">—</option><option value="博士"'+(row.education==='博士'?' selected':'')+'>博士</option><option value="硕士"'+(row.education==='硕士'?' selected':'')+'>硕士</option><option value="本科"'+(row.education==='本科'?' selected':'')+'>本科</option><option value="大专"'+(row.education==='大专'?' selected':'')+'>大专</option><option value="中专"'+(row.education==='中专'?' selected':'')+'>中专</option><option value="高中及以下"'+(row.education==='高中及以下'?' selected':'')+'>高中及以下</option></select></div>';
+      h += '<div class="roster-field"><label>学位</label><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="degree"><option value="">—</option><option value="博士"'+(row.degree==='博士'?' selected':'')+'>博士</option><option value="硕士"'+(row.degree==='硕士'?' selected':'')+'>硕士</option><option value="学士"'+(row.degree==='学士'?' selected':'')+'>学士</option><option value="无"'+(row.degree==='无'?' selected':'')+'>无</option></select></div>';
+      h += '<div class="roster-field"><label>毕业时间</label><input type="month" value="'+escapeHtml(row.gradTime||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="gradTime"></div>';
+      h += '<div class="roster-field"><label>毕业学校</label><input value="'+escapeHtml(row.school||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="school"></div>';
+      h += '<div class="roster-field"><label>专业</label><input value="'+escapeHtml(row.major||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="major"></div>';
+      h += '</div></div>';
+      // Module 3: 考试情况
+      h += '<div class="roster-section"><div class="roster-section-title">考试情况</div><div class="roster-section-grid">';
+      h += '<div class="roster-field"><label>综合成绩</label><input value="'+escapeHtml(row.score||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="score" style="max-width:60px;"></div>';
+      h += '<div class="roster-field"><label>排名</label><input value="'+escapeHtml(row.rank||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="rank" style="max-width:50px;"></div>';
+      h += '<div class="roster-field"><label>职称/职业资格</label><input value="'+escapeHtml(row.title||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="title"></div>';
+      h += '</div></div>';
+      // Module 4: 岗位匹配 (locked if from recruit position)
+      h += '<div class="roster-section"><div class="roster-section-title">岗位匹配'+(posLocked?' <span class="auto-fill-tag">关联岗位自动填入</span>':'')+'</div><div class="roster-section-grid">';
+      if (pos.positionCategory) {
+        h += '<div class="roster-field"><label>拟聘岗位类别</label><span class="roster-field-locked"><span class="lock-icon">🔒</span>'+escapeHtml(pos.positionCategory)+'</span></div>';
       } else {
-        h += '<a onclick="openRecordCardModal('+pi+','+ri+')" style="font-size:11px;color:var(--success);cursor:pointer;font-weight:500;">录入备案表</a>';
+        h += '<div class="roster-field"><label>拟聘岗位类别</label><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="positionCategory" onchange="onPositionCategoryChange('+pi+','+ri+',this.value)"><option value="">—</option><option value="管理岗"'+(row.positionCategory==='管理岗'?' selected':'')+'>管理岗</option><option value="专技岗"'+(row.positionCategory==='专技岗'?' selected':'')+'>专技岗</option><option value="工勤岗"'+(row.positionCategory==='工勤岗'?' selected':'')+'>工勤岗</option></select></div>';
       }
-      h += ' <span style="color:var(--text-light);">|</span> ';
-      h += '<a onclick="openPersonFileModal('+pi+','+ri+')" style="font-size:11px;color:var(--accent);cursor:pointer;">上传材料'+(pAtt.length?'('+pAtt.length+')':'')+'</a>';
-      h += '</td>';
-      h += '<td class="row-del"'+(rows.length>1?' onclick="removeRosterRow('+pi+','+ri+')"':'')+' style="color:'+(rows.length>1?'var(--danger)':'var(--text-light)')+';">'+(rows.length>1?'×':'')+'</td>';
-      h += '</tr>';
+      if (pos.positionLevel) {
+        h += '<div class="roster-field"><label>拟聘岗位等级</label><span class="roster-field-locked"><span class="lock-icon">🔒</span>'+escapeHtml(pos.positionLevel)+'</span></div>';
+      } else {
+        h += '<div class="roster-field"><label>拟聘岗位等级</label><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="positionLevel" id="posLevel_'+pi+'_'+ri+'">'+renderPositionLevelOpts(row.positionCategory,row.positionLevel)+'</select></div>';
+      }
+      if (pos.employmentMethod) {
+        var methodLabel = pos.employmentMethod==='control'?'聘用教师控制数':'实名编制';
+        h += '<div class="roster-field"><label>用人方式</label><span class="roster-field-locked"><span class="lock-icon">🔒</span>'+methodLabel+'</span></div>';
+      } else {
+        h += '<div class="roster-field"><label>用人方式</label><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="method"><option value="career"'+(row.method==='career'?' selected':'')+'>实名编制</option><option value="control"'+(row.method==='control'?' selected':'')+'>聘用教师控制数</option></select></div>';
+      }
+      h += '</div></div>';
+      // Module 5: 单位/家庭 + 其他信息
+      h += '<div class="roster-section"><div class="roster-section-title">单位/家庭及其他</div><div class="roster-section-grid">';
+      h += '<div class="roster-field"><label>原单位</label><input value="'+escapeHtml(row.originalUnit||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="originalUnit"></div>';
+      h += '<div class="roster-field"><label>配偶姓名</label><input value="'+escapeHtml(row.spouseName||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="spouseName"></div>';
+      h += '<div class="roster-field"><label>配偶单位</label><input value="'+escapeHtml(row.spouseUnit||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="spouseUnit"></div>';
+      h += '<div class="roster-field"><label>增人来源</label><input value="'+escapeHtml(row.source||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="source"></div>';
+      h += '<div class="roster-field"><label>班子会讨论时间</label><input type="month" value="'+escapeHtml(row.meetingTime||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="meetingTime"></div>';
+      h += '</div>';
+      h += '<div class="roster-field roster-field-wide roster-field-textarea"><label>备注</label><textarea data-pos="'+pi+'" data-idx="'+ri+'" data-field="remark" maxlength="200" rows="2" placeholder="最多200字">'+escapeHtml(row.remark||'')+'</textarea></div>';
+      h += '</div></div>';
+      h += '</div>';
+      h += '<div class="roster-card-footer">';
+      if (hasCard) {
+        h += '<a onclick="openRecordCardModal('+pi+','+ri+')" class="roster-card-link done">📋 查看备案表</a>';
+      } else {
+        h += '<a onclick="openRecordCardModal('+pi+','+ri+')" class="roster-card-link">📝 录入备案表</a>';
+      }
+      h += '<a onclick="openPersonFileModal('+pi+','+ri+')" class="roster-card-link">📎 上传材料'+(pAtt.length?'('+pAtt.length+')':'')+'</a>';
+      h += '</div></div>';
     });
-    h += '</tbody></table></div>';
-    h += '<button class="add-row-btn" onclick="addRosterRow('+pi+')">＋ 添加一行</button>';
+    h += '</div>';
+    h += '<button class="add-row-btn" onclick="addRosterRow('+pi+')">＋ 添加拟聘人员</button>';
     h += '</div>';
   });
 
@@ -630,7 +699,7 @@ function renderRecruitmentForms() {
 }
 
 function addPosition() {
-  formData.positions.push({ batchId:'', batchName:'', positionIndex:-1, positionName:'', planCount:0, completedCount:0, rosterRows:[{seq:1,name:'',gender:'',birth:'',eduDegree:'',gradSchool:'',score:'',rank:'',title:'',position:'',method:'career',source:'',originalUnit:'',spouse:'',meetingTime:'',remark:''}], recordCards:[], personAttachments:{} });
+  formData.positions.push({ batchId:'', batchName:'', positionIndex:-1, positionName:'', planCount:0, completedCount:0, positionCategory:'', positionLevel:'', employmentMethod:'', rosterRows:[{seq:1,name:'',gender:'',birth:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:''}], recordCards:[], personAttachments:{} });
   renderPage();
   var pi = formData.positions.length - 1;
   initPosNameDropdown(pi);
@@ -676,27 +745,46 @@ function initPosNameDropdown(pi) {
 function onPositionNameChange(pi, posName) {
   var pos = formData.positions[pi]; if (!pos) return;
   pos.positionName = posName;
+  // Reset position-level fields
+  pos.positionCategory = ''; pos.positionLevel = ''; pos.employmentMethod = '';
   if (posName && pos.batchId) {
     try {
       var recruitRecs = JSON.parse(localStorage.getItem('recruit_records') || '[]');
       var batchRecs = recruitRecs.filter(function(r) { return r.batchId === pos.batchId && r.status === 'completed'; });
       var planC = 0;
+      var matchedRp = null;
       batchRecs.forEach(function(rec) {
-        if (rec.formData && rec.formData.positions) rec.formData.positions.forEach(function(p) { if (p.positionName === posName) planC += parseInt(p.count)||0; });
+        if (rec.formData && rec.formData.positions) rec.formData.positions.forEach(function(p) {
+          if (p.positionName === posName) { planC += parseInt(p.count)||0; if (!matchedRp) matchedRp = p; }
+        });
       });
       pos.planCount = planC;
+      // Extract position-level fields from recruit record
+      if (matchedRp) {
+        if (matchedRp.positionCategory) pos.positionCategory = matchedRp.positionCategory;
+        if (matchedRp.positionLevel) pos.positionLevel = matchedRp.positionLevel;
+        if (matchedRp.employmentMethod) pos.employmentMethod = matchedRp.employmentMethod;
+      }
       try {
         var employRecs = JSON.parse(localStorage.getItem('employ_records') || '[]');
         pos.completedCount = employRecs.filter(function(r) { return r.recruitBatchId === pos.batchId && r.status === 'completed'; }).length;
       } catch(e) {}
     } catch(e) {}
   }
+  // Sync position-level fields to all roster rows
+  if (pos.rosterRows) {
+    pos.rosterRows.forEach(function(row) {
+      if (pos.positionCategory) row.positionCategory = pos.positionCategory;
+      if (pos.positionLevel) row.positionLevel = pos.positionLevel;
+      if (pos.employmentMethod) row.method = pos.employmentMethod;
+    });
+  }
   renderPage();
 }
 
 function addRosterRow(pi) {
   var pos = formData.positions[pi]; if (!pos) return;
-  pos.rosterRows.push({seq:pos.rosterRows.length+1,name:'',gender:'',birth:'',eduDegree:'',gradSchool:'',score:'',rank:'',title:'',position:'',method:'career',source:'',originalUnit:'',spouse:'',meetingTime:'',remark:''});
+  pos.rosterRows.push({seq:pos.rosterRows.length+1,name:'',gender:'',birth:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:''});
   renderPage();
 }
 
@@ -704,6 +792,31 @@ function removeRosterRow(pi, ri) {
   var pos = formData.positions[pi]; if (!pos || pos.rosterRows.length <= 1) return;
   pos.rosterRows.splice(ri, 1); if (pos.recordCards) pos.recordCards.splice(ri, 1); renderPage();
 }
+
+var POSITION_LEVEL_OPTS = {
+  '管理岗': ['四级职员','五级职员','六级职员','七级职员','八级职员','九级职员','十级职员'],
+  '专技岗': ['正高级','副高级','中级','初级'],
+  '工勤岗': ['一级','二级','三级','四级','五级']
+};
+
+function renderPositionLevelOpts(category, currentVal) {
+  var opts = POSITION_LEVEL_OPTS[category] || [];
+  var h = '<option value="">—</option>';
+  opts.forEach(function(o) {
+    h += '<option value="'+o+'"'+(currentVal===o?' selected':'')+'>'+o+'</option>';
+  });
+  return h;
+}
+
+function onPositionCategoryChange(pi, ri, newCategory) {
+  var pos = formData.positions[pi]; if (!pos) return;
+  var row = pos.rosterRows[ri]; if (!row) return;
+  row.positionCategory = newCategory;
+  row.positionLevel = '';
+  var sel = document.getElementById('posLevel_'+pi+'_'+ri);
+  if (sel) { sel.innerHTML = renderPositionLevelOpts(newCategory, ''); }
+}
+
 // ===== RENDER: 调动类表单 =====
 
 function onChkChange(key) { var s = formData.summaryForm; if(!s.材料存档) s.材料存档 = {}; s.材料存档[key] = event.target.checked; }
@@ -724,7 +837,7 @@ function openRecordCardModal(pi, idx) {
   var h = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()"><div class="modal-container"><h3>附件6：聘用备案表 &mdash; ' + escapeHtml(row.name||'人员'+(idx+1)) + '</h3>';
   h += '<div class="modal-section"><div class="ms-title">① 招聘单位信息</div>';
   h += '<div class="modal-row">' + mg('招聘单位名称', currentSchool, 'readonly') + mg('编号', card.no, dc(idx,'no')) + '</div>';
-  h += '<div class="modal-row">' + mg('招聘岗位名称', row.position, 'readonly') + mg('岗位类别和等级', row.positionCategory?row.positionCategory+'-'+row.positionLevel:'--', 'readonly') + '</div>';
+  h += '<div class="modal-row">' + mg('招聘岗位名称', pos.positionName||'', 'readonly') + mg('岗位类别和等级', (row.positionCategory||'') + ((row.positionCategory&&row.positionLevel)?'-':'') + (row.positionLevel||'--'), 'readonly') + '</div>';
   h += mg('用人方式', row.method==='control'?'聘用教师控制数':'实名编制', 'readonly');
   h += mg('增人来源', row.source||'公开招聘（自主实施）', 'readonly');
   h += '</div>';
@@ -740,8 +853,8 @@ function openRecordCardModal(pi, idx) {
   h += '<div class="modal-row">' + mg('民族', card.ethnicity, dc(idx,'ethnicity')) + mg('籍贯', card.nativePlace, dc(idx,'nativePlace')) + mg('出生地', card.birthPlace, dc(idx,'birthPlace')) + '</div>';
   h += '<div class="modal-row">' + mg('户籍地', card.household, dc(idx,'household')) + mg('身份证号', card.idNumber, dc(idx,'idNumber')) + '</div>';
   h += '<div style="margin:6px 0 4px;font-size:11px;font-weight:500;color:var(--text-secondary);">全日制教育</div>';
-  h += '<div class="modal-row">' + mg('学历', row.eduDegree, 'readonly') + mg('学位', row.eduDegree, 'readonly') + '</div>';
-  h += mg('毕业院校系及专业', row.gradSchool, 'readonly');
+  h += '<div class="modal-row">' + mg('学历', row.education, 'readonly') + mg('学位', row.degree, 'readonly') + '</div>';
+  h += mg('毕业院校系及专业', (row.school||'') + ((row.school&&row.major)?' ':'') + (row.major||''), 'readonly');
   h += '<div style="margin:6px 0 4px;font-size:11px;font-weight:500;color:var(--text-secondary);">在职教育</div>';
   h += '<div class="modal-row">' + mg('学历', card.parttimeEdu, dc(idx,'parttimeEdu')) + mg('学位', card.parttimeDegree, dc(idx,'parttimeDegree')) + '</div>';
   h += mg('毕业院校系及专业', card.parttimeSchool, dc(idx,'parttimeSchool'));
@@ -750,7 +863,7 @@ function openRecordCardModal(pi, idx) {
   h += mt('学习经历（从高中填起）', card.education, 3, dc(idx,'education'));
   h += mt('工作经历', card.workHistory, 2, dc(idx,'workHistory'));
   h += '<div style="margin:6px 0 4px;font-size:11px;font-weight:500;color:var(--text-secondary);">配偶基本情况</div>';
-  h += '<div class="modal-row">' + mg('配偶姓名', row.spouse, 'readonly') + mg('配偶出生年月', card.spouseBirth, dc(idx,'spouseBirth')) + mg('配偶工作单位', card.spouseUnit, dc(idx,'spouseUnit')) + '</div></div>';
+  h += '<div class="modal-row">' + mg('配偶姓名', row.spouseName, 'readonly') + mg('配偶出生年月', card.spouseBirth, dc(idx,'spouseBirth')) + mg('配偶工作单位', row.spouseUnit||card.spouseUnit, 'readonly') + '</div></div>';
   h += '<div class="modal-section"><div class="ms-title">⑤ 考试、考察、体检、公示情况</div>';
   h += '<div class="modal-row">' + mg('笔试成绩', row.score, 'readonly') + mg('面试成绩', row.score, 'readonly') + mg('综合成绩', row.score, 'readonly') + '</div>';
   h += '<div class="modal-row">' + mg('综合成绩排名', row.rank, 'readonly') + mg('考核情况', card.evaluation, dc(idx,'evaluation')) + mg('体检情况', card.medicalExam, dc(idx,'medicalExam')) + '</div>';
@@ -940,7 +1053,7 @@ function renderAttachmentSection() {
 
 // ===== TABLE EVENTS =====
 function bindRosterTableEvents() {
-  document.querySelectorAll('#mainContent input[data-pos], #mainContent select[data-pos]').forEach(function(el) {
+  document.querySelectorAll('#mainContent input[data-pos], #mainContent select[data-pos], #mainContent textarea[data-pos]').forEach(function(el) {
     if (el._bound) return; el._bound = true;
     el.onchange = function() {
       var pi = parseInt(this.dataset.pos);

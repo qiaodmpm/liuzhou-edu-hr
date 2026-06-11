@@ -123,7 +123,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
   <div class="topnav-right">
     <div class="topnav-bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge">3</span></div>
     <div class="topnav-user" onclick="toggleUserMenu()"><div class="avatar" id="userAvatar">王</div><span id="userName">王玉兰</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div></div>
+      <div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a></div></div>
   </div>
 </nav>
 
@@ -303,7 +303,14 @@ function renderList(){
     var typeCls = r.businessType;
     var statusLabel = STATUS_MAP[r.status]||r.status;
     var hStatus = getStatusClass(r.status);
-    var personCount = (r.formData&&r.formData.rosterRows)?r.formData.rosterRows.length:(r.formData&&r.formData.transferRows)?r.formData.transferRows.length:0;
+    var personCount = 0;
+    if(r.formData){
+      if(r.businessType==='recruitment'&&r.formData.positions){
+        personCount = r.formData.positions.reduce(function(s,p){return s+(p.rosterRows||[]).length;},0);
+      } else if(r.businessType==='transfer'){
+        personCount = (r.formData.transferRows||[]).length;
+      }
+    }
 
     h+='<div class="record-card">';
     h+='<div class="card-top"><span class="card-id">'+escapeHtml(r.id)+'</span><span class="card-status '+hStatus+'">'+statusLabel+'</span></div>';
