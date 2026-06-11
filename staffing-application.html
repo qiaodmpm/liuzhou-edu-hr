@@ -185,6 +185,15 @@ body {
 .btn-outline:hover { border-color: var(--primary); background: var(--primary-light); }
 .btn-sm { padding: 5px 12px; font-size: 12px; }
 
+/* Remind button */
+.btn-remind { padding: 4px 12px; font-size: 12px; background: #fff; color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; cursor: pointer; font-family: inherit; white-space: nowrap; transition: var(--transition); }
+.btn-remind:hover { background: var(--primary-light); }
+.btn-reminded { padding: 4px 12px; font-size: 12px; background: var(--gray-bg); color: var(--text-light); border: 1px solid var(--border); border-radius: 4px; cursor: default; font-family: inherit; white-space: nowrap; }
+
+/* Status badges */
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.status-badge.pending { background: #F1F5F9; color: #64748B; }
+
 /* Section header */
 .section-header { display: flex; align-items: center; }
 .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
@@ -326,6 +335,14 @@ body {
 /* Modal overlay */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
 .modal-overlay.show { display: flex; }
+.modal-container { background: #fff; border-radius: var(--radius-lg); padding: 28px; width: 480px; max-width: 90vw; box-shadow: var(--shadow-lg); }
+.modal-container h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.modal-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+.btn-cancel { padding: 8px 20px; font-size: 13px; font-weight: 500; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+.btn-cancel:hover { background: var(--gray-bg); }
+.btn-confirm { padding: 8px 20px; font-size: 13px; font-weight: 500; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-family: inherit; }
+.btn-confirm.success { background: var(--success); }
+.btn-confirm.success:hover { background: #059669; }
 .modal {
   background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
   width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto;
@@ -933,9 +950,75 @@ var ALL_SCHOOLS = [
   { name: '柳州市第十三中学', type: '鱼峰区属' },
   { name: '柳州市第二十五中学', type: '鱼峰区属' }
 ];
+var SCHOOL_DISTRICT_MAP = {
+  '柳州市第一中学':'市直属', '柳州市第二中学':'市直属', '柳州高级中学':'市直属',
+  '柳州市民族高中':'市直属', '柳州市第三中学':'市直属', '柳州市第六中学':'市直属',
+  '柳州市第八中学':'鱼峰区', '鱼峰区实验小学':'鱼峰区', '柳州市第十三中学':'鱼峰区', '柳州市第二十五中学':'鱼峰区'
+};
 
 // ===== REMINDER LOG =====
-var reminderLog = {}; // key: batchId|schoolName → value: '2026-05-15'
+function loadReminders() {
+  try { return JSON.parse(localStorage.getItem('staffing_reminders') || '{}'); } catch(e) { return {}; }
+}
+function saveReminders(data) { localStorage.setItem('staffing_reminders', JSON.stringify(data)); }
+
+function getReminderKey(batchId, schoolName) {
+  return batchId + '|' + schoolName;
+}
+
+function canRemind(batchId, schoolName) {
+  var reminders = loadReminders();
+  var r = reminders[getReminderKey(batchId, schoolName)];
+  if (!r) return true;
+  var today = new Date().toISOString().substring(0, 10);
+  return (r.time || '').substring(0, 10) !== today;
+}
+
+function getLastReminderDisplay(batchId, schoolName) {
+  var reminders = loadReminders();
+  var r = reminders[getReminderKey(batchId, schoolName)];
+  if (!r) return '—';
+  var time = (r.time || '').substring(0, 16).replace('T', ' ');
+  var cnt = r.count || 1;
+  return time + ' (第' + cnt + '次)';
+}
+
+function showRemindModal(batchId, schoolName) {
+  var modalHtml =
+    '<div class="modal-overlay" id="remindModal">' +
+      '<div class="modal-container">' +
+        '<h3>提醒申报确认</h3>' +
+        '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">' +
+          '将向<strong>' + schoolName + '</strong>发送编制使用申请提醒通知。每个学校每日最多提醒一次。' +
+        '</div>' +
+        '<div class="modal-buttons">' +
+          '<button class="btn-cancel" id="cancelRemind">取消</button>' +
+          '<button class="btn-confirm success" id="confirmRemind">确认发送</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  setTimeout(function() { document.getElementById('remindModal').classList.add('show'); }, 10);
+  document.getElementById('cancelRemind').onclick = function() { document.getElementById('remindModal').remove(); };
+  document.getElementById('confirmRemind').onclick = function() { doRemind(batchId, schoolName); };
+}
+
+function doRemind(batchId, schoolName) {
+  var modalEl = document.getElementById('remindModal');
+  if (modalEl) modalEl.remove();
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  var reminders = loadReminders();
+  var key = getReminderKey(batchId, schoolName);
+  if (!reminders[key]) { reminders[key] = { time: now, count: 1, read: false }; }
+  else {
+    reminders[key].time = now;
+    reminders[key].count = (reminders[key].count || 0) + 1;
+    reminders[key].read = false;
+  }
+  saveReminders(reminders);
+  showToast('已向「' + schoolName + '」发送申报提醒', 'success');
+  renderMain();
+}
 
 // ===== BATCH STATS HELPER =====
 function getBatchStats(batchId) {
@@ -1615,61 +1698,36 @@ function getUnsubmittedSchools() {
   return schools.filter(function(s) { return submittedSchools.indexOf(s.name) === -1; });
 }
 
-function getReminderKey(batchId, schoolName) {
-  return batchId + '|' + schoolName;
-}
-
 function getEmployUrl() {
   if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
   if (currentRole === 'school') return 'employ-list-school.html';
   return null;
 }
 
-function canRemindToday(batchId, schoolName) {
-  var key = getReminderKey(batchId, schoolName);
-  var lastDate = reminderLog[key];
-  if (!lastDate) return true;
-  var today = new Date().toISOString().slice(0, 10);
-  return lastDate !== today;
-}
-
-function remindSchool(batchId, schoolName, btnEl) {
-  var key = getReminderKey(batchId, schoolName);
-  var today = new Date().toISOString().slice(0, 10);
-  reminderLog[key] = today;
-  showToast('已向「' + schoolName + '」发送申报提醒');
-  btnEl.textContent = '今日已提醒';
-  btnEl.className = 'btn btn-outline btn-sm';
-  btnEl.disabled = true;
-  btnEl.style.opacity = '0.5';
-  btnEl.style.cursor = 'not-allowed';
-  btnEl.onclick = null;
-}
-
 function renderUnsubmittedTable() {
   var unsubmitted = getUnsubmittedSchools();
   var h = '';
-  h += '<div class="table-card"><div class="table-wrapper"><table>';
-  h += '<thead><tr><th style="width:50px;">序号</th><th>学校名称</th><th>学校类型</th><th style="width:140px;">最后提醒时间</th><th style="width:120px;">操作</th></tr></thead><tbody>';
+  h += '<div class="table-card"><div class="table-wrapper"><table class="list-table">';
+  h += '<thead><tr><th style="width:50px;">序号</th><th>学校名称</th><th>所属区域</th><th>最近提醒</th><th>状态</th><th style="width:120px;">操作</th></tr></thead><tbody>';
 
   if (unsubmitted.length === 0) {
-    h += '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-light);">🎉 管辖范围内所有学校均已提交申报</td></tr>';
+    h += '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light);">🎉 管辖范围内所有学校均已提交申报</td></tr>';
   } else {
     unsubmitted.forEach(function(school, idx) {
-      var key = getReminderKey(selectedBatchId, school.name);
-      var lastRemind = reminderLog[key] || '—';
-      var canRemind = canRemindToday(selectedBatchId, school.name);
+      var district = SCHOOL_DISTRICT_MAP[school.name] || school.type || '—';
+      var canRemindNow = canRemind(selectedBatchId, school.name);
 
       h += '<tr>';
       h += '<td>' + (idx + 1) + '</td>';
       h += '<td>' + school.name + '</td>';
-      h += '<td><span style="font-size:11px;' + (school.type === '市直属' ? 'color:#1E40AF;' : 'color:#D97706;') + 'font-weight:500;">' + school.type + '</span></td>';
-      h += '<td style="color:var(--text-secondary);">' + lastRemind + '</td>';
+      h += '<td>' + district + '</td>';
+      h += '<td style="font-size:12px;color:var(--text-secondary);">' + getLastReminderDisplay(selectedBatchId, school.name) + '</td>';
+      h += '<td><span class="status-badge pending">待提交</span></td>';
       h += '<td>';
-      if (canRemind) {
-        h += '<button class="btn btn-primary btn-sm" onclick="remindSchool(\'' + selectedBatchId + '\',\'' + school.name + '\',this)">提醒申报</button>';
+      if (canRemindNow) {
+        h += '<button class="btn-remind" onclick="event.stopPropagation();showRemindModal(\'' + selectedBatchId + '\',\'' + school.name + '\')">提醒申报</button>';
       } else {
-        h += '<button class="btn btn-outline btn-sm" disabled style="opacity:0.5;cursor:not-allowed;">今日已提醒</button>';
+        h += '<button class="btn-reminded" disabled>今日已提醒</button>';
       }
       h += '</td>';
       h += '</tr>';
