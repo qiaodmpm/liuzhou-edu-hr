@@ -302,7 +302,7 @@ var ROLES = {
   teacher: { name:'陈明辉', short:'陈', org:'柳州市第八中学', role:'teacher', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]}]}}
 };
 
-var STATUS_MAP = { pending_first:'待一审', first_approved:'一审通过', first_rejected:'已驳回', pending_second:'待二审', second_rejected:'二审驳回', completed:'已完成' };
+var STATUS_MAP = { pending_first:'待一审', first_approved:'一审通过', first_rejected:'一审驳回', pending_second:'待二审', second_rejected:'二审驳回', completed:'已完成' };
 var RECRUITMENT_TYPE_MAP = { independent:'自主招聘', public:'统一公招', senior:'中高级招聘' };
 
 var PROGRESS_STEPS = [
@@ -385,72 +385,176 @@ function renderFormByType(record) {
   var positions = formData.positions || [];
   var type = record.recruitmentType;
   var h = '';
-
   positions.forEach(function(pos, idx) {
     h += '<div class="position-card">';
     h += '<div class="pos-header"><span class="pos-title">岗位 ' + (idx + 1) + '</span></div>';
-    h += '<div class="field-grid">';
-
     if (type === 'independent') {
-      h += fv('序号', pos.seq); h += fv('所在市', pos.city); h += fv('学校全称', pos.schoolName);
-      h += fv('学校类型', pos.schoolType); h += fv('岗位名称', pos.positionName); h += fv('招聘人数', pos.count);
-      h += fv('岗位类别等级', pos.categoryLevel); h += fv('用人方式', pos.employmentMethod); h += fv('专业要求', pos.major);
-      h += fv('学历', pos.education); h += fv('学位', pos.degree); h += fv('年龄', pos.age);
-      h += fv('职称/职业资格', pos.titleOrQualification); h += fv('其他条件', pos.otherConditions); h += fv('考试方式', pos.examMethod);
-      h += fv('负责人', pos.contactName); h += fv('联系电话', pos.contactPhone); h += fv('电子邮箱', pos.contactEmail);
-      if (pos.remark) h += '<div class="full-width">' + fv('备注', pos.remark) + '</div>';
-    } else if (type === 'public') {
-      h += fv('序号', pos.seq); h += fv('主管部门', pos.authority); h += fv('招聘单位', pos.unit);
-      h += fv('岗位名称', pos.positionName); h += fv('岗位编码', pos.positionCode); h += fv('招聘人数', pos.count);
-      h += fv('岗位类别等级', pos.categoryLevel); h += fv('用人方式', pos.employmentMethod);
+      var iMethodLabel = pos.employmentMethod === 'control' ? '控制数' : '事业编';
+      var iCategoryLevel = pos.categoryLevel || (pos.positionCategory && pos.positionLevel ? pos.positionCategory + '-' + pos.positionLevel : '—');
+      var iBatchIds = pos.staffingBatchIds || [];
+      // === Section 1: 单位信息 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">单位信息</div><div class="field-grid">';
+      h += fv('所在市', pos.city); h += fv('招聘学校名称', pos.schoolName);
+      h += fv('学校类型', pos.schoolType);
+      h += '</div></div>';
+      // === Section 2: 岗位信息 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">岗位信息</div><div class="field-grid">';
+      h += fv('招聘岗位名称', pos.positionName); h += fv('招聘人数', pos.count);
+      h += fv('岗位类别等级', iCategoryLevel); h += fv('用人方式', iMethodLabel);
+      h += fv('关联编制批次', iBatchIds.length > 0 ? iBatchIds.join(', ') : '—');
       h += '<div class="full-width">' + fv('岗位说明', pos.positionDescription) + '</div>';
+      h += '<div class="full-width">' + fv('招聘专业要求', pos.major) + '</div>';
+      h += '</div></div>';
+      // === Section 3: 招聘岗位资格条件 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">招聘岗位资格条件</div><div class="field-grid">';
+      h += fv('学历', pos.education); h += fv('学位', pos.degree); h += fv('年龄', pos.age);
+      h += fv('职称或职业资格', pos.titleOrQualification);
+      h += '<div class="full-width">' + fv('其他条件', pos.otherConditions) + '</div>';
+      h += '</div></div>';
+      // === Section 4: 考试方式 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">考试方式</div><div class="field-grid">';
+      h += fv('考试方式', pos.examMethod);
+      h += '</div></div>';
+      // === Section 5: 招聘单位负责人联系方式 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">招聘单位负责人联系方式</div><div class="field-grid">';
+      h += fv('负责人姓名', pos.contactName); h += fv('联系电话', pos.contactPhone); h += fv('电子邮箱', pos.contactEmail);
+      h += '</div></div>';
+      // === Section 6: 备注 ===
+      if (pos.remark) {
+        h += '<div style="margin-bottom:4px;"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">备注 <span style="font-weight:400;color:var(--text-light);font-size:12px;">(选填)</span></div><div class="field-grid">';
+        h += '<div class="full-width">' + fv('备注', pos.remark) + '</div>';
+        h += '</div></div>';
+      }
+    } else if (type === 'public') {
+      var pMethodLabel = pos.employmentMethod === 'control' ? '控制数' : '事业编';
+      var pCategoryLevel = pos.categoryLevel || (pos.positionCategory && pos.positionLevel ? pos.positionCategory + '-' + pos.positionLevel : '—');
+      var pBatchIds = pos.staffingBatchIds || [];
+      // === Section 1: 单位信息 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">单位信息</div><div class="field-grid">';
+      h += fv('主管部门', pos.authority); h += fv('招聘单位', pos.unit);
+      h += '</div></div>';
+      // === Section 2: 岗位信息 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">岗位信息</div><div class="field-grid">';
+      h += fv('招聘岗位名称', pos.positionName); h += fv('岗位编码', pos.positionCode); h += fv('招聘人数', pos.count);
+      h += fv('岗位类别等级', pCategoryLevel); h += fv('用人方式', pMethodLabel);
+      h += fv('关联编制批次', pBatchIds.length > 0 ? pBatchIds.join(', ') : '—');
+      h += '<div class="full-width">' + fv('岗位说明', pos.positionDescription) + '</div>';
+      h += '</div></div>';
+      // === Section 3: 招聘岗位资格条件 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">招聘岗位资格条件</div><div class="field-grid">';
       h += '<div class="full-width">' + fv('所学专业', pos.major) + '</div>';
       h += fv('学历', pos.education); h += fv('学位', pos.degree); h += fv('年龄', pos.age);
-      h += fv('职称/职业资格', pos.titleOrQualification);
-      h += fv('定向招聘服务基层', pos.isServiceGrassroots ? '是' : '否');
-      h += fv('专项招聘高校毕业生', pos.isGraduateRecruitment ? '是' : '否');
-      h += fv('定向招聘退役士兵', pos.isRetiredSoldier ? '是' : '否');
-      h += '<div class="col-span2">' + fv('其他条件', pos.otherConditions) + '</div>';
+      h += fv('职称或职业资格', pos.titleOrQualification);
+      h += fv('是否定向招聘服务基层项目人员', pos.isServiceGrassroots ? '是' : '否');
+      h += fv('是否专项招聘高校毕业生', pos.isGraduateRecruitment ? '是' : '否');
+      h += fv('是否定向招聘退役士官士兵', pos.isRetiredSoldier ? '是' : '否');
+      h += '<div class="full-width">' + fv('其他条件', pos.otherConditions) + '</div>';
+      h += '</div></div>';
+      // === Section 4: 公共科目笔试类别 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">公共科目笔试类别</div><div class="field-grid">';
       h += fv('考试类别', pos.examCategory); h += fv('考试类别名称', pos.examCategoryName); h += fv('考试类别代码', pos.examCategoryCode);
+      h += '</div></div>';
+      // === Section 5: 考试与面试 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">考试与面试</div><div class="field-grid">';
       h += fv('考试方式', pos.examMethod); h += fv('面试方式', pos.interviewMethod);
-      h += fv('是否超人数加笔试', pos.needPublicExamThreshold ? '是' : '否'); h += fv('人数阈值', pos.thresholdCount);
-      h += '<div class="full-width">' + fv('邮寄地址及邮编', pos.contactAddress) + '</div>';
+      h += fv('是否报考成功人数超过（不含）一定数量时需参加公共科目笔试', pos.needPublicExamThreshold ? '是' : '否');
+      if (pos.needPublicExamThreshold) h += fv('数量', pos.thresholdCount);
+      h += '</div></div>';
+      // === Section 6: 联系方式 ===
+      h += '<div style="margin-bottom:4px;"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">联系方式</div><div class="field-grid">';
+      h += '<div class="full-width">' + fv('邮寄材料地址及邮编', pos.contactAddress) + '</div>';
       h += fv('咨询电话', pos.contactPhone); h += fv('监督电话', pos.supervisionPhone); h += fv('传真', pos.fax);
+      h += '</div></div>';
     } else if (type === 'senior') {
-      h += fv('序号', pos.seq); h += fv('主管部门', pos.authority); h += fv('招聘单位', pos.unit);
-      h += fv('单位性质', pos.unitNature); h += fv('岗位名称', pos.positionName); h += fv('岗位类别等级', pos.categoryLevel);
-      h += fv('用人方式', pos.employmentMethod);
+      var sMethodLabel = pos.employmentMethod === 'control' ? '控制数' : '事业编';
+      var sCategoryLevel = pos.categoryLevel || (pos.positionCategory && pos.positionLevel ? pos.positionCategory + '-' + pos.positionLevel : '—');
+      var sBatchIds = pos.staffingBatchIds || [];
+      // === Section 1: 单位基本信息 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">单位基本信息</div><div class="field-grid">';
+      h += fv('主管部门', pos.authority); h += fv('招聘单位', pos.unit);
+      h += fv('单位性质', pos.unitNature);
+      h += '</div></div>';
+      // === Section 2: 岗位信息 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">岗位信息</div><div class="field-grid">';
+      h += fv('招聘岗位名称', pos.positionName); h += fv('岗位类别等级', sCategoryLevel);
+      h += fv('用人方式', sMethodLabel);
       h += '<div class="col-span2">' + fv('岗位说明', pos.positionDescription) + '</div>';
-      h += fv('招聘人数', pos.count); h += fv('所学专业', pos.major); h += fv('学历', pos.education);
-      h += fv('学位', pos.degree); h += fv('年龄', pos.age); h += fv('职称/职业资格', pos.titleOrQualification);
-      h += fv('其他条件', pos.otherConditions); h += fv('考试/考核方式', pos.examMethod); h += fv('开考比例', pos.openingRatio);
+      h += fv('招聘人数', pos.count);
+      h += fv('关联编制批次', sBatchIds.length > 0 ? sBatchIds.join(', ') : '—');
+      h += '</div></div>';
+      // === Section 3: 招聘岗位资格条件 ===
+      h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">招聘岗位资格条件</div><div class="field-grid">';
+      h += fv('所学专业', pos.major); h += fv('学历', pos.education);
+      h += fv('学位', pos.degree); h += fv('年龄', pos.age); h += fv('职称或职业资格', pos.titleOrQualification);
+      h += '<div class="col-span2">' + fv('其他条件', pos.otherConditions) + '</div>';
+      h += '</div></div>';
+      // === Section 4: 考试与时间安排 ===
+      h += '<div style="margin-bottom:4px;"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">考试与时间安排</div><div class="field-grid">';
+      h += fv('考试/考核方式', pos.examMethod); h += fv('开考比例', pos.openingRatio);
       h += fv('网络报名开始', pos.onlineApplyStart); h += fv('网络报名结束', pos.onlineApplyEnd); h += fv('咨询电话', pos.contactPhone);
+      h += '</div></div>';
     }
-
-    h += '</div></div>';
+    h += '</div>';
   });
   return h;
 }
 
+// ===== ATTACHMENT =====
+var CURRENT_ATTACHMENTS = [];
 function renderAttachments(r) {
   var attachments = r.attachments || [];
+  CURRENT_ATTACHMENTS = attachments;
   var h = '<div class="form-card"><h3>申报附件</h3>';
   if (attachments.length === 0) {
     h += '<div class="attachment-empty">暂无附件</div>';
   } else {
     h += '<div class="attachment-list">';
-    attachments.forEach(function(f) {
+    attachments.forEach(function(f, fi) {
       h += '<div class="attachment-item">';
       h += '<span class="file-icon">&#x1F4C4;</span>';
       h += '<span class="file-name">' + escapeHtml(f.name) + '</span>';
       h += '<span class="file-size">' + formatSize(f.size) + '</span>';
-      h += '<a class="file-download" onclick="showToast(\'预览：' + escapeHtml(f.name) + '（模拟）\')">下载</a>';
+      h += '<span class="action-links">';
+      h += '<a class="file-download" onclick="previewAttachment(' + fi + ')" style="margin-right:10px;">预览</a>';
+      h += '<a class="file-download" onclick="downloadAttachment(' + fi + ')">下载</a>';
+      h += '</span>';
       h += '</div>';
     });
     h += '</div>';
   }
   h += '</div>';
   return h;
+}
+function previewAttachment(idx) {
+  var r = currentRecord;
+  if (!r || !r.attachments || !r.attachments[idx]) return;
+  var f = r.attachments[idx];
+  var modalHtml =
+    '<div class="modal-overlay" id="previewModal" onclick="if(event.target===this)document.getElementById(\'previewModal\').remove()">' +
+      '<div class="modal-container" style="width:560px;">' +
+        '<h3>文件预览</h3>' +
+        '<div style="margin-bottom:16px;">' +
+          '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">文件名：<b>' + escapeHtml(f.name) + '</b></div>' +
+          '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">文件大小：<b>' + formatSize(f.size) + '</b></div>' +
+          '<div style="padding:40px;text-align:center;background:#F8FAFC;border-radius:8px;border:1px dashed var(--border);">' +
+            '<div style="font-size:48px;margin-bottom:12px;">&#x1F4C4;</div>' +
+            '<div style="font-size:14px;color:var(--text-secondary);">该文件为模拟演示数据</div>' +
+            '<div style="font-size:12px;color:var(--text-light);margin-top:4px;">实际系统将在此处展示文件内容</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="modal-buttons">' +
+          '<button class="btn-cancel" onclick="document.getElementById(\'previewModal\').remove()">关闭</button>' +
+          '<button class="btn-confirm" onclick="document.getElementById(\'previewModal\').remove();downloadAttachment(' + idx + ')">下载文件</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+function downloadAttachment(idx) {
+  var r = currentRecord;
+  if (!r || !r.attachments || !r.attachments[idx]) return;
+  var f = r.attachments[idx];
+  showToast('开始下载：' + f.name + '（模拟）', 'success');
 }
 
 function renderFirstAuditInfo(r) {
@@ -478,14 +582,7 @@ function renderModifications(r) {
   return h;
 }
 
-function renderQuotaBanner(r) {
-  var total = getTotalCount(r.formData);
-  var unused = getSchoolUnusedPlan(r.schoolName);
-  if (total > unused) {
-    return '<div class="quota-banner error">&#9888; 招聘总人数（<b>' + total + '</b>人）超出可用编制计划数（<b>' + unused + '</b>人）</div>';
-  }
-  return '<div class="quota-banner ok">&#10003; 招聘总人数 <b>' + total + '</b> 人，可用编制计划数 <b>' + unused + '</b> 人，符合要求。</div>';
-}
+function renderQuotaBanner(r) { return ''; }
 
 function renderTimeline(r) {
   var items = r.timeline || [];
@@ -514,6 +611,12 @@ function getTypeTagClass(type) {
   if (type === 'senior') return 'senior';
   return '';
 }
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
+}
+
 
 // ===== MAIN RENDER =====
 function renderPage() {
@@ -549,22 +652,19 @@ function renderPage() {
   html += '<h1>终审招聘岗位申请 — <span style="color:var(--primary);">' + escapeHtml(r.schoolName) + '</span></h1>';
   html += '<div class="subtitle">申请编号：' + r.id + ' | 批次：' + escapeHtml(r.batchName) + ' | 招聘类型：<span class="type-tag ' + typeCls + '">' + typeLabel + '</span></div>';
   html += '</div>';
-  html += '<span class="status-stamp pending">待终审</span>';
+  var stampCls = r.status === 'completed' ? 'completed' : 'pending';
+  var stampLabel = r.status === 'completed' ? '已完成' : '待终审';
+  html += '<span class="status-stamp ' + stampCls + '">' + stampLabel + '</span>';
   html += '</div>';
 
-  // Flow info
-  html += '<div class="flow-info">&#128203; 审核流程：区属自主招聘 → 区初审通过 → <b>市级终审</b>（当前步骤）</div>';
-
-  // Progress bar (step 2 = "市级终审")
-  html += '<div class="progress-bar"><div class="step-wrapper">' + renderProgress(2) + '</div></div>';
+  // Progress bar
+  var progressStep = r.status === 'completed' || r.status === 'second_rejected' ? 3 : 2;
+  html += '<div class="progress-bar"><div class="step-wrapper">' + renderProgress(progressStep) + '</div></div>';
 
   // Two-column layout
   html += '<div class="two-columns"><div class="main-col">';
 
-  // First audit info
-  html += renderFirstAuditInfo(r);
-
-  // Quota
+  // First audit info merged into timeline
   html += renderQuotaBanner(r);
 
   // Form
@@ -582,16 +682,14 @@ function renderPage() {
   html += '<div class="side-col">';
   html += renderTimeline(r);
 
-  html += '<div class="sidebar-section"><h4>申报信息</h4>';
+  html += '<div class="sidebar-section"><h4>申报概要</h4>';
   html += '<div style="font-size:12px;line-height:2;">';
   html += '<div>学校：<b>' + escapeHtml(r.schoolName) + '</b></div>';
   html += '<div>学校类型：' + escapeHtml(r.schoolCategory||'—') + '</div>';
   html += '<div>招聘类型：<b>' + typeLabel + '</b></div>';
   html += '<div>岗位数：<b>' + ((r.formData && r.formData.positions) ? r.formData.positions.length : 0) + '</b></div>';
   html += '<div>招聘总人数：<b>' + getTotalCount(r.formData) + '</b></div>';
-  html += '<div>可用编制计划数：<b>' + getSchoolUnusedPlan(r.schoolName) + '</b></div>';
-  html += '<div>一审审核人：<b>' + escapeHtml(r.firstReviewer||'—') + '</b></div>';
-  html += '<div>一审时间：' + (r.firstReviewTime||'—').substring(0,16) + '</div>';
+  html += '<div>附件数：<b>' + ((r.attachments||[]).length) + '</b></div>';
   html += '</div></div>';
 
   html += '</div>'; // .side-col
@@ -600,8 +698,14 @@ function renderPage() {
   // Bottom action bar
   html += '<div class="audit-bottom-bar">';
   html += '<span class="opinion-hint">此为终审，审核通过后申报完成。审核驳回后需退回学校修改。</span>';
-  html += '<button type="button" class="btn-reject" onclick="showRejectModal()">审核驳回</button>';
-  html += '<button type="button" class="btn-approve" onclick="showApproveModal()">审核通过</button>';
+  if (r.status === 'completed' && r.secondModifiableUntil && new Date(r.secondModifiableUntil) > new Date()) {
+    var daysLeft = Math.ceil((new Date(r.secondModifiableUntil) - new Date()) / (1000 * 60 * 60 * 24));
+    html += '<span class="opinion-hint" style="color:var(--warning);">&#9888; 该申报已终审通过，' + daysLeft + '天内可修改审核结果。修改后申报将退回待审核状态，需重新审核。</span>';
+    html += '<button type="button" class="btn-reject" onclick="showRejectAfterApproveModal()">修改审核结果变驳回</button>';
+  } else if (r.status === 'pending_second') {
+    html += '<button type="button" class="btn-reject" onclick="showRejectModal()">审核驳回</button>';
+    html += '<button type="button" class="btn-approve" onclick="showApproveModal()">审核通过</button>';
+  }
   html += '</div>';
 
   document.getElementById('mainContent').innerHTML = html;
@@ -664,6 +768,10 @@ function doApprove() {
   var tlEntry = { time: time, action: '市级终审通过', operator: approverName };
   if (opinionText) tlEntry.opinion = opinionText;
   records[idx].timeline.push(tlEntry);
+  // Set 30-day modification window
+  var modUntil = new Date();
+  modUntil.setDate(modUntil.getDate() + 30);
+  records[idx].secondModifiableUntil = modUntil.toISOString();
 
   saveRecords(records);
   showToast('终审通过，申报完成', 'success');
@@ -724,6 +832,54 @@ function doReject() {
   setTimeout(function() { goBack(); }, 1000);
 }
 
+
+function showRejectAfterApproveModal() {
+  if (!currentRecord) return;
+  var modalHtml =
+    '<div class="modal-overlay" id="rejectModal">' +
+      '<div class="modal-container">' +
+        '<h3>修改审核结果</h3>' +
+        '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">' +
+          '确认将已通过的申报改为驳回？驳回后该申报将退回待审核状态，需重新走审核流程。' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>驳回原因 <span style="color:var(--danger)">*</span></label>' +
+          '<textarea id="rejectReason" rows="4" placeholder="请说明驳回原因"></textarea>' +
+        '</div>' +
+        '<div class="modal-buttons">' +
+          '<button class="btn-cancel" id="cancelReject">取消</button>' +
+          '<button class="btn-confirm danger" id="confirmReject">确认修改</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.getElementById('cancelReject').onclick = function() { var el = document.getElementById('rejectModal'); if (el) el.remove(); };
+  document.getElementById('confirmReject').onclick = doRejectAfterApprove;
+}
+
+function doRejectAfterApprove() {
+  var rejectEl = document.getElementById('rejectModal');
+  if (rejectEl) rejectEl.remove();
+  if (!currentRecord) return;
+  var reasonEl = document.getElementById('rejectReason');
+  var reason = reasonEl ? reasonEl.value.trim() : '';
+  if (!reason) { showToast('请填写驳回原因', 'warning'); return; }
+  var records = loadRecords();
+  var idx = records.findIndex(function(r) { return r.id === currentRecord.id; });
+  if (idx === -1) { showToast('记录不存在', 'warning'); return; }
+  var approverName = ROLES[currentRole].name;
+  var time = now();
+  records[idx].status = 'pending_second';
+  records[idx].secondReviewResult = 'rejected';
+  records[idx].secondRejectReason = reason;
+  records[idx].secondModifiableUntil = null;
+  records[idx].timeline = records[idx].timeline || [];
+  records[idx].timeline.push({ time: time, action: '终审通过→驳回修改', operator: approverName, opinion: reason });
+  saveRecords(records);
+  currentRecord = records[idx];
+  renderPage();
+  showToast('审核结果已修改为驳回', 'success');
+}
 // ===== NAVIGATION =====
 function goBack() {
   window.location.href = 'recruit-list-admin.html?role=' + currentRole;
@@ -751,6 +907,8 @@ function sidebarClick(el, id) {
   el.classList.add('active');
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'recruit') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
   if (id === 'postset') { window.location.href = 'post-list-admin.html?role=' + currentRole; return; }
   if (id === 'promote') { window.location.href = 'promote-list-admin.html?role=' + currentRole; return; }
   if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }

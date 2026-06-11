@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>首次登录 — 修改密码 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body { font-family: 'Noto Sans SC', sans-serif; background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+.card { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow); width: 420px; max-width: 100%; overflow: hidden; }
+.card-header { padding: 32px 28px 0; text-align: center; }
+.card-header .icon { font-size: 48px; margin-bottom: 12px; }
+.card-header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.card-header p { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+.card-body { padding: 24px 28px 32px; }
+
+.alert { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius); padding: 10px 14px; font-size: 12px; color: #92400E; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.form-group input { width: 100%; padding: 10px 14px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; outline: none; transition: var(--transition); }
+.form-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+.btn { width: 100%; padding: 12px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rules { margin-top: 12px; padding: 10px 14px; background: #F8FAFC; border-radius: var(--radius); font-size: 11px; color: var(--text-secondary); }
+.rules li { margin: 3px 0; list-style: none; }
+.rules li::before { content: '• '; }
+.rules .ok { color: var(--success); }
+.rules .no { color: var(--text-light); }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: var(--radius); font-size: 13px; z-index: 1000; box-shadow: var(--shadow); }
+.toast.success { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+.toast.error { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+</style>
+</head>
+<body>
+
+<div class="card" id="checkCard">
+  <div class="card-header">
+    <div class="icon">🔐</div>
+    <h1>首次登录</h1>
+    <p>请验证身份并设置新密码</p>
+  </div>
+  <div class="card-body">
+    <div class="alert">⚠ 首次登录需要先验证初始密码，然后设置新密码。</div>
+
+    <div style="margin-bottom:16px;padding:12px;background:#F8FAFC;border-radius:var(--radius);">
+      <div style="font-size:13px;font-weight:600;" id="displayName">—</div>
+      <div style="font-size:12px;color:var(--text-secondary);" id="displaySchool">—</div>
+      <div style="font-size:12px;color:var(--text-secondary);font-family:monospace;" id="displayIdCard">—</div>
+    </div>
+
+    <div class="form-group">
+      <label>初始密码</label>
+      <input id="initialPwd" type="password" placeholder="请输入管理员下发的初始密码">
+    </div>
+
+    <div class="form-group">
+      <label>新密码</label>
+      <input id="newPwd" type="password" placeholder="8-20位，大小写+数字" oninput="checkRules()">
+    </div>
+
+    <div class="form-group">
+      <label>确认新密码</label>
+      <input id="confirmPwd" type="password" placeholder="再次输入新密码" oninput="checkRules()">
+    </div>
+
+    <div class="rules" id="rulesArea">
+      <li id="rule1" class="no">长度 8-20 位</li>
+      <li id="rule2" class="no">包含大写字母</li>
+      <li id="rule3" class="no">包含小写字母</li>
+      <li id="rule4" class="no">包含数字</li>
+      <li id="rule5" class="no">两次密码输入一致</li>
+      <li id="rule6" class="no">新密码与初始密码不同</li>
+    </div>
+
+    <button class="btn btn-primary" id="submitBtn" onclick="doFirstLogin()" disabled>确认修改并登录</button>
+  </div>
+</div>
+
+<script>
+var pendingTeacher = JSON.parse(localStorage.getItem('pendingTeacherLogin') || 'null');
+
+if (!pendingTeacher) {
+  document.getElementById('checkCard').innerHTML =
+    '<div class="card-body" style="text-align:center;padding:40px;">' +
+    '<div style="font-size:48px;margin-bottom:12px;">⚠️</div>' +
+    '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">无需修改密码</div>' +
+    '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">您已经完成首次登录，或访问链接不正确。</div>' +
+    '<button class="btn btn-primary" onclick="window.location.href=\'index.html\'">返回登录</button></div>';
+} else {
+  document.getElementById('displayName').textContent = pendingTeacher.name;
+  document.getElementById('displaySchool').textContent = pendingTeacher.school || '';
+  document.getElementById('displayIdCard').textContent = '账号：' + pendingTeacher.idCard;
+}
+
+function checkRules() {
+  var pwd = document.getElementById('newPwd').value;
+  var confirm = document.getElementById('confirmPwd').value;
+  var initialPwd = document.getElementById('initialPwd').value;
+
+  var r1 = pwd.length >= 8 && pwd.length <= 20;
+  var r2 = /[A-Z]/.test(pwd);
+  var r3 = /[a-z]/.test(pwd);
+  var r4 = /[0-9]/.test(pwd);
+  var r5 = pwd === confirm && pwd.length > 0;
+  var r6 = pwd !== initialPwd && initialPwd.length > 0 && pwd.length > 0;
+
+  document.getElementById('rule1').className = r1 ? 'ok' : 'no';
+  document.getElementById('rule2').className = r2 ? 'ok' : 'no';
+  document.getElementById('rule3').className = r3 ? 'ok' : 'no';
+  document.getElementById('rule4').className = r4 ? 'ok' : 'no';
+  document.getElementById('rule5').className = r5 ? 'ok' : 'no';
+  document.getElementById('rule6').className = r6 ? 'ok' : 'no';
+
+  document.getElementById('submitBtn').disabled = !(r1 && r2 && r3 && r4 && r5 && r6);
+}
+
+function doFirstLogin() {
+  var initialPwd = document.getElementById('initialPwd').value;
+  var newPwd = document.getElementById('newPwd').value;
+
+  if (initialPwd !== pendingTeacher.initialPassword) {
+    showToast('初始密码错误', 'error');
+    return;
+  }
+
+  // Update account in localStorage
+  var accounts = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+  var updated = false;
+  for (var i = 0; i < accounts.length; i++) {
+    if (accounts[i].accountId === pendingTeacher.accountId) {
+      accounts[i].password = newPwd;
+      accounts[i].firstLogin = true;
+      accounts[i].activatedAt = new Date().toISOString();
+      updated = true;
+      break;
+    }
+  }
+
+  if (!updated) {
+    showToast('账号数据异常，请联系管理员', 'error');
+    return;
+  }
+
+  localStorage.setItem('teacher_accounts', JSON.stringify(accounts));
+  localStorage.removeItem('pendingTeacherLogin');
+
+  // Set currentUser
+  localStorage.setItem('currentUser', JSON.stringify({
+    role: 'teacher',
+    name: pendingTeacher.name,
+    id: pendingTeacher.idCard,
+    school: pendingTeacher.school,
+    accountId: pendingTeacher.accountId
+  }));
+
+  showToast('密码修改成功，正在进入系统...', 'success');
+  setTimeout(function() { window.location.href = 'workbench.html'; }, 1000);
+}
+
+function showToast(msg, type) {
+  var el = document.createElement('div');
+  el.className = 'toast ' + (type || '');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function() { el.remove(); }, 2500);
+}
+</script>
+</body>
+</html>

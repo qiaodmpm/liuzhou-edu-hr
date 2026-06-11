@@ -242,6 +242,12 @@ body {
 .grade-table .ratio-cell { background: #F8FAFC; color: var(--text-secondary); font-size: 12px; font-weight: 500; }
 .grade-table .sub-total { font-weight: 600; color: var(--primary); }
 .grade-table .layer-header { background: #EFF6FF; color: var(--primary); font-weight: 600; }
+.limit-hint { font-size: 11px; color: var(--text-light); font-weight: 400; margin-left: 6px; }
+.limit-hint.error { color: var(--danger); }
+.ratio-ref-card { background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; }
+.ratio-ref-card .ref-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.ratio-ref-card .ref-row { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 11px; color: var(--text-secondary); }
+.ratio-ref-card .ref-row span { white-space: nowrap; }
 
 /* Editable cell */
 .editable-cell { cursor: pointer; position: relative; }
@@ -536,7 +542,7 @@ body {
       <div class="user-dropdown" id="userDropdown">
         <a href="#">个人中心</a><a href="#">修改密码</a>
         <div class="divider"></div>
-        <a href="index.html" class="logout">退出登录</a>
+        <a href="login-demo.html" class="logout">退出登录</a>
       </div>
     </div>
   </div>
@@ -613,6 +619,21 @@ var MENU_ICONS = {
 
 // ===== GRADE CONFIG =====
 var MGMT_GRADES = ['5','6','7','8','9','10'];
+var PROF_RATIO_LIMITS = {
+  '自治区示范高中': { senior: 3, vice: 30, middle: 52, junior: 15 },
+  '自治区特色高中': { senior: 2.5, vice: 25.5, middle: 52, junior: 20 },
+  '普通高中': { senior: 2, vice: 25, middle: 52, junior: 21 },
+  '初中': { senior: 1.5, vice: 21.5, middle: 54, junior: 23 },
+  '小学': { senior: 1, vice: 12, middle: 56, junior: 31 },
+  '幼儿园': { senior: 1, vice: 12, middle: 56, junior: 31 }
+};
+var LEVEL_INTERNAL_RATIOS = {
+  senior: { '3': 30, '4': 70 },
+  vice: { '5': 20, '6': 40, '7': 40 },
+  middle: { '8': 30, '9': 40, '10': 30 },
+  junior: { '11': 50, '12': 50 }
+};
+var LABOR_RATIO_LIMITS = { total_1_2: 10, level_1: 4, level_2: 6, level_3: 20, level_4: 40, level_5_min: 30 };
 var MGMT_GRADE_LABELS = { '4':'四级', '5':'五级', '6':'六级', '7':'七级', '8':'八级', '9':'九级', '10':'十级' };
 var PROF_LAYER_CONFIG = [
   { key:'senior', label:'正高级', grades:['3','4'], gradeLabels:{'3':'三级','4':'四级'} },
@@ -1319,6 +1340,46 @@ function renderComparisonTable() {
   return html;
 }
 
+function renderRatioReference() {
+  var r = currentRecord;
+  if (!r.schoolType) return '';
+  var limits = PROF_RATIO_LIMITS[r.schoolType];
+  if (!limits) return '';
+  var h = '<div class="ratio-ref-card">';
+  h += '<div class="ref-title">\uD83D\uDCD0 \u4E13\u6280\u5C42\u7EA7\u6BD4\u4F8B\u4E0A\u9650\u53C2\u8003\uFF08' + r.schoolType + '\uFF09</div>';
+  h += '<div class="ref-row">';
+  var layers = [{key:'senior',label:'\u6B63\u9AD8\u7EA7'},{key:'vice',label:'\u526F\u9AD8\u7EA7'},{key:'middle',label:'\u4E2D\u7EA7'},{key:'junior',label:'\u521D\u7EA7'}];
+  layers.forEach(function(layer) {
+    var limitPct = limits[layer.key];
+    var ld = r.profLevels && r.profLevels[layer.key] ? r.profLevels[layer.key] : {total:0};
+    var actualPct = r.profPosts > 0 ? (ld.total / r.profPosts * 100).toFixed(1) : '0.0';
+    var exceeded = limitPct !== null && parseFloat(actualPct) > limitPct;
+    h += '<span' + (exceeded ? ' style="color:var(--danger);font-weight:600;"' : '') + '>' + layer.label + '\uFF1A\u4E0A\u9650 ' + limitPct + '%\uFF08\u5F53\u524D ' + actualPct + '%\uFF09' + (exceeded ? ' \u26A0' : '') + '</span>';
+  });
+  h += '</div>';
+  h += '<div class="ref-title" style="margin-top:8px;">\uD83D\uDCD0 \u7B49\u7EA7\u5185\u6BD4\u4F8B\u53C2\u8003</div>';
+  h += '<div class="ref-row">';
+  Object.keys(LEVEL_INTERNAL_RATIOS).forEach(function(layerKey) {
+    var iKeys = Object.keys(LEVEL_INTERNAL_RATIOS[layerKey]);
+    var labels = {'3':'\u4E09\u7EA7','4':'\u56DB\u7EA7','5':'\u4E94\u7EA7','6':'\u516D\u7EA7','7':'\u4E03\u7EA7','8':'\u516B\u7EA7','9':'\u4E5D\u7EA7','10':'\u5341\u7EA7','11':'\u5341\u4E00\u7EA7','12':'\u5341\u4E8C\u7EA7','13':'\u5341\u4E09\u7EA7'};
+    var parts = iKeys.map(function(k) { return labels[k] + '=' + (LEVEL_INTERNAL_RATIOS[layerKey][k] / 10); });
+    var layerLabel = {senior:'\u6B63\u9AD8\u7EA7',vice:'\u526F\u9AD8\u7EA7',middle:'\u4E2D\u7EA7',junior:'\u521D\u7EA7'}[layerKey];
+    h += '<span>' + layerLabel + '\uFF1A' + parts.join(' : ') + '</span>';
+  });
+  h += '<span style="color:var(--text-light);">\uFF08\u521D\u7EA7\u5341\u4E09\u7EA7\u4E0D\u9650\uFF09</span>';
+  h += '</div>';
+  h += '<div class="ref-title" style="margin-top:8px;">\uD83D\uDCD0 \u5DE5\u52E4\u6280\u80FD\u5C97\u4F4D\u6BD4\u4F8B\u4E0A\u9650</div>';
+  h += '<div class="ref-row">';
+  h += '<span>\u4E00\u7EA7 \u2264 ' + LABOR_RATIO_LIMITS.level_1 + '%</span>';
+  h += '<span>\u4E8C\u7EA7 \u2264 ' + LABOR_RATIO_LIMITS.level_2 + '%</span>';
+  h += '<span>\u4E09\u7EA7 \u2264 ' + LABOR_RATIO_LIMITS.level_3 + '%</span>';
+  h += '<span>\u56DB\u7EA7 \u2264 ' + LABOR_RATIO_LIMITS.level_4 + '%</span>';
+  h += '<span>\u4E94\u7EA7 \u2265 ' + LABOR_RATIO_LIMITS.level_5_min + '%</span>';
+  h += '<span>\u4E00\u7EA7+\u4E8C\u7EA7\u5408\u8BA1 \u2264 ' + LABOR_RATIO_LIMITS.total_1_2 + '%</span>';
+  h += '</div></div>';
+  return h;
+}
+
 function renderHrAttachment() {
   var r = currentRecord;
   if (!r.hrApprovalAttachment) return '';
@@ -1657,6 +1718,8 @@ function sidebarClick(el, id) {
   if (id === 'postset') { window.location.href = listUrl; return; }
   if (id === 'recruit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
     if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
     return;
   }
@@ -1692,7 +1755,8 @@ function toggleUserMenu() {
   document.getElementById('userDropdown').classList.toggle('show');
 }
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show');
+  var dd = document.getElementById('userDropdown');
+  if (dd && !e.target.closest('.topnav-user')) dd.classList.remove('show');
 });
 
 function toggleCollapsible(bodyId, arrowEl) {
@@ -1740,6 +1804,12 @@ function getEmployedTotal(empData, category, grade) {
   if (!entry) return 0;
   return (entry.career || 0) + (entry.control || 0) + (entry.over || 0);
 }
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
+}
+
 
 function sumEmployedCategory(empData, category, key) {
   if (!empData) return 0;

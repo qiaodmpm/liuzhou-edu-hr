@@ -351,12 +351,20 @@ function sidebarClick(el, id) {
   if (id === 'entry') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
   if (id === 'exit') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
   if (id === 'recruit') { window.location.href = 'recruit-list-school.html'; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
 function getParam(name) {
   var m = location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
   return m ? decodeURIComponent(m[1]) : '';
+}
+
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
 }
 
 function renderProgress() {
@@ -418,7 +426,7 @@ function renderOriginalInfo() {
       '<div class="info-item"><span class="lbl">现任岗位</span><span class="val">' + (r.currentPost || '—') + '</span></div>' +
       '<div class="info-item"><span class="lbl">现任职务</span><span class="val">' + (r.currentTitle || '—') + '</span></div>' +
       '<div class="info-item"><span class="lbl">任职时间</span><span class="val">' + (r.appointTime || '—') + '</span></div>' +
-      '<div class="info-item"><span class="lbl">晋升方向</span><span class="val">' + (r.fromLevel || '—') + ' → ' + (r.targetLevel || '—') + '</span></div>' +
+      '<div class="info-item"><span class="lbl">晋升方向</span><span class="val">' + (r.fromLevel || '—') + ' → ' + (r.targetLevel || '—') + (r.borrowFromLevel ? ' ⚡借岗' + r.borrowFromLevel : '') + '</span></div>' +
       '<div class="info-item"><span class="lbl">晋升类型</span><span class="val">' + promotionLabel + '</span></div>' +
       '<div class="info-item"><span class="lbl">所属批次</span><span class="val">' + (r.batchName || '—') + '</span></div>' +
       '<div class="info-item"><span class="lbl">所在学校</span><span class="val">' + (r.schoolName || '—') + '</span></div>' +
@@ -551,8 +559,8 @@ function showRejectModal() {
 
     record.hrResult = null;
     record.hrApprovalAttachment = null;
-    record.status = 'second_rejected';
-    record.secondRejectReason = reason;
+    record.status = 'hr_rejected';
+    record.hrRejectReason = reason;
     record.timeline.push({ time: now(), action: '人社审核退回', operator: ROLES[currentRole].name, opinion: reason });
 
     var records = loadRecords();

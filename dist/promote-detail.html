@@ -212,6 +212,9 @@ body {
 .att-item { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--gray-bg); border-radius: 6px; font-size: 12px; margin-right: 8px; margin-bottom: 6px; }
 .att-item a { color: var(--primary); text-decoration: none; cursor: pointer; }
 .att-item a:hover { text-decoration: underline; }
+.att-item-block { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--gray-bg); border-radius: 4px; margin-bottom: 4px; font-size: 12px; }
+.att-item-block a { color: var(--primary); text-decoration: none; font-size: 11px; cursor: pointer; }
+.att-item-block a:hover { text-decoration: underline; }
 
 /* HR result */
 .hr-attachment { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--gray-bg); border-radius: 6px; margin-top: 12px; font-size: 12px; }
@@ -463,18 +466,21 @@ var SCHOOL_CATEGORY_MAP = {
 var STATUS_HINTS = {
   pending_first: '当前环节：学校一审。请等待学校管理员审核。',
   first_approved: '学校一审已通过，等待学校管理员批量提交至主管部门。',
-  first_rejected: '学校一审驳回。请根据驳回原因修改后重新提交。',
+  first_rejected: '晋升失败，流程已终止。',
   pending_second: '当前环节：主管部门二审（材料审核）。请等待审核结果。',
   second_approved: '二审通过。请等待学校管理员录入人社批复结果。',
-  second_rejected: '主管部门二审驳回。学校管理员已收到通知。',
+  second_rejected: '二审驳回',
+  hr_rejected: '人社核准驳回。学校管理员已收到通知。',
+  hr_result_entered: '人社通过',
   pending_third: '当前环节：主管部门三审（最终确认）。请等待最终确认。',
   completed: '岗位晋升流程已完成。教师岗位等级已更新。'
 };
 
 var STATUS_LABELS = {
-  pending_first: '待一审', first_approved: '一审通过', first_rejected: '一审驳回',
-  pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回',
-  pending_third: '待三审', third_rejected: '三审驳回', completed: '已完成'
+  pending_first: '待一审', first_approved: '一审通过', first_rejected: '晋升失败',
+  pending_second: '待二审', second_approved: '二审通过', second_rejected: '二审驳回', hr_rejected: '人社驳回',
+  pending_third: '待三审',
+  completed: '晋升成功'
 };
 
 var PROGRESS_STEPS = [
@@ -566,10 +572,58 @@ var record = null;
 var recordId = null;
 
 // ===== PERSISTENCE =====
+var POST_EMPLOYED_DATA = {
+  '柳州高级中学': { prof: { '3': { career: 1, control: 0, over: 0 }, '4': { career: 3, control: 0, over: 0 } } },
+  '柳州市第八中学': { prof: { '3': { career: 0, control: 0, over: 0 }, '4': { career: 0, control: 0, over: 0 } } }
+};
+var NEW_RECORD_FIELDS = ['publicMethod','publicStartTime','publicEndTime','publicAttachments','schoolRemarks'];
+
 function loadRecords() {
-  var s = localStorage.getItem('promote_records');
-  if (s) { try { return JSON.parse(s); } catch(e) {} }
-  return JSON.parse(JSON.stringify(DEMO_RECORDS));
+  try {
+    var stored = JSON.parse(localStorage.getItem('promote_records') || '[]');
+    if (stored.length === 0) return JSON.parse(JSON.stringify(DEMO_RECORDS));
+    var demoMap = {};
+    DEMO_RECORDS.forEach(function(r) { demoMap[r.id] = r; });
+    var merged = [];
+    var seenIds = {};
+    stored.forEach(function(sr) {
+      var dr = demoMap[sr.id];
+      if (dr) {
+        NEW_RECORD_FIELDS.forEach(function(k) {
+          if (!(k in sr)) { sr[k] = dr[k]; }
+        });
+      }
+      // Migrate old senior3Form field names to new ones
+      if (sr.senior3Form && sr.senior3Form.graduateSchool && !sr.senior3Form.schoolMajor) {
+        var old = sr.senior3Form;
+        sr.senior3Form = {
+          schoolMajor: old.graduateSchool || '',
+          graduateTime: old.graduateTime || '',
+          workStartTime: old.workStartTime || '',
+          profYears: old.profYears || '',
+          qualName: old.techQualName || '',
+          qualTime: old.techQualTime || '',
+          employStart: old.currentPostPeriod ? old.currentPostPeriod.from : (old.employStart || ''),
+          employEnd: old.currentPostPeriod ? old.currentPostPeriod.to : (old.employEnd || ''),
+          targetPostName: old.targetPostName || '',
+          targetStart: old.targetPostPeriod ? old.targetPostPeriod.from : (old.targetStart || ''),
+          targetEnd: old.targetPostPeriod ? old.targetPostPeriod.to : (old.targetEnd || ''),
+          publicMethod: old.publicityMethod || old.publicMethod || '',
+          publicStart: old.publicityPeriod ? old.publicityPeriod.from : (old.publicStart || ''),
+          publicEnd: old.publicityPeriod ? old.publicityPeriod.to : (old.publicEnd || '')
+        };
+      }
+      merged.push(sr);
+      seenIds[sr.id] = true;
+    });
+    DEMO_RECORDS.forEach(function(dr) {
+      if (!seenIds[dr.id]) { merged.push(dr); seenIds[dr.id] = true; }
+    });
+    return merged;
+  } catch(e) {
+    localStorage.removeItem('promote_records');
+    return JSON.parse(JSON.stringify(DEMO_RECORDS));
+  }
 }
 
 function saveRecords(records) {
@@ -631,6 +685,7 @@ function getProgressState(status) {
       steps[3] = 'current'; // 录入人社结果
       break;
     case 'second_rejected':
+    case 'hr_rejected':
       markDone(2);
       steps[2] = 'rejected';
       break;
@@ -649,7 +704,7 @@ function getProgressState(status) {
 function getStatusBadgeClass(status) {
 	if (status === 'pending_first' || status === 'pending_second' || status === 'pending_third') return 'pending';
 	if (status === 'first_approved' || status === 'second_approved') return 'approved';
-	if (status === 'first_rejected' || status === 'second_rejected' || status === 'third_rejected') return 'rejected';
+	if (status === 'first_rejected' || status === 'second_rejected' || status === 'hr_rejected' ) return 'rejected';
 	if (status === 'completed') return 'completed';
 	return 'pending';
 }
@@ -687,7 +742,7 @@ function renderProgress() {
 function renderStatusHint() {
   var hintText = STATUS_HINTS[record.status] || '未知状态';
   var cls = 'status-hint';
-  if (record.status === 'first_rejected' || record.status === 'second_rejected') {
+  if (record.status === 'first_rejected' || record.status === 'second_rejected' || record.status === 'hr_rejected') {
     cls += ' rejected';
   } else if (record.status === 'completed') {
     cls += ' success';
@@ -700,37 +755,53 @@ function renderTeacherForm() {
   var html = '';
 
   if (record.promotionType === 'senior_3') {
-    // Senior_3 type form
+    // Senior_3 type form — match promote-form renderSenior3Form exactly
+    var sf = record.senior3Form || {};
+
+    // Card 1: 基本信息
     html += '<div class="form-card"><h3>基本信息</h3><div class="info-grid">';
     html += infoItem('姓名', record.teacherName);
     html += infoItem('性别', record.gender);
-    html += infoItem('民族', record.ethnicity);
-    html += infoItem('出生年月', record.birthDate);
-    html += infoItem('政治面貌', record.politicalStatus);
-    html += infoItem('学历', record.education);
+    html += infoItem('出生日期', record.birthDate);
+    html += infoItem('毕业学校及专业', sf.schoolMajor);
+    html += infoItem('毕业时间', sf.graduateTime);
+    html += infoItem('参加工作时间', sf.workStartTime);
     html += '</div></div>';
 
+    // Card 2: 专业技术资格
     html += '<div class="form-card"><h3>专业技术资格</h3><div class="info-grid">';
-    var sf = record.senior3Form || {};
-    html += infoItem('从事本专业时间', sf.professionalStartTime || '—');
-    html += infoItem('资格名称', sf.qualificationName || '—');
-    html += infoItem('取得时间', sf.qualificationTime || '—');
+    html += infoItem('从事本专业时间', sf.profYears);
+    html += infoItem('专业技术资格名称', sf.qualName);
+    html += infoItem('取得资格时间', sf.qualTime);
     html += '</div></div>';
 
+    // Card 3: 聘用信息
     html += '<div class="form-card"><h3>聘用信息</h3><div class="info-grid">';
-    html += infoItem('当前聘用时间', record.appointTime);
-    html += infoItem('拟聘岗位', sf.planPost || '—');
-    html += infoItem('拟聘时间', sf.planAppointTime || '—');
+    html += infoItem('聘用时间起', sf.employStart);
+    html += infoItem('聘用时间止', sf.employEnd);
+    html += infoItem('拟聘岗位名称', sf.targetPostName);
+    html += infoItem('拟聘起始时间', sf.targetStart);
+    html += infoItem('拟聘截止时间', sf.targetEnd);
     html += '</div></div>';
 
-    html += '<div class="form-card"><h3>岗位数据</h3><div class="info-grid-2col">';
-    html += infoItem('正高级岗位总数', (sf.seniorTotal || '—'));
-    html += infoItem('已核准三级岗位数', (sf.approvedLevel3 || '—'));
+    // Card 4: 岗位数据（系统取值）
+    html += '<div class="form-card"><h3>岗位数据</h3><div class="info-grid">';
+    var schoolQuota = POST_EMPLOYED_DATA[record.schoolName];
+    var seniorTotal = 0, approvedLevel3 = 0;
+    if (schoolQuota && schoolQuota.prof) {
+      var lv3 = schoolQuota.prof['3'], lv4 = schoolQuota.prof['4'];
+      seniorTotal = ((lv3 ? lv3.career + lv3.control + lv3.over : 0) + (lv4 ? lv4.career + lv4.control + lv4.over : 0));
+      approvedLevel3 = lv3 ? lv3.career + lv3.control + lv3.over : 0;
+    }
+    html += infoItem('本单位正高级岗位总数', seniorTotal);
+    html += infoItem('已核准三级岗位总数', approvedLevel3);
     html += '</div></div>';
 
-    html += '<div class="form-card"><h3>公示信息</h3><div class="info-grid-2col">';
-    html += infoItem('公示方式', sf.announceMethod || '—');
-    html += infoItem('公示时间', sf.announceTime || '—');
+    // Card 5: 公示信息
+    html += '<div class="form-card"><h3>公示信息</h3><div class="info-grid">';
+    html += infoItem('公示方式', sf.publicMethod);
+    html += infoItem('公示开始时间', sf.publicStart);
+    html += infoItem('公示结束时间', sf.publicEnd);
     html += '</div></div>';
   } else {
     // Regular type form
@@ -759,19 +830,21 @@ function renderTeacherForm() {
     html += '</div></div>';
 
     html += '<div class="form-card"><h3>申报目标</h3><div class="info-grid">';
-    html += infoItem('目标等级', record.fromLevel + ' → ' + record.targetLevel);
+    html += infoItem('当前等级', record.fromLevel);
+    html += infoItem('目标等级', record.targetLevel + (record.borrowFromLevel ? ' (借岗' + record.borrowFromLevel + ')' : ''));
     html += infoItem('晋升类型', record.transferType === 'transfer' ? '转岗' : '晋升');
     html += '</div></div>';
   }
 
   // 批次公示信息
-  if (record.batchPublicity) {
-    var bp = record.batchPublicity;
-    html += '<div class="form-card"><h3>公示信息</h3><div class="info-grid">';
-    html += infoItem('公示方式', bp.method || '—');
-    html += infoItem('公示起止时间', (bp.startDate || '') + ' 至 ' + (bp.endDate || ''));
-    html += infoItem('公示材料', bp.fileName || '—');
-    html += infoItem('提交时间', bp.submitTime || '—');
+  if (record.publicMethod || record.publicStartTime) {
+    html += '<div class="form-card"><h3>批次公示信息</h3><div class="info-grid">';
+    html += infoItem('公示方式', record.publicMethod || '—');
+    html += infoItem('公示时间', (record.publicStartTime || '—') + ' ~ ' + (record.publicEndTime || '—'));
+    if (record.publicAttachments && record.publicAttachments.length > 0) {
+      var paNames = record.publicAttachments.map(function(a) { return a.name; }).join('、');
+      html += infoItem('公示材料', paNames);
+    }
     html += '</div></div>';
   }
 
@@ -786,24 +859,43 @@ function infoItem(label, value) {
 function renderAttachments() {
   var attachments = record.attachments || [];
   var schoolAttachments = record.schoolAttachments || [];
+  var publicAtts = record.publicAttachments || [];
+  var hrAtts = [];
+  if (record.hrApprovalAttachment) {
+    hrAtts = Array.isArray(record.hrApprovalAttachment) ? record.hrApprovalAttachment : [record.hrApprovalAttachment];
+  }
 
-  if (!attachments.length && !schoolAttachments.length && !record.hrApprovalAttachment) {
+  if (!attachments.length && !schoolAttachments.length && !publicAtts.length && !hrAtts.length) {
     return '';
   }
 
   var html = '<div class="form-card"><h3>附件材料</h3><div class="attachments-section">';
 
   if (attachments.length > 0) {
-    html += '<h4>教师上传</h4>';
+    html += '<h4>📎 教师上传</h4>';
     attachments.forEach(function(f) {
-      html += '<span class="att-item"><span>📎 ' + escapeHtml(f.name) + '</span><a onclick="showToast(\'预览：' + escapeHtml(f.name) + '（演示）\')">预览</a><a onclick="showToast(\'下载功能演示\')">下载</a></span>';
+      html += '<div class="att-item-block"><span>📄 ' + escapeHtml(f.name) + ' (' + formatSize(f.size) + ')</span><a onclick="return false">预览</a><a onclick="return false">下载</a></div>';
     });
   }
 
   if (schoolAttachments.length > 0) {
-    html += '<h4>学校补充（如有）</h4>';
+    html += '<h4>📎 学校补充</h4>';
     schoolAttachments.forEach(function(f) {
-      html += '<span class="att-item"><span>📎 ' + escapeHtml(f.name) + '</span><a onclick="showToast(\'预览：' + escapeHtml(f.name) + '（演示）\')">预览</a><a onclick="showToast(\'下载功能演示\')">下载</a></span>';
+      html += '<div class="att-item-block"><span>📄 ' + escapeHtml(f.name) + ' (' + formatSize(f.size) + ')</span><a onclick="return false">预览</a><a onclick="return false">下载</a></div>';
+    });
+  }
+
+  if (publicAtts.length > 0) {
+    html += '<h4>📎 公示证明材料</h4>';
+    publicAtts.forEach(function(f) {
+      html += '<div class="att-item-block"><span>📄 ' + escapeHtml(f.name) + ' (' + formatSize(f.size) + ')</span><a onclick="return false">预览</a><a onclick="return false">下载</a></div>';
+    });
+  }
+
+  if (hrAtts.length > 0) {
+    html += '<h4>📎 人社批复文件</h4>';
+    hrAtts.forEach(function(f) {
+      html += '<div class="att-item-block"><span>📄 ' + escapeHtml(f.name) + ' (' + formatSize(f.size) + ')</span><a onclick="return false">预览</a><a onclick="return false">下载</a></div>';
     });
   }
 
@@ -936,6 +1028,12 @@ function getActions() {
   return actions;
 }
 
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
+}
+
 // ===== RENDER SIDEBAR INFO =====
 function renderSidebarInfo() {
   var catLabel = record.schoolCategory === '市直属' ? '市直属' : (record.schoolCategory || '—');
@@ -1035,9 +1133,6 @@ function renderAll() {
   mainHtml += '<span style="font-size:15px;font-weight:600;">' + escapeHtml(record.teacherName) + '</span>';
   mainHtml += '<span class="status-stamp ' + badgeClass + '">' + statusLabel + '</span>';
   mainHtml += '</div></div>';
-
-  // Status hint
-  mainHtml += renderStatusHint();
 
   // Progress bar
   mainHtml += renderProgress();
@@ -1156,6 +1251,8 @@ function sidebarClick(el, id) {
   if (id === 'postset') { window.location.href = 'post-list-admin.html?role=' + currentRole; return; }
   if (id === 'recruit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
     if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
     return;
   }
@@ -1165,7 +1262,7 @@ function sidebarClick(el, id) {
 // ===== INIT =====
 (function init() {
   var params = new URLSearchParams(window.location.search);
-  recordId = params.get('id');
+  recordId = params.get('id') || 'PR20260420001';
   var urlRole = params.get('role');
 
   if (urlRole === 'city' || urlRole === 'district' || urlRole === 'school' || urlRole === 'teacher') {

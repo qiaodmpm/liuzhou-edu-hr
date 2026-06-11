@@ -151,6 +151,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .access-denied h2 { font-size: 20px; margin-bottom: 8px; color: var(--text-secondary); }
 .access-denied p { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
 </style>
+  <script src="src/demo-batches.js"></script>
 </head>
 <body>
 
@@ -164,7 +165,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
     <div class="topnav-user" onclick="toggleUserMenu()">
       <div class="avatar">王</div><span>王玉兰</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div>
+      <div class="user-dropdown" id="userDropdown"><a href="#">个人中心</a><a href="#">修改密码</a><div class="divider"></div><a href="login-demo.html" class="logout">退出登录</a></div>
     </div>
   </div>
 </nav>
@@ -265,55 +266,25 @@ var LEVEL_GROUP_NAMES = {
 
 var YEAR_OPTIONS = [2024, 2025, 2026, 2027];
 
-var DEMO_BATCHES = [
-  {
-    id: 'PB20260501001',
-    name: '2026年春季岗位晋升',
-    year: 2026,
-    promoteTypes: ['mgmt', 'prof', 'labor'],
-    allowedLevels: ['七级→六级', '八级→七级', '九级→八级', '十级→九级', '四级→三级', '五级→四级', '六级→五级', '七级→六级', '八级→七级', '九级→八级', '十级→九级', '十一级→十级', '十二级→十一级', '十三级→十二级', '三级→二级', '四级→三级', '五级→四级'],
-    startTime: '2026-03-01',
-    endTime: '2026-06-30',
-    remark: '面向全校教师的春季常规晋升批次，请各教研组通知符合条件的教师按时申报。',
-    status: 'open',
-    schoolName: '柳州市第八中学',
-    createdBy: 'school',
-    createTime: '2026-02-15 10:00:00'
-  },
-  {
-    id: 'PB20250901001',
-    name: '2025年秋季岗位晋升',
-    year: 2025,
-    promoteTypes: ['prof', 'labor'],
-    allowedLevels: ['五级→四级', '七级→六级', '八级→七级', '十级→九级', '十一级→十级', '十二级→十一级', '三级→二级', '四级→三级'],
-    startTime: '2025-09-01',
-    endTime: '2025-10-31',
-    remark: '秋季晋升批次，重点解决专技岗和工勤岗晋升需求。',
-    status: 'closed',
-    schoolName: '柳州市第八中学',
-    createdBy: 'school',
-    createTime: '2025-08-20 14:00:00'
-  },
-  {
-    id: 'PB20260301001',
-    name: '2026年岗位晋升计划',
-    year: 2026,
-    promoteTypes: ['mgmt', 'prof'],
-    allowedLevels: ['七级→六级', '八级→七级', '九级→八级', '四级→三级', '六级→五级', '七级→六级', '九级→八级', '十级→九级', '十二级→十一级'],
-    startTime: '2026-04-01',
-    endTime: '2026-07-31',
-    remark: '重点推进管理岗和专技岗晋升工作。',
-    status: 'open',
-    schoolName: '柳州高级中学',
-    createdBy: 'school',
-    createTime: '2026-03-10 09:00:00'
-  }
-];
 
 // ========== DATA PERSISTENCE ==========
 function loadBatches() {
   var s = localStorage.getItem('promote_batches');
-  if (s) { try { return JSON.parse(s); } catch(e) {} }
+  if (s) {
+    try {
+      var data = JSON.parse(s);
+      // 合并 DEMO 数据：对于 DEMO 中存在的批次，以 DEMO 的状态为准
+      DEMO_BATCHES.forEach(function(db) {
+        var existing = data.filter(function(b) { return b.id === db.id; });
+        if (existing.length > 0) {
+          existing.forEach(function(eb) { eb.status = db.status; });
+        } else {
+          data.push(JSON.parse(JSON.stringify(db)));
+        }
+      });
+      return data;
+    } catch(e) {}
+  }
   return JSON.parse(JSON.stringify(DEMO_BATCHES));
 }
 function saveBatches(data) { localStorage.setItem('promote_batches', JSON.stringify(data)); }
@@ -390,6 +361,8 @@ function sidebarClick(el, id) {
   if (id === 'entry') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
   if (id === 'exit') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
   if (id === 'recruit') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -506,7 +479,7 @@ function renderCards() {
 
   var h = '<div class="batch-cards">';
   filtered.forEach(function(b) {
-    var statusLabel = b.status === 'open' ? '进行中' : '已关闭';
+    var statusLabel = ({ pending: '未开始', open: '进行中', closed: '已关闭' })[b.status] || b.status;
 
     h += '<div class="batch-card">';
     // Header: name + status badge
@@ -538,11 +511,15 @@ function renderCards() {
 
     // Actions
     h += '<div class="batch-card-actions">';
-    if (b.status === 'open') {
-      h += '<button class="btn-outline-sm" onclick="openBatchModal(\'' + b.id + '\')">编辑</button>';
-      h += '<button class="btn-outline-sm" style="color:var(--danger);border-color:var(--danger)" onclick="closeBatch(\'' + b.id + '\')">关闭批次</button>';
+    if (b.status === 'pending') {
+      h += '<button class="btn-outline-sm" onclick="openBatchModal(\' + b.id + \')">编辑</button>';
+      h += '<button class="btn-outline-sm" onclick="startBatch(\' + b.id + \')" style="color:var(--success);border-color:var(--success)">开启批次</button>';
+      h += '<button class="btn-outline-sm" onclick="deleteBatch(\' + b.id + \')" style="color:var(--danger);border-color:var(--danger)">删除</button>';
+    } else if (b.status === 'open') {
+      h += '<button class="btn-outline-sm" onclick="openBatchModal(\' + b.id + \')">编辑</button>';
+      h += '<button class="btn-outline-sm" style="color:var(--danger);border-color:var(--danger)" onclick="closeBatch(\' + b.id + \')">关闭批次</button>';
     } else {
-      h += '<button class="btn-outline-sm" onclick="openBatchModal(\'' + b.id + '\')">查看</button>';
+      h += '<button class="btn-outline-sm" onclick="openBatchModal(\' + b.id + \')">编辑</button>';
     }
     h += '</div>';
 
@@ -628,6 +605,8 @@ function htmlEscape(str) {
 function toggleCheckbox(el) {
   var cb = el.querySelector('input[type=checkbox]');
   if (cb.disabled) return;
+  var container = el.closest('.checkbox-group');
+  if (container && container.querySelector('input[disabled]')) return;
   cb.checked = !cb.checked;
   el.classList.toggle('checked', cb.checked);
 
@@ -671,6 +650,12 @@ function getCheckedLevels() {
   });
   return result;
 }
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
+}
+
 
 // ========== CRUD OPERATIONS ==========
 function saveBatch(editId) {
@@ -757,6 +742,84 @@ function closeBatch(id) {
   saveBatches(batches);
   renderCards();
   showToast('批次已关闭', 'success');
+}
+
+function startBatch(id) {
+  var batches = loadBatches();
+  var batch = batches.find(function(b) { return b.id === id; });
+  if (!batch || batch.status !== 'pending') { showToast('只能开启未开始的批次', 'warning'); return; }
+
+  var h = '<div class="modal-overlay" id="batchModal" onclick="if(event.target===this)closeModal()">';
+  h += '<div class="modal-container">';
+  h += '<h3>开启批次</h3>';
+  h += '<div style="margin-bottom:16px;padding:12px 16px;background:var(--bg);border-radius:6px;">';
+  h += '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">' + htmlEscape(batch.name) + '</div>';
+  h += '<div style="font-size:12px;color:var(--text-secondary);">晋升类别：';
+  (batch.promoteTypes || []).forEach(function(t) {
+    h += '<span class="type-tag ' + t + '">' + (PROMOTE_TYPE_MAP[t] || t) + '</span>';
+  });
+  h += '</div></div>';
+
+  h += '<div class="form-group"><label>申报开始时间 <span style="color:var(--danger)">*</span></label>';
+  h += '<input type="date" id="batchStartTime" value="' + htmlEscape(batch.startTime || '') + '"></div>';
+  h += '<div class="form-group"><label>申报截止时间 <span style="color:var(--danger)">*</span></label>';
+  h += '<input type="date" id="batchEndTime" value="' + htmlEscape(batch.endTime || '') + '"></div>';
+  h += '<div class="form-group"><label>备注说明 <span style="color:var(--text-light);font-weight:400;">(选填)</span></label>';
+  h += '<textarea id="batchRemark" placeholder="选填">' + htmlEscape(batch.remark || '') + '</textarea></div>';
+
+  h += '<div class="modal-buttons">';
+  h += '<button class="btn-cancel" onclick="closeModal()">取消</button>';
+  h += '<button class="btn-confirm success" onclick="doStartBatch(' + id + '\')">确认开启</button>';
+  h += '</div></div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', h);
+}
+
+function doStartBatch(id) {
+  var startTime = document.getElementById('batchStartTime').value;
+  var endTime = document.getElementById('batchEndTime').value;
+  var remark = document.getElementById('batchRemark').value.trim();
+  if (!startTime || !endTime) { showToast('请填写申报时间', 'warning'); return; }
+  if (startTime >= endTime) { showToast('截止时间必须晚于开始时间', 'warning'); return; }
+  var batches = loadBatches();
+  var batch = batches.find(function(b) { return b.id === id; });
+  if (!batch || batch.status !== 'pending') { showToast('只能开启未开始的批次', 'warning'); closeModal(); return; }
+  batch.startTime = startTime;
+  batch.endTime = endTime;
+  batch.remark = remark;
+  batch.status = 'open';
+  saveBatches(batches);
+  closeModal();
+  renderCards();
+  showToast('批次已开启，教师可开始申报', 'success');
+}
+
+function deleteBatch(id) {
+  var batches = loadBatches();
+  var idx = batches.findIndex(function(b) { return b.id === id; });
+  if (idx === -1 || batches[idx].status !== 'pending') { showToast('只能删除未开始的批次', 'warning'); return; }
+
+  var h = '<div class="modal-overlay" id="batchModal" onclick="if(event.target===this)closeModal()">';
+  h += '<div class="modal-container">';
+  h += '<h3>确认删除</h3>';
+  h += '<p style="font-size:14px;color:var(--text);line-height:1.8;margin-bottom:20px;">确定要删除批次「' + htmlEscape(batches[idx].name) + '」吗？<br>删除后不可恢复。</p>';
+  h += '<div class="modal-buttons">';
+  h += '<button class="btn-cancel" onclick="closeModal()">取消</button>';
+  h += '<button class="btn-confirm danger" onclick="doDeleteBatch(\'' + id + '\')">确认删除</button>';
+  h += '</div></div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', h);
+}
+
+function doDeleteBatch(id) {
+  var batches = loadBatches();
+  var idx = batches.findIndex(function(b) { return b.id === id; });
+  if (idx === -1 || batches[idx].status !== 'pending') { showToast('只能删除未开始的批次', 'warning'); closeModal(); return; }
+  batches.splice(idx, 1);
+  saveBatches(batches);
+  closeModal();
+  renderCards();
+  showToast('批次已删除', 'success');
 }
 
 function closeModal() {

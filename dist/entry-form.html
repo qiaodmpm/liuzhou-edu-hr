@@ -453,6 +453,45 @@ input[readonly], select[disabled] { background: #F1F5F9; color: #64748B; cursor:
   border-radius: 4px; cursor: pointer; transition: var(--transition);
 }
 .btn-edit-org:hover { background: var(--primary-light); }
+
+/* Staffing batch dashboard */
+.batch-card { overflow: hidden; }
+.batch-header { margin-bottom: 14px; }
+.bh-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+.bh-label { color: var(--text-light); min-width: 70px; font-size: 12px; }
+.bh-value { color: var(--text); font-weight: 500; }
+.d-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.d-panel {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px 12px 12px; text-align: center; box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.d-panel:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.d-title { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
+.d-number { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.d-unit { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.d-divider { height: 1px; background: var(--border); margin: 8px 0; }
+.d-items { text-align: left; font-size: 11px; color: var(--text-secondary); min-height: 20px; }
+.d-item { padding: 2px 0; display: flex; justify-content: space-between; }
+.d-num { font-weight: 600; color: var(--text); }
+.d-progress { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
+.dp-header { font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+.dp-bar { display: flex; align-items: center; gap: 10px; }
+.dp-bar-bg { flex: 1; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; }
+.dp-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #3B82F6, #1E40AF); transition: width 0.3s; }
+.dp-pct { font-size: 13px; font-weight: 700; min-width: 40px; text-align: right; }
+.dp-desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+.batch-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 500;
+}
+.batch-status.valid { background: #ECFDF5; color: #059669; }
+.batch-status.expiring { background: #FFFBEB; color: #D97706; }
+.batch-status.expired { background: #FEF2F2; color: #EF4444; }
+
+@media (max-width: 900px) { .d-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .d-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -1057,10 +1096,13 @@ function sidebarClick(el, id) {
   }
   if (id === 'recruit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
     if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
     showToast('无权限访问', 'warning');
     return;
   }
+  if (id === 'account') { window.location.href = 'account-management.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -2025,6 +2067,22 @@ function onBatchSelectChange(id) {
   selectStaffingBatch(id);
 }
 
+function calcBatchUsage(batchId, excludeId) {
+  var allRecords = JSON.parse(localStorage.getItem('entry_records') || '[]');
+  var appr = {}, pend = {};
+  var uc = 0, pc = 0;
+  allRecords.forEach(function(r) {
+    if (r.staffingBatchId === batchId && r.id !== excludeId) {
+      (r.applicants || []).forEach(function(a) {
+        var em = a.entryMethod || '其他';
+        if (r.status === 'approved') { appr[em] = (appr[em] || 0) + 1; uc++; }
+        else if (r.status === 'pending') { pend[em] = (pend[em] || 0) + 1; pc++; }
+      });
+    }
+  });
+  return { used: { count: uc, details: appr }, pending: { count: pc, details: pend } };
+}
+
 function buildBatchDetailHtml(s) {
   var totalCount = 0;
   var uf = s.useForms || {};
@@ -2033,53 +2091,81 @@ function buildBatchDetailHtml(s) {
     totalCount += (uf[ufKeys[k]] || 0);
   }
   var finalCount = s.schoolFinalConfirm ? s.schoolFinalConfirm.totalFinalCount : null;
+  var tn = finalCount != null ? finalCount : totalCount;
 
-  var validityHtml = '';
+  // Validity status
+  var vh = '';
   if (s.schoolFinalConfirm && s.schoolFinalConfirm.validityStart) {
     var vStart = s.schoolFinalConfirm.validityStart;
     var vEnd = s.schoolFinalConfirm.validityEnd;
-    var now = new Date();
-    var endDate = new Date(vEnd);
-    var daysLeft = Math.ceil((endDate - now) / 86400000);
-    if (daysLeft < 0) {
-      validityHtml = '<span style="color:var(--danger);font-size:12px;">🔴 已过期（' + vStart + ' ~ ' + vEnd + '）</span>';
-    } else if (daysLeft <= 30) {
-      validityHtml = '<span style="color:var(--warning);font-size:12px;">⚠ 即将到期 ' + vStart + ' ~ ' + vEnd + '（剩余' + daysLeft + '天）</span>';
-    } else {
-      validityHtml = '<span style="color:var(--success);font-size:12px;">✅ 有效期 ' + vStart + ' ~ ' + vEnd + '（剩余' + daysLeft + '天）</span>';
-    }
+    var nw = new Date(), en = new Date(vEnd), dl = Math.ceil((en-nw)/86400000),
+        sc = dl<0?'expired':(dl<=30?'expiring':'valid'),
+        sl = dl<0?'🔴 已过期':(dl<=30?'🟡 即将到期（剩'+dl+'天）':'🟢 有效（剩余'+dl+'天）');
+    vh = '<span style="font-size:12px;color:var(--text-secondary);">'+vStart+' ~ '+vEnd+'</span> <span class="batch-status '+sc+'">'+sl+'</span>';
   } else {
-    validityHtml = '<span style="color:var(--text-light);font-size:12px;">⏳ 有效期未设定</span>';
+    vh = '<span style="color:var(--text-light);font-size:12px;">⏳ 有效期未设定</span>';
   }
 
-  var detailParts = [];
+  // Display name mapping for useForms keys
+  var ufl = {publicRecruit:'统一公开招聘',selfRecruit:'单位自主实施招聘',talent:'引进人才',talentMid:'中高级人才招聘',talentHigh:'引进高层次人才',transfer:'调动',other:'其他'};
+
+  // Usage stats
+  var usg = calcBatchUsage(s.id, isEditMode ? editRecordId : null);
+  var uc = usg.used.count, pc = usg.pending.count;
+  var applyCount = staffingType === 'career' ? 1 : controlRows.length;
+  var rate = tn > 0 ? Math.round((uc+pc+applyCount)/tn*100) : 0;
+  var rateColor = rate > 85 ? '#EF4444' : (rate > 60 ? '#F59E0B' : '#3B82F6');
+
+  // Helper: build detail item list from map
+  function buildItems(map) {
+    var keys = Object.keys(map);
+    if (!keys.length) return '<div style="color:var(--text-light);text-align:center;padding:4px 0;font-size:11px;">暂无数据</div>';
+    return keys.map(function(k) {
+      return '<div class="d-item">'+k+' <span class="d-num">'+map[k]+'</span></div>';
+    }).join('');
+  }
+
+  // Panel 1: 编办核定数
+  var pq = '';
   if (s.schoolFinalConfirm && s.schoolFinalConfirm.details) {
-    for (var di = 0; di < s.schoolFinalConfirm.details.length; di++) {
-      var d = s.schoolFinalConfirm.details[di];
-      if (d.finalNum > 0) {
-        detailParts.push(d.type + d.finalNum + '人');
-      }
-    }
+    pq = s.schoolFinalConfirm.details.filter(function(d){return d.finalNum>0;}).map(function(d){
+      return '<div class="d-item">'+d.type+' <span class="d-num">'+d.finalNum+'</span></div>';
+    }).join('');
+  } else if (uf) {
+    pq = Object.keys(uf).filter(function(k){return uf[k]>0;}).map(function(k) {
+      return '<div class="d-item">'+(ufl[k]||k)+' <span class="d-num">'+uf[k]+'</span></div>';
+    }).join('');
   }
+  if (!pq) pq = '<div style="color:var(--text-light);text-align:center;padding:4px 0;font-size:11px;">暂无核定明细</div>';
 
-  var typeBadge = s.staffingType === 'career'
-    ? '<span style="display:inline-block;font-size:11px;padding:2px 10px;border-radius:4px;background:#DBEAFE;color:#1E40AF;font-weight:500;">事业编</span>'
-    : '<span style="display:inline-block;font-size:11px;padding:2px 10px;border-radius:4px;background:#E0E7FF;color:#3730A3;font-weight:500;">控制数</span>';
+  // Panel 2: 已使用
+  var pu = buildItems(usg.used.details);
 
-  var html = '<div style="padding:16px 18px;background:#F8FAFC;border:1px solid var(--border);border-radius:8px;">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
-  html += '<div><span style="font-weight:600;font-size:14px;color:var(--text);">' + s.id + ' · ' + (s.batchName || '自主申报') + '</span> ' + typeBadge + '</div>';
-  html += '<div style="font-size:12px;color:var(--text-secondary);">申请数：' + totalCount + ' 名' + (finalCount !== null ? ' | 核定数：<strong>' + finalCount + ' 名</strong>' : '') + '</div>';
-  html += '</div>';
-  html += '<div style="margin-bottom:8px;">' + validityHtml + '</div>';
-  if (detailParts.length > 0) {
-    html += '<div style="font-size:12px;color:var(--text-secondary);border-top:1px dashed var(--border);padding-top:8px;">核定数明细：' + detailParts.join(' / ') + '</div>';
-  }
-  html += '</div>';
-  return html;
-}
+  // Panel 3: 待审核
+  var pp = buildItems(usg.pending.details);
 
-function selectStaffingBatch(id) {
+  // Panel 4: 本次申请
+  var applyLabel = '<div class="d-item">当前申报 <span class="d-num">'+applyCount+'</span></div>';
+
+  return '<div class="batch-card">'+
+    '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">📦 关联编制使用申请</div>'+
+    '<div class="batch-header">'+
+    '<div class="bh-row"><span class="bh-label">申请编号</span><span class="bh-value" style="font-family:monospace;">'+s.id+'</span></div>'+
+    '<div class="bh-row"><span class="bh-label">批次名称</span><span class="bh-value">'+(s.batchName||'自主申报')+'</span></div>'+
+    '<div class="bh-row"><span class="bh-label">有效期</span><span class="bh-value">'+vh+'</span></div>'+
+    '</div>'+
+    '<div class="d-grid">'+
+    '<div class="d-panel"><div class="d-title">编办核定数</div><div class="d-number" style="color:#1E40AF;">'+tn+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+pq+'</div></div>'+
+    '<div class="d-panel"><div class="d-title">已使用</div><div class="d-number" style="color:#10B981;">'+uc+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+pu+'</div></div>'+
+    '<div class="d-panel"><div class="d-title">待审核</div><div class="d-number" style="color:#F59E0B;">'+pc+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+pp+'</div></div>'+
+    '<div class="d-panel"><div class="d-title">本次申请</div><div class="d-number" style="color:#1E40AF;">'+applyCount+'</div><div class="d-unit">名</div><div class="d-divider"></div><div class="d-items">'+applyLabel+'</div></div>'+
+    '</div>'+
+    '<div class="d-progress">'+
+    '<div class="dp-header">使用率</div>'+
+    '<div class="dp-bar"><div class="dp-bar-bg"><div class="dp-bar-fill" style="width:'+rate+'%;background:'+rateColor+'"></div></div><span class="dp-pct" style="color:'+rateColor+';">'+rate+'%</span></div>'+
+    '<div class="dp-desc">已使用 '+uc+' + 待审核 '+pc+' + 本次 '+applyCount+' = '+(uc+pc+applyCount)+' / 编办核定 '+tn+'</div>'+
+    '</div></div>';
+}function selectStaffingBatch(id) {
   selectedStaffingBatchId = id;
   // Find the full data record
   var stored = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
@@ -2124,6 +2210,12 @@ function getFileListRef(key) {
   }
   if (key === 'ctrlNotice') return controlNoticeMaterials;
   return [];
+}
+
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
 }
 
 // ===== SUBMIT =====

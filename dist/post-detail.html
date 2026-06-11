@@ -406,7 +406,7 @@ body {
       <div class="user-dropdown" id="userDropdown">
         <a href="#">个人中心</a><a href="#">修改密码</a>
         <div class="divider"></div>
-        <a href="index.html" class="logout">退出登录</a>
+        <a href="login-demo.html" class="logout">退出登录</a>
       </div>
     </div>
   </div>
@@ -786,8 +786,8 @@ var DEMO_RECORDS = [
     id: 'PS20260522001', schoolName: '柳州市第八中学', schoolType: '初中', status: 'first_review',
     totalPosts: 104, submitTime: '2026-05-22 09:00:00', orgLevel: '正科级', fundType: '全额拨款',
     totalControlQuota: 104, highlandPosts: 0, careerStaffQuota: 88, authControlNo: 16,
-    mgmtPosts: 8, profPosts: 80, laborPosts: 16,
-    mgmtLevels: { '5': 1, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
+    mgmtPosts: 9, profPosts: 82, laborPosts: 14,
+    mgmtLevels: { '5': 2, '6': 2, '7': 2, '8': 2, '9': 1, '10': 0 },
     profLevels: {
       senior: { total: 0, levels: { '3': 0, '4': 0 } },
       vice: { total: 15, levels: { '5': 3, '6': 6, '7': 6 } },
@@ -1672,6 +1672,12 @@ function getEmployedTotal(empData, category, grade) {
   if (!entry) return 0;
   return (entry.career || 0) + (entry.control || 0) + (entry.over || 0);
 }
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
+}
+
 
 function sumEmployedCategory(empData, category, key) {
   if (!empData) return 0;
@@ -1940,6 +1946,8 @@ function sidebarClick(el, id) {
   if (id === 'postset') return;
   if (id === 'recruit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
     if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
     return;
   }

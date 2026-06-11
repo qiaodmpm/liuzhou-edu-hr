@@ -246,8 +246,16 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .modal-summary-table .cv { color: var(--text-secondary); }
 .modal-summary-table .ar { font-weight: 600; margin: 0 1px; }
 .modal-summary-table .dt { font-size: 10px; white-space: nowrap; }
-.modal-summary-table .dt.up { color: #16A34A; }
-.modal-summary-table .dt.down { color: #DC2626; }
+.modal-summary-table .dt.cell-up { color: #16A34A; }
+.modal-summary-table .dt.cell-down { color: #DC2626; }
+.modal-summary-table .cell-over { background: #FEF2F2; color: #991B1B; font-weight: 700; }
+.modal-summary-table td.cell-changed { position: relative; }
+.modal-summary-table td.cell-changed::after {
+  content: ''; position: absolute; bottom: 0; left: 3px; right: 3px; height: 3px;
+  border-radius: 0 0 2px 2px;
+}
+.modal-summary-table td.cell-up::after   { background: #16A34A; }
+.modal-summary-table td.cell-down::after { background: #DC2626; }
 
 /* Note items */
 .note-item { font-size: 11px; line-height: 1.6; padding: 2px 6px; text-align: left; white-space: nowrap; }
@@ -256,6 +264,19 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .over-quota-warning { margin-top: 12px; padding: 12px 16px; background: #FEF2F2; border-left: 3px solid var(--danger); border-radius: 6px; font-size: 12px; }
 .over-quota-warning .warn-title { font-weight: 600; color: var(--danger); margin-bottom: 6px; }
 .over-quota-warning .warn-item { color: #991B1B; padding: 2px 0; font-size: 11px; }
+
+/* Public notice upload */
+.public-upload-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: var(--transition); }
+.public-upload-area:hover { border-color: var(--accent); background: var(--primary-light); }
+.public-upload-area .upload-icon { font-size: 24px; margin-bottom: 4px; color: var(--text-light); }
+.public-upload-area .upload-text { font-size: 12px; color: var(--text-secondary); }
+.public-file-list { margin-top: 8px; }
+.public-file-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--gray-bg); border-radius: 4px; margin-bottom: 4px; font-size: 11px; }
+.public-file-item .file-remove { color: var(--danger); cursor: pointer; font-size: 11px; }
+.public-file-item .file-remove:hover { text-decoration: underline; }
+/* Summary remark textarea */
+.summary-remark-ta { width: 100%; min-height: 60px; font-size: 11px; border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; resize: vertical; font-family: inherit; line-height: 1.5; }
+.summary-remark-ta:focus { outline: none; border-color: var(--accent); }
 
 /* Toast */
 .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease; box-shadow: var(--shadow-lg); }
@@ -643,6 +664,7 @@ var CURRENT_SCHOOL = '柳州市第八中学';
 var currentRole = 'school';
 var selectedBatchId = null;
 var currentStatusFilter = 'all';
+var publicFiles = [];
 var currentYearFilter = 'all';
 var searchQuery = '';
 
@@ -728,6 +750,8 @@ function sidebarClick(el, id) {
   if (id==='staffing') { window.location.href='staffing-application.html'; return; }
   if (id==='promote') return;
   if (id==='recruit') { window.location.href='recruit-list-school.html'; return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+
   showToast('跳转至：' + (el.querySelector('.menu-label')?el.querySelector('.menu-label').textContent:id));
 }
 
@@ -812,7 +836,6 @@ function renderBatchCards() {
         if (b.status === 'pending') {
       h += '<div class="batch-card-actions">';
       h += '<button class="batch-card-action-btn" onclick="event.stopPropagation();showEditModal(\'' + b.id + '\')">编辑</button>';
-      h += '<button class="batch-card-action-btn" onclick="event.stopPropagation();startBatch(\'' + b.id + '\')" style="color:var(--success)">开启</button>';
       h += '<button class="batch-card-action-btn danger" onclick="event.stopPropagation();deleteBatch(\'' + b.id + '\')">删除</button>';
       h += '</div>';
     } else if (b.status === 'open') {
@@ -1208,8 +1231,28 @@ function renderSubmitSummary(schoolName, selected) {
       var zc = current === 0 ? ' data-zero' : '';
       return '<td class="' + zc + '">' + current + '</td>';
     }
-    var dc = d > 0 ? ' up' : ' down';
-    return '<td><span class="cv">' + current + '</span><span class="ar">→' + after + '</span><span class="dt' + dc + '">' + (d > 0 ? '+' : '') + d + '</span></td>';
+    var dc = d > 0 ? ' cell-up' : ' cell-down';
+    return '<td class="cell-changed' + dc + '"><span class="cv">' + current + '</span><span class="ar">→' + after + '</span><span class="dt' + dc + '">' + (d > 0 ? '+' : '') + d + '</span></td>';
+  }
+
+  function cellOverQuota(cat, g) {
+    var currentTotal = getEmployedVal(schoolName, cat, g, 'total');
+    var dTotal = deltas[cat] && deltas[cat][g] ? (deltas[cat][g].total || 0) : 0;
+    var afterTotal = currentTotal + dTotal;
+    var quotaVal = getQuotaVal(cat, g);
+    var excess = (quotaVal > 0 && afterTotal > quotaVal) ? (afterTotal - quotaVal) : 0;
+    if (excess > 0) {
+      return '<td class="cell-over">' + excess + '</td>';
+    }
+    return '<td style="color:var(--text-light);">0</td>';
+  }
+
+  function cellHighland(cat, g) {
+    var val = getEmployedVal(schoolName, cat, g, 'over');
+    if (val > 0) {
+      return '<td>' + val + '</td>';
+    }
+    return '<td style="color:var(--text-light);">0</td>';
   }
 
   function renderNoteCell(cat, selected) {
@@ -1267,7 +1310,7 @@ function renderSubmitSummary(schoolName, selected) {
       { sub: '超岗聘用数', key: 'over' }
     ];
     if (sec.cat === 'prof') {
-      subRows.push({ sub: '小高地岗位', key: 'over' });
+      subRows.push({ sub: '小高地岗位', key: 'highland' });
     }
     var nRows = 2 + subRows.length;
     h += '<table class="modal-summary-table"><tbody>';
@@ -1275,7 +1318,7 @@ function renderSubmitSummary(schoolName, selected) {
     h += '<tr><td class="cat-title" rowspan="' + nRows + '">' + sec.title + '</td>';
     h += '<th>等级</th><th></th>';
     grades.forEach(function(g) { h += '<th>' + shortGrade(sec.labels[g] || g) + '</th>'; });
-    h += '<th class="note-col">备注</th></tr>';
+    h += '<th class="note-col">备注（可编辑）</th></tr>';
     // 核准岗位数 row
     h += '<tr><td class="row-label">核准岗位数</td><td></td>';
     grades.forEach(function(g) {
@@ -1285,6 +1328,7 @@ function renderSubmitSummary(schoolName, selected) {
     h += '<td></td></tr>';
     // 实聘数 sub-rows
     var noteHtml = renderNoteCell(sec.cat, selected);
+    var noteText = noteHtml.replace(/<[^>]*>/g, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/\n+/g, '\n').trim();
     subRows.forEach(function(sr, idx) {
       h += '<tr>';
       if (idx === 0) {
@@ -1292,10 +1336,16 @@ function renderSubmitSummary(schoolName, selected) {
       }
       h += '<td class="row-label" style="font-weight:400;color:var(--text-light);">' + sr.sub + '</td>';
       grades.forEach(function(g) {
-        h += cellWithDelta(sec.cat, g, sr.key);
+        if (sr.key === 'over') {
+          h += cellOverQuota(sec.cat, g);
+        } else if (sr.key === 'highland') {
+          h += cellHighland(sec.cat, g);
+        } else {
+          h += cellWithDelta(sec.cat, g, sr.key);
+        }
       });
       if (idx === 0) {
-        h += '<td class="note-col" rowspan="' + subRows.length + '">' + noteHtml + '</td>';
+        h += '<td class="note-col" rowspan="' + subRows.length + '"><textarea class="summary-remark-ta" id="remark_' + sec.cat + '" placeholder="可补充备注">' + escapeHtml(noteText) + '</textarea></td>';
       }
       h += '</tr>';
     });
@@ -1304,6 +1354,12 @@ function renderSubmitSummary(schoolName, selected) {
   h += '</div>';
   return h;
 }
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
+}
+
 
 function renderSubmitWarning(schoolName, selected) {
   var quota = getQuotaForSchool(schoolName);
@@ -1343,6 +1399,37 @@ function renderSubmitWarning(schoolName, selected) {
   return h;
 }
 
+// ===== PUBLIC NOTICE FILE HANDLING =====
+function handlePublicFileUpload(input) {
+  var allowed = ['pdf', 'jpg', 'jpeg', 'png'];
+  for (var i = 0; i < input.files.length; i++) {
+    var f = input.files[i];
+    var ext = f.name.split('.').pop().toLowerCase();
+    if (allowed.indexOf(ext) === -1) { showToast('不支持的文件格式：' + f.name, 'warning'); continue; }
+    if (f.size > 10 * 1024 * 1024) { showToast('文件超过10MB：' + f.name, 'warning'); continue; }
+    publicFiles.push({ name: f.name, size: f.size });
+  }
+  input.value = '';
+  refreshPublicFileList();
+}
+
+function refreshPublicFileList() {
+  var el = document.getElementById('publicFileList');
+  if (!el) return;
+  var h = '';
+  publicFiles.forEach(function(f, i) {
+    h += '<div class="public-file-item"><span>' + escapeHtml(f.name) + '（' + formatFileSize(f.size) + '）</span><span class="file-remove" onclick="publicFiles.splice(' + i + ',1);refreshPublicFileList();">移除</span></div>';
+  });
+  el.innerHTML = h;
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + 'KB';
+  return (bytes / 1048576).toFixed(1) + 'MB';
+}
+
 function showBatchSubmitModal() {
   var cbs = document.querySelectorAll('.record-cb:checked');
   if (cbs.length === 0) { showToast('请先勾选待提交的记录', 'warning'); return; }
@@ -1363,12 +1450,57 @@ function showBatchSubmitModal() {
   });
   if (blockMsg) { showToast(blockMsg, 'warning'); return; }
 
+  // Reset public files
+  publicFiles = [];
+
   var c = '<div class="modal-header"><h3>批量提交确认</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body">';
   c += '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">确认将以下 <strong>' + selected.length + '</strong> 条记录提交至主管部门进行二审：</p>';
   try {
     c += renderSubmitPersonTable(selected);
     c += renderSubmitSummary(schoolName, selected);
+
+    // 公示信息区块
+    c += '<div style="margin-top:16px;padding:16px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);">';
+    c += '<h3 style="font-size:14px;font-weight:600;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">公示信息 <span style="color:var(--danger);font-size:12px;">*</span></h3>';
+    c += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+
+    // 公示方式
+    c += '<div class="form-item" style="display:flex;flex-direction:column;gap:4px;">';
+    c += '<label style="font-size:11px;color:var(--text-secondary);">公示方式 <span style="color:var(--danger);">*</span></label>';
+    c += '<select id="publicMethod" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;background:#fff;">';
+    c += '<option value="">请选择</option>';
+    c += '<option value="校内公示栏">校内公示栏</option>';
+    c += '<option value="学校官网">学校官网</option>';
+    c += '<option value="教职工大会">教职工大会</option>';
+    c += '<option value="校内公示栏+学校官网">校内公示栏+学校官网</option>';
+    c += '</select></div>';
+
+    // 公示开始时间
+    c += '<div class="form-item" style="display:flex;flex-direction:column;gap:4px;">';
+    c += '<label style="font-size:11px;color:var(--text-secondary);">公示开始时间 <span style="color:var(--danger);">*</span></label>';
+    c += '<input type="date" id="publicStartTime" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;">';
+    c += '</div>';
+
+    // 公示截止时间
+    c += '<div class="form-item" style="display:flex;flex-direction:column;gap:4px;">';
+    c += '<label style="font-size:11px;color:var(--text-secondary);">公示截止时间 <span style="color:var(--danger);">*</span></label>';
+    c += '<input type="date" id="publicEndTime" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;">';
+    c += '</div>';
+
+    // 公示证明材料
+    c += '<div class="form-item" style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px;">';
+    c += '<label style="font-size:11px;color:var(--text-secondary);">公示证明材料 <span style="color:var(--danger);">*</span></label>';
+    c += '<div class="public-upload-area" onclick="document.getElementById(\'publicFileInput\').click()">';
+    c += '<div class="upload-icon">📎</div>';
+    c += '<div class="upload-text">点击上传公示照片/扫描件（支持 jpg、png、pdf，单个文件不超过 10MB）</div>';
+    c += '</div>';
+    c += '<input type="file" id="publicFileInput" multiple accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="handlePublicFileUpload(this)">';
+    c += '<div class="public-file-list" id="publicFileList"></div>';
+    c += '</div>';
+
+    c += '</div></div>'; // end 公示信息
+
     c += renderSubmitWarning(schoolName, selected);
   } catch(e) {
     c += '<div style="padding:12px;background:#FEF2F2;border-left:3px solid var(--danger);border-radius:6px;font-size:12px;color:#991B1B;">渲染汇总表出错：' + e.message + '，请刷新页面后重试</div>';
@@ -1379,6 +1511,24 @@ function showBatchSubmitModal() {
 }
 
 function doBatchSubmit() {
+  // Validate public notice fields
+  var publicMethod = document.getElementById('publicMethod').value;
+  var publicStartTime = document.getElementById('publicStartTime').value;
+  var publicEndTime = document.getElementById('publicEndTime').value;
+
+  if (!publicMethod) { showToast('请选择公示方式', 'warning'); return; }
+  if (!publicStartTime) { showToast('请选择公示开始时间', 'warning'); return; }
+  if (!publicEndTime) { showToast('请选择公示截止时间', 'warning'); return; }
+  if (publicStartTime >= publicEndTime) { showToast('公示截止时间必须晚于开始时间', 'warning'); return; }
+  if (publicFiles.length === 0) { showToast('请上传公示证明材料', 'warning'); return; }
+
+  // Collect remarks from editable textareas
+  var remarks = {};
+  ['mgmt', 'prof', 'labor'].forEach(function(cat) {
+    var el = document.getElementById('remark_' + cat);
+    remarks[cat] = el ? el.value.trim() : '';
+  });
+
   var cbs = document.querySelectorAll('.record-cb:checked');
   var ids = [];
   cbs.forEach(function(cb) { ids.push(cb.value); });
@@ -1387,8 +1537,13 @@ function doBatchSubmit() {
   records.forEach(function(r) {
     if (ids.indexOf(r.id) >= 0 && r.status === 'first_approved') {
       r.status = 'pending_second';
+      r.publicMethod = publicMethod;
+      r.publicStartTime = publicStartTime;
+      r.publicEndTime = publicEndTime;
+      r.publicAttachments = JSON.parse(JSON.stringify(publicFiles));
+      r.schoolRemarks = JSON.parse(JSON.stringify(remarks));
       if (!r.timeline) r.timeline = [];
-      r.timeline.push({ time: now, action: '学校批量提交至主管部门', operator: '王玉兰' });
+      r.timeline.push({ time: now, action: '学校批量提交至主管部门', operator: '王玉兰', detail: '公示方式：' + publicMethod + '，公示期：' + publicStartTime + ' ~ ' + publicEndTime });
     }
   });
   saveRecords(records);
@@ -1460,7 +1615,16 @@ function showEditModal(batchId) {
   h += '<div class="modal-body">';
   h += '<div class="form-group"><label>批次名称<span class="required-star">*</span></label><input type="text" id="batchName" value="' + (b.name || '').replace(/"/g, '&quot;') + '"></div>';
   h += '<div class="form-group"><label>年度<span class="required-star">*</span></label><select id="batchYear"><option value="2024"' + (b.year==='2024'?' selected':'') + '>2024</option><option value="2025"' + (b.year==='2025'?' selected':'') + '>2025</option><option value="2026"' + (b.year==='2026'?' selected':'') + '>2026</option><option value="2027"' + (b.year==='2027'?' selected':'') + '>2027</option></select></div>';
-  h += '<div class="form-group"><label>晋升类别<span class="required-star">*</span></label><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="manage" class="batch-category-cb"' + (cats.indexOf('manage')>=0?' checked':'') + '> 管理岗位</label><label class="checkbox-item"><input type="checkbox" value="professional" class="batch-category-cb"' + (cats.indexOf('professional')>=0?' checked':'') + '> 专业技术岗位</label><label class="checkbox-item"><input type="checkbox" value="skill" class="batch-category-cb"' + (cats.indexOf('skill')>=0?' checked':'') + '> 工勤技能岗位</label></div></div>';
+  var isPending = b.status === 'pending';
+  h += '<div class="form-group"><label>晋升类别<span class="required-star">*</span></label>';
+  if (isPending) {
+    h += '<div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="manage" class="batch-category-cb"' + (cats.indexOf('manage')>=0?' checked':'') + '> 管理岗位</label><label class="checkbox-item"><input type="checkbox" value="professional" class="batch-category-cb"' + (cats.indexOf('professional')>=0?' checked':'') + '> 专业技术岗位</label><label class="checkbox-item"><input type="checkbox" value="skill" class="batch-category-cb"' + (cats.indexOf('skill')>=0?' checked':'') + '> 工勤技能岗位</label></div>';
+  } else {
+    var catLabels = cats.map(function(c) { return getCategoryLabel(c); });
+    h += '<div style="padding:8px 12px;background:#F8FAFC;border:1px solid var(--border);border-radius:6px;font-size:13px;">' + (catLabels.length > 0 ? catLabels.join('、') : '—') + '</div>';
+    h += '<div style="font-size:11px;color:var(--text-light);margin-top:4px;">批次已' + (b.status==='open'?'开启':'关闭') + '，晋升类别不可修改</div>';
+  }
+  h += '</div>';
   h += '<div class="form-group"><label>申报开始时间<span class="required-star">*</span></label><input type="date" id="batchStartTime" value="' + (b.startTime||'') + '"></div>';
   h += '<div class="form-group"><label>申报截止时间<span class="required-star">*</span></label><input type="date" id="batchEndTime" value="' + (b.endTime||'') + '"></div>';
   h += '<div class="form-group"><label>备注说明</label><textarea id="batchRemark">' + (b.remark||'') + '</textarea></div>';
@@ -1475,16 +1639,23 @@ function saveBatch(editId) {
   var startEl = document.getElementById('batchStartTime');
   var endEl = document.getElementById('batchEndTime');
   var remarkEl = document.getElementById('batchRemark');
-  var cbs = document.querySelectorAll('.batch-category-cb:checked');
+
+  // Find the batch being edited to check its status
+  var batches = loadBatches();
+  var editBatch = null;
+  if (editId) {
+    for (var i = 0; i < batches.length; i++) { if (batches[i].id === editId) { editBatch = batches[i]; break; } }
+  }
+  var isPending = editBatch && editBatch.status === 'pending';
+
   if (!nameEl.value.trim()) { showToast('请输入批次名称', 'warning'); return; }
-  if (cbs.length === 0) { showToast('请至少选择一个晋升类别', 'warning'); return; }
+  if (isPending) {
+    var cbs = document.querySelectorAll('.batch-category-cb:checked');
+    if (cbs.length === 0) { showToast('请至少选择一个晋升类别', 'warning'); return; }
+  }
   if (!startEl.value) { showToast('请选择申报开始时间', 'warning'); return; }
   if (!endEl.value) { showToast('请选择申报截止时间', 'warning'); return; }
   if (startEl.value > endEl.value) { showToast('截止时间不能早于开始时间', 'warning'); return; }
-
-  var categories = [];
-  cbs.forEach(function(cb) { categories.push(cb.value); });
-  var batches = loadBatches();
 
   if (editId) {
     // Update existing
@@ -1492,8 +1663,13 @@ function saveBatch(editId) {
       if (batches[i].id === editId) {
         batches[i].name = nameEl.value.trim();
         batches[i].year = yearEl.value;
-        batches[i].category = categories[0];
-        batches[i].categories = categories;
+        if (isPending) {
+          var cbs2 = document.querySelectorAll('.batch-category-cb:checked');
+          var categories = [];
+          cbs2.forEach(function(cb) { categories.push(cb.value); });
+          batches[i].category = categories[0];
+          batches[i].categories = categories;
+        }
         batches[i].startTime = startEl.value;
         batches[i].endTime = endEl.value;
         batches[i].remark = remarkEl ? remarkEl.value.trim() : '';
@@ -1542,56 +1718,6 @@ function closeBatch(id) {
   showToast('批次已关闭', 'success');
   renderCards();
   renderMain();
-}
-
-function startBatch(id) {
-  var batches = loadBatches();
-  var batch = batches.find(function(b) { return b.id === id; });
-  if (!batch || batch.status !== 'pending') { showToast('只能开启未开始的批次', 'warning'); return; }
-
-  var h = '<div class="modal-header"><h3>开启批次</h3><button class="modal-close" onclick="closeModal()">✕</button></div>';
-  h += '<div class="modal-body">';
-  h += '<div style="margin-bottom:16px;padding:12px 16px;background:var(--bg);border-radius:6px;">';
-  h += '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">' + escapeHtml(batch.name) + '</div>';
-  h += '<div style="font-size:12px;color:var(--text-secondary);">晋升类别：';
-  (batch.promoteTypes || []).forEach(function(t) {
-    var typeLabels = { mgmt: '管理岗位', prof: '专技岗位', labor: '工勤技能岗位' };
-    h += '<span class="type-tag ' + t + '">' + (typeLabels[t] || t) + '</span>';
-  });
-  h += '</div></div>';
-
-  h += '<div class="form-group"><label>申报开始时间 <span class="required-star">*</span></label>';
-  h += '<input type="date" id="batchStartTime" value="' + escapeHtml(batch.startTime || '') + '"></div>';
-  h += '<div class="form-group"><label>申报截止时间 <span class="required-star">*</span></label>';
-  h += '<input type="date" id="batchEndTime" value="' + escapeHtml(batch.endTime || '') + '"></div>';
-  h += '<div class="form-group"><label>备注说明 <span style="color:var(--text-light);font-weight:400;">(选填)</span></label>';
-  h += '<textarea id="batchRemark" placeholder="选填">' + escapeHtml(batch.remark || '') + '</textarea></div>';
-  h += '</div>';
-  h += '<div class="modal-footer">';
-  h += '<button class="btn-cancel" onclick="closeModal()">取消</button>';
-  h += '<button class="btn btn-primary" onclick="doStartBatch(\'' + id + '\')">确认开启</button>';
-  h += '</div>';
-
-  openModal(h);
-}
-
-function doStartBatch(id) {
-  var startTime = document.getElementById('batchStartTime').value;
-  var endTime = document.getElementById('batchEndTime').value;
-  var remark = document.getElementById('batchRemark').value.trim();
-  if (!startTime || !endTime) { showToast('请填写申报时间', 'warning'); return; }
-  if (startTime >= endTime) { showToast('截止时间必须晚于开始时间', 'warning'); return; }
-  var batches = loadBatches();
-  var batch = batches.find(function(b) { return b.id === id; });
-  if (!batch || batch.status !== 'pending') { showToast('只能开启未开始的批次', 'warning'); closeModal(); return; }
-  batch.startTime = startTime;
-  batch.endTime = endTime;
-  batch.remark = remark;
-  batch.status = 'open';
-  saveBatches(batches);
-  closeModal();
-  renderCards();
-  showToast('批次已开启，教师可开始申报', 'success');
 }
 
 function deleteBatch(id) {
