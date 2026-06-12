@@ -84,36 +84,44 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .filter-pill { padding:6px 16px; border-radius:20px; font-size:12px; cursor:pointer; border:1px solid var(--border); background:#fff; color:var(--text-secondary); transition:var(--transition); font-family:inherit; }
 .filter-pill:hover { border-color:var(--accent); color:var(--primary); }
 .filter-pill.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-/* Card list */
-.record-card { background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:12px; transition:var(--transition); cursor:pointer; }
-.record-card:hover { box-shadow:var(--shadow); border-color:var(--accent); }
-.record-card .card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
-.record-card .card-id { font-size:11px; color:var(--text-light); }
-.record-card .card-status { font-size:12px; padding:2px 10px; border-radius:10px; font-weight:500; }
-.status-pending { background:#FEF3C7; color:#92400E; }
-.status-approved { background:#DBEAFE; color:#1E40AF; }
-.status-rejected { background:#FEE2E2; color:#991B1B; }
-.status-completed { background:#D1FAE5; color:#065F46; }
-.record-card .card-body { font-size:13px; line-height:1.6; }
-.record-card .card-body .label { color:var(--text-secondary); }
-.record-card .card-actions { margin-top:10px; display:flex; gap:8px; }
-.action-link { font-size:12px; color:var(--primary); cursor:pointer; text-decoration:none; padding:4px 10px; border:1px solid var(--primary); border-radius:4px; background:#fff; transition:var(--transition); font-family:inherit; }
-.action-link:hover { background:var(--primary-light); }
-.action-link.warn { color:var(--warning); border-color:var(--warning); }
-.action-link.warn:hover { background:#FEF3C7; }
-.action-link.success { color:var(--success); border-color:var(--success); }
-.action-link.success:hover { background:#D1FAE5; }
+/* Table list */
+.list-card { background:#fff; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-sm); overflow:hidden; }
+.table-scroll { overflow-x:auto; }
+.list-table { width:100%; border-collapse:collapse; font-size:13px; white-space:nowrap; }
+.list-table th { padding:10px 12px; text-align:center; font-weight:600; font-size:11px; color:var(--text-secondary); background:#F8FAFC; border-bottom:1px solid var(--border); }
+.list-table td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; text-align:center; }
+.list-table tr:last-child td { border-bottom:none; }
+.list-table tr:hover { background:#FAFBFC; }
+.list-table .col-id { color:var(--primary); font-weight:500; cursor:pointer; }
+.list-table .col-id:hover { text-decoration:underline; }
+.list-table .col-name { text-align:left; font-weight:500; }
+.list-table .col-left { text-align:left; }
+.list-table .col-action { white-space:nowrap; }
+.list-table .batch-line { font-size:12px; color:var(--text-secondary); line-height:1.6; text-align:left; }
+.list-table .batch-line+.batch-line { border-top:1px dotted var(--border); padding-top:2px; margin-top:2px; }
+.status-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500; }
+.status-badge.pending { background:#FEF3C7; color:#92400E; }
+.status-badge.approved { background:#D1FAE5; color:#065F46; }
+.status-badge.completed { background:#E0E7FF; color:#3730A3; }
+.status-badge.rejected { background:#FEE2E2; color:#991B1B; }
+.type-tag { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500; }
+.type-tag.recruitment { background:#EFF6FF; color:var(--primary); }
+.type-tag.transfer { background:#F3E8FF; color:#6B21A8; }
+.action-links { display:flex; gap:8px; justify-content:center; }
+.action-link { font-size:12px; color:var(--primary); cursor:pointer; text-decoration:none; white-space:nowrap; }
+.action-link:hover { text-decoration:underline; }
+.action-link.warn { color:var(--danger); }
+.action-link.success { color:var(--success); }
+.action-link.success:hover { text-decoration:underline; }
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-light); }
+.empty-state .empty-icon { font-size:40px; margin-bottom:12px; }
+.empty-state .empty-text { font-size:14px; margin-bottom:16px; }
 .school-filter { margin-bottom:16px; }
 .school-filter select { padding:6px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; }
 .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1E293B; color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; z-index:9999; animation:toastIn .3s ease; box-shadow:var(--shadow-lg); }
 .toast.warning { background:var(--warning); color:#1E293B; }
 .toast.success { background:var(--success); }
 @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-
-/* Type tag */
-.type-tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:500; }
-.type-tag.recruitment { background:#EFF6FF; color:var(--primary); }
-.type-tag.transfer { background:#F3E8FF; color:#6B21A8; }
 </style>
 </head>
 <body>
@@ -196,15 +204,30 @@ function formatTime(t){if(!t)return'—';return t.replace('T',' ');}
 
 function loadEmployRecords(){
   var s=localStorage.getItem('employ_records');
-  if(s){try{return JSON.parse(s);}catch(e){}}
-  // Seed demo data
+  var existing = [];
+  if(s){try{existing=JSON.parse(s);}catch(e){}}
+  // Seed demo data — 合并模式，确保 demo 数据始终存在
   var demos = [
-    { id:'EMP20260610001', businessType:'recruitment', recruitBatchId:'RCB20260501001', recruitBatchName:'2026年柳州市教师自主招聘（第一批）', schoolName:'柳州高级中学', schoolCategory:'市直属', status:'pending_first', formData:{}, submitTime:'2026-06-10 09:00:00', firstReviewResult:null,firstReviewOpinion:'',firstReviewer:null,firstReviewTime:null,firstRejectReason:'', secondReviewResult:null,secondReviewOpinion:'',secondReviewer:null,secondReviewTime:null,secondRejectReason:'', secondModification:null, modifications:[], attachments:[{name:'材料.pdf',size:45000}], timeline:[{time:'2026-06-10 09:00:00',action:'学校提交申报',operator:'王玉兰'}] },
-    { id:'EMP20260609001', businessType:'recruitment', recruitBatchId:'RCB20260415001', recruitBatchName:'2026年柳州市中高级人才招聘', schoolName:'柳州高级中学', schoolCategory:'市直属', status:'first_approved', formData:{}, submitTime:'2026-06-09 14:00:00', firstReviewResult:'approved',firstReviewOpinion:'材料齐全',firstReviewer:'张建国',firstReviewTime:'2026-06-10 10:00:00',firstRejectReason:'', secondReviewResult:null,secondReviewOpinion:'',secondReviewer:null,secondReviewTime:null,secondRejectReason:'', secondModification:null, modifications:[], attachments:[{name:'备案表.docx',size:52000}], timeline:[{time:'2026-06-09 14:00:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-10 10:00:00',action:'主管一审通过',operator:'张建国'}] },
-    { id:'EMP20260608001', businessType:'transfer', recruitBatchId:'RCB20260501001', recruitBatchName:'2026年柳州市教师自主招聘（第一批）', schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', status:'first_rejected', formData:{}, submitTime:'2026-06-08 11:00:00', firstReviewResult:'rejected',firstReviewOpinion:'',firstReviewer:'李振华',firstReviewTime:'2026-06-09 09:00:00',firstRejectReason:'材料不齐全，请补充附件', secondReviewResult:null,secondReviewOpinion:'',secondReviewer:null,secondReviewTime:null,secondRejectReason:'', secondModification:null, modifications:[], attachments:[{name:'交流登记表.docx',size:38000}], timeline:[{time:'2026-06-08 11:00:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-09 09:00:00',action:'主管一审驳回',operator:'李振华',opinion:'材料不齐全，请补充附件'}] }
+    { id:'EMP20260610001', businessType:'recruitment', recruitBatchId:'RCB20260501001', recruitBatchName:'2026年柳州市教师自主招聘（第一批）', schoolName:'柳州高级中学', schoolCategory:'市直属', status:'pending_first',
+      formData:{ positions:[
+        { batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中语文教师', planCount:3, completedCount:0, confirmed:true, hireCount:3, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career', rosterRows:[{name:'张伟',gender:'男',birth:'1995-03'},{name:'李娜',gender:'女',birth:'1996-07'},{name:'王强',gender:'男',birth:'1994-11'}], recordCards:[{},{},{}], personAttachments:{} },
+        { batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', positionName:'高中物理教师', planCount:1, completedCount:0, confirmed:true, hireCount:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career', rosterRows:[{name:'赵敏',gender:'女',birth:'1988-05'}], recordCards:[{}], personAttachments:{} }
+      ], batchSummaries:{ 'RCB20260501001':{batchName:'2026年柳州市教师自主招聘（第一批）',cancelCount:0,deferCount:0,负面舆情:false,举报投诉:false,材料存档:{},其他存档:''}, 'RCB20260415001':{batchName:'2026年柳州市中高级人才招聘',cancelCount:0,deferCount:0,负面舆情:false,举报投诉:false,材料存档:{},其他存档:''} }},
+      submitTime:'2026-06-10 09:00:00', firstReviewResult:null,firstReviewOpinion:'',firstReviewer:null,firstReviewTime:null,firstRejectReason:'', secondReviewResult:null,secondReviewOpinion:'',secondReviewer:null,secondReviewTime:null,secondRejectReason:'', secondModification:null, modifications:[], attachments:[{name:'材料.pdf',size:45000}], timeline:[{time:'2026-06-10 09:00:00',action:'学校提交申报',operator:'王玉兰'}] },
+    { id:'EMP20260609001', businessType:'recruitment', recruitBatchId:'RCB20260415001', recruitBatchName:'2026年柳州市中高级人才招聘', schoolName:'柳州高级中学', schoolCategory:'市直属', status:'first_approved',
+      formData:{ positions:[
+        { batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', positionName:'高中化学教师', planCount:1, completedCount:0, confirmed:true, hireCount:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career', rosterRows:[{name:'陈刚',gender:'男',birth:'1985-09'}], recordCards:[{}], personAttachments:{} },
+        { batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', positionName:'高中生物教师', planCount:2, completedCount:0, confirmed:true, hireCount:2, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career', rosterRows:[{name:'刘洋',gender:'男',birth:'1995-01'},{name:'孙丽',gender:'女',birth:'1996-12'}], recordCards:[{},{}], personAttachments:{} }
+      ], batchSummaries:{ 'RCB20260415001':{batchName:'2026年柳州市中高级人才招聘',cancelCount:0,deferCount:0,负面舆情:false,举报投诉:false,材料存档:{},其他存档:''}, 'RCB20260515001':{batchName:'2026年柳州市直属学校统一公招',cancelCount:0,deferCount:0,负面舆情:false,举报投诉:false,材料存档:{},其他存档:''} }},
+      submitTime:'2026-06-09 14:00:00', firstReviewResult:'approved',firstReviewOpinion:'材料齐全',firstReviewer:'张建国',firstReviewTime:'2026-06-10 10:00:00',firstRejectReason:'', secondReviewResult:null,secondReviewOpinion:'',secondReviewer:null,secondReviewTime:null,secondRejectReason:'', secondModification:null, modifications:[], attachments:[{name:'备案表.docx',size:52000}], timeline:[{time:'2026-06-09 14:00:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-10 10:00:00',action:'主管一审通过',operator:'张建国'}] },
+    { id:'EMP20260608001', businessType:'transfer', recruitBatchId:'', recruitBatchName:'', schoolName:'柳州市第八中学', schoolCategory:'鱼峰区属', status:'first_rejected',
+      formData:{ transferRows:[{seq:1,name:'黄丽',gender:'女',birth:'1990-04',outflow:'柳江区实验中学',inflow:'柳州市第八中学'},{seq:2,name:'周杰',gender:'男',birth:'1988-08',outflow:'融水县中学',inflow:'柳州市第八中学'}], transferForm:{name:'黄丽',gender:'女',outflowUnit:'柳江区实验中学',inflowUnit:'柳州市第八中学'} },
+      submitTime:'2026-06-08 11:00:00', firstReviewResult:'rejected',firstReviewOpinion:'',firstReviewer:'李振华',firstReviewTime:'2026-06-09 09:00:00',firstRejectReason:'材料不齐全，请补充附件', secondReviewResult:null,secondReviewOpinion:'',secondReviewer:null,secondReviewTime:null,secondRejectReason:'', secondModification:null, modifications:[], attachments:[{name:'交流登记表.docx',size:38000}], timeline:[{time:'2026-06-08 11:00:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-09 09:00:00',action:'主管一审驳回',operator:'李振华',opinion:'材料不齐全，请补充附件'}] }
   ];
-  localStorage.setItem('employ_records', JSON.stringify(demos));
-  return JSON.parse(JSON.stringify(demos));
+  var demoIds = {}; demos.forEach(function(r){demoIds[r.id]=true;});
+  var merged = existing.filter(function(r){return !demoIds[r.id];}).concat(demos);
+  localStorage.setItem('employ_records', JSON.stringify(merged));
+  return JSON.parse(JSON.stringify(merged));
 }
 function saveEmployRecords(r){localStorage.setItem('employ_records',JSON.stringify(r));}
 
@@ -253,26 +276,52 @@ function newApplication(){window.location.href='employ-form.html?school='+encode
 
 function onSchoolChange(s){currentSchool=s;renderList();}
 
-function getStatusClass(status){
-  if(status==='pending_first'||status==='pending_second')return'status-pending';
-  if(status==='first_approved')return'status-approved';
-  if(status==='first_rejected'||status==='second_rejected')return'status-rejected';
-  if(status==='completed')return'status-completed';
-  return'status-pending';
+function getStatusBadgeClass(status) {
+  if (status==='pending_first'||status==='pending_second') return 'pending';
+  if (status==='first_approved'||status==='completed') return 'approved';
+  if (status==='first_rejected'||status==='second_rejected') return 'rejected';
+  return '';
+}
+
+function getBatchNames(r) {
+  if (r.businessType && r.businessType !== 'recruitment') return ['—'];
+  var names = [], seen = {};
+  // 从 formData.batchSummaries 提取（新格式）
+  if (r.formData && r.formData.batchSummaries) {
+    Object.keys(r.formData.batchSummaries).forEach(function(bid) {
+      var n = r.formData.batchSummaries[bid].batchName;
+      if (n && !seen[n]) { seen[n] = true; names.push(n); }
+    });
+  }
+  // 从 positions 提取
+  if (r.formData && r.formData.positions) {
+    r.formData.positions.forEach(function(p) {
+      if (p.batchName && !seen[p.batchName]) {
+        seen[p.batchName] = true; names.push(p.batchName);
+      }
+    });
+  }
+  // 兼容旧数据：单批次字段
+  if (names.length === 0 && r.recruitBatchName) {
+    names.push(r.recruitBatchName);
+  }
+  return names.length > 0 ? names : ['—'];
 }
 
 function renderList(){
   var records = loadEmployRecords().filter(function(r){return r.schoolName===currentSchool;});
-  var counts = { all:records.length, pending_first:0, first_approved:0, first_rejected:0, pending_second:0, second_rejected:0, completed:0 };
-  records.forEach(function(r){if(counts[r.status]!==undefined)counts[r.status]++;});
+  var counts = { all:records.length, pending:0, approved:0, rejected:0 };
+  records.forEach(function(r){
+    if (r.status==='pending_first'||r.status==='pending_second') counts.pending++;
+    else if (r.status==='first_approved'||r.status==='completed') counts.approved++;
+    else if (r.status==='first_rejected'||r.status==='second_rejected') counts.rejected++;
+  });
 
   var filters = [
     {key:'all',label:'全部('+counts.all+')'},
-    {key:'pending_first',label:'待一审('+counts.pending_first+')'},
-    {key:'first_approved',label:'一审通过('+counts.first_approved+')'},
-    {key:'pending_second',label:'待二审('+counts.pending_second+')'},
-    {key:'completed',label:'已完成('+counts.completed+')'},
-    {key:'rejected',label:'已驳回('+(counts.first_rejected+counts.second_rejected)+')'}
+    {key:'pending',label:'待审核('+counts.pending+')'},
+    {key:'approved',label:'已通过('+counts.approved+')'},
+    {key:'rejected',label:'已驳回('+counts.rejected+')'}
   ];
 
   var fb = document.getElementById('filterBar');
@@ -285,47 +334,75 @@ function renderList(){
     fb.appendChild(b);
   });
 
+  var statusMap = {
+    pending: ['pending_first','pending_second'],
+    approved: ['first_approved','completed'],
+    rejected: ['first_rejected','second_rejected']
+  };
   var filtered = records;
-  if(currentFilter==='rejected'){filtered=records.filter(function(r){return r.status==='first_rejected'||r.status==='second_rejected';});}
-  else if(currentFilter!=='all'){filtered=records.filter(function(r){return r.status===currentFilter;});}
+  if (currentFilter!=='all' && statusMap[currentFilter]) {
+    filtered = records.filter(function(r){ return statusMap[currentFilter].indexOf(r.status) >= 0; });
+  }
 
   var list = document.getElementById('recordList');
   var empty = document.getElementById('emptyState');
   if(filtered.length===0){
-    list.innerHTML='';
-    empty.style.display='block';
+    list.innerHTML='<div class="list-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无申报记录</div></div></div>';
+    empty.style.display='none';
     return;
   }
   empty.style.display='none';
-  var h='';
+
+  var h = '<div class="list-card"><div class="table-scroll"><table class="list-table"><thead><tr>';
+  h += '<th>申请编号</th>';
+  h += '<th>业务类型</th>';
+  h += '<th>关联批次</th>';
+  h += '<th>岗位数</th>';
+  h += '<th>人数</th>';
+  h += '<th>提交时间</th>';
+  h += '<th>状态</th>';
+  h += '<th>操作</th>';
+  h += '</tr></thead><tbody>';
+
   filtered.forEach(function(r){
-    var typeLabel = r.businessType==='recruitment'?'招聘':'调动';
-    var typeCls = r.businessType;
+    var typeLabel = r.businessType==='recruitment'?'招聘':(r.businessType==='transfer'?'调动':(r.persons?'招聘':'调动'));
+    var typeCls = r.businessType||(r.persons?'recruitment':'');
     var statusLabel = STATUS_MAP[r.status]||r.status;
-    var hStatus = getStatusClass(r.status);
-    var personCount = 0;
+    var badgeCls = getStatusBadgeClass(r.status);
+    var batchNames = getBatchNames(r);
+    var posCount = (r.businessType==='recruitment'&&r.formData&&r.formData.positions) ? r.formData.positions.length : (r.persons?r.persons.length:'—');
+    var personCount = '—';
     if(r.formData){
       if(r.businessType==='recruitment'&&r.formData.positions){
         personCount = r.formData.positions.reduce(function(s,p){return s+(p.rosterRows||[]).length;},0);
-      } else if(r.businessType==='transfer'){
-        personCount = (r.formData.transferRows||[]).length;
+      } else if(r.businessType==='transfer'&&r.formData.transferRows){
+        personCount = r.formData.transferRows.length;
       }
     }
+    if(personCount==='—'&&r.persons){personCount=r.persons.length;}
+    var timeStr = r.submitTime ? r.submitTime.substring(5,16) : '—';
 
-    h+='<div class="record-card">';
-    h+='<div class="card-top"><span class="card-id">'+escapeHtml(r.id)+'</span><span class="card-status '+hStatus+'">'+statusLabel+'</span></div>';
-    h+='<div class="card-body">';
-    h+='<span class="type-tag '+typeCls+'">'+typeLabel+'</span> &nbsp;';
-    h+='<span class="label">批次：</span>'+escapeHtml(r.recruitBatchName||'')+'<br>';
-    h+='<span class="label">提交时间：</span>'+(r.submitTime?r.submitTime.substring(0,16):'—');
-    h+=' &nbsp; <span class="label">人数：</span>'+personCount;
-    h+='</div>';
-    h+='<div class="card-actions">';
-    h+='<a class="action-link" onclick="viewDetail(\''+r.id+'\')">查看</a>';
-    if(r.status==='first_approved'){h+='<a class="action-link success" onclick="gotoHREntry(\''+r.id+'\')">录入人社结果</a>';}
+    h += '<tr>';
+    h += '<td class="col-id" onclick="viewDetail(\''+r.id+'\')">'+escapeHtml(r.id)+'</td>';
+    h += '<td><span class="type-tag '+typeCls+'">'+typeLabel+'</span></td>';
+    h += '<td class="col-left">';
+    batchNames.forEach(function(n, i) {
+      h += '<div class="batch-line">'+escapeHtml(n)+'</div>';
+    });
+    h += '</td>';
+    h += '<td>'+posCount+'</td>';
+    h += '<td>'+personCount+'</td>';
+    h += '<td style="font-size:12px;">'+timeStr+'</td>';
+    h += '<td><span class="status-badge '+badgeCls+'">'+statusLabel+'</span></td>';
+    h += '<td class="col-action"><div class="action-links">';
+    h += '<a class="action-link" onclick="viewDetail(\''+r.id+'\')">查看</a>';
+    if(r.status==='first_approved'){h+='<a class="action-link success" onclick="gotoHREntry(\''+r.id+'\')">录入</a>';}
     if(r.status==='first_rejected'||r.status==='second_rejected'){h+='<a class="action-link warn" onclick="editResubmit(\''+r.id+'\')">修改</a>';}
-    h+='</div></div>';
+    h += '</div></td>';
+    h += '</tr>';
   });
+
+  h += '</tbody></table></div></div>';
   list.innerHTML = h;
 }
 
