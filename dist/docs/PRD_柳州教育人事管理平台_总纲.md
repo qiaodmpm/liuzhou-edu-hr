@@ -136,6 +136,85 @@
 | `third_rejected` | 三审驳回 | 仅招聘/晋升模块 |
 | `completed` | 已完成 | 终审通过 |
 
+### 3.4 跨模块业务流转总图
+
+以下展示编制管理、岗位管理、聘用管理三大模块七个核心功能之间的流转关系和业务时序。
+
+**业务链路（教师全生命周期）：**
+
+```mermaid
+flowchart TB
+    subgraph PREP[前置准备阶段]
+        PS[岗位设置<br/>post-form<br/>2级审批] -->|审批通过| PPOOL[岗位可用池]
+        SA[编制使用申请<br/>staffing-form<br/>2级审批] -->|approved| SPOOL[编制可用池<br/>含有效期控制]
+        PPOOL --> MERGE((关联<br/>编制+岗位))
+        SPOOL --> MERGE
+    end
+
+    subgraph RECRUIT[招聘与聘用阶段]
+        MERGE --> RF[招聘岗位申请<br/>recruit-form<br/>3级审批]
+        RF -->|completed| OFFLINE[线下招聘<br/>学校组织笔试/面试/考察]
+        OFFLINE --> EF[聘用手续办理<br/>employ-form<br/>2级审批]
+        EF -->|completed| EMP[已聘人员信息入库]
+    end
+
+    subgraph ENTRY[入编与在职阶段]
+        EMP --> EN[教师入编<br/>entry-form<br/>事业编:一人一表<br/>控制数:批量上传<br/>2级审批]
+        EN -->|审批通过| ONBOARD[入职完成<br/>编制池 usedPlan += 入编人数]
+        ONBOARD --> PM[岗位晋升申请<br/>promote-form<br/>3级:学校→区/市→人社确认]
+    end
+
+    subgraph EXIT[退出阶段]
+        PM --> EX[教师出编<br/>exit-form<br/>2级审批]
+        EX -->|completed| RELEASE[编制池释放<br/>usedPlan -= 出编人数]
+    end
+
+    style OFFLINE fill:#f9f,stroke:#333,stroke-width:2px
+    style SPOOL fill:#bbf,stroke:#333
+    style PPOOL fill:#bfb,stroke:#333
+```
+
+### 3.5 各模块状态流转
+
+| 模块 | 所属分类 | 流转路径 | 审批级数 |
+|---|---|---|---|
+| 编制使用申请 | 编制管理 | submitted → first_approved → final_submitted → approved / rejected | 2 级 |
+| 岗位设置 | 岗位管理 | pending_first → first_approved → pending_second → completed | 2 级 |
+| 招聘岗位申请 | 岗位管理 | pending_first → first_approved → pending_second → second_approved → pending_third → completed | 3 级 |
+| 聘用手续办理 | 聘用管理 | pending_first → first_approved → pending_second → completed | 2 级 |
+| 教师入编 | 编制管理 | pending_first → first_approved → pending_second → completed | 2 级 |
+| 岗位晋升 | 岗位管理 | pending_first → first_approved → pending_second → second_approved → pending_third → completed | 3 级 |
+| 教师出编 | 编制管理 | pending_first → first_approved → pending_second → completed | 2 级 |
+
+### 3.6 模块间数据联动
+
+| 上游模块 | 触发事件 | 联动数据 | 下游模块 |
+|---|---|---|---|
+| 编制使用申请 | approved | 编制可用池 += 批复数 | 入编、招聘 |
+| 岗位设置 | completed | 岗位可用池更新 | 招聘、晋升 |
+| 招聘岗位申请 | completed | 岗位已招聘数 += 招聘人数 | 聘用手续 |
+| 聘用手续办理 | completed | 已聘人员信息入库 | 入编 |
+| 教师入编 | completed | 编制池 usedPlan += 入编人数 | 晋升 |
+| 岗位晋升 | completed | 岗位等级更新 | — |
+| 教师出编 | completed | 编制池 usedPlan -= 出编人数（释放） | — |
+
+### 3.7 业务时序约束
+
+```
+岗位设置 ──→ 编制使用申请 ──→ 招聘岗位申请 ──→ 聘用手续办理 ──→ 教师入编 ──→ 岗位晋升 ──→ 教师出编
+  (前置)      (前置)         (关联编制+岗位)   (关联招聘批次)   (入职后)     (在职期间)    (退出时)
+```
+
+| 阶段 | 模块 | 对上游的依赖 | 对下游的影响 |
+|---|---|---|---|
+| 1 | 岗位设置 | 无 | 审批通过后岗位可用池更新，招聘/晋升可引用 |
+| 2 | 编制使用申请 | 无（可与岗位设置并行） | approved 后编制名额入池 |
+| 3 | 招聘岗位申请 | 需关联编制批次 + 岗位 | completed 后进入线下招聘 |
+| 4 | 聘用手续办理 | 需关联已完成招聘的批次+岗位 | completed 后人员信息可入编 |
+| 5 | 教师入编 | 需聘用手续完成 | 编制池 usedPlan 累加 |
+| 6 | 岗位晋升 | 需已入编 | 岗位等级更新 |
+| 7 | 教师出编 | 需已入编 | 编制池 usedPlan 释放 |
+
 ---
 
 ## 第四章 公共能力

@@ -354,8 +354,8 @@ var attachedFiles = [];
 // 表单数据
 var formData = {
   // 招聘类 — 多岗位数组
-  positions: [],        // [{ batchId, batchName, positionName, planCount, completedCount, rosterRows:[], recordCards:[], personAttachments:{} }]
-  batchSummaries: {},   // 附件4 基本情况表，按 batchId 索引
+  positions: [],        // [{ batchId, batchName, positionName, planCount, completedCount, pendingCount, confirmed, hireCount, rosterRows:[], recordCards:[], personAttachments:{}, cancelCount, cancelDocNo, cancelReason, deferredPersons:[{name,reason,expectedTime}] }]
+  batchSummaries: {},   // 附件4（按 batchId 索引，只存 材料存档/负面舆情/举报投诉，核减/暂缓已下沉到岗位级）
   // 调动类
   transferRows: [],     // 附件1 交流备案表行
   transferForm: {}      // 附件2 交流登记表
@@ -602,11 +602,10 @@ function ensureBatchSummary(batchId, batchName) {
   if (!formData.batchSummaries) formData.batchSummaries = {};
   if (!formData.batchSummaries[batchId]) {
     formData.batchSummaries[batchId] = {
-      batchName: batchName || '',
-      cancelCount: 0, deferCount: 0,
-      负面舆情: false, 举报投诉: false,
-      材料存档: { 公告: false, 成绩: false, 批复: false, 体检: false, 考察: false, 证件: false },
-      其他存档: ''
+    batchName: batchName || '',
+    负面舆情: false, 举报投诉: false,
+    材料存档: { 公告: false, 成绩: false, 批复: false, 体检: false, 考察: false, 证件: false },
+    其他存档: ''
     };
   }
   return formData.batchSummaries[batchId];
@@ -783,6 +782,44 @@ function renderRecruitmentForms() {
       });
       h += '</div>';
       h += '<button class="add-row-btn" onclick="addRosterRow('+pi+')">＋ 添加拟聘人员</button>';
+
+      // ===== 核减或取消计划（岗位级）=====
+      var cancelC2 = pos.cancelCount || 0;
+      var actualPlan2 = (pos.planCount || 0) - cancelC2;
+      h += '<div style="margin-top:18px;padding-top:14px;border-top:1px dashed var(--border);">';
+      h += '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">&#128201; 核减或取消计划</div>';
+      h += '<div style="display:flex;gap:12px;margin-bottom:6px;">';
+      h += '<div class="form-group" style="flex:1;"><label>核减人数</label><input type="number" min="0" value="'+cancelC2+'" onchange="onCancelCountChange('+pi+',this.value)"></div>';
+      h += '<div class="form-group" style="flex:1;"><label>核减依据 <span class="req">*</span></label><input value="'+escapeHtml(pos.cancelDocNo||'')+'" onchange="formData.positions['+pi+'].cancelDocNo=this.value" placeholder="文号/文件名"></div>';
+      h += '</div>';
+      h += '<div class="form-group" style="margin-top:4px;"><label>核减原因 <span class="req">*</span></label><input value="'+escapeHtml(pos.cancelReason||'')+'" onchange="formData.positions['+pi+'].cancelReason=this.value" placeholder="请输入核减或取消原因"></div>';
+      h += '<div style="font-size:12px;color:var(--text-light);margin-top:4px;">→ 本岗位实际招聘计划：<b style="color:var(--primary);">'+actualPlan2+'</b> 人（= '+escapeHtml(''+(pos.planCount||0))+' - '+cancelC2+'）</div>';
+      h += '</div>';
+
+      // ===== 暂缓办理（岗位级）=====
+      var defPersons = pos.deferredPersons || [];
+      h += '<div style="margin-top:18px;padding-top:14px;border-top:1px dashed var(--border);">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+      h += '<div style="font-size:13px;font-weight:600;color:var(--text);">&#9208; 暂缓办理</div>';
+      h += '<span style="font-size:12px;color:var(--text-secondary);">暂缓人数：<b style="color:var(--warning);">'+defPersons.length+'</b> 人</span>';
+      h += '</div>';
+      if (defPersons.length > 0) {
+        h += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">';
+        h += '<thead><tr style="background:var(--bg);"><th style="padding:6px 8px;text-align:left;font-weight:500;border-bottom:1px solid var(--border);width:30px;">#</th><th style="padding:6px 8px;text-align:left;font-weight:500;border-bottom:1px solid var(--border);">姓名</th><th style="padding:6px 8px;text-align:left;font-weight:500;border-bottom:1px solid var(--border);">暂缓原因 <span class="req">*</span></th><th style="padding:6px 8px;text-align:left;font-weight:500;border-bottom:1px solid var(--border);">预计办理时间</th><th style="padding:6px 8px;text-align:center;font-weight:500;border-bottom:1px solid var(--border);width:50px;">操作</th></tr></thead><tbody>';
+        defPersons.forEach(function(dp, di) {
+          h += '<tr style="border-bottom:1px solid var(--border);">';
+          h += '<td style="padding:4px 8px;color:var(--text-secondary);">'+(di+1)+'</td>';
+          h += '<td style="padding:4px 8px;"><input value="'+escapeHtml(dp.name||'')+'" onchange="formData.positions['+pi+'].deferredPersons['+di+'].name=this.value" placeholder="可空（岗位级暂缓）" style="width:100%;padding:4px 6px;font-size:12px;border:1px solid var(--border);border-radius:4px;"></td>';
+          h += '<td style="padding:4px 8px;"><input value="'+escapeHtml(dp.reason||'')+'" onchange="formData.positions['+pi+'].deferredPersons['+di+'].reason=this.value" placeholder="必填" style="width:100%;padding:4px 6px;font-size:12px;border:1px solid var(--border);border-radius:4px;"></td>';
+          h += '<td style="padding:4px 8px;"><input type="month" value="'+escapeHtml(dp.expectedTime||'')+'" onchange="formData.positions['+pi+'].deferredPersons['+di+'].expectedTime=this.value" style="width:100%;padding:4px 6px;font-size:12px;border:1px solid var(--border);border-radius:4px;"></td>';
+          h += '<td style="padding:4px 8px;text-align:center;"><a onclick="removeDeferredPerson('+pi+','+di+')" style="color:var(--danger);cursor:pointer;font-size:12px;text-decoration:none;">删除</a></td>';
+          h += '</tr>';
+        });
+        h += '</tbody></table>';
+        h += '<div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">&#128161; 姓名为空表示岗位级暂缓（取消岗位招聘计划但保留名额），非人员级暂缓</div>';
+      }
+      h += '<button class="btn btn-outline btn-sm" onclick="addDeferredPerson('+pi+')" style="font-size:11px;border-style:dashed;">＋ 添加暂缓人员</button>';
+      h += '</div>';
     }
 
     // 未选择批次/岗位时的引导提示
@@ -798,7 +835,7 @@ function renderRecruitmentForms() {
 
   h += '<div style="text-align:center;margin-bottom:20px;"><button class="btn btn-outline" onclick="addPosition()" style="border-style:dashed;">＋ 添加拟聘岗位</button></div>';
 
-  // 附件4 — 按批次分组，每个批次一张基本情况表
+  // 附件4 — 按批次分组，每个批次一张基本情况表（只读汇总）
   var ckItems = {"公告":"公告证明材料","成绩":"成绩汇总表","批复":"批复材料","体检":"体检表","考察":"考察材料","证件":"证件复印件"};
   var batchGroups = {}; // { batchId: [position, ...] }
   formData.positions.forEach(function(p) {
@@ -813,29 +850,49 @@ function renderRecruitmentForms() {
     var batchName = groupPositions[0].batchName || batchId;
     var sf = ensureBatchSummary(batchId, batchName);
 
-    var totalPlan = 0, totalCurrent = 0, totalCompleted = 0;
-    var posNames = [];
+    var totalPlan = 0, totalCancel = 0, totalActual = 0, totalCompleted = 0, totalCurrent = 0, totalDefer = 0;
     groupPositions.forEach(function(p) {
+      var cc3 = (p.cancelCount||0);
       totalPlan += (p.planCount||0);
-      totalCurrent += (p.rosterRows||[]).length;
+      totalCancel += cc3;
+      totalActual += ((p.planCount||0) - cc3);
       totalCompleted += (p.completedCount||0);
-      if (p.positionName) posNames.push(p.positionName);
+      totalCurrent += (p.rosterRows||[]).length;
+      totalDefer += ((p.deferredPersons||[]).length);
     });
 
     h += '<div class="form-card" style="border-left:3px solid var(--primary);">';
     h += '<h2><span class="card-icon">&#128202;</span>附件4：《公开招聘工作人员基本情况表》</h2>';
     h += '<div style="display:flex;gap:16px;flex-wrap:wrap;padding:8px 12px;background:var(--primary-light);border-radius:6px;margin-bottom:14px;">';
     h += '<div><span style="font-size:11px;color:var(--text-secondary);">关联批次</span><div style="font-size:13px;font-weight:600;color:var(--primary);">'+escapeHtml(batchName)+'</div></div>';
-    h += '<div><span style="font-size:11px;color:var(--text-secondary);">覆盖岗位</span><div style="font-size:13px;font-weight:500;">'+escapeHtml(posNames.join('、')||'—')+'</div></div>';
     h += '</div>';
 
     h += '<div class="section-title">招聘计划完成情况 <span class="auto-fill-tag">自动汇总</span></div>';
-    h += '<div class="form-row-3"><div class="form-group"><label>原计划招聘人数</label><input value="'+(totalPlan||0)+'" id="sf_originalPlan_'+batchId+'" onchange="updateSF(\''+batchId+'\')"></div>';
-    h += '<div class="form-group"><label>核减或取消计划数</label><input value="'+(sf.cancelCount||0)+'" id="sf_cancelCount_'+batchId+'" onchange="updateSF(\''+batchId+'\')"></div>';
-    h += '<div class="form-group"><label>实际招聘计划</label><input value="'+(totalPlan-(sf.cancelCount||0))+'" id="sf_actualPlan_'+batchId+'" readonly style="background:var(--gray-bg);"></div></div>';
-    h += '<div class="form-row-3"><div class="form-group"><label>已办理聘用手续人数</label><input value="'+(totalCompleted||0)+'" id="sf_completedCount_'+batchId+'" onchange="updateSF(\''+batchId+'\')"></div>';
-    h += '<div class="form-group"><label>本次办理手续人数</label><input value="'+totalCurrent+'" readonly style="background:var(--gray-bg);"></div>';
-    h += '<div class="form-group"><label>还需暂缓办理人数</label><input value="'+(sf.deferCount||0)+'" id="sf_deferCount_'+batchId+'" onchange="updateSF(\''+batchId+'\')"></div></div>';
+    h += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">';
+    h += '<thead><tr style="background:var(--bg);"><th style="padding:8px;text-align:left;font-weight:500;border-bottom:1px solid var(--border);">岗位</th><th style="padding:8px;text-align:right;font-weight:500;border-bottom:1px solid var(--border);width:55px;">原计划</th><th style="padding:8px;text-align:right;font-weight:500;border-bottom:1px solid var(--border);width:55px;">核减数</th><th style="padding:8px;text-align:left;font-weight:500;border-bottom:1px solid var(--border);">核减依据</th><th style="padding:8px;text-align:right;font-weight:500;border-bottom:1px solid var(--border);width:55px;">实际计划</th><th style="padding:8px;text-align:right;font-weight:500;border-bottom:1px solid var(--border);width:55px;">已办理</th><th style="padding:8px;text-align:right;font-weight:500;border-bottom:1px solid var(--border);width:45px;">本次</th><th style="padding:8px;text-align:right;font-weight:500;border-bottom:1px solid var(--border);width:45px;">暂缓</th></tr></thead><tbody>';
+    groupPositions.forEach(function(p) {
+      var cc4 = (p.cancelCount||0);
+      h += '<tr style="border-bottom:1px solid var(--border);">';
+      h += '<td style="padding:6px 8px;">'+escapeHtml(p.positionName||'—')+'</td>';
+      h += '<td style="padding:6px 8px;text-align:right;">'+(p.planCount||0)+'</td>';
+      h += '<td style="padding:6px 8px;text-align:right;' + (cc4>0 ? 'color:var(--danger);font-weight:500;' : '') + '">'+cc4+'</td>';
+      h += '<td style="padding:6px 8px;font-size:11px;color:var(--text-secondary);">'+escapeHtml(p.cancelDocNo||'—')+'</td>';
+      h += '<td style="padding:6px 8px;text-align:right;font-weight:500;">'+((p.planCount||0)-cc4)+'</td>';
+      h += '<td style="padding:6px 8px;text-align:right;">'+(p.completedCount||0)+'</td>';
+      h += '<td style="padding:6px 8px;text-align:right;font-weight:500;color:var(--primary);">'+(p.rosterRows||[]).length+'</td>';
+      h += '<td style="padding:6px 8px;text-align:right;' + ((p.deferredPersons||[]).length>0 ? 'color:var(--warning);font-weight:500;' : 'color:var(--text-light);') + '">'+((p.deferredPersons||[]).length)+'</td>';
+      h += '</tr>';
+    });
+    h += '<tr style="background:var(--primary-light);font-weight:600;">';
+    h += '<td style="padding:6px 8px;">合计</td>';
+    h += '<td style="padding:6px 8px;text-align:right;">'+totalPlan+'</td>';
+    h += '<td style="padding:6px 8px;text-align:right;' + (totalCancel>0 ? 'color:var(--danger);' : '') + '">'+totalCancel+'</td>';
+    h += '<td style="padding:6px 8px;"></td>';
+    h += '<td style="padding:6px 8px;text-align:right;">'+totalActual+'</td>';
+    h += '<td style="padding:6px 8px;text-align:right;">'+totalCompleted+'</td>';
+    h += '<td style="padding:6px 8px;text-align:right;color:var(--primary);">'+totalCurrent+'</td>';
+    h += '<td style="padding:6px 8px;text-align:right;' + (totalDefer>0 ? 'color:var(--warning);' : '') + '">'+totalDefer+'</td>';
+    h += '</tr></tbody></table>';
 
     h += '<div style="margin-top:12px;" class="section-title">材料存档备查情况</div>';
     h += '<div class="checkbox-group">';
@@ -859,7 +916,7 @@ function renderRecruitmentForms() {
 }
 
 function addPosition() {
-  formData.positions.push({ batchId:'', batchName:'', positionIndex:-1, positionName:'', planCount:0, completedCount:0, pendingCount:0, confirmed:false, positionCategory:'', positionLevel:'', employmentMethod:'', rosterRows:[{seq:1,name:'',gender:'',birth:'',maritalStatus:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',sourceDetail:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:''}], recordCards:[], personAttachments:{} });
+  formData.positions.push({ batchId:'', batchName:'', positionIndex:-1, positionName:'', planCount:0, completedCount:0, pendingCount:0, confirmed:false, positionCategory:'', positionLevel:'', employmentMethod:'', rosterRows:[{seq:1,name:'',gender:'',birth:'',maritalStatus:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',sourceDetail:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:''}], recordCards:[], personAttachments:{}, cancelCount:0, cancelDocNo:'', cancelReason:'', deferredPersons:[] });
   renderPage();
   var pi = formData.positions.length - 1;
   initPosNameDropdown(pi);
@@ -1057,6 +1114,30 @@ function onMaritalChange(pi, ri, newValue) {
     if (row.spouseName === '无') row.spouseName = '';
     if (row.spouseUnit === '无') row.spouseUnit = '';
   }
+  renderPage();
+}
+
+// ===== 核减与暂缓 =====
+function onCancelCountChange(pi, val) {
+  var pos = formData.positions[pi]; if (!pos) return;
+  var cc = parseInt(val) || 0;
+  if (cc < 0) { cc = 0; showToast('核减人数不能为负数', 'warning'); }
+  if (cc > (pos.planCount||0)) { cc = pos.planCount||0; showToast('核减人数不能超过原计划招聘人数（'+pos.planCount+'）', 'warning'); }
+  pos.cancelCount = cc;
+  renderPage();
+}
+
+function addDeferredPerson(pi) {
+  var pos = formData.positions[pi]; if (!pos) return;
+  if (!pos.deferredPersons) pos.deferredPersons = [];
+  pos.deferredPersons.push({ name: '', reason: '', expectedTime: '' });
+  renderPage();
+}
+
+function removeDeferredPerson(pi, di) {
+  var pos = formData.positions[pi]; if (!pos) return;
+  if (!pos.deferredPersons) return;
+  pos.deferredPersons.splice(di, 1);
   renderPage();
 }
 
@@ -1339,16 +1420,7 @@ function syncTransferForm() {
     // 不自动覆盖姓名等字段，留给用户确认
   }
 }
-function updateSF(batchId) {
-  var op = parseInt(document.getElementById('sf_originalPlan_'+batchId).value) || 0;
-  var cc = parseInt(document.getElementById('sf_cancelCount_'+batchId).value) || 0;
-  var cmp = parseInt(document.getElementById('sf_completedCount_'+batchId).value) || 0;
-  var df = parseInt(document.getElementById('sf_deferCount_'+batchId).value) || 0;
-  var s = formData.batchSummaries[batchId]; if (!s) return;
-  s.cancelCount = cc;
-  s.deferCount = df;
-  document.getElementById('sf_actualPlan_'+batchId).value = op - cc;
-}
+// updateSF removed — 核减/暂缓已下沉到岗位级，见 onCancelCountChange / addDeferredPerson / removeDeferredPerson
 function updateTF() {
   ['name','gender','birth','politics','ethnicity','birthplace','workStart','health','title','fulltimeEdu','fulltimeSchool','parttimeEdu','parttimeSchool','workHistory','transferReason'].forEach(function(f) {
     var el = document.getElementById('tf_'+f);
@@ -1412,17 +1484,48 @@ function submitForm() {
       }
     });
     if (!valid) return;
-    // 校验名额上限
+    // 校验名额上限（计入核减）
     formData.positions.forEach(function(pos, pi) {
       if (!pos.confirmed || !pos.planCount) return;
       var occupied = (pos.completedCount || 0) + (pos.pendingCount || 0);
       var current = (pos.rosterRows||[]).length;
-      if (current > pos.planCount - occupied) {
-        showToast('拟聘岗位'+(pi+1)+'「'+escapeHtml(pos.positionName||'')+'」：拟聘人数（'+current+'）超出剩余名额（计划'+pos.planCount+'人，已完成'+(pos.completedCount||0)+'人，待审核'+(pos.pendingCount||0)+'人，剩余'+(pos.planCount-occupied)+'人），请调整', 'warning');
+      var actualPlan2 = (pos.planCount||0) - (pos.cancelCount||0);
+      if (current > actualPlan2 - occupied) {
+        showToast('拟聘岗位'+(pi+1)+'「'+escapeHtml(pos.positionName||'')+'」：拟聘人数（'+current+'）超出剩余名额（原计划'+pos.planCount+'人，核减'+(pos.cancelCount||0)+'人，实际计划'+actualPlan2+'人，已完成'+(pos.completedCount||0)+'人，待审核'+(pos.pendingCount||0)+'人，剩余'+(actualPlan2-occupied)+'人），请调整', 'warning');
         valid = false;
       }
     });
     if (!valid) return;
+
+    // 校验核减与暂缓
+    formData.positions.forEach(function(pos, pi) {
+      if (!pos.confirmed) return;
+      var cancelC = pos.cancelCount || 0;
+      if (cancelC > 0) {
+        if (!pos.cancelDocNo) { showToast('拟聘岗位'+(pi+1)+'「'+escapeHtml(pos.positionName||'')+'」：核减人数>0，请填写核减依据（文号/文件名）', 'warning'); valid = false; }
+        if (!pos.cancelReason) { showToast('拟聘岗位'+(pi+1)+'「'+escapeHtml(pos.positionName||'')+'」：核减人数>0，请填写核减原因', 'warning'); valid = false; }
+        if (cancelC > (pos.planCount||0)) { showToast('拟聘岗位'+(pi+1)+'「'+escapeHtml(pos.positionName||'')+'」：核减数（'+cancelC+'）不能超过原计划数（'+pos.planCount+'）', 'warning'); valid = false; }
+      }
+      var actualPlan3 = (pos.planCount||0) - cancelC;
+      var rosterCount = (pos.rosterRows||[]).length;
+      var defCount = (pos.deferredPersons||[]).length;
+      if (actualPlan3 < (pos.completedCount||0) + rosterCount + defCount) {
+        showToast('拟聘岗位'+(pi+1)+'「'+escapeHtml(pos.positionName||'')+'」：实际计划（'+actualPlan3+'）不足以覆盖已办理（'+(pos.completedCount||0)+'）+ 本次办理（'+rosterCount+'）+ 暂缓（'+defCount+'）', 'warning');
+        valid = false;
+      }
+      (pos.deferredPersons||[]).forEach(function(dp, di) {
+        if (!dp.reason) { showToast('拟聘岗位'+(pi+1)+'暂缓人员'+(di+1)+'：请填写暂缓原因', 'warning'); valid = false; }
+      });
+      var rosterNames = (pos.rosterRows||[]).map(function(r){return r.name;}).filter(Boolean);
+      (pos.deferredPersons||[]).forEach(function(dp) {
+        if (dp.name && rosterNames.indexOf(dp.name) >= 0) {
+          showToast('拟聘岗位'+(pi+1)+'：「'+dp.name+'」同时在花名册和暂缓列表中，同一个人不能既办理又暂缓', 'warning');
+          valid = false;
+        }
+      });
+    });
+    if (!valid) return;
+
     var hasAnyName = formData.positions.some(function(p) { return (p.rosterRows||[]).some(function(r) { return r.name; }); });
     if (!hasAnyName) { showToast('请至少填写一条花名册记录', 'warning'); return; }
   }
