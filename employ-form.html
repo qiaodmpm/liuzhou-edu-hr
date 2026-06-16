@@ -334,10 +334,10 @@ var ROLES = {
 
 // ===== SCHOOL DATA =====
 var SCHOOL_DATA = {
-  '柳州高级中学': { schoolType:'自治区示范高中', schoolCategory:'市直属', orgLevel:'正处级', fundType:'全额拨款' },
-  '柳州市第一中学': { schoolType:'普通高中', schoolCategory:'市直属', orgLevel:'正科级', fundType:'全额拨款' },
-  '柳州市第八中学': { schoolType:'初中', schoolCategory:'鱼峰区属', orgLevel:'正科级', fundType:'全额拨款' },
-  '鱼峰区实验小学': { schoolType:'小学', schoolCategory:'鱼峰区属', orgLevel:'副科级', fundType:'全额拨款' }
+  '柳州高级中学': { schoolType:'自治区示范高中', district: '市直属', orgLevel:'正处级', fundType:'全额拨款' },
+  '柳州市第一中学': { schoolType:'普通高中', district: '市直属', orgLevel:'正科级', fundType:'全额拨款' },
+  '柳州市第八中学': { schoolType:'初中', district: '鱼峰区', orgLevel:'正科级', fundType:'全额拨款' },
+  '鱼峰区实验小学': { schoolType:'小学', district: '鱼峰区', orgLevel:'副科级', fundType:'全额拨款' }
 };
 
 var RECRUITMENT_TYPE_MAP = { independent:'自主招聘', public:'统一公招', senior:'中高级招聘' };
@@ -399,7 +399,7 @@ function loadRecords() {
   var ts = now();
   var DEMO_COMPLETED = [
     { id:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', recruitmentType:'independent',
-      schoolName:'柳州高级中学', schoolCategory:'市直属', status:'completed', submitTime:ts,
+      schoolName:'柳州高级中学', district: '市直属', status:'completed', submitTime:ts,
       formData:{ positions:[
         { positionName:'高中语文教师', count:3, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
         { positionName:'高中数学教师', count:2, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
@@ -410,7 +410,7 @@ function loadRecords() {
       attachments:[], timeline:[{time:ts, action:'学校提交申报', operator:'王玉兰'},{time:ts, action:'区管理员审核通过', operator:'李振华'},{time:ts, action:'市管理员终审通过', operator:'张建国'}]
     },
     { id:'REC20260415001', batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', recruitmentType:'senior',
-      schoolName:'柳州高级中学', schoolCategory:'市直属', status:'completed', submitTime:ts,
+      schoolName:'柳州高级中学', district: '市直属', status:'completed', submitTime:ts,
       formData:{ positions:[
         { positionName:'高中物理教师', count:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career' },
         { positionName:'高中化学教师', count:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career' }
@@ -420,7 +420,7 @@ function loadRecords() {
       attachments:[], timeline:[{time:ts, action:'学校提交申报', operator:'王玉兰'},{time:ts, action:'市管理员终审通过', operator:'张建国'}]
     },
     { id:'REC20260515001', batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', recruitmentType:'public',
-      schoolName:'柳州高级中学', schoolCategory:'市直属', status:'completed', submitTime:ts,
+      schoolName:'柳州高级中学', district: '市直属', status:'completed', submitTime:ts,
       formData:{ positions:[
         { positionName:'高中生物教师', count:2, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
         { positionName:'高中政治教师', count:2, positionCategory:'专技岗', positionLevel:'初级', employmentMethod:'control' },
@@ -431,7 +431,7 @@ function loadRecords() {
       attachments:[], timeline:[{time:ts, action:'学校提交申报', operator:'王玉兰'},{time:ts, action:'区管理员审核通过', operator:'李振华'},{time:ts, action:'市管理员终审通过', operator:'张建国'}]
     },
     { id:'REC20260701002', batchId:'RCB20260701001', batchName:'2026年柳州市教师自主招聘（第二批）', recruitmentType:'independent',
-      schoolName:'柳州市第一中学', schoolCategory:'市直属', status:'completed', submitTime:ts,
+      schoolName:'柳州市第一中学', district: '市直属', status:'completed', submitTime:ts,
       formData:{ positions:[
         { positionName:'初中语文教师', count:4, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' }
       ]},
@@ -500,7 +500,7 @@ function sidebarClick(el, id) {
   if (id === 'account') { window.location.href = 'account-management.html'; return; }
   else if (id === 'ledger') { var _r3 = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (_r3 === 'city' || _r3 === 'district') ? 'org-ledger-admin.html' : _r3 === 'school' ? 'org-ledger-school.html' : 'workbench.html'; }
 
-  if (id === 'dashboard' { showToast('编制岗位台账页面开发中'); return; }
+  if (id === 'dashboard') { showToast('编制岗位台账页面开发中'); return; }
   showToast('跳转至：' + (el.textContent || id));
 }
 function switchRole(role) {
@@ -1553,7 +1553,7 @@ function submitForm() {
     recruitBatchId: formData.positions.length > 0 ? formData.positions[0].batchId : '',
     recruitBatchName: formData.positions.length > 0 ? formData.positions[0].batchName : '',
     schoolName: currentSchool,
-    schoolCategory: sd.schoolCategory || '',
+    district: sd.district || '',
     status: 'pending_first',
     formData: JSON.parse(JSON.stringify(formData)),
     submitTime: ts,

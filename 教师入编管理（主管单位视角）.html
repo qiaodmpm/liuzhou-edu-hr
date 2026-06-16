@@ -207,12 +207,12 @@ body {
 }
 
 /* School type badge */
-.school-type-badge {
+.district-badge {
   display: inline-block; padding: 2px 8px; border-radius: 10px;
   font-size: 11px; font-weight: 500;
 }
-.school-type-badge.city { background: #DBEAFE; color: #1E40AF; }
-.school-type-badge.district { background: #FEF3C7; color: #92400E; }
+.district-badge.city { background: #DBEAFE; color: #1E40AF; }
+.district-badge.district { background: #FEF3C7; color: #92400E; }
 
 /* Table */
 .table-wrap { overflow-x: auto; }
@@ -481,7 +481,7 @@ var ROLES = {
   },
   district: {
     name: '李振华', short: '李', org: '鱼峰区教育局', role: 'district',
-    scopeLabel: '鱼峰区属学校',
+    scopeLabel: '鱼峰区学校',
     sidebar: { top: [
       { id: 'workbench', icon: 'home', label: '工作台' }, { id:'ledger', icon: 'chart', label: '编制岗位台账' }
     ], groups: [
@@ -521,32 +521,32 @@ var TYPE_MAP = { career: '事业编', control: '控制数' };
 
 // ===== DEMO DATA =====
 var DEMO_RECORDS = [
-  { id: 'RN20260510001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'career',
+  { id: 'RN20260510001', schoolName: '柳州市第八中学', district: '鱼峰区', staffingType: 'career',
     status: 'pending', submitTime: '2026-05-10 09:30:00', approveTime: null, approverRole: null,
     applicants: [{ name: '张雅琴' }], materials: { notice: ['通知书.pdf'], idCard: ['身份证.pdf'] } },
-  { id: 'RN20260511001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'control',
+  { id: 'RN20260511001', schoolName: '柳州市第八中学', district: '鱼峰区', staffingType: 'control',
     status: 'approved', submitTime: '2026-05-11 10:00:00', approveTime: '2026-05-13 14:30:00', approverRole: 'district',
     applicants: [{ name: '李思思' }, { name: '王明' }, { name: '赵丽颖' }],
     materials: { notice: ['通知书.pdf'], idCards: [['id1.pdf'], ['id2.pdf'], ['id3.pdf']] } },
-  { id: 'RN20260512001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'career',
+  { id: 'RN20260512001', schoolName: '柳州市第八中学', district: '鱼峰区', staffingType: 'career',
     status: 'rejected', submitTime: '2026-05-12 11:20:00', approveTime: null, approverRole: 'district',
     rejectReason: '材料不齐全',
     applicants: [{ name: '刘强' }], materials: { notice: [], idCard: ['身份证.pdf'] } },
-  { id: 'RN20260513001', schoolName: '鱼峰区实验小学', schoolType: '鱼峰区属', staffingType: 'career',
+  { id: 'RN20260513001', schoolName: '鱼峰区实验小学', district: '鱼峰区', staffingType: 'career',
     status: 'pending', submitTime: '2026-05-13 08:15:00', approveTime: null, approverRole: null,
     applicants: [{ name: '陈晓霞' }], materials: { notice: ['通知书.pdf'], idCard: ['身份证.pdf'] } },
-  { id: 'RN20260514001', schoolName: '柳州高级中学', schoolType: '市直属', staffingType: 'career',
+  { id: 'RN20260514001', schoolName: '柳州高级中学', district: '市直属', staffingType: 'career',
     status: 'pending', submitTime: '2026-05-14 09:00:00', approveTime: null, approverRole: null,
     applicants: [{ name: '周明远' }], materials: { notice: ['通知书.pdf'], idCard: ['身份证.pdf'] } },
-  { id: 'RN20260515001', schoolName: '柳州铁一中学', schoolType: '市直属', staffingType: 'control',
+  { id: 'RN20260515001', schoolName: '柳州铁一中学', district: '市直属', staffingType: 'control',
     status: 'approved', submitTime: '2026-05-15 14:00:00', approveTime: '2026-05-17 10:00:00', approverRole: null,
     applicants: [{ name: '赵志华' }, { name: '孙丽' }],
     materials: { notice: ['通知书.pdf'], idCards: [['id1.pdf'], ['id2.pdf']] } },
-  { id: 'RN20260516001', schoolName: '柳州市一中', schoolType: '市直属', staffingType: 'career',
+  { id: 'RN20260516001', schoolName: '柳州市一中', district: '市直属', staffingType: 'career',
     status: 'rejected', submitTime: '2026-05-16 16:30:00', approveTime: null, approverRole: null,
     rejectReason: '申请理由不充分',
     applicants: [{ name: '吴芳' }], materials: { notice: ['通知书.pdf'], idCard: ['身份证.pdf'] } },
-  { id: 'RN20260517001', schoolName: '柳州高级中学', schoolType: '市直属', staffingType: 'control',
+  { id: 'RN20260517001', schoolName: '柳州高级中学', district: '市直属', staffingType: 'control',
     status: 'approved', submitTime: '2026-05-10 08:00:00', approveTime: '2026-05-12 16:00:00', approverRole: 'city',
     applicants: [{ name: '黄志远' }, { name: '郑爽' }, { name: '杨帆' }, { name: '钱进' }],
     materials: { notice: ['通知书.pdf'], idCards: [['id1.pdf'],['id2.pdf'],['id3.pdf'],['id4.pdf']] } }
@@ -565,8 +565,8 @@ function loadRecords() {
 // ===== PERMISSION LOGIC =====
 function canApprove(record) {
   if (record.status !== 'pending') return false;
-  if (currentRole === 'district') return record.schoolType === '鱼峰区属';
-  if (currentRole === 'city') return record.schoolType === '市直属';
+  if (currentRole === 'district') return record.district === '鱼峰区';
+  if (currentRole === 'city') return record.district === '市直属';
   return false;
 }
 
@@ -589,7 +589,7 @@ function getFilteredRecords() {
 
   // Role-based scope
   if (currentRole === 'district') {
-    records = records.filter(function(r) { return r.schoolType === '鱼峰区属'; });
+    records = records.filter(function(r) { return r.district === '鱼峰区'; });
   }
   // city: all records visible (read-only for non-市直属)
 
@@ -640,7 +640,7 @@ function renderTable() {
     html += '<tr>';
     html += '<td><span style="font-weight:600;color:var(--primary);">' + r.id + '</span></td>';
     html += '<td>' + r.schoolName + '</td>';
-    html += '<td>' + (r.schoolType || '—') + '</td>';
+    html += '<td>' + (r.district || '—') + '</td>';
     html += '<td><span class="type-badge ' + r.staffingType + '">' + typeLabel + '</span></td>';
     html += '<td>' + r.submitTime.substring(0, 10) + '</td>';
     html += '<td>' + count + '人</td>';
@@ -652,7 +652,7 @@ function renderTable() {
 
     if (canApprove(r)) {
       html += '<button class="btn btn-primary btn-sm" onclick="approveRecord(\'' + r.id + '\')">审核</button>';
-    } else if (r.status === 'pending' && currentRole === 'city' && r.schoolType !== '市直属') {
+    } else if (r.status === 'pending' && currentRole === 'city' && r.district !== '市直属') {
       // City admin sees pending 区属 — show read-only hint
       html += '<span class="permission-hint">仅只读</span>';
     }
@@ -682,7 +682,7 @@ function updatePendingBadge(records) {
     badge.textContent = pending;
     badge.style.display = pending > 0 ? '' : 'none';
   } else if (currentRole === 'city') {
-    var cityPending = records.filter(function(r) { return r.status === 'pending' && r.schoolType === '市直属'; }).length;
+    var cityPending = records.filter(function(r) { return r.status === 'pending' && r.district === '市直属'; }).length;
     badge.textContent = cityPending;
     badge.style.display = cityPending > 0 ? '' : 'none';
   }
@@ -797,7 +797,7 @@ function modifyResult(id) {
 	    html += '<td><input type="checkbox"' + checked + ' onclick="onExportCheckClick(\'' + r.id.replace(/'/g, '') + '\')"></td>';
 	    html += '<td>' + r.id + '</td>';
 	    html += '<td>' + r.schoolName + '</td>';
-	    html += '<td>' + (r.schoolType || '—') + '</td>';
+	    html += '<td>' + (r.district || '—') + '</td>';
 	    html += '<td>' + (TYPE_MAP[r.staffingType] || r.staffingType) + '</td>';
 	    html += '<td>' + (r.submitTime ? r.submitTime.substring(0, 10) : '') + '</td>';
 	    html += '<td>' + (r.applicants || []).length + '</td>';
@@ -821,7 +821,7 @@ function modifyResult(id) {
 	  var rows = [['申请编号','学校名称','所属区域','编制类型','申请时间','审批时间','人数','申请人']];
 	  records.forEach(function(r) {
 	    rows.push([
-	      r.id, r.schoolName, r.schoolType || '',
+	      r.id, r.schoolName, r.district || '',
 	      TYPE_MAP[r.staffingType] || r.staffingType,
 	      r.submitTime ? r.submitTime.substring(0, 10) : '',
 	      r.approveTime ? r.approveTime.substring(0, 10) : '',

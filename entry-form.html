@@ -765,27 +765,27 @@ var ROLES = {
 // ===== SCHOOL DATA =====
 var SCHOOL_DATA = {
   '柳州市第八中学': {
-    schoolType: '鱼峰区属',
-    unitName: '柳州市第八中学',
+    district: '鱼峰区',
+    orgName: '柳州市第八中学',
     orgLevel: '正科级', orgNature: '全额拨款事业单位',
     careerStaffQuota: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
     authLeader: 5, actualLeader: 4, actualOtherLeader: 3,
     authControlNo: 16, currentControlStaff: 14
   },
   '柳州市第一中学': {
-    schoolType: '市直属',
-    unitName: '柳州市第一中学',
+    district: '市直属',
+    orgName: '柳州市第一中学',
     orgLevel: '正处级', orgNature: '全额拨款事业单位',
     careerStaffQuota: 120, currentCareerStaff: 110, unusedCareerPlan: 2,
     authLeader: 8, actualLeader: 7, actualOtherLeader: 5,
     authControlNo: 25, currentControlStaff: 22
   },
   '柳州铁一中学': {
-    schoolType: '市直属',
-    unitName: '柳州铁一中学',
+    district: '市直属',
+    orgName: '柳州铁一中学',
     creditCode: '12450200498597851Y',
     orgLevel: '其他未定级',
-    fundingSource: '全额拨款',
+    fundType: '全额拨款',
     orgNature: '全额拨款事业单位',
     careerStaffQuota: 628,
     currentCareerStaff: 584,
@@ -920,7 +920,7 @@ var careerForm = {
   name: '', gender: '', politics: '', ethnicity: '', nativeProvince: '', nativeCity: '', nativeDistrict: '',
   education: '', graduateInfo: '',
   spouseName: '', spouseWorkUnit: '',
-  previousJob: '', orgNature: '', fundingSource: '', cadreOrWorker: '', title: '',
+  previousJob: '', orgNature: '', fundType: '', cadreOrWorker: '', title: '',
   assignPosition: '', assignCategoryLevel: '', entryMethod: '统一公开招聘', docNumber: '',
   reason: ''
 };
@@ -1163,10 +1163,10 @@ function renderUnitInfo() {
 function renderDetailedUnitInfo(sd) {
   var html = '';
   html += '<table class="info-table">';
-  html += '<tr><td class="ilabel">单位全称</td><td class="ivalue" colspan="3">' + sd.unitName + '</td></tr>';
+  html += '<tr><td class="ilabel">单位全称</td><td class="ivalue" colspan="3">' + sd.orgName + '</td></tr>';
   html += '<tr><td class="ilabel">统一社会信用代码(或事登证号)</td><td class="ivalue" colspan="3">' + (sd.creditCode || '—') + '</td></tr>';
   html += '<tr><td class="ilabel">机构级别</td><td class="ivalue">' + sd.orgLevel + '</td>';
-  html += '<td class="ilabel">经费来源</td><td class="ivalue">' + (sd.fundingSource || sd.orgNature || '—') + '</td></tr>';
+  html += '<td class="ilabel">经费来源</td><td class="ivalue">' + (sd.fundType || sd.orgNature || '—') + '</td></tr>';
   html += '<tr><td class="ilabel">核定编制数(名)</td><td class="ivalue">' + sd.careerStaffQuota + '</td>';
   html += '<td class="ilabel">现有人数(人)</td><td class="ivalue">' + sd.currentCareerStaff + '</td></tr>';
   html += '</table>';
@@ -1215,7 +1215,7 @@ function renderDetailedUnitInfo(sd) {
 function renderLegacyUnitInfo(sd) {
   var html = '';
   html += '<div class="unit-grid">';
-  html += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + sd.unitName + '</div></div>';
+  html += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + sd.orgName + '</div></div>';
   html += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + sd.orgLevel + '</div></div>';
   html += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + sd.orgNature + '</div></div>';
   html += '<div class="info-item"><!-- placeholder --></div>';
@@ -1577,7 +1577,7 @@ function renderCareerForm() {
   html += '</div>';
   html += '<div class="form-grid" style="margin-top:16px;">';
   html += formField('c_orgNature', '单位性质', 'select', careerForm.orgNature, false, '', ['事业单位','行政机关','企业','其他']);
-  html += formField('c_fundingSource', '经费来源', 'select', careerForm.fundingSource, false, '', ['财政全额拨款','财政差额拨款','自收自支']);
+  html += formField('c_fundingSource', '经费来源', 'select', careerForm.fundType, false, '', ['财政全额拨款','财政差额拨款','自收自支']);
   html += formField('c_cadreOrWorker', '干部或工人', 'select', careerForm.cadreOrWorker, false, '', ['干部','工人','其他']);
   html += formField('c_title', '职务职称', 'text', careerForm.title, false, '如：一级教师');
   html += '</div>';
@@ -2334,7 +2334,7 @@ function submitForm() {
   var record = {
     id: isEditMode ? editRecordId : newId,
     schoolName: schoolName,
-    schoolType: SCHOOL_DATA[schoolName] ? SCHOOL_DATA[schoolName].schoolType : '鱼峰区属',
+    district: SCHOOL_DATA[schoolName] ? SCHOOL_DATA[schoolName].district : '鱼峰区',
     staffingType: staffingType,
     controlType: staffingType === 'control' ? controlType : null,
     status: 'pending',
@@ -2350,7 +2350,7 @@ function submitForm() {
 
   // Unit info
   var sd = SCHOOL_DATA[schoolName] || SCHOOL_DATA['柳州市第八中学'];
-  record.unitName = sd.unitName;
+  record.orgName = sd.orgName;
   if (staffingType === 'career') {
     record.orgLevel = sd.orgLevel; record.orgNature = sd.orgNature;
     record.careerStaffQuota = sd.careerStaffQuota; record.currentCareerStaff = sd.currentCareerStaff;
@@ -2362,7 +2362,7 @@ function submitForm() {
       education: careerForm.education, graduateInfo: careerForm.graduateInfo,
       spouseName: careerForm.spouseName, spouseWorkUnit: careerForm.spouseWorkUnit,
       previousJob: careerForm.previousJob, orgNature: careerForm.orgNature,
-      fundingSource: careerForm.fundingSource, cadreOrWorker: careerForm.cadreOrWorker,
+      fundType: careerForm.fundType, cadreOrWorker: careerForm.cadreOrWorker,
       title: careerForm.title, assignPosition: careerForm.assignPosition,
       assignCategoryLevel: careerForm.assignCategoryLevel,
       entryMethod: careerForm.entryMethod, docNumber: careerForm.docNumber,
@@ -2478,7 +2478,7 @@ function goBack() {
           education: app.education || '', graduateInfo: app.graduateInfo || '',
           spouseName: app.spouseName || '', spouseWorkUnit: app.spouseWorkUnit || '',
           previousJob: app.previousJob || '', orgNature: app.orgNature || '',
-          fundingSource: app.fundingSource || '', cadreOrWorker: app.cadreOrWorker || '',
+          fundType: app.fundType || '', cadreOrWorker: app.cadreOrWorker || '',
           title: app.title || '', assignPosition: app.assignPosition || '',
           assignCategoryLevel: app.assignCategoryLevel || '',
           entryMethod: app.entryMethod || '', docNumber: app.docNumber || '',

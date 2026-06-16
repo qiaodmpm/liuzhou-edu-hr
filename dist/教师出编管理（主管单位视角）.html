@@ -394,6 +394,7 @@ body {
           <tr>
             <th>申请编号</th>
             <th>学校名称</th>
+            <th>所属区域</th>
             <th>编制类型</th>
             <th>申请时间</th>
             <th>人数</th>
@@ -479,7 +480,7 @@ var ROLES = {
   },
   district: {
     name: '李振华', short: '李', org: '鱼峰区教育局', role: 'district',
-    scopeLabel: '鱼峰区属学校',
+    scopeLabel: '鱼峰区学校',
     sidebar: { top: [
       { id: 'workbench', icon: 'home', label: '工作台' }, { id:'ledger', icon: 'chart', label: '编制岗位台账' }
     ], groups: [
@@ -520,46 +521,46 @@ var TYPE_MAP = { career: '事业编', control: '控制数' };
 // ===== DEMO DATA =====
 var DEMO_RECORDS = [
   {
-    id: 'OC20260510001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'career',
+    id: 'OC20260510001', schoolName: '柳州市第八中学', district: '鱼峰区', staffingType: 'career',
     careerStaffType: '事业编制',
     careerStaffQuota: 88, currentCareerStaff: 80, unusedCareerPlan: 1,
     status: 'pending', submitTime: '2026-05-10 09:30:00', approveTime: null, approverRole: null,
     applicants: [{ seq: 1, name: '张雅琴', gender: '女', exitForm: '退休' }]
   },
   {
-    id: 'OC20260511001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'control',
+    id: 'OC20260511001', schoolName: '柳州市第八中学', district: '鱼峰区', staffingType: 'control',
     controlType: '中小学校聘用教师控制数',
     authControlNo: 16, currentControlStaff: 14,
     status: 'approved', submitTime: '2026-05-11 10:00:00', approveTime: '2026-05-13 14:30:00', approverRole: 'district',
     applicants: [{ seq: 1, name: '李思思', exitForm: '辞职' }, { seq: 2, name: '王明', exitForm: '退休' }]
   },
   {
-    id: 'OC20260512001', schoolName: '柳州市第八中学', schoolType: '鱼峰区属', staffingType: 'career',
+    id: 'OC20260512001', schoolName: '柳州市第八中学', district: '鱼峰区', staffingType: 'career',
     careerStaffType: '行政编制',
     status: 'rejected', submitTime: '2026-05-12 11:20:00', approveTime: null, approverRole: 'district',
     rejectReason: '材料不齐全，缺少出编申请表',
     applicants: [{ seq: 1, name: '刘强', exitForm: '调动' }]
   },
   {
-    id: 'OC20260513001', schoolName: '鱼峰区实验小学', schoolType: '鱼峰区属', staffingType: 'career',
+    id: 'OC20260513001', schoolName: '鱼峰区实验小学', district: '鱼峰区', staffingType: 'career',
     careerStaffType: '事业编制',
     status: 'pending', submitTime: '2026-05-13 08:15:00', approveTime: null, approverRole: null,
     applicants: [{ seq: 1, name: '陈晓霞', exitForm: '退休' }]
   },
   {
-    id: 'OC20260514001', schoolName: '柳州高级中学', schoolType: '市直属', staffingType: 'career',
+    id: 'OC20260514001', schoolName: '柳州高级中学', district: '市直属', staffingType: 'career',
     careerStaffType: '事业编制',
     status: 'pending', submitTime: '2026-05-14 09:00:00', approveTime: null, approverRole: null,
     applicants: [{ seq: 1, name: '周明远', exitForm: '调动' }]
   },
   {
-    id: 'OC20260515001', schoolName: '柳州铁一中学', schoolType: '市直属', staffingType: 'control',
+    id: 'OC20260515001', schoolName: '柳州铁一中学', district: '市直属', staffingType: 'control',
     controlType: '中小学校聘用教师控制数',
     status: 'approved', submitTime: '2026-05-15 14:00:00', approveTime: '2026-05-17 10:00:00', approverRole: 'city',
     applicants: [{ seq: 1, name: '赵志华', exitForm: '解除控制数聘用关系' }, { seq: 2, name: '孙丽', exitForm: '亡故' }]
   },
   {
-    id: 'OC20260516001', schoolName: '柳州市一中', schoolType: '市直属', staffingType: 'career',
+    id: 'OC20260516001', schoolName: '柳州市一中', district: '市直属', staffingType: 'career',
     careerStaffType: '事业编制',
     status: 'rejected', submitTime: '2026-05-16 16:30:00', approveTime: null, approverRole: 'city',
     rejectReason: '出编依据不充分，请补充材料',
@@ -580,8 +581,8 @@ function loadRecords() {
 // ===== PERMISSION LOGIC =====
 function canApprove(record) {
   if (record.status !== 'pending') return false;
-  if (currentRole === 'district') return record.schoolType === '鱼峰区属';
-  if (currentRole === 'city') return record.schoolType === '市直属';
+  if (currentRole === 'district') return record.district === '鱼峰区';
+  if (currentRole === 'city') return record.district === '市直属';
   return false;
 }
 
@@ -590,7 +591,7 @@ function getFilteredRecords() {
   var records = loadRecords();
 
   if (currentRole === 'district') {
-    records = records.filter(function(r) { return r.schoolType === '鱼峰区属'; });
+    records = records.filter(function(r) { return r.district === '鱼峰区'; });
   }
 
   if (currentFilter !== 'all') {
@@ -632,11 +633,11 @@ function renderTable() {
     var typeLabel = TYPE_MAP[r.staffingType] || r.staffingType;
     var statusLabel = STATUS_MAP[r.status] || r.status;
     var count = r.applicants ? r.applicants.length : 0;
-    var schoolTypeLabel = r.schoolType === '市直属' ? '市直属' : '区属';
 
     html += '<tr>';
     html += '<td><span style="font-weight:600;color:var(--primary);">' + r.id + '</span></td>';
-    html += '<td>' + r.schoolName + ' <span class="school-type-badge ' + (r.schoolType === '市直属' ? 'city' : 'district') + '">' + schoolTypeLabel + '</span></td>';
+    html += '<td>' + r.schoolName + '</td>';
+    html += '<td>' + (r.district || '—') + '</td>';
     html += '<td><span class="type-badge ' + r.staffingType + '">' + typeLabel + '</span></td>';
     html += '<td>' + r.submitTime.substring(0, 10) + '</td>';
     html += '<td>' + count + '人</td>';
@@ -647,7 +648,7 @@ function renderTable() {
 
     if (canApprove(r)) {
       html += '<button class="btn btn-primary btn-sm" onclick="approveRecord(\'' + r.id + '\')">审核</button>';
-    } else if (r.status === 'pending' && currentRole === 'city' && r.schoolType !== '市直属') {
+    } else if (r.status === 'pending' && currentRole === 'city' && r.district !== '市直属') {
       html += '<span class="permission-hint">仅只读</span>';
     }
 
@@ -668,7 +669,7 @@ function updatePendingBadge(records) {
     badge.textContent = pending;
     badge.style.display = pending > 0 ? '' : 'none';
   } else if (currentRole === 'city') {
-    var cityPending = records.filter(function(r) { return r.status === 'pending' && r.schoolType === '市直属'; }).length;
+    var cityPending = records.filter(function(r) { return r.status === 'pending' && r.district === '市直属'; }).length;
     badge.textContent = cityPending;
     badge.style.display = cityPending > 0 ? '' : 'none';
   }
@@ -768,7 +769,7 @@ function renderExportList(records) {
   html += '<div style="max-height:50vh;overflow-y:auto;">';
   html += '<table class="export-table"><thead><tr>';
   html += '<th style="width:40px;"><input type="checkbox" ' + (selectedCount === records.length && records.length > 0 ? 'checked' : '') + ' onclick="toggleSelectAllExport(this.checked)"></th>';
-  html += '<th>申请编号</th><th>学校名称</th><th>编制类型</th><th>申请时间</th><th>人数</th></tr></thead><tbody>';
+  html += '<th>申请编号</th><th>学校名称</th><th>所属区域</th><th>编制类型</th><th>申请时间</th><th>人数</th></tr></thead><tbody>';
 
   records.forEach(function(r) {
     var checked = exportSelection[r.id] ? ' checked' : '';
@@ -776,6 +777,7 @@ function renderExportList(records) {
     html += '<td><input type="checkbox"' + checked + ' onclick="onExportCheckClick(\'' + r.id + '\')"></td>';
     html += '<td>' + r.id + '</td>';
     html += '<td>' + r.schoolName + '</td>';
+    html += '<td>' + (r.district || '—') + '</td>';
     html += '<td>' + (TYPE_MAP[r.staffingType] || r.staffingType) + '</td>';
     html += '<td>' + (r.submitTime ? r.submitTime.substring(0, 10) : '') + '</td>';
     html += '<td>' + (r.applicants || []).length + '</td>';
@@ -796,10 +798,10 @@ function doExport() {
   var records = getApprovedRecords().filter(function(r) { return exportSelection[r.id]; });
   if (records.length === 0) { showToast('请至少选择一条记录', 'warning'); return; }
 
-  var rows = [['申请编号','学校名称','编制类型','申请时间','审批时间','人数','出编人员']];
+  var rows = [['申请编号','学校名称','所属区域','编制类型','申请时间','审批时间','人数','出编人员']];
   records.forEach(function(r) {
     rows.push([
-      r.id, r.schoolName,
+      r.id, r.schoolName, r.district || '—',
       TYPE_MAP[r.staffingType] || r.staffingType,
       r.submitTime ? r.submitTime.substring(0, 10) : '',
       r.approveTime ? r.approveTime.substring(0, 10) : '',
