@@ -126,7 +126,7 @@ window.onerror=function(msg,url,line){var d=document.createElement('div');d.styl
 
 var ICONS={home:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',chart:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',file:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'};
 var MENU_ICONS={workbench:'home',employ:'file'};
-var ROLES={school:{name:'王玉兰',short:'校',sidebar:{top:[{id:'workbench',icon:'home',label:'工作台'}],groups:[{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]}]}}};
+var ROLES={school:{name:'王玉兰',short:'校',sidebar:{top:[{id:'workbench',icon:'home',label:'工作台'}],groups:[{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]}]}}};
 var currentRecord=null;var hrUploadedFiles=[];
 
 function escapeHtml(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -152,14 +152,15 @@ function sidebarClick(el, id) {
   if (id === 'promote') { window.location.href = 'promote-list-school.html'; return; }
   if (id === 'recruit') { window.location.href = 'recruit-list-school.html'; return; }
   if (id === 'employ') { window.location.href = 'employ-list-school.html'; return; }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
   if (id === 'retire') { showToast('退休呈报页面开发中'); return; }
-  if (id === 'salary') { showToast('工资核定申请页面开发中'); return; }
   if (id === 'ethics') { showToast('师德师风举报页面开发中'); return; }
-  if (id === 'honor') { showToast('荣誉申请页面开发中'); return; }
   if (id === 'account') { window.location.href = 'account-management.html'; return; }
   else if (id === 'ledger') { var _r3 = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (_r3 === 'city' || _r3 === 'district') ? 'org-ledger-admin.html' : _r3 === 'school' ? 'org-ledger-school.html' : 'workbench.html'; }
 
   if (id === 'dashboard') { showToast('编制岗位台账页面开发中'); return; }
+  else if (id === 'org') { window.location.href = 'org-management.html'; }
   showToast('跳转至：' + (el.textContent || id));
 }
 function renderSidebar(){

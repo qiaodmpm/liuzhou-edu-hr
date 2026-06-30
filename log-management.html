@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>操作日志 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+/* Top Nav */
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+/* Sidebar */
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); margin-top: auto; }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.system { background: #EF4444; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+/* Main */
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.page-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+.page-header h1 { font-size: 20px; font-weight: 700; }
+.page-header .subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.btn-xs-primary { background: var(--primary); color: #fff; }
+.btn-xs-primary:hover { background: var(--primary-dark); }
+.btn-xs-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-xs-outline:hover { background: var(--gray-bg); }
+/* Stats cards */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-sm); }
+.stat-card .stat-label { font-size: 12px; color: var(--text-light); margin-bottom: 4px; }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
+.stat-card .stat-sub { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+.stat-card.success .stat-value { color: var(--success); }
+.stat-card.danger .stat-value { color: var(--danger); }
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .stats-row { grid-template-columns: 1fr; } }
+/* Filter */
+.filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-bar select, .filter-bar input { padding: 7px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; color: var(--text); }
+.filter-bar input { width: 160px; }
+.filter-bar select { min-width: 100px; }
+.filter-bar input:focus, .filter-bar select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.filter-bar .date-range { display: flex; align-items: center; gap: 4px; }
+.filter-bar .date-range input { width: 130px; }
+.filter-bar .date-range span { font-size: 12px; color: var(--text-light); }
+/* Table */
+.list-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.list-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+.list-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tr:hover { background: #FAFBFC; }
+.list-table .col-name { text-align: left; font-weight: 500; }
+.list-table th.col-name { text-align: left; }
+.list-table .col-time { color: var(--text-secondary); font-size: 12px; }
+.list-table .col-detail { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 12px; }
+/* Status badges */
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.status-badge.success { background: #D1FAE5; color: #065F46; }
+.status-badge.fail { background: #FEE2E2; color: #991B1B; }
+/* Module tag */
+.module-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; background: #EFF6FF; color: #1E40AF; }
+/* Action type tag */
+.action-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.action-tag.create { background: #D1FAE5; color: #065F46; }
+.action-tag.update { background: #DBEAFE; color: #1E40AF; }
+.action-tag.delete { background: #FEE2E2; color: #991B1B; }
+.action-tag.submit { background: #EFF6FF; color: #1E40AF; }
+.action-tag.approve { background: #D1FAE5; color: #065F46; }
+.action-tag.reject { background: #FEF3C7; color: #92400E; }
+.action-tag.disable { background: #FEE2E2; color: #991B1B; }
+.action-tag.enable { background: #D1FAE5; color: #065F46; }
+.action-tag.login { background: #EFF6FF; color: #1E40AF; }
+.action-tag.logout { background: #F1F5F9; color: #64748B; }
+.action-tag.reset_pwd { background: #FEF3C7; color: #92400E; }
+.action-tag.export { background: #EDE9FE; color: #6D28D9; }
+.action-tag.revoke { background: #FEE2E2; color: #991B1B; }
+/* Pagination */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; flex-wrap: wrap; }
+.pagination button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-secondary); transition: var(--transition); }
+.pagination button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+.pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+.pagination .page-info { font-size: 12px; color: var(--text-light); margin: 0 8px; }
+/* Modal */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 90%; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; font-size: 18px; cursor: pointer; color: var(--text-light); transition: var(--transition); display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: var(--gray-bg); color: var(--text); }
+.modal-body { padding: 16px 24px; max-height: 60vh; overflow-y: auto; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 0 24px 20px; }
+/* Detail table */
+.detail-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.detail-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.detail-table td:first-child { width: 120px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+.detail-table td:last-child { color: var(--text); }
+/* Change log table (inside detail) */
+.change-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+.change-table th { padding: 6px 10px; text-align: left; font-weight: 600; font-size: 11px; color: var(--text-secondary); background: #F8FAFC; border: 1px solid var(--border); }
+.change-table td { padding: 6px 10px; border: 1px solid var(--border); }
+/* Toast */
+.toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; font-weight: 500; opacity: 0; transform: translateY(-10px); transition: var(--transition); pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.warning { background: var(--warning); }
+.toast.error { background: var(--danger); }
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text-light); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 13px; }
+/* Export modal */
+.export-option { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; margin-bottom: 8px; transition: var(--transition); }
+.export-option:hover { border-color: var(--accent); background: var(--primary-light); }
+.export-option.selected { border-color: var(--primary); background: var(--primary-light); }
+.export-option input[type="radio"] { accent-color: var(--primary); }
+.export-option label { font-size: 13px; cursor: pointer; flex: 1; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+.form-group select { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; }
+/* Multi-select dropdown */
+.multi-select { position: relative; display: inline-block; }
+.multi-select-btn { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; background: #fff; cursor: pointer; font-family: inherit; min-width: 120px; text-align: left; color: var(--text); white-space: nowrap; }
+.multi-select-btn:hover { border-color: var(--accent); }
+.multi-select-drop { display: none; position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 50; min-width: 140px; max-height: 240px; overflow-y: auto; margin-top: 2px; padding: 2px 0; }
+.multi-select-drop.show { display: block; }
+.multi-select-drop label { display: block; padding: 4px 8px; font-size: 12px; cursor: pointer; transition: var(--transition); white-space: nowrap; }
+.multi-select-drop label input[type="checkbox"] { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border: 1.5px solid #CBD5E1; border-radius: 2px; margin: 0 4px 0 0; padding: 0; vertical-align: -2px; cursor: pointer; position: relative; flex-shrink: 0; background: #fff; }
+.multi-select-drop label input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
+.multi-select-drop label input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 2.5px; top: 0px; width: 4px; height: 7px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.multi-select-drop label:hover { background: var(--gray-bg); }
+.multi-select-drop input[type="checkbox"] { accent-color: var(--primary); }
+/* Org search dropdown */
+.search-select { position: relative; display: inline-block; }
+.search-select-drop { display: none; position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 50; max-height: 200px; overflow-y: auto; margin-top: 4px; min-width: 160px; }
+.search-select-drop.show { display: block; }
+.search-select-drop .option { padding: 6px 12px; font-size: 12px; cursor: pointer; transition: var(--transition); }
+.search-select-drop .option:hover { background: var(--gray-bg); }
+</style>
+</head>
+<body>
+
+<!-- Top Nav -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell" onclick="showToast('暂无新消息','warning')">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">0</span>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">赵</div>
+      <span id="userName">赵建国</span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="personal-center.html">个人中心</a>
+        <div class="divider"></div>
+        <a class="logout" href="index.html" onclick="localStorage.clear()">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <span>收起菜单</span>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main" id="mainContent">
+  <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; 系统设置 &nbsp;/&nbsp; <span>操作日志</span></div>
+  <div class="page-header">
+    <div>
+      <h1>操作日志</h1>
+      <div class="subtitle" id="pageSubtitle">全平台操作审计追踪</div>
+    </div>
+    <button class="btn btn-outline" onclick="openExportModal()">📥 导出日志</button>
+  </div>
+
+  <!-- Stats cards -->
+  <div class="stats-row" id="statsRow"></div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar" id="filterBar">
+    <input type="text" id="fOperator" placeholder="操作人姓名" oninput="onFilterChange()">
+    <div class="search-select" id="orgSearchWrap">
+      <input type="text" id="fOrg" placeholder="所属单位" oninput="onOrgSearchInput()" onfocus="onOrgSearchFocus()" autocomplete="off" style="width:180px;">
+      <div class="search-select-drop" id="orgSearchDrop"></div>
+    </div>
+    <select id="fDistrict" onchange="onFilterChange()"><option value="all">全部区域</option></select>
+    <div class="multi-select" id="moduleMultiSelect">
+      <button class="multi-select-btn" id="moduleSelectBtn" onclick="toggleModuleDrop()">功能模块 ▾</button>
+      <div class="multi-select-drop" id="moduleDrop"></div>
+    </div>
+    <select id="fActionType" onchange="onFilterChange()"><option value="all">全部操作类型</option></select>
+    <select id="fResult" onchange="onFilterChange()"><option value="all">全部结果</option><option value="success">成功</option><option value="fail">失败</option></select>
+    <div class="date-range">
+      <input type="date" id="fDateStart" onchange="onFilterChange()">
+      <span>至</span>
+      <input type="date" id="fDateEnd" onchange="onFilterChange()">
+    </div>
+    <button class="btn btn-sm btn-outline" onclick="resetFilters()">重置</button>
+  </div>
+
+  <!-- Log table -->
+  <div class="list-card">
+    <div class="table-scroll">
+      <table class="list-table" id="logTable"></table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <p>暂无匹配的操作日志</p>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <h3>操作日志详情</h3>
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>导出操作日志</h3>
+      <button class="modal-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>导出格式</label>
+        <div class="export-option selected" id="exportOptCsv" onclick="selectExportFormat('csv')">
+          <input type="radio" name="exportFormat" value="csv" checked>
+          <label>CSV (.csv) — 可直接用 Excel 打开</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>导出范围</label>
+        <select id="exportScope" onchange="onExportScopeChange()">
+          <option value="filtered">当前筛选结果</option>
+          <option value="all">全部日志</option>
+        </select>
+      </div>
+      <div class="form-group" id="exportDateGroup" style="display:none;">
+        <label>时间范围（全部日志时可选）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="date" id="exportDateStart" style="flex:1;padding:7px 10px;font-size:12px;border:1px solid var(--border);border-radius:6px;font-family:inherit;">
+          <span style="font-size:12px;color:var(--text-light);">至</span>
+          <input type="date" id="exportDateEnd" style="flex:1;padding:7px 10px;font-size:12px;border:1px solid var(--border);border-radius:6px;font-family:inherit;">
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text-light);margin-top:8px;" id="exportCountHint">将导出当前筛选的日志数据</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeExportModal()">取消</button>
+      <button class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="src/menu-config.js"></script>
+<script src="src/logger.js"></script>
+<script>
+// ========== DATA ==========
+
+var MODULE_OPTIONS = [
+  { value: 'org', label: '机构管理' },
+  { value: 'account', label: '账号管理' },
+  { value: 'perm', label: '角色权限' },
+  { value: 'menu', label: '菜单管理' },
+  { value: 'log', label: '操作日志' },
+  { value: 'system', label: '系统设置' },
+  { value: 'staffing', label: '编制使用申请' },
+  { value: 'entry', label: '教师入编' },
+  { value: 'exit', label: '教师出编' },
+  { value: 'promote', label: '岗位晋升' },
+  { value: 'post', label: '岗位设置' },
+  { value: 'recruit', label: '招聘' },
+  { value: 'employ', label: '聘用手续' },
+  { value: 'retire', label: '退休呈报' },
+  { value: 'salary', label: '工资核定' },
+  { value: 'ethics', label: '师德师风举报' },
+  { value: 'honor', label: '荣誉申请' }
+];
+
+var ACTION_TYPE_OPTIONS = [
+  { value: 'login', label: '登录' },
+  { value: 'logout', label: '登出' },
+  { value: 'create', label: '新增' },
+  { value: 'update', label: '修改' },
+  { value: 'delete', label: '删除' },
+  { value: 'submit', label: '提交' },
+  { value: 'approve', label: '审核通过' },
+  { value: 'reject', label: '审核驳回' },
+  { value: 'revoke', label: '撤回' },
+  { value: 'disable', label: '停用' },
+  { value: 'enable', label: '启用' },
+  { value: 'reset_pwd', label: '重置密码' },
+  { value: 'export', label: '导出' }
+];
+
+var DISTRICTS = ['市直属','城中区','鱼峰区','柳南区','柳北区','柳江区','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县'];
+
+var currentUser = {};
+var allLogs = [];
+var filteredLogs = [];
+var currentPage = 1;
+var pageSize = 20;
+var selectedModules = [];
+var exportFormat = 'csv';
+
+// ========== DEMO DATA GENERATION ==========
+
+var DEMO_OPERATORS = [
+  { id: 'SYS001', name: '赵建国', role: 'system', orgId: '', orgName: '柳州教育人事管理平台', orgDistrict: '' },
+  { id: 'C001', name: '张建国', role: 'city', orgId: 'gxlzh-00-001', orgName: '柳州市教育局', orgDistrict: '市直属' },
+  { id: 'D001', name: '李振华', role: 'district', orgId: 'gxlzh-08-001', orgName: '鱼峰区教育局', orgDistrict: '鱼峰区' },
+  { id: 'D002', name: '韦芳', role: 'district', orgId: 'gxlzh-07-001', orgName: '城中区教育局', orgDistrict: '城中区' },
+  { id: 'S001', name: '王玉兰', role: 'school', orgId: 'gxlzh-08-002', orgName: '柳州市第八中学', orgDistrict: '鱼峰区' },
+  { id: 'S002', name: '陈桂芝', role: 'school', orgId: 'gxlzh-00-002', orgName: '柳州高级中学', orgDistrict: '市直属' },
+  { id: 'T001', name: '陈明辉', role: 'teacher', orgId: 'gxlzh-08-002', orgName: '柳州市第八中学', orgDistrict: '鱼峰区' },
+  { id: 'T002', name: '林小红', role: 'teacher', orgId: 'gxlzh-00-002', orgName: '柳州高级中学', orgDistrict: '市直属' }
+];
+
+var DEMO_TARGETS = {
+  org: [
+    { type: 'org', id: 'gxlzh-08-002', name: '柳州市第八中学' },
+    { type: 'org', id: 'gxlzh-00-002', name: '柳州高级中学' },
+    { type: 'org', id: 'gxlzh-07-001', name: '城中区教育局' }
+  ],
+  account: [
+    { type: 'account', id: 'T001', name: '陈明辉' },
+    { type: 'account', id: 'S001', name: '王玉兰' },
+    { type: 'account', id: 'D001', name: '李振华' }
+  ],
+  perm: [
+    { type: 'role', id: 'role_1', name: '系统管理员' },
+    { type: 'role', id: 'role_2', name: '校管理员' }
+  ],
+  entry: [
+    { type: 'application', id: 'ENT_001', name: '入编申请-张三' },
+    { type: 'application', id: 'ENT_002', name: '入编申请-李四' }
+  ],
+  promote: [
+    { type: 'application', id: 'PRO_001', name: '岗位晋升-王五' }
+  ]
+};
+
+function generateDemoLogs() {
+  var logs = [];
+  var now = new Date();
+  var actionPatterns = [
+    { module: 'org', actionType: 'create', result: 'success', detailTpl: '新增机构：{target}' },
+    { module: 'org', actionType: 'update', result: 'success', detailTpl: '修改了单位主管、联系电话' },
+    { module: 'org', actionType: 'update', result: 'success', detailTpl: '修改了单位地址、邮编' },
+    { module: 'org', actionType: 'disable', result: 'success', detailTpl: '停用机构：{target}' },
+    { module: 'org', actionType: 'enable', result: 'success', detailTpl: '启用机构：{target}' },
+    { module: 'account', actionType: 'create', result: 'success', detailTpl: '新增账号：{target}' },
+    { module: 'account', actionType: 'update', result: 'success', detailTpl: '修改了账号角色、所属单位' },
+    { module: 'account', actionType: 'update', result: 'success', detailTpl: '修改了手机号' },
+    { module: 'account', actionType: 'reset_pwd', result: 'success', detailTpl: '重置密码' },
+    { module: 'account', actionType: 'disable', result: 'success', detailTpl: '停用账号：{target}' },
+    { module: 'account', actionType: 'enable', result: 'success', detailTpl: '启用账号：{target}' },
+    { module: 'perm', actionType: 'create', result: 'success', detailTpl: '新增角色：{target}' },
+    { module: 'perm', actionType: 'update', result: 'success', detailTpl: '修改了角色权限配置' },
+    { module: 'perm', actionType: 'update', result: 'fail', detailTpl: '修改角色权限', failReason: '权限不足' },
+    { module: 'perm', actionType: 'disable', result: 'success', detailTpl: '停用角色：{target}' },
+    { module: 'perm', actionType: 'delete', result: 'success', detailTpl: '删除角色：{target}' },
+    { module: 'entry', actionType: 'submit', result: 'success', detailTpl: '提交入编申请：{target}' },
+    { module: 'entry', actionType: 'approve', result: 'success', detailTpl: '审核通过入编申请：{target}' },
+    { module: 'entry', actionType: 'reject', result: 'success', detailTpl: '驳回入编申请：{target}' },
+    { module: 'promote', actionType: 'submit', result: 'success', detailTpl: '提交岗位晋升申请：{target}' },
+    { module: 'promote', actionType: 'approve', result: 'success', detailTpl: '审核通过岗位晋升申请：{target}' },
+    { module: 'promote', actionType: 'reject', result: 'fail', detailTpl: '审核驳回岗位晋升申请', failReason: '超出编制余量' },
+    { module: 'staffing', actionType: 'submit', result: 'success', detailTpl: '提交编制使用申请' },
+    { module: 'staffing', actionType: 'approve', result: 'success', detailTpl: '审核通过编制使用申请' },
+    { module: 'recruit', actionType: 'submit', result: 'success', detailTpl: '提交招聘岗位申请' },
+    { module: 'recruit', actionType: 'approve', result: 'success', detailTpl: '审核通过招聘岗位申请' },
+    { module: 'exit', actionType: 'submit', result: 'success', detailTpl: '提交教师出编申请' },
+    { module: 'exit', actionType: 'approve', result: 'success', detailTpl: '审核通过教师出编申请' },
+    { module: 'post', actionType: 'submit', result: 'success', detailTpl: '提交岗位设置申请' },
+    { module: 'employ', actionType: 'submit', result: 'success', detailTpl: '提交聘用手续申请' },
+    { module: 'system', actionType: 'login', result: 'success', detailTpl: '用户登录' },
+    { module: 'system', actionType: 'login', result: 'fail', detailTpl: '用户登录', failReason: '密码错误' },
+    { module: 'system', actionType: 'logout', result: 'success', detailTpl: '用户登出' },
+    { module: 'log', actionType: 'export', result: 'success', detailTpl: '导出操作日志' }
+  ];
+
+  for (var i = 0; i < 50; i++) {
+    var pattern = actionPatterns[i % actionPatterns.length];
+    var op = DEMO_OPERATORS[i % DEMO_OPERATORS.length];
+    var targetPool = DEMO_TARGETS[pattern.module] || DEMO_TARGETS['org'];
+    var target = targetPool[i % targetPool.length] || { type: 'org', id: 'ORG_000', name: '未知' };
+    var logDate = new Date(now.getTime() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000));
+    var h = String(Math.floor(Math.random() * 9) + 8).padStart(2, '0');
+    var m = String(Math.floor(Math.random() * 60)).padStart(2, '0');
+    var s = String(Math.floor(Math.random() * 60)).padStart(2, '0');
+    var ip = '192.168.' + Math.floor(Math.random() * 256) + '.' + Math.floor(Math.random() * 256);
+    var detail = pattern.detailTpl.replace('{target}', target.name);
+
+    logs.push({
+      id: 'demo_log_' + i,
+      operatorId: op.id,
+      operatorName: op.name,
+      operatorRole: op.role,
+      orgId: op.orgId,
+      orgName: op.orgName,
+      orgDistrict: op.orgDistrict,
+      module: pattern.module,
+      actionType: pattern.actionType,
+      actionName: getActionName(pattern.actionType),
+      targetType: target.type,
+      targetId: target.id,
+      targetName: target.name,
+      detail: detail,
+      result: pattern.result,
+      failReason: pattern.failReason || '',
+      ip: ip,
+      createdAt: formatLogTime(logDate, h, m, s)
+    });
+  }
+
+  // Sort by time desc
+  logs.sort(function(a, b) { return b.createdAt.localeCompare(a.createdAt); });
+  return logs;
+}
+
+function formatLogTime(date, h, m, s) {
+  var y = date.getFullYear();
+  var M = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return y + '-' + M + '-' + d + ' ' + (h || '00') + ':' + (m || '00') + ':' + (s || '00');
+}
+
+function getActionName(actionType) {
+  var map = {
+    'login': '登录', 'logout': '登出', 'create': '新增', 'update': '修改',
+    'delete': '删除', 'submit': '提交', 'approve': '审核通过', 'reject': '审核驳回',
+    'revoke': '撤回', 'disable': '停用', 'enable': '启用', 'reset_pwd': '重置密码', 'export': '导出'
+  };
+  return map[actionType] || actionType;
+}
+
+function getModuleName(module) {
+  var m = MODULE_OPTIONS.filter(function(o) { return o.value === module; });
+  return m.length ? m[0].label : module;
+}
+
+// ========== INIT ==========
+
+function init() {
+  var raw = localStorage.getItem('currentUser');
+  if (raw) {
+    try { currentUser = JSON.parse(raw); } catch(e) {}
+  }
+  if (!currentUser || !currentUser.role) {
+    currentUser = { role: 'system', name: '赵建国', id: 'SYS001' };
+  }
+
+  // System admin only
+  if (currentUser.role !== 'system') {
+    document.getElementById('mainContent').innerHTML =
+      '<div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>操作日志</span></div>' +
+      '<div style="text-align:center;padding:60px;color:var(--text-light);background:#fff;border-radius:var(--radius-lg);border:1px solid var(--border);">' +
+      '<p style="font-size:16px;">您无权访问操作日志</p>' +
+      '<p style="font-size:13px;margin-top:8px;">仅系统管理员可查看操作日志</p></div>';
+    return;
+  }
+
+  updateUserDisplay();
+  renderSidebar();
+  loadLogs();
+  initFilterOptions();
+  applyFilters();
+}
+
+function loadLogs() {
+  // Try localStorage first, fall back to demo data
+  var raw = localStorage.getItem('operation_logs');
+  if (raw) {
+    try { allLogs = JSON.parse(raw); } catch(e) { allLogs = []; }
+  }
+  if (!allLogs || !allLogs.length) {
+    allLogs = generateDemoLogs();
+    localStorage.setItem('operation_logs', JSON.stringify(allLogs));
+  }
+}
+
+function initFilterOptions() {
+  // District dropdown
+  var distHtml = '<option value="all">全部区域</option>';
+  for (var i = 0; i < DISTRICTS.length; i++) {
+    distHtml += '<option value="' + escapeAttr(DISTRICTS[i]) + '">' + escapeHtml(DISTRICTS[i]) + '</option>';
+  }
+  document.getElementById('fDistrict').innerHTML = distHtml;
+
+  // Action type dropdown
+  var atHtml = '<option value="all">全部操作类型</option>';
+  for (var j = 0; j < ACTION_TYPE_OPTIONS.length; j++) {
+    atHtml += '<option value="' + ACTION_TYPE_OPTIONS[j].value + '">' + ACTION_TYPE_OPTIONS[j].label + '</option>';
+  }
+  document.getElementById('fActionType').innerHTML = atHtml;
+
+  // Module multi-select
+  var modHtml = '';
+  for (var k = 0; k < MODULE_OPTIONS.length; k++) {
+    modHtml += '<label><input type="checkbox" value="' + MODULE_OPTIONS[k].value + '" onchange="onModuleCheckChange()">' + MODULE_OPTIONS[k].label + '</label>';
+  }
+  document.getElementById('moduleDrop').innerHTML = modHtml;
+
+  // Date range: default last 30 days
+  var now = new Date();
+  var thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  document.getElementById('fDateEnd').value = formatDate(now);
+  document.getElementById('fDateStart').value = formatDate(thirtyDaysAgo);
+}
+
+function formatDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// ========== SIDEBAR ==========
+
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', 'system', 'log');
+}
+
+function sidebarClick(id) {
+  var ROUTES = {
+    account: 'account-management.html',
+    org: 'org-management.html',
+    menuMgr: 'workbench.html',
+    perm: 'perm-management.html',
+    log: 'log-management.html'
+  };
+  if (id === 'menuMgr') { window.location.href = 'menu-management.html'; return; }
+  var dest = ROUTES[id];
+  if (dest) { window.location.href = dest; }
+}
+
+// ========== FILTER ==========
+
+function onFilterChange() {
+  currentPage = 1;
+  applyFilters();
+}
+
+function onModuleCheckChange() {
+  var checks = document.querySelectorAll('#moduleDrop input[type="checkbox"]');
+  selectedModules = [];
+  for (var i = 0; i < checks.length; i++) {
+    if (checks[i].checked) selectedModules.push(checks[i].value);
+  }
+  updateModuleBtnText();
+  onFilterChange();
+}
+
+function updateModuleBtnText() {
+  var btn = document.getElementById('moduleSelectBtn');
+  if (selectedModules.length === 0) {
+    btn.textContent = '功能模块 ▾';
+  } else if (selectedModules.length <= 2) {
+    btn.textContent = selectedModules.map(function(v) { return getModuleName(v); }).join(', ') + ' ▾';
+  } else {
+    btn.textContent = selectedModules.length + ' 个模块 ▾';
+  }
+}
+
+function toggleModuleDrop() {
+  var drop = document.getElementById('moduleDrop');
+  drop.classList.toggle('show');
+}
+
+function onOrgSearchInput() {
+  var q = (document.getElementById('fOrg').value || '').toLowerCase();
+  var drop = document.getElementById('orgSearchDrop');
+  if (!q) { drop.classList.remove('show'); onFilterChange(); return; }
+  var orgs = getOrgNames();
+  var matches = [];
+  for (var i = 0; i < orgs.length; i++) {
+    if (orgs[i].toLowerCase().indexOf(q) !== -1) matches.push(orgs[i]);
+  }
+  var html = '';
+  for (var j = 0; j < matches.length; j++) {
+    html += '<div class="option" onclick="selectOrg(\'' + escapeAttr(matches[j]) + '\')">' + escapeHtml(matches[j]) + '</div>';
+  }
+  if (!html) html = '<div class="option" style="color:var(--text-light);">无匹配结果</div>';
+  drop.innerHTML = html;
+  drop.classList.add('show');
+}
+
+function onOrgSearchFocus() {
+  var q = (document.getElementById('fOrg').value || '').toLowerCase();
+  if (q) onOrgSearchInput();
+}
+
+function selectOrg(name) {
+  document.getElementById('fOrg').value = name;
+  document.getElementById('orgSearchDrop').classList.remove('show');
+  onFilterChange();
+}
+
+function getOrgNames() {
+  var set = {};
+  for (var i = 0; i < allLogs.length; i++) {
+    if (allLogs[i].orgName) set[allLogs[i].orgName] = true;
+  }
+  return Object.keys(set).sort();
+}
+
+function resetFilters() {
+  document.getElementById('fOperator').value = '';
+  document.getElementById('fOrg').value = '';
+  document.getElementById('fDistrict').value = 'all';
+  document.getElementById('fActionType').value = 'all';
+  document.getElementById('fResult').value = 'all';
+  var now = new Date();
+  var thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  document.getElementById('fDateEnd').value = formatDate(now);
+  document.getElementById('fDateStart').value = formatDate(thirtyDaysAgo);
+
+  // Reset module checkboxes
+  var checks = document.querySelectorAll('#moduleDrop input[type="checkbox"]');
+  for (var i = 0; i < checks.length; i++) { checks[i].checked = false; }
+  selectedModules = [];
+  updateModuleBtnText();
+
+  currentPage = 1;
+  applyFilters();
+}
+
+function applyFilters() {
+  var operatorQ = (document.getElementById('fOperator').value || '').toLowerCase();
+  var orgQ = (document.getElementById('fOrg').value || '').toLowerCase();
+  var districtV = document.getElementById('fDistrict').value;
+  var actionTypeV = document.getElementById('fActionType').value;
+  var resultV = document.getElementById('fResult').value;
+  var dateStart = document.getElementById('fDateStart').value;
+  var dateEnd = document.getElementById('fDateEnd').value;
+
+  filteredLogs = allLogs.slice();
+
+  if (operatorQ) {
+    filteredLogs = filteredLogs.filter(function(l) { return l.operatorName.toLowerCase().indexOf(operatorQ) !== -1; });
+  }
+  if (orgQ) {
+    filteredLogs = filteredLogs.filter(function(l) { return (l.orgName || '').toLowerCase().indexOf(orgQ) !== -1; });
+  }
+  if (districtV !== 'all') {
+    filteredLogs = filteredLogs.filter(function(l) { return l.orgDistrict === districtV; });
+  }
+  if (selectedModules.length > 0) {
+    filteredLogs = filteredLogs.filter(function(l) { return selectedModules.indexOf(l.module) !== -1; });
+  }
+  if (actionTypeV !== 'all') {
+    filteredLogs = filteredLogs.filter(function(l) { return l.actionType === actionTypeV; });
+  }
+  if (resultV !== 'all') {
+    filteredLogs = filteredLogs.filter(function(l) { return l.result === resultV; });
+  }
+  if (dateStart) {
+    filteredLogs = filteredLogs.filter(function(l) { return (l.createdAt || '').substring(0, 10) >= dateStart; });
+  }
+  if (dateEnd) {
+    filteredLogs = filteredLogs.filter(function(l) { return (l.createdAt || '').substring(0, 10) <= dateEnd; });
+  }
+
+  renderStats();
+  renderTable();
+  renderPagination();
+}
+
+// ========== STATS ==========
+
+function renderStats() {
+  var total = filteredLogs.length;
+  var successCount = 0;
+  var failCount = 0;
+  var userSet = {};
+  for (var i = 0; i < filteredLogs.length; i++) {
+    if (filteredLogs[i].result === 'success') successCount++;
+    else failCount++;
+    userSet[filteredLogs[i].operatorId] = true;
+  }
+  var activeUsers = Object.keys(userSet).length;
+
+  var cards = [
+    { label: '总操作次数', value: total, cls: '', sub: '筛选范围内' },
+    { label: '成功次数', value: successCount, cls: 'success', sub: '成功率 ' + (total > 0 ? Math.round(successCount / total * 100) : 0) + '%' },
+    { label: '失败次数', value: failCount, cls: 'danger', sub: '失败率 ' + (total > 0 ? Math.round(failCount / total * 100) : 0) + '%' },
+    { label: '活跃用户数', value: activeUsers, cls: '', sub: '产生操作的用户' }
+  ];
+
+  var html = '';
+  for (var j = 0; j < cards.length; j++) {
+    html += '<div class="stat-card ' + cards[j].cls + '">';
+    html += '<div class="stat-label">' + cards[j].label + '</div>';
+    html += '<div class="stat-value">' + cards[j].value + '</div>';
+    html += '<div class="stat-sub">' + cards[j].sub + '</div>';
+    html += '</div>';
+  }
+  document.getElementById('statsRow').innerHTML = html;
+  document.getElementById('pageSubtitle').textContent = '全平台操作审计追踪 · 共 ' + allLogs.length + ' 条日志';
+}
+
+// ========== TABLE ==========
+
+function renderTable() {
+  var start = (currentPage - 1) * pageSize;
+  var end = Math.min(start + pageSize, filteredLogs.length);
+  var pageData = filteredLogs.slice(start, end);
+
+  var empty = document.getElementById('emptyState');
+  var table = document.getElementById('logTable');
+
+  if (!pageData.length) {
+    empty.style.display = '';
+    table.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  var html = '<thead><tr>';
+  html += '<th>操作时间</th><th class="col-name">操作人</th><th>所属单位</th><th>功能模块</th><th>操作类型</th><th>操作对象</th><th>操作结果</th><th>操作IP</th><th>详情</th>';
+  html += '</tr></thead><tbody>';
+
+  for (var i = 0; i < pageData.length; i++) {
+    var l = pageData[i];
+    html += '<tr>';
+    html += '<td class="col-time">' + escapeHtml(l.createdAt) + '</td>';
+    html += '<td class="col-name">' + escapeHtml(l.operatorName) + '</td>';
+    html += '<td>' + escapeHtml(l.orgName || '--') + '</td>';
+    html += '<td><span class="module-tag">' + getModuleName(l.module) + '</span></td>';
+    html += '<td><span class="action-tag ' + l.actionType + '">' + escapeHtml(l.actionName || getActionName(l.actionType)) + '</span></td>';
+    html += '<td>' + escapeHtml(l.targetName || l.targetId || '--') + '</td>';
+    html += '<td>' + (l.result === 'success'
+      ? '<span class="status-badge success">✅ 成功</span>'
+      : '<span class="status-badge fail" title="' + escapeAttr(l.failReason || '') + '">❌ 失败</span>') + '</td>';
+    html += '<td style="font-size:11px;color:var(--text-light);">' + escapeHtml(l.ip) + '</td>';
+    html += '<td><button class="btn-xs btn-xs-outline" onclick="openDetailModal(\'' + l.id + '\')">查看</button></td>';
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+// ========== PAGINATION ==========
+
+function renderPagination() {
+  var totalPages = Math.ceil(filteredLogs.length / pageSize);
+  var container = document.getElementById('pagination');
+  if (totalPages <= 1) {
+    container.innerHTML = filteredLogs.length > 0
+      ? '<div style="text-align:center;padding:8px;font-size:12px;color:var(--text-light);">共 ' + filteredLogs.length + ' 条</div>'
+      : '';
+    return;
+  }
+
+  var html = '';
+  html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')">◀</button>';
+
+  var maxShow = 7;
+  var startPage, endPage;
+  if (totalPages <= maxShow) {
+    startPage = 1; endPage = totalPages;
+  } else {
+    var half = Math.floor(maxShow / 2);
+    if (currentPage <= half + 1) { startPage = 1; endPage = maxShow; }
+    else if (currentPage >= totalPages - half) { startPage = totalPages - maxShow + 1; endPage = totalPages; }
+    else { startPage = currentPage - half; endPage = currentPage + half; }
+  }
+
+  if (startPage > 1) { html += '<button onclick="goToPage(1)">1</button>'; if (startPage > 2) html += '<span style="padding:0 4px;color:var(--text-light);">…</span>'; }
+
+  for (var p = startPage; p <= endPage; p++) {
+    html += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) html += '<span style="padding:0 4px;color:var(--text-light);">…</span>';
+    html += '<button onclick="goToPage(' + totalPages + ')">' + totalPages + '</button>';
+  }
+
+  html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')">▶</button>';
+  html += '<span class="page-info">共 ' + filteredLogs.length + ' 条 / ' + totalPages + ' 页</span>';
+  container.innerHTML = html;
+}
+
+function goToPage(p) {
+  var totalPages = Math.ceil(filteredLogs.length / pageSize);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+  renderPagination();
+}
+
+// ========== DETAIL MODAL ==========
+
+function openDetailModal(id) {
+  var log = null;
+  for (var i = 0; i < allLogs.length; i++) {
+    if (allLogs[i].id === id) { log = allLogs[i]; break; }
+  }
+  if (!log) return;
+
+  var html = '<table class="detail-table">';
+  html += '<tr><td>操作人</td><td>' + escapeHtml(log.operatorName) + '（' + escapeHtml(log.operatorRole) + '）</td></tr>';
+  html += '<tr><td>所属单位</td><td>' + escapeHtml(log.orgName || '--') + '</td></tr>';
+  html += '<tr><td>所属区域</td><td>' + escapeHtml(log.orgDistrict || '--') + '</td></tr>';
+  html += '<tr><td>操作时间</td><td>' + escapeHtml(log.createdAt) + '</td></tr>';
+  html += '<tr><td>操作IP</td><td>' + escapeHtml(log.ip) + '</td></tr>';
+  html += '<tr><td>功能模块</td><td><span class="module-tag">' + getModuleName(log.module) + '</span></td></tr>';
+  html += '<tr><td>操作类型</td><td><span class="action-tag ' + log.actionType + '">' + escapeHtml(log.actionName || getActionName(log.actionType)) + '</span></td></tr>';
+  html += '<tr><td>操作对象</td><td>' + escapeHtml(log.targetName || log.targetId || '--') + '（' + escapeHtml(log.targetType || '--') + '）</td></tr>';
+  html += '<tr><td>操作结果</td><td>' + (log.result === 'success' ? '<span style="color:var(--success);">✅ 成功</span>' : '<span style="color:var(--danger);">❌ 失败' + (log.failReason ? ' — ' + escapeHtml(log.failReason) : '') + '</span>') + '</td></tr>';
+  html += '<tr><td>操作详情</td><td>' + escapeHtml(log.detail || '--') + '</td></tr>';
+  html += '</table>';
+  document.getElementById('detailBody').innerHTML = html;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('show');
+}
+
+// ========== EXPORT MODAL ==========
+
+function openExportModal() {
+  document.getElementById('exportModal').classList.add('show');
+  updateExportHint();
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('show');
+}
+
+function selectExportFormat(format) {
+  exportFormat = format;
+  document.getElementById('exportOptCsv').classList.toggle('selected', format === 'csv');
+}
+
+function onExportScopeChange() {
+  var scope = document.getElementById('exportScope').value;
+  document.getElementById('exportDateGroup').style.display = scope === 'all' ? '' : 'none';
+  updateExportHint();
+}
+
+function updateExportHint() {
+  var scope = document.getElementById('exportScope').value;
+  var hint = document.getElementById('exportCountHint');
+  if (scope === 'filtered') {
+    hint.textContent = '将导出当前筛选的 ' + filteredLogs.length + ' 条日志数据';
+  } else {
+    hint.textContent = '将导出全部日志数据';
+  }
+}
+
+function doExport() {
+  var scope = document.getElementById('exportScope').value;
+  var data = scope === 'filtered' ? filteredLogs : allLogs.slice();
+
+  // Optional date range for "all" scope
+  if (scope === 'all') {
+    var ds = document.getElementById('exportDateStart').value;
+    var de = document.getElementById('exportDateEnd').value;
+    if (ds) {
+      data = data.filter(function(l) { return (l.createdAt || '').substring(0, 10) >= ds; });
+    }
+    if (de) {
+      data = data.filter(function(l) { return (l.createdAt || '').substring(0, 10) <= de; });
+    }
+  }
+
+  if (!data.length) {
+    showToast('没有可导出的数据', 'warning');
+    return;
+  }
+
+  // Build CSV
+  var BOM = '﻿';
+  var headers = ['操作时间', '操作人', '所属单位', '所属区域', '功能模块', '操作类型', '操作对象', '操作结果', '操作IP', '操作详情'];
+  var csv = BOM + headers.join(',') + '\n';
+
+  for (var i = 0; i < data.length; i++) {
+    var l = data[i];
+    var row = [
+      csvEscape(l.createdAt || ''),
+      csvEscape(l.operatorName || ''),
+      csvEscape(l.orgName || ''),
+      csvEscape(l.orgDistrict || ''),
+      csvEscape(getModuleName(l.module)),
+      csvEscape(l.actionName || getActionName(l.actionType)),
+      csvEscape(l.targetName || ''),
+      csvEscape(l.result === 'success' ? '成功' : '失败'),
+      csvEscape(l.ip || ''),
+      csvEscape(l.detail || '')
+    ];
+    csv += row.join(',') + '\n';
+  }
+
+  // Download
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  var now = new Date();
+  a.download = '操作日志_' + formatDate(now).replace(/-/g, '') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0') + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  closeExportModal();
+  showToast('已导出 ' + data.length + ' 条日志', 'success');
+
+  // Write export log
+  if (typeof writeLog === 'function') {
+    writeLog({ module: 'log', actionType: 'export', targetType: 'log', detail: '导出操作日志（CSV，' + data.length + '条）', result: 'success' });
+  }
+}
+
+function csvEscape(str) {
+  if (!str) return '';
+  var s = String(str);
+  if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+// ========== UTILS ==========
+
+function updateUserDisplay() {
+  document.getElementById('userName').textContent = currentUser.name || '赵建国';
+  document.getElementById('userAvatar').textContent = (currentUser.name || '赵')[0];
+}
+
+function toggleUserMenu() {
+  document.getElementById('userDropdown').classList.toggle('show');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || 'success') + ' show';
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escapeAttr(s) {
+  if (!s) return '';
+  return String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// Close modals on overlay click
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('show');
+  }
+  // Close dropdowns
+  if (!e.target.closest('#moduleMultiSelect')) {
+    document.getElementById('moduleDrop').classList.remove('show');
+  }
+  if (!e.target.closest('#orgSearchWrap')) {
+    document.getElementById('orgSearchDrop').classList.remove('show');
+  }
+  if (!e.target.closest('#userDropdown') && !e.target.closest('.topnav-user')) {
+    document.getElementById('userDropdown').classList.remove('show');
+  }
+});
+
+// Init
+init();
+</script>
+</body>
+</html>

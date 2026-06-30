@@ -171,6 +171,15 @@ body {
 }
 .school-final-doc a { color: var(--primary); text-decoration: none; }
 .school-final-doc a:hover { text-decoration: underline; }
+.bf-tip-icon { display: inline-block; width: 14px; height: 14px; line-height: 14px; text-align: center; border-radius: 50%; background: #DBEAFE; color: #1E40AF; font-size: 9px; cursor: pointer; margin-left: 2px; font-style: normal; vertical-align: middle; }
+.bf-tip-icon:hover { background: #BFDBFE; }
+.bf-tooltip-popup { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 16px; width: 300px; font-size: 12px; line-height: 1.7; color: var(--text); }
+.bf-tooltip-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.bf-tooltip-body { color: var(--text-secondary); }
+
+#bf-tooltip-popup strong { color: #FBBF24; }
+.file-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.file-link:hover { text-decoration: underline; }
 
 /* Timeline */
 .timeline { position: relative; padding-left: 30px; }
@@ -267,9 +276,10 @@ body {
 /* Modal */
 .modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5); display: flex; align-items: center;
+  background: rgba(0,0,0,0.5); display: none; align-items: center;
   justify-content: center; z-index: 1000;
 }
+.modal-overlay.show { display: flex; }
 .modal-container {
   background: #fff; border-radius: 16px; width: 500px;
   max-width: 90%; padding: 24px; box-shadow: var(--shadow-lg);
@@ -291,6 +301,11 @@ body {
   padding: 8px 24px; border-radius: 30px; cursor: pointer; font-size: 13px; font-family: inherit;
 }
 .btn-confirm-danger:hover { background: #DC2626; }
+.view-detail-link { font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none; }
+.view-detail-link:hover { color:var(--primary);text-decoration:underline; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
 
 /* Toast */
 .toast-msg {
@@ -358,7 +373,31 @@ body {
   <div id="mainContent"></div>
 </main>
 
+<!-- Plan Detail Modal -->
+<div class="modal-overlay" id="planDetailModal">
+  <div class="modal-container" style="width:800px;max-height:80vh">
+    <div class="modal-header">
+      <h3 id="planDetailTitle">计划明细</h3>
+      <button class="modal-close" onclick="document.getElementById('planDetailModal').classList.remove('show')">×</button>
+    </div>
+    <div class="modal-body" id="planDetailBody" style="max-height:55vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <script>
+function tipIconHtml(field) { return '<span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'' + field + '\')" style="cursor:pointer">ⓘ</span>'; }
+window.onerror = function(msg, url, line, col, err) {
+  var el = document.getElementById('mainContent');
+  if (el) {
+    el.innerHTML =
+      '<div class="card" style="text-align:center;padding:60px;">' +
+        '<div style="font-size:20px;font-weight:700;color:var(--danger);margin-bottom:12px;">页面脚本错误</div>' +
+        '<div style="font-size:13px;color:var(--text-secondary);line-height:1.8;">' + (msg || '') + '</div>' +
+        '<div style="font-size:11px;color:var(--text-light);margin-top:8px;">行 ' + line + ' · 列 ' + col + '</div>' +
+      '</div>';
+  }
+  return true;
+};
 var ICONS = {
   home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
   chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
@@ -383,7 +422,7 @@ workbench: 'home', dashboard: 'chart',
 entry: 'userp', staffing: 'monitor', exit: 'userx',
 promote: 'arrowup', postset: 'shield', recruit: 'search',
 employ: 'file',
-retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+retire: 'clock', ethics: 'warn',
 account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
@@ -398,7 +437,8 @@ var ROLES = {
         { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
         { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请' }, { id: 'recruit', label: '招聘岗位申请' }] },
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
+        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
         { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
       ]
     }
@@ -411,8 +451,9 @@ var ROLES = {
         { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
         { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请' }, { id: 'recruit', label: '招聘岗位申请' }] },
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
+        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }] }
       ]
     }
   },
@@ -424,8 +465,9 @@ var ROLES = {
         { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
         { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请' }, { id: 'recruit', label: '招聘岗位申请' }] },
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
+        { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }] }
       ]
     }
   },
@@ -434,7 +476,7 @@ var ROLES = {
     sidebar: {
       top: [{ id: 'workbench', icon: 'home', label: '工作台' }],
       groups: [
-        { name: '业务申请', items: [{ id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] }
+        { name: '业务申请', items: [{ id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }] }
       ]
     }
   }
@@ -521,7 +563,7 @@ var allApps = {
       { time: '2026-03-05 09:20:00', operator: '王玉兰', action: '学校提交编制使用申请', opinion: '使用控制数合计2名' },
       { time: '2026-03-10 15:00:00', operator: '李振华', action: '主管单位审核退回', opinion: '控制数实有数与核定数不符，请核实后重新提交', result: '驳回' },
       { time: '2026-03-11 10:30:00', operator: '王玉兰', action: '学校修改后重新提交', opinion: '已核实控制数实有数为14人，重新提交申报' },
-      { time: '2026-03-17 10:00:00', operator: '李振华', action: '主管单位一审通过', opinion: '核定编制数88名，在编80人，同意使用控制数2名', result: '一审通过' },
+      { time: '2026-03-17 10:00:00', operator: '李振华', action: '主管单位一审通过', opinion: '事业编核定数88名，在编80人，同意使用控制数2名', result: '一审通过' },
       { time: '2026-03-25 14:30:00', operator: '李振华', action: '编办终审确认', opinion: '编办终审确认：单位自主实施招聘 1→1 名，中高级人才招聘 1→1 名，合计通过 2 名（申请 2 名）', result: '通过' }
     ]
   },
@@ -841,7 +883,16 @@ function generateAuditFallback(id) {
     finalApprovedDetails: status === 'approved' ? useForms.filter(function(f){return f.num>0;}).map(function(f){return {type:f.type, schoolNum:f.num, finalNum:f.num};}) : null,
     materials: [isCareer ? '中小学事业编制使用计划申报表（附件2）' : '聘用教师控制数使用申报表（附件9）'],
     schoolInfo: schoolInfo,
-    timeline: tl
+    timeline: tl,
+    schoolFinalConfirm: status === 'final_submitted' ? {
+      details: useForms.filter(function(f){return f.num>0;}).map(function(f){return {type:f.type, schoolNum:f.num, finalNum:f.num};}),
+      totalFinalCount: totN,
+      validityStart: '2026-04-01',
+      validityEnd: '2026-12-31',
+      document: { name: '编办批复文件_' + school + '_' + id + '.pdf', size: 200000 + Math.floor(Math.random() * 100000) },
+      submitTime: '2026-03-26 10:00:00',
+      submitter: '王玉兰'
+    } : null
   };
 }
 
@@ -917,17 +968,18 @@ function switchRole(role) {
 }
 
 function sidebarClick(id) {
-  if (id === 'workbench') { window.location.href = 'workbench.html'; }
-  else if (id === 'staffing') { window.location.href = 'staffing-application.html?role=' + currentRole; }
-  else if (id === 'exit') { window.location.href = '教师出编管理（主管单位视角）.html?role=' + currentRole; }
-  else if (id === 'entry') { window.location.href = '教师入编管理（主管单位视角）.html?role=' + currentRole; }
-  else if (id === 'promote') { window.location.href = 'promote-list-admin.html?role=' + currentRole; }
-  else if (id === 'postset') { window.location.href = 'post-list-admin.html?role=' + currentRole; }
-  else if (id === 'recruit') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; }
-
-  if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
-  else if (id === 'org') { window.location.href = 'org-management.html'; }
-  else { showToast('跳转至：' + id); }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
+  if (id === "workbench") { window.location.href = "workbench.html"; }
+  else if (id === "staffing") { window.location.href = "staffing-application.html?role=" + currentRole; }
+  else if (id === "exit") { window.location.href = "教师出编管理（主管单位视角）.html?role=" + currentRole; }
+  else if (id === "entry") { window.location.href = "教师入编管理（主管单位视角）.html?role=" + currentRole; }
+  else if (id === "promote") { window.location.href = "promote-list-admin.html?role=" + currentRole; }
+  else if (id === "postset") { window.location.href = "post-list-admin.html?role=" + currentRole; }
+  else if (id === "recruit") { window.location.href = "recruit-list-admin.html?role=" + currentRole; }
+  else if (id === "ledger") { var lr = (typeof currentUser!=="undefined"?currentUser.role:currentRole); window.location.href = (lr === "city" || lr === "district") ? "org-ledger-admin.html" : lr === "school" ? "org-ledger-school.html" : "workbench.html"; }
+  else if (id === "account") { window.location.href = "account-management.html"; }
+  else if (id === "org") { window.location.href = "org-management.html"; }
 }
 
 function showToast(message, callback) {
@@ -1043,6 +1095,7 @@ function handleFinalConfirm() {
       '</div>' +
     '</div>';
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.getElementById('finalModal').classList.add('show');
 
   document.getElementById('cancelFinal').onclick = function() { document.getElementById('finalModal').remove(); };
 
@@ -1108,6 +1161,12 @@ function handleFinalConfirm() {
   };
 }
 
+function previewFile(fileName) {
+  showToast('👁 预览文件：' + (fileName || '未知文件') + '（纯前端 Demo，未存储实际文件）');
+}
+function downloadFile(fileName) {
+  showToast('📥 模拟下载：' + (fileName || '未知文件') + '（纯前端 Demo，未存储实际文件）');
+}
 function previewSchoolDoc(fileName) {
   showToast('预览文件：' + (fileName || '未知文件'));
   // Demo: 实际项目中打开文件预览窗口或新标签页
@@ -1130,6 +1189,7 @@ function handleReject() {
       '</div>' +
     '</div>';
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.getElementById('rejectModal').classList.add('show');
   document.getElementById('cancelReject').onclick = function() { document.getElementById('rejectModal').remove(); };
   document.getElementById('confirmReject').onclick = function() {
     var reason = document.getElementById('rejectReason').value.trim();
@@ -1213,27 +1273,28 @@ function renderPage() {
   if (isCareer) {
     // Career / 附件2: 9 items (1 full-width + 8 fields, with placeholder for 3-col alignment)
     infoGridHtml += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + s.fullName + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + (s.institutionLevel || app.orgLevel || '—') + '</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.institutionLevel || app.orgLevel || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || app.orgNature || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item info-item-placeholder"></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">核定编制数</div><div class="info-value">' + (s.careerStaffQuota || app.totalStaff || '—') + '</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">事业编核定数</div><div class="info-value">' + (s.careerStaffQuota || app.totalStaff || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">实有在编人数</div><div class="info-value">' + (s.currentCareerStaff || app.currentStaff || '—') + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">已批复计划数</div><div class="info-value">' + (s.approvedPlan || app.approvedPlan || 0) + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">已使用计划数</div><div class="info-value">' + (s.usedPlan || app.usedPlan || 0) + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">未使用计划数</div><div class="info-value">' + (s.unusedPlan || app.unusedPlan || 0) + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">未使用计划数 = 已批复计划数 − 已使用计划数</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">可申请编制数</div><div class="info-value">' + (s.availablePlan || app.availablePlan || 0) + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请编制数 = 核定编制数 − 实有在编人数 − 已批复计划数</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">已批复计划数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (s.approvedPlan || app.approvedPlan || 0) + ' <a onclick="openPlanDetailModal(this.dataset.track)" data-track="career" class="view-detail-link">查看明细 ›</a>' + '</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">未使用计划数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (s.unusedPlan || app.unusedPlan || 0) + '</div></div>';
+    if ((app.expiredOccupiedPlan || 0) > 0) infoGridHtml += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + app.expiredOccupiedPlan + ' 人</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">可申请编制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.availablePlan || app.availablePlan || 0) + '</div></div>';
   } else {
     // Control / 附件9: 9 items (1 full-width + 8 fields)
     infoGridHtml += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + s.fullName + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + (s.institutionLevel || app.orgLevel || '—') + '</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.institutionLevel || app.orgLevel || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || app.orgNature || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item info-item-placeholder"></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">核定控制数</div><div class="info-value">' + (s.controlQuota || app.controlNum || '—') + '</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">控制数核定数</div><div class="info-value">' + (s.controlQuota || app.controlNum || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">实有控制数人数</div><div class="info-value">' + (s.currentControl || app.controlActual || '—') + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">已批复控制数</div><div class="info-value">' + (s.controlApprovedPlan || app.controlApprovedPlan || '0') + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">已使用控制数</div><div class="info-value">' + (s.controlUsedPlan || app.controlUsedPlan || '0') + '</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">未使用控制数</div><div class="info-value">' + (s.controlUnusedPlan || app.controlUnusedPlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">未使用控制数 = 已批复控制数 − 已使用控制数</div></div>';
-    infoGridHtml += '<div class="info-item"><div class="info-label">可申请控制数</div><div class="info-value">' + (s.controlAvailablePlan || app.controlAvailablePlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请控制数 = 核定控制数 − 实有控制数人数 − 已批复控制数</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">已批复控制数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (s.controlApprovedPlan || app.controlApprovedPlan || '0') + ' <a onclick="openPlanDetailModal(this.dataset.track)" data-track="control" class="view-detail-link">查看明细 ›</a>' + '</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">已使用控制数 ' + tipIconHtml('used') + '</div><div class="info-value">' + (s.controlUsedPlan || app.controlUsedPlan || '0') + '</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">未使用控制数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (s.controlUnusedPlan || app.controlUnusedPlan || '0') + '</div></div>';
+    if ((app.expiredOccupiedControlPlan || 0) > 0) infoGridHtml += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + app.expiredOccupiedControlPlan + ' 人</div></div>';
+    infoGridHtml += '<div class="info-item"><div class="info-label">可申请控制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.controlAvailablePlan || app.controlAvailablePlan || '0') + '</div></div>';
   }
   infoGridHtml += '</div>';
   var unitHtml =
@@ -1245,86 +1306,120 @@ function renderPage() {
   // Form table - dynamic based on staffingType
   var formLabel = isCareer ? '中小学事业编制使用计划申报表（附件2）' : '聘用教师控制数使用申报表（附件9）';
   var countLabel = isCareer ? '使用事业编制（名）' : '使用控制数（名）';
-  var countDetailLabel = isCareer ? '使用事业编制详情' : '使用控制数详情';
   var isApproved = app.status === 'approved' && app.finalApprovedDetails;
+  var isFinalSubmitted = app.status === 'final_submitted';
+  var showSchoolConfirmCol = isApproved || isFinalSubmitted;
+  var showFinalConfirmCol = isApproved;
 
-  // Build final approved lookup map
-  var finalMap = {};
-  if (isApproved) {
-  app.finalApprovedDetails.forEach(function(d) { finalMap[d.type] = d.finalNum; });
+  // Build separate maps: school confirm vs final (编办) confirm
+  var schoolConfirmMap = {};
+  var finalConfirmMap = {};
+  if (app.schoolFinalConfirm && app.schoolFinalConfirm.details) {
+    app.schoolFinalConfirm.details.forEach(function(d) { schoolConfirmMap[d.type] = d.finalNum; });
+  } else if (app.finalApprovedDetails) {
+    app.finalApprovedDetails.forEach(function(d) { schoolConfirmMap[d.type] = d.schoolNum; });
+  }
+  if (app.finalApprovedDetails) {
+    app.finalApprovedDetails.forEach(function(d) { finalConfirmMap[d.type] = d.finalNum; });
   }
 
   var useFormRows = '';
-  var totalFinal = 0;
+  var totalApplyNum2 = 0;
+  var totalSchoolConfirm = 0;
+  var totalFinalConfirm = 0;
   app.useForms.forEach(function(f) {
     if (f.num > 0) {
-      var fn = isApproved ? (finalMap[f.type] !== undefined ? finalMap[f.type] : 0) : null;
-    if (fn !== null) totalFinal += fn;
-  useFormRows += '<tr>' +
-    '<td>' + f.type + '</td>' +
-  '<td>' + f.num + '</td>' +
-  (isApproved ? '<td>' + fn + '</td>' : '') +
-  '<td>' + (f.edu || '—') + '</td>' +
-  '<td>' + (f.cond || '—') + '</td>' +
-  '<td>' + (f.note || '—') + '</td>' +
-  '</tr>';
-  }
+      totalApplyNum2 += f.num;
+      var sc = showSchoolConfirmCol ? (schoolConfirmMap[f.type] !== undefined ? schoolConfirmMap[f.type] : 0) : null;
+      var fc = showFinalConfirmCol ? (finalConfirmMap[f.type] !== undefined ? finalConfirmMap[f.type] : 0) : null;
+      if (sc !== null) totalSchoolConfirm += sc;
+      if (fc !== null) totalFinalConfirm += fc;
+      useFormRows += '<tr>' +
+        '<td>' + f.type + '</td>' +
+        '<td>' + f.num + '</td>' +
+        (showSchoolConfirmCol ? '<td>' + sc + '</td>' : '') +
+        (showFinalConfirmCol ? '<td>' + fc + '</td>' : '') +
+        '<td>' + (f.edu || '—') + '</td>' +
+        '<td>' + (f.cond || '—') + '</td>' +
+        '<td>' + (f.note || '—') + '</td>' +
+        '</tr>';
+    }
   });
+  useFormRows += '<tr style="font-weight:600;background:#FAFBFC;">' +
+    '<td>合 计</td>' +
+    '<td>' + totalApplyNum2 + '</td>' +
+    (showSchoolConfirmCol ? '<td>' + totalSchoolConfirm + '</td>' : '') +
+    (showFinalConfirmCol ? '<td>' + totalFinalConfirm + '</td>' : '') +
+    '<td colspan="3"></td>' +
+    '</tr>';
+
+  // Build dynamic column header
+  var colHeaders = '<th>使用形式</th>' +
+    '<th>' + countLabel + '</th>';
+  if (showSchoolConfirmCol) colHeaders += '<th>学校确认数（名）</th>';
+  if (showFinalConfirmCol) colHeaders += '<th>编办确认数（名）</th>';
+  colHeaders += '<th>学历、专业（大类）、从业资格等</th>' +
+    '<th>相关条件</th>' +
+    '<th>备注</th>';
+
+  var colCount = 5 + (showSchoolConfirmCol ? 1 : 0) + (showFinalConfirmCol ? 1 : 0);
+
   var formTableHtml =
-  '<div class="card">' +
-  '<div class="card-header">' + formLabel + '</div>' +
-  '<div class="form-table">' +
-  '<table>' +
-  '<thead>' +
-    '<tr>' +
-      '<th>单位名称</th>' +
-    '<th colspan="' + (isApproved ? '6' : '5') + '">' + countDetailLabel + '</th>' +
-  '</tr>' +
-  '<tr>' +
-  '<th>' + app.schoolName + '</th>' +
-  '<th>使用形式</th>' +
-  '<th>' + countLabel + '</th>' +
-    (isApproved ? '<th>编办确认数（名）</th>' : '') +
-      '<th>学历、专业（大类）、从业资格等</th>' +
-        '<th>相关条件</th>' +
-          '<th>备注</th>' +
-          '</tr>' +
-	          '</thead>' +
-	          '<tbody>' +
-	            useFormRows +
-	            '<tr style="font-weight:600;background:#FAFBFC;">' +
-	              '<td></td>' +
-	              '<td>合计</td>' +
-	              '<td>' + totalApplyNum + '</td>' +
-	              (isApproved ? '<td>' + totalFinal + '</td>' : '') +
-	              '<td colspan="3"></td>' +
-	            '</tr>' +
-	          '</tbody>' +
-	        '</table>' +
-	      '</div>' +
-	    '</div>';
+    '<div class="card">' +
+      '<div class="card-header">' + formLabel + '</div>' +
+      '<div class="form-table">' +
+        '<table>' +
+          '<thead>' +
+            '<tr>' + colHeaders + '</tr>' +
+          '</thead>' +
+          '<tbody>' + useFormRows + '</tbody>' +
+        '</table>' +
+      '</div>' +
+    '</div>';
 
   // Materials list
   var materialItemsHtml = app.materials.map(function(m, i) {
+    var mName = m.replace(/'/g, "\\'");
     return '<div class="material-list-item">' +
       '<div><div class="material-name">' + (i + 1) + '. ' + m + '</div></div>' +
-      '<div class="material-status uploaded">✓ 已上传</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span class="material-status uploaded">✓ 已上传</span>' +
+        '<a class="file-link" onclick="previewFile(\'' + mName + '\')">👁 预览</a>' +
+        '<a class="file-link" onclick="downloadFile(\'' + mName + '\')">📥 下载</a>' +
+      '</div>' +
     '</div>';
   }).join('');
+
+  // SchoolFinalConfirm document for final_submitted records
+  var scDocHtml = '';
+  if (app.schoolFinalConfirm && app.schoolFinalConfirm.document) {
+    var docName = app.schoolFinalConfirm.document.name || '';
+    var docNameEsc = docName.replace(/'/g, "\\'");
+    scDocHtml =
+      '<div class="material-list-item">' +
+        '<div><div class="material-name">编办批复文件</div><div class="material-req">' + docName + ' (' + ((app.schoolFinalConfirm.document.size || 0) / 1024).toFixed(0) + ' KB)</div></div>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+          '<span class="material-status uploaded">✓ 已上传</span>' +
+          '<a class="file-link" onclick="previewFile(\'' + docNameEsc + '\')">👁 预览</a>' +
+          '<a class="file-link" onclick="downloadFile(\'' + docNameEsc + '\')">📥 下载</a>' +
+        '</div>' +
+      '</div>';
+  }
+
   var materialsHtml =
     '<div class="card">' +
       '<div class="card-header">上传材料</div>' +
-      '<div class="material-list">' + materialItemsHtml + '</div>' +
+      '<div class="material-list">' + materialItemsHtml + scDocHtml + '</div>' +
     '</div>';
 
   // Quota summary
   var quotaSummaryHtml = '';
   var quotaVal, quotaLabel;
   if (isCareer) {
-    quotaVal = (s.careerStaffQuota || app.totalStaff || 0) - (s.currentCareerStaff || app.currentStaff || 0) - (s.approvedPlan || app.approvedPlan || 0);
+    quotaVal = Math.max(0, (s.careerStaffQuota || app.totalStaff || 0) - (s.currentCareerStaff || app.currentStaff || 0) - (s.approvedPlan || app.approvedPlan || 0));
     quotaLabel = '可申请编制数';
   } else {
-    quotaVal = (s.controlQuota || app.controlNum || 0) - (s.currentControl || app.controlActual || 0) - (s.controlApprovedPlan || app.controlApprovedPlan || 0);
+    quotaVal = Math.max(0, (s.controlQuota || app.controlNum || 0) - (s.currentControl || app.controlActual || 0) - (s.controlApprovedPlan || app.controlApprovedPlan || 0));
     quotaLabel = '可申请控制数';
   }
   var remaining = quotaVal - totalApplyNum;
@@ -1332,12 +1427,13 @@ function renderPage() {
   var resultBg = remaining >= 0 ? '#D1FAE5' : '#FEE2E2';
   var resultColor = remaining >= 0 ? '#059669' : '#DC2626';
 
-  // For approved records with per-item details, show school apply → confirmed → remaining
+  // For approved records with per-item details, show school apply → school confirm → final confirm → remaining
   var quotaMiddleHtml = '';
   if (app.status === 'approved' && app.finalApprovedDetails) {
-  var totalFinal2 = 0;
-  app.finalApprovedDetails.forEach(function(d) { totalFinal2 += d.finalNum; });
-  remaining = quotaVal - totalFinal2;
+  var totalSchoolConfirmQ = 0;
+  var totalFinalConfirmQ = 0;
+  app.finalApprovedDetails.forEach(function(d) { totalSchoolConfirmQ += (d.schoolNum || 0); totalFinalConfirmQ += d.finalNum; });
+  remaining = quotaVal - totalFinalConfirmQ;
   resultBg = remaining >= 0 ? '#D1FAE5' : '#FEE2E2';
   resultColor = remaining >= 0 ? '#059669' : '#DC2626';
   quotaMiddleHtml =
@@ -1346,37 +1442,58 @@ function renderPage() {
   '<div style="font-size:20px;font-weight:700;color:var(--primary);">' + totalApplyNum + '</div>' +
   '</div>' +
   '<div style="font-size:16px;color:var(--text-light);">→</div>' +
+  '<div style="flex:1;text-align:center;padding:14px;background:#FFF7ED;border-radius:8px;">' +
+  '<div style="font-size:11px;color:#EA580C;">学校确认</div>' +
+  '<div style="font-size:20px;font-weight:700;color:#EA580C;">' + totalSchoolConfirmQ + '</div>' +
+  '</div>' +
+  '<div style="font-size:16px;color:var(--text-light);">→</div>' +
   '<div style="flex:1;text-align:center;padding:14px;background:#FEF3C7;border-radius:8px;">' +
   '<div style="font-size:11px;color:#D97706;">编办确认</div>' +
-  '<div style="font-size:20px;font-weight:700;color:#D97706;">' + totalFinal2 + '</div>' +
+  '<div style="font-size:20px;font-weight:700;color:#D97706;">' + totalFinalConfirmQ + '</div>' +
+  '</div>';
+  } else if (isFinalSubmitted && app.schoolFinalConfirm) {
+  var scTotal = app.schoolFinalConfirm.totalFinalCount || 0;
+  remaining = quotaVal - scTotal;
+  resultBg = remaining >= 0 ? '#D1FAE5' : '#FEE2E2';
+  resultColor = remaining >= 0 ? '#059669' : '#DC2626';
+  quotaMiddleHtml =
+  '<div style="flex:1;text-align:center;padding:14px;background:#EFF6FF;border-radius:8px;">' +
+  '<div style="font-size:11px;color:var(--text-secondary);">学校申请</div>' +
+  '<div style="font-size:20px;font-weight:700;color:var(--primary);">' + totalApplyNum + '</div>' +
+  '</div>' +
+  '<div style="font-size:16px;color:var(--text-light);">→</div>' +
+  '<div style="flex:1;text-align:center;padding:14px;background:#FFF7ED;border-radius:8px;">' +
+  '<div style="font-size:11px;color:#EA580C;">学校确认</div>' +
+  '<div style="font-size:20px;font-weight:700;color:#EA580C;">' + scTotal + '</div>' +
   '</div>';
   } else {
   quotaMiddleHtml =
   '<div style="flex:1;text-align:center;padding:14px;background:#EFF6FF;border-radius:8px;">' +
     '<div style="font-size:11px;color:var(--text-secondary);">本次申请合计</div>' +
       '<div style="font-size:22px;font-weight:700;color:var(--primary);">' + totalApplyNum + '</div>' +
-	      '</div>';
-	  }
+          '</div>';
+      }
 
-	  quotaSummaryHtml =
-	    '<div class="card">' +
-	      '<div class="card-header">限额汇总</div>' +
-	      '<div style="padding:20px;">' +
-	        '<div style="display:flex;gap:12px;align-items:center;font-size:14px;">' +
-	          '<div style="flex:1;text-align:center;padding:14px;background:#F8FAFC;border-radius:8px;">' +
-	            '<div style="font-size:11px;color:var(--text-secondary);">' + quotaLabel + '</div>' +
-	            '<div style="font-size:22px;font-weight:700;color:var(--text);">' + quotaVal + '</div>' +
-	          '</div>' +
-	          '<div style="font-size:20px;color:var(--text-light);">−</div>' +
-	          quotaMiddleHtml +
-	          '<div style="font-size:20px;color:var(--text-light);">=</div>' +
-	          '<div style="flex:1;text-align:center;padding:14px;background:' + resultBg + ';border-radius:8px;">' +
-	            '<div style="font-size:11px;color:' + resultColor + ';">' + resultLabel + '</div>' +
-	            '<div style="font-size:22px;font-weight:700;color:' + resultColor + ';">' + remaining + '</div>' +
-	          '</div>' +
-	        '</div>' +
-	      '</div>' +
-	    '</div>';
+  // Build the quota summary card
+  quotaSummaryHtml =
+    '<div class="card">' +
+      '<div class="card-header">限额汇总</div>' +
+      '<div style="padding:20px;">' +
+        '<div style="display:flex;gap:12px;align-items:center;font-size:14px;">' +
+          '<div style="flex:1;text-align:center;padding:14px;background:#F8FAFC;border-radius:8px;">' +
+            '<div style="font-size:11px;color:var(--text-secondary);">' + quotaLabel + '</div>' +
+            '<div style="font-size:22px;font-weight:700;color:var(--text);">' + quotaVal + '</div>' +
+          '</div>' +
+          '<div style="font-size:20px;color:var(--text-light);">−</div>' +
+          quotaMiddleHtml +
+          '<div style="font-size:20px;color:var(--text-light);">=</div>' +
+          '<div style="flex:1;text-align:center;padding:14px;background:' + resultBg + ';border-radius:8px;">' +
+            '<div style="font-size:11px;color:' + resultColor + ';">' + resultLabel + '</div>' +
+            '<div style="font-size:22px;font-weight:700;color:' + resultColor + ';">' + remaining + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
 
   // Utility for date formatting (used in actions and elsewhere)
   var toDate = function(dt) { return dt ? dt.slice(0, 10) : ''; };
@@ -1529,6 +1646,234 @@ function renderProgress() {
 // ===== Init =====
 updateRoleUI();
 renderPage();
+
+var AGG_TOOLTIPS = {
+  approved: { title:'已批复计划数', body:'仅统计<strong>有效期内</strong>的编制批复计划。<br>已到期的批复名额不计入此数字。<br><br>数据来源：计划明细自动汇总，不可手动修改。<br><br>📋 示例：有 3 条计划记录，其中 1 条已到期<br>→ 已批复计划数 = 仅 2 条有效计划之和' },
+  used:     { title:'已使用计划数', body:'<strong>= 已占用 + 已入编</strong><br><br>有效期内计划中已占用（招聘途中）和已入编（正式落编）的人数之和。<br>已到期计划中的使用数不计入。<br><br>数据来源：计划明细自动汇总，不可手动修改。' },
+  unused:   { title:'未使用计划数', body:'<strong>= 已批复 − 已使用</strong><br><br>已到期的剩余名额不计入此数字。' },
+  available:{ title:'可申请数', body:'<strong>= 核定数 − 实有数 − 已批复计划数 − 到期占用中人数</strong><br><br>编制余额。还可向编办申请的编制名额数量。<br>结果 ≤ 0 表示编制已满或超额。<br><br>⚠️ 已过期但仍有占用的计划，其占用人数会扣减可申请数。' }
+,
+  expiredOccupied:{ title:'到期占用中', body:'<strong>已过期但仍有人员占用的计划中，尚未入编的人数。</strong><br><br>占用名额仍有效，应尽快为占用人员办理入编手续。<br>入编完成后相关计划将自动标记为"已用完"。' }
+};
+function showAggTooltip(event, field) {
+  var existing = document.getElementById('bf-tooltip-popup');
+  if (existing) existing.remove();
+  var info = AGG_TOOLTIPS[field];
+  if (!info) return;
+  var popup = document.createElement('div');
+  popup.id = 'bf-tooltip-popup';
+  popup.className = 'bf-tooltip-popup';
+  popup.innerHTML = '<div class="bf-tooltip-title">' + info.title + ' ⓘ</div><div class="bf-tooltip-body">' + info.body + '</div><button class="btn btn-sm btn-primary" onclick="document.getElementById(\'bf-tooltip-popup\').remove()" style="margin-top:8px">知道了</button>';
+  popup.style.position = 'fixed';
+  popup.style.top = Math.min(event.clientY, window.innerHeight - 280) + 'px';
+  popup.style.left = Math.min(event.clientX, window.innerWidth - 320) + 'px';
+  popup.style.zIndex = '9999';
+  document.body.appendChild(popup);
+  setTimeout(function() {
+    document.addEventListener('click', function closeAgg(e) {
+      if (!popup.contains(e.target) && e.target.className.indexOf('bf-tip-icon') === -1) {
+        popup.remove();
+        document.removeEventListener('click', closeAgg);
+      }
+    });
+  }, 100);
+}
+
+
+
+// Demo plan data for plan detail modal
+var _demoPlans = {
+  career: [
+    { id:'CP01', source:'online', sourceBatchId:'2026年度第一批', approvedCount:3, occupiedCount:1, usedCount:1, validEnd:'2026-12-31' },
+    { id:'CP02', source:'offline', offlineDocNo:'柳编办[2025]03号', approvedCount:2, occupiedCount:1, usedCount:0, validEnd:'2025-12-31' },
+    { id:'CP03', source:'online', sourceBatchId:'2026年度第二批', approvedCount:1, occupiedCount:0, usedCount:0, validEnd:'2026-06-30' }
+  ],
+  control: [
+    { id:'CT01', source:'online', sourceBatchId:'2026年度第一批', approvedCount:2, occupiedCount:1, usedCount:1, validEnd:'2026-12-31' },
+    { id:'CT02', source:'offline', offlineDocNo:'柳编办[2025]05号', approvedCount:2, occupiedCount:1, usedCount:0, validEnd:'2025-12-31' },
+    { id:'CT03', source:'online', sourceBatchId:'2026年度自主申报', approvedCount:1, occupiedCount:0, usedCount:0, validEnd:'2026-09-30' }
+  ]
+};
+
+var _planDetailFilter = {};
+var _planDetailPage = {};
+var _PLAN_PAGE_SIZE = 8;
+
+function resetPlanDetailFilter(track) {
+  _planDetailFilter[track] = { source: '', status: '', keyword: '' };
+  _planDetailPage[track] = 1;
+}
+
+function getPlanStatus(p) {
+  var now = new Date().toISOString().slice(0,10);
+  var remain = p.approvedCount - (p.occupiedCount||0) - (p.usedCount||0);
+  if (remain <= 0 && p.approvedCount > 0) return 'exhausted';
+  if (p.validEnd && p.validEnd < now && (p.occupiedCount||0) > 0) return 'expiring_occupied';
+  if (p.validEnd && p.validEnd < now) return 'expired';
+  return 'active';
+}
+
+var PLAN_STATUS_LABEL = { active:'有效', exhausted:'已用完', expiring_occupied:'过期·有占用', expired:'已到期' };
+var PLAN_STATUS_CLASS = { active:'active', exhausted:'exhausted', expiring_occupied:'warn', expired:'expired' };
+
+function openPlanDetailModal(track) {
+  if (typeof track === 'object' || !track) {
+    track = (this && this.dataset) ? this.dataset.track : (track && track.target ? track.target.dataset.track : track);
+  }
+  var plans = _demoPlans[track] || [];
+  var label = track === 'career' ? '事业编' : '控制数';
+  resetPlanDetailFilter(track);
+  document.getElementById('planDetailTitle').textContent = label + ' — 已批复计划明细';
+  renderPlanDetailBody(track);
+  document.getElementById('planDetailModal').classList.add('show');
+}
+
+function renderPlanDetailBody(track) {
+  var plans = _demoPlans[track] || [];
+  var f = _planDetailFilter[track] || { source: '', status: '', keyword: '' };
+
+  // Compute aggregates
+  var agg = { approvedPlan:0, occupiedPlan:0, usedPlan:0, unusedPlan:0, expiredOccupiedPlan:0 };
+  plans.forEach(function(p) {
+    agg.approvedPlan += p.approvedCount;
+    agg.occupiedPlan += (p.occupiedCount||0);
+    agg.usedPlan += (p.usedCount||0);
+  });
+
+  // Filter
+  var filtered = plans.filter(function(p) {
+    if (f.source && p.source !== f.source) return false;
+    if (f.status && getPlanStatus(p) !== f.status) return false;
+    if (f.keyword) {
+      var kw = f.keyword.toLowerCase();
+      var doc = (p.offlineDocNo || p.sourceBatchId || '').toLowerCase();
+      if (doc.indexOf(kw) === -1) return false;
+    }
+    return true;
+  });
+
+  // Split active vs expired
+  var activePlans = [], expiredPlans = [];
+  filtered.forEach(function(p) {
+    if (getPlanStatus(p) === 'expired') expiredPlans.push(p);
+    else activePlans.push(p);
+  });
+
+  // Calculate expired occupied
+  filtered.forEach(function(p) {
+    var st = getPlanStatus(p);
+    if (st === 'expiring_occupied' || st === 'expired') {
+      agg.expiredOccupiedPlan += (p.occupiedCount||0);
+    }
+  });
+  agg.unusedPlan = agg.approvedPlan - agg.occupiedPlan - agg.usedPlan;
+
+  // Pagination
+  var page = _planDetailPage[track] || 1;
+  var totalPages = Math.max(1, Math.ceil(activePlans.length / _PLAN_PAGE_SIZE));
+  if (page > totalPages) { page = totalPages; _planDetailPage[track] = page; }
+  var start = (page - 1) * _PLAN_PAGE_SIZE;
+  var pagePlans = activePlans.slice(start, start + _PLAN_PAGE_SIZE);
+
+  var h = '';
+  // Filter bar
+  h += '<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">';
+  h += '<select onchange="_planDetailFilter[\'' + track + '\'].source=this.value;_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;">';
+  h += '<option value="">全部来源</option><option value="online">线上</option><option value="offline">线下</option></select>';
+  h += '<select onchange="_planDetailFilter[\'' + track + '\'].status=this.value;_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;">';
+  h += '<option value="">全部状态</option><option value="active">有效</option><option value="exhausted">已用完</option><option value="expiring_occupied">过期·有占用</option><option value="expired">已到期</option></select>';
+  h += '<input type="text" placeholder="搜索批复文号/批次..." oninput="_planDetailFilter[\'' + track + '\'].keyword=this.value;_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;width:160px;" value="' + escapeHtml(f.keyword || '') + '">';
+  h += '</div>';
+
+  // Summary
+  h += '<div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;font-size:12px;padding:10px 14px;background:#F8FAFC;border-radius:6px;">';
+  h += '<span>已批复 <strong>' + agg.approvedPlan + '</strong> 人</span>';
+  h += '<span>占用 <strong>' + (agg.occupiedPlan||0) + '</strong> 人</span>';
+  h += '<span>已入编 <strong>' + Math.max(0, agg.usedPlan - (agg.occupiedPlan||0)) + '</strong> 人</span>';
+  h += '<span>未使用 <strong>' + agg.unusedPlan + '</strong> 人</span>';
+  if ((agg.expiredOccupiedPlan||0) > 0) h += '<span style="color:#C2410C;">到期占用中 ' + agg.expiredOccupiedPlan + ' 人</span>';
+  h += '</div>';
+
+  if (filtered.length === 0) {
+    h += '<div style="text-align:center;padding:40px;color:var(--text-light);">无匹配记录</div>';
+  } else {
+    h += '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">序号</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">来源</th>';
+    h += '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复文号/批次</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">已占用</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">已入编</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">未使用</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">有效期</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">状态</th>';
+    h += '</tr></thead><tbody>';
+
+    function renderRow(p, idx) {
+      var st = getPlanStatus(p);
+      var stLabel = PLAN_STATUS_LABEL[st] || st;
+      var stClass = PLAN_STATUS_CLASS[st] || '';
+      var remain = p.approvedCount - (p.occupiedCount||0) - (p.usedCount||0);
+      var isExpired = st === 'expired';
+      var sourceLabel = p.source === 'online' ? '线上' : '线下';
+      var sourceColor = p.source === 'online' ? '#2563EB' : '#9333EA';
+      var docLabel = p.source === 'online' ? (p.sourceBatchId||'') : (p.offlineDocNo||'');
+      var trStyle = isExpired ? 'opacity:0.5;' : '';
+      var r = '<tr style="' + trStyle + '">';
+      r += '<td style="padding:6px 8px;text-align:center;font-size:11px;color:var(--text-light);border-bottom:1px solid var(--border);">' + idx + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);"><span style="font-size:11px;padding:2px 6px;border-radius:4px;background:' + (p.source==='online'?'#EFF6FF':'#FAF5FF') + ';color:' + sourceColor + ';">' + sourceLabel + '</span></td>';
+      r += '<td style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">' + escapeHtml(docLabel) + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">' + p.approvedCount + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);' + ((p.occupiedCount||0)>0?'color:var(--warning);font-weight:500;':'') + '">' + (p.occupiedCount||0) + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">' + (p.usedCount||0) + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;">' + remain + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">' + (p.validEnd||'—') + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);"><span style="font-size:10px;padding:2px 6px;border-radius:10px;' + (stClass==='active'?'background:#D1FAE5;color:#059669;':stClass==='exhausted'?'background:#FEE2E2;color:#DC2626;':stClass==='warn'?'background:#FFF7ED;color:#C2410C;':'background:#F1F5F9;color:#64748B;') + '">' + stLabel + '</span></td>';
+      r += '</tr>';
+      return r;
+    }
+
+    var idx = start + 1;
+    pagePlans.forEach(function(p) { h += renderRow(p, idx); idx++; });
+    h += '</tbody></table>';
+
+    // Expired plans section
+    if (expiredPlans.length > 0) {
+      h += '<div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-top:16px;margin-bottom:8px;">已到期计划</div>';
+      h += '<table style="width:100%;border-collapse:collapse;font-size:12px;opacity:0.6;"><thead><tr>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">序号</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">来源</th>';
+      h += '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复文号/批次</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">有效期</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">状态</th>';
+      h += '</tr></thead><tbody>';
+      var eIdx = 1;
+      expiredPlans.forEach(function(p) {
+        h += renderRow(p, '🔒 ' + eIdx);
+        eIdx++;
+      });
+      h += '</tbody></table>';
+    }
+
+    // Pagination
+    if (totalPages > 1) {
+      h += '<div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-secondary);">';
+      h += '<button onclick="_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" ' + (page<=1?'disabled':'') + ' style="padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;margin-right:4px;">«</button>';
+      h += '<span style="margin:0 8px;">' + page + ' / ' + totalPages + '</span>';
+      h += '<button onclick="_planDetailPage[\'' + track + '\']=' + (page+1) + ';renderPlanDetailBody(\'' + track + '\')" ' + (page>=totalPages?'disabled':'') + ' style="padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;margin-left:4px;">»</button>';
+      h += '</div>';
+    }
+  }
+
+  document.getElementById('planDetailBody').innerHTML = h;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 </script>
 </body>
 </html>

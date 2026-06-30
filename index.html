@@ -384,7 +384,8 @@
     font-weight: 600;
     flex-shrink: 0;
   }
-  .badge-city { background: #EFF6FF; color: #1E40AF; }
+  .badge-system { background: #FEF2F2; color: #EF4444; }
+.badge-city { background: #EFF6FF; color: #1E40AF; }
   .badge-district { background: #FFFBEB; color: #D97706; }
   .badge-school { background: #ECFDF5; color: #10B981; }
   .badge-teacher { background: #f3e8f8; color: #7c3aed; }
@@ -433,6 +434,101 @@
   @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
 
+  /* Reset demo data button */
+  .reset-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text-light);
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition);
+    z-index: 10;
+  }
+  .reset-btn:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: #FEF2F2;
+  }
+
+  /* Reset confirm dialog */
+  .reset-confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+  }
+  .reset-confirm-overlay.show { display: flex; }
+  .reset-confirm-dialog {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 380px;
+    max-width: 90vw;
+    overflow: hidden;
+  }
+  .reset-confirm-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .reset-confirm-body {
+    padding: 18px 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+  .reset-confirm-body ul {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+  }
+  .reset-confirm-body ul li::before {
+    content: '• ';
+    color: var(--text-light);
+  }
+  .reset-confirm-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .reset-confirm-footer button {
+    padding: 7px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    transition: var(--transition);
+  }
+  .reset-confirm-footer button.btn-danger {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+  }
+  .reset-confirm-footer button.btn-danger:hover {
+    background: #DC2626;
+  }
+  .reset-confirm-footer button:hover {
+    background: var(--bg);
+  }
+
   /* Responsive */
   @media (max-width: 900px) {
     .login-container { flex-direction: column; width: 420px; min-height: auto; }
@@ -472,7 +568,7 @@
     <div class="brand-divider"></div>
     <div class="brand-features">
       编制管理 · 岗位晋升 · 招聘审批<br>
-      聘用管理 · 工资核定 · 荣誉申报<br>
+      聘用管理 · 退休呈报 · 师德师风<br>
       覆盖全市 11 项核心人事业务
     </div>
   </div>
@@ -486,9 +582,7 @@
 
     <!-- Role Tabs -->
     <div class="role-tabs" id="roleTabs">
-      <button class="role-tab active" data-role="city">市管理员</button>
-      <button class="role-tab" data-role="district">区管理员</button>
-      <button class="role-tab" data-role="school">校管理员</button>
+      <button class="role-tab active" data-role="admin">管理员</button>
       <button class="role-tab" data-role="teacher">教 师</button>
     </div>
 
@@ -567,21 +661,71 @@
 (function() {
   // ======= Demo Account Data =======
   const demoAccounts = {
-    city: [
-      { role: 'city', roleLabel: '市管理员', name: '张建国', id: '13807720001', badgeClass: 'badge-city' },
-    ],
-    district: [
+    admin: [
+      { role: 'system',   roleLabel: '系统管理员', name: '赵建国', id: '13807720000', badgeClass: 'badge-system' },
+	      { role: 'city',     roleLabel: '市管理员', name: '张建国', id: '13807720001', badgeClass: 'badge-city' },
       { role: 'district', roleLabel: '区管理员', name: '李振华', id: '13807720002', badgeClass: 'badge-district' },
-    ],
-    school: [
-      { role: 'school', roleLabel: '校管理员', name: '王玉兰', id: '13807720003', badgeClass: 'badge-school' },
+      { role: 'school',   roleLabel: '校管理员', name: '王玉兰', id: '13807720003', badgeClass: 'badge-school' },
     ],
     teacher: [
       { role: 'teacher', roleLabel: '教师', name: '陈明辉', id: '450200199001011234', badgeClass: 'badge-teacher' },
+      { role: 'teacher', roleLabel: '教师', name: '张雅琴', id: '450201199205156789', badgeClass: 'badge-teacher', pwd: 'Edu@19926789', hint: '旧平台导入' },
+      { role: 'teacher', roleLabel: '教师', name: '孙建华', id: '450201197803152345', badgeClass: 'badge-teacher', pwd: 'Edu@19782345', hint: '旧平台导入' },
+      { role: 'teacher', roleLabel: '教师', name: '赵老师', id: '450201199301019999', badgeClass: 'badge-teacher', pwd: 'Edu@2025', hint: '合同制教师' },
     ]
   };
 
   const DEFAULT_PASSWORD = 'Edu@2025';
+
+  // ======= Seed teacher_accounts for demo (first-time visitor) =======
+  function seedTeacherAccounts() {
+    var accounts = [
+      { accountId: 'TEA20260601001', roles: ['teacher'], name: '陈明辉', idCard: '450200199001011234', phone: '13907721234', staffingType: '事业编', school: '柳州市第八中学', postCategory: 'tech', postLevel: '8', entryRecordId: 'RN20150901001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19901234', password: 'Edu@2025', firstLogin: true, createdAt: '2026-06-04T09:30:00', activatedAt: '2026-06-05T10:00:00', updatedAt: '2026-06-05 10:00:00', exitRecords: [], entryRecords: ['RN20150901001'] },
+      { accountId: 'TEA20260601003', roles: ['teacher'], name: '张雅琴', idCard: '450201199205156789', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260510001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19926789', password: 'Edu@19926789', firstLogin: false, importedFromOld: true, createdAt: '2026-05-10T09:30:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260510001'] },
+      { accountId: 'TEA20260601011', roles: ['teacher'], name: '孙建华', idCard: '450201197803152345', phone: '', staffingType: '事业编', school: '柳州高级中学', postCategory: 'tech', postLevel: '7', entryRecordId: 'RN20260514001', status: 'active', entryMethod: '引进高层次人才', initialPassword: 'Edu@19782345', password: 'Edu@19782345', firstLogin: false, importedFromOld: true, createdAt: '2026-06-15T08:30:00', updatedAt: '2026-06-15 08:30:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260514001'] },
+      { accountId: 'TEA20260601012', roles: ['teacher'], name: '赵老师', idCard: '450201199301019999', phone: '', staffingType: '合同制', school: '柳州市第八中学', entryRecordId: 'RN20260603001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@2025', password: 'Edu@2025', firstLogin: true, createdAt: '2026-06-20T09:00:00', updatedAt: '2026-06-20 09:00:00', activatedAt: '2026-06-20T09:00:00', exitRecords: [], entryRecords: ['RN20260603001'] },
+      // 控制数 demo 账号
+      { accountId: 'TEA20260602001', roles: ['teacher'], name: '黄海燕', idCard: '450201199203100001', phone: '', staffingType: '控制数', school: '柳州市教育局', entryRecordId: 'RN20260605001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@19920001', password: 'Edu@19920001', firstLogin: false, createdAt: '2026-06-05T09:00:00', updatedAt: '2026-06-05 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260605001'] },
+      { accountId: 'TEA20260602002', roles: ['teacher'], name: '何志强', idCard: '450201198807150002', phone: '', staffingType: '控制数', school: '柳州市教育局', entryRecordId: 'RN20260605002', status: 'active', entryMethod: '中高级人才招聘', initialPassword: 'Edu@19880002', password: 'Edu@19880002', firstLogin: false, createdAt: '2026-06-05T10:00:00', updatedAt: '2026-06-05 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260605002'] },
+      { accountId: 'TEA20260602003', roles: ['teacher'], name: '林小红', idCard: '450201199511200003', phone: '', staffingType: '控制数', school: '鱼峰区教育局', entryRecordId: 'RN20260606001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19950003', password: 'Edu@19950003', firstLogin: false, createdAt: '2026-06-06T09:00:00', updatedAt: '2026-06-06 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260606001'] },
+      { accountId: 'TEA20260602004', roles: ['teacher'], name: '吴建国', idCard: '450201198905100004', phone: '', staffingType: '控制数', school: '城中区教育局', entryRecordId: 'RN20260607001', status: 'active', entryMethod: '调动', initialPassword: 'Edu@19890004', password: 'Edu@19890004', firstLogin: false, createdAt: '2026-06-07T09:00:00', updatedAt: '2026-06-07 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260607001'] },
+      { accountId: 'TEA20260602005', roles: ['teacher'], name: '郑晓芳', idCard: '450201199307180005', phone: '', staffingType: '控制数', school: '柳州市第八中学', postCategory: 'tech', postLevel: '9', entryRecordId: 'RN20260608001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@19930005', password: 'Edu@19930005', firstLogin: false, createdAt: '2026-06-08T09:00:00', updatedAt: '2026-06-08 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260608001'] },
+      { accountId: 'TEA20260602006', roles: ['teacher'], name: '马文华', idCard: '450201199004220006', phone: '', staffingType: '控制数', school: '柳州高级中学', entryRecordId: 'RN20260609001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19900006', password: 'Edu@19900006', firstLogin: false, createdAt: '2026-06-09T09:00:00', updatedAt: '2026-06-09 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260609001'] },
+      { accountId: 'TEA20260602007', roles: ['teacher'], name: '梁雪梅', idCard: '450201199108300007', phone: '', staffingType: '控制数', school: '柳州铁一中学', entryRecordId: 'RN20260610001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19910007', password: 'Edu@19910007', firstLogin: false, createdAt: '2026-06-10T09:00:00', updatedAt: '2026-06-10 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260610001'] },
+      // 柳州市第八中学 — 旧平台迁入教师（缺岗位类别/等级、入编方式），用于演示待完善人员折叠分页
+      { accountId: 'TEA20260603001', roles: ['teacher'], name: '李明华', idCard: '450201198503150101', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20180801001', status: 'active', initialPassword: 'Edu@19850301', password: 'Edu@19850301', firstLogin: false, importedFromOld: true, createdAt: '2024-01-15T09:00:00', updatedAt: '2024-01-15 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20180801001'] },
+      { accountId: 'TEA20260603002', roles: ['teacher'], name: '王芳',   idCard: '450201198807220202', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20190702001', status: 'active', initialPassword: 'Edu@19880702', password: 'Edu@19880702', firstLogin: false, importedFromOld: true, createdAt: '2024-01-15T09:00:00', updatedAt: '2024-01-15 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20190702001'] },
+      { accountId: 'TEA20260603003', roles: ['teacher'], name: '刘建国', idCard: '450201197911080303', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20191203001', status: 'active', initialPassword: 'Edu@19791103', password: 'Edu@19791103', firstLogin: false, importedFromOld: true, createdAt: '2024-01-15T09:00:00', updatedAt: '2024-01-15 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20191203001'] },
+      { accountId: 'TEA20260603004', roles: ['teacher'], name: '周海燕', idCard: '450201199105180404', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20200304001', status: 'active', initialPassword: 'Edu@19910504', password: 'Edu@19910504', firstLogin: false, importedFromOld: true, createdAt: '2024-01-15T09:00:00', updatedAt: '2024-01-15 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20200304001'] },
+      { accountId: 'TEA20260603005', roles: ['teacher'], name: '吴志强', idCard: '450201198212250505', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20201005001', status: 'active', initialPassword: 'Edu@19821205', password: 'Edu@19821205', firstLogin: false, importedFromOld: true, createdAt: '2024-01-15T09:00:00', updatedAt: '2024-01-15 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20201005001'] },
+      { accountId: 'TEA20260603006', roles: ['teacher'], name: '陈丽华', idCard: '450201198906140606', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20210606001', status: 'active', initialPassword: 'Edu@19890606', password: 'Edu@19890606', firstLogin: false, importedFromOld: true, createdAt: '2024-01-15T09:00:00', updatedAt: '2024-01-15 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20210606001'] },
+      { accountId: 'TEA20260603007', roles: ['teacher'], name: '黄伟明', idCard: '450201197603300707', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20211007001', status: 'active', initialPassword: 'Edu@19760307', password: 'Edu@19760307', firstLogin: false, importedFromOld: true, createdAt: '2024-01-15T09:00:00', updatedAt: '2024-01-15 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20211007001'] },
+      { accountId: 'TEA20260603008', roles: ['teacher'], name: '杨柳青', idCard: '450201199308120808', phone: '', staffingType: '控制数', school: '柳州市第八中学', entryRecordId: 'RN20220308001', status: 'active', initialPassword: 'Edu@19930808', password: 'Edu@19930808', firstLogin: false, importedFromOld: true, createdAt: '2024-06-01T09:00:00', updatedAt: '2024-06-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20220308001'] },
+      { accountId: 'TEA20260603009', roles: ['teacher'], name: '赵永刚', idCard: '450201198410050909', phone: '', staffingType: '控制数', school: '柳州市第八中学', entryRecordId: 'RN20220909001', status: 'active', initialPassword: 'Edu@19841009', password: 'Edu@19841009', firstLogin: false, importedFromOld: true, createdAt: '2024-06-01T09:00:00', updatedAt: '2024-06-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20220909001'] },
+      { accountId: 'TEA20260603010', roles: ['teacher'], name: '钱小梅', idCard: '450201199509281010', phone: '', staffingType: '控制数', school: '柳州市第八中学', entryRecordId: 'RN20221010001', status: 'active', initialPassword: 'Edu@19950910', password: 'Edu@19950910', firstLogin: false, importedFromOld: true, createdAt: '2024-06-01T09:00:00', updatedAt: '2024-06-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20221010001'] },
+      { accountId: 'TEA20260603011', roles: ['teacher'], name: '孙晓峰', idCard: '450201198701010111', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20231111001', status: 'active', initialPassword: 'Edu@19870111', password: 'Edu@19870111', firstLogin: false, importedFromOld: true, createdAt: '2025-01-10T09:00:00', updatedAt: '2025-01-10 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20231111001'] },
+      { accountId: 'TEA20260603012', roles: ['teacher'], name: '唐玉兰', idCard: '450201199012121212', phone: '', staffingType: '控制数', school: '柳州市第八中学', entryRecordId: 'RN20231212001', status: 'active', initialPassword: 'Edu@19901212', password: 'Edu@19901212', firstLogin: false, importedFromOld: true, createdAt: '2025-01-10T09:00:00', updatedAt: '2025-01-10 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20231212001'] },
+      { accountId: 'TEA20260603013', roles: ['teacher'], name: '韩雪峰', idCard: '450201198203080131', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20240113001', status: 'active', initialPassword: 'Edu@19820313', password: 'Edu@19820313', firstLogin: false, importedFromOld: true, createdAt: '2025-06-01T09:00:00', updatedAt: '2025-06-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20240113001'] }
+    ];
+    // Merge: always ensure demo accounts exist, overwriting by accountId
+    var existing = [];
+    try { existing = JSON.parse(localStorage.getItem('teacher_accounts') || '[]'); } catch(e) {}
+    for (var si = 0; si < accounts.length; si++) {
+      var found = false;
+      for (var ei = 0; ei < existing.length; ei++) {
+        if (existing[ei].accountId === accounts[si].accountId) {
+          // Update existing account with latest demo data
+          for (var k in accounts[si]) { existing[ei][k] = accounts[si][k]; }
+          found = true;
+          break;
+        }
+      }
+      if (!found) existing.push(accounts[si]);
+    }
+    localStorage.setItem('teacher_accounts', JSON.stringify(existing));
+  }
+  // Always ensure demo accounts are present
+  seedTeacherAccounts();
 
   // ======= DOM refs =======
   const roleTabs      = document.getElementById('roleTabs');
@@ -594,7 +738,7 @@
   const eyeOffIcon    = document.getElementById('eyeOffIcon');
   const eyeOnIcon     = document.getElementById('eyeOnIcon');
 
-  let currentRole = 'city';
+  let currentRole = 'admin';
 
   // ======= Role tab switching =======
   roleTabs.addEventListener('click', function(e) {
@@ -626,18 +770,20 @@
   // ======= Render demo account cards =======
   function renderDemoAccounts() {
     const accounts = demoAccounts[currentRole] || [];
-    demoList.innerHTML = accounts.map((a, idx) => `
-      <div class="demo-account-row" data-index="${idx}">
-        <div class="demo-account-left">
-          <span class="demo-role-badge ${a.badgeClass}">${a.roleLabel.slice(0,1)}</span>
-          <div class="demo-account-info">
-            <span class="demo-account-name">${a.name}（${a.roleLabel}）</span>
-            <span class="demo-account-id">${currentRole==='teacher'?'身份证号':'手机号'}：${a.id}</span>
-          </div>
-        </div>
-        <span class="demo-account-pwd">${DEFAULT_PASSWORD}</span>
-      </div>
-    `).join('');
+    demoList.innerHTML = accounts.map((a, idx) => {
+      var pwd = a.pwd || DEFAULT_PASSWORD;
+      var hintHtml = a.hint ? ' <span style="font-size:10px;color:var(--warning);background:#FEF3C7;padding:1px 6px;border-radius:4px;margin-left:4px;">' + a.hint + '</span>' : '';
+      return '<div class="demo-account-row" data-index="' + idx + '">' +
+        '<div class="demo-account-left">' +
+          '<span class="demo-role-badge ' + a.badgeClass + '">' + a.roleLabel.slice(0,1) + '</span>' +
+          '<div class="demo-account-info">' +
+            '<span class="demo-account-name">' + a.name + '（' + a.roleLabel + '）' + hintHtml + '</span>' +
+            '<span class="demo-account-id">' + (currentRole==='teacher'?'身份证号':'手机号') + '：' + a.id + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<span class="demo-account-pwd">' + pwd + '</span>' +
+      '</div>';
+    }).join('');
 
     // Bind click
     demoList.querySelectorAll('.demo-account-row').forEach(row => {
@@ -645,7 +791,7 @@
         const idx = parseInt(this.dataset.index);
         const acc = accounts[idx];
         accountInput.value = acc.id;
-        passwordInput.value = DEFAULT_PASSWORD;
+        passwordInput.value = acc.pwd || DEFAULT_PASSWORD;
 
         // Visual selected
         demoList.querySelectorAll('.demo-account-row').forEach(r => r.classList.remove('selected'));
@@ -680,26 +826,81 @@
       return;
     }
 
-    // Step 1: Try demo accounts (admin login)
-    const accounts = demoAccounts[currentRole] || [];
-    const matched = accounts.find(a => a.id === account && password === DEFAULT_PASSWORD);
+    // Step 1: For admin role, try admin_accounts first, then demo fallback
+    if (currentRole === "admin") {
+      var adminAccounts = JSON.parse(localStorage.getItem("admin_accounts") || "[]");
+      var adminMatch = adminAccounts.find(function(a) {
+        return a.id === account && a.password === password;
+      });
+      // Fallback: demo data with default password (for first-time or cleared storage)
+      if (!adminMatch) {
+        var demos = demoAccounts[currentRole] || [];
+        var demoMatch = demos.find(function(a) {
+          return a.id === account && password === DEFAULT_PASSWORD;
+        });
+        if (demoMatch) {
+          adminMatch = { role: demoMatch.role, name: demoMatch.name, id: demoMatch.id };
+        }
+      }
 
-    if (matched) {
-      localStorage.setItem("currentUser", JSON.stringify({
-        role: matched.role,
-        name: matched.name,
-        id: matched.id
-      }));
-      showToast("登录成功！欢迎您，" + matched.name + " — " + matched.roleLabel, "success");
-      const btn = loginForm.querySelector(".btn-login");
-      btn.textContent = "登录成功 ✓，正在跳转...";
-      btn.style.background = "linear-gradient(135deg, #059669, #10B981)";
-      setTimeout(function() { window.location.href = "workbench.html"; }, 800);
-      return;
+      if (adminMatch) {
+        // Auto-init admin_accounts if not exists (migration)
+        if (!localStorage.getItem("admin_accounts")) {
+          localStorage.setItem("admin_accounts", JSON.stringify([
+            { role: "system", name: "赵建国", id: "13807720000", password: DEFAULT_PASSWORD },
+            { role: "city", name: "张建国", id: "13807720001", password: DEFAULT_PASSWORD },
+            { role: "district", name: "李振华", id: "13807720002", password: DEFAULT_PASSWORD },
+            { role: "school", name: "王玉兰", id: "13807720003", password: DEFAULT_PASSWORD }
+          ]));
+        }
+        localStorage.setItem("currentUser", JSON.stringify({
+          role: adminMatch.role,
+          name: adminMatch.name,
+          id: adminMatch.id
+        }));
+        showToast("登录成功！欢迎您，" + adminMatch.name, "success");
+        if (typeof writeLog === 'function') writeLog({ module: 'system', actionType: 'login', targetType: 'account', targetId: adminMatch.id, targetName: adminMatch.name, detail: '管理员账号登录', result: 'success' });
+        const btn = loginForm.querySelector(".btn-login");
+        btn.textContent = "登录成功 ✓，正在跳转...";
+        btn.style.background = "linear-gradient(135deg, #059669, #10B981)";
+        setTimeout(function() { window.location.href = "workbench.html"; }, 800);
+        return;
+      }
     }
 
-    // Step 2: For teacher role, try teacher_accounts
+    // Step 2: For teacher role, try demo first then teacher_accounts
     if (currentRole === "teacher") {
+      // Try demo account first (only for accounts using the default password)
+      var teacherDemos = demoAccounts["teacher"] || [];
+      var teacherDemoMatch = teacherDemos.find(function(a) {
+        var expectedPwd = a.pwd || DEFAULT_PASSWORD;
+        return a.id === account && password === expectedPwd && expectedPwd === DEFAULT_PASSWORD;
+      });
+
+      if (teacherDemoMatch) {
+        // Look up accountId from teacher_accounts for the demo teacher
+        var demoAccountId = '';
+        var teachers2 = JSON.parse(localStorage.getItem("teacher_accounts") || "[]");
+        var matched2 = teachers2.filter(function(t) { return t.idCard === teacherDemoMatch.id; })[0];
+        if (matched2) demoAccountId = matched2.accountId || '';
+        localStorage.setItem("currentUser", JSON.stringify({
+          role: "teacher",
+          name: teacherDemoMatch.name,
+          id: teacherDemoMatch.id,
+          school: matched2 ? matched2.school : '',
+          accountId: demoAccountId
+        }));
+        showToast("登录成功！欢迎您，" + teacherDemoMatch.name + " — 教师", "success");
+        if (typeof writeLog === 'function') writeLog({ module: 'system', actionType: 'login', targetType: 'account', targetId: teacherDemoMatch.id, targetName: teacherDemoMatch.name, detail: '教师演示账号登录', result: 'success' });
+        const btn = loginForm.querySelector(".btn-login");
+        btn.textContent = "登录成功 ✓，正在跳转...";
+        btn.style.background = "linear-gradient(135deg, #059669, #10B981)";
+        setTimeout(function() { window.location.href = "workbench.html"; }, 800);
+        return;
+      }
+
+      // Fall through to teacher_accounts lookup (handles firstLogin, importedFromOld, etc.)
+
       var teachers = JSON.parse(localStorage.getItem("teacher_accounts") || "[]");
       var teacher = teachers.find(function(t) {
         return (t.idCard === account || t.phone === account) && t.password === password;
@@ -707,6 +908,7 @@
 
       if (!teacher) {
         showToast("账号或密码错误", "error");
+        if (typeof writeLog === 'function') writeLog({ module: 'system', actionType: 'login', targetType: 'account', targetId: account, detail: '教师登录失败：账号或密码错误', result: 'fail', failReason: '账号或密码错误' });
         return;
       }
 
@@ -733,6 +935,7 @@
         accountId: teacher.accountId
       }));
       showToast("登录成功！欢迎您，" + teacher.name, "success");
+      if (typeof writeLog === 'function') writeLog({ module: 'system', actionType: 'login', targetType: 'account', targetId: teacher.idCard, targetName: teacher.name, detail: '教师账号登录', result: 'success' });
       const btn = loginForm.querySelector(".btn-login");
       btn.textContent = "登录成功 ✓，正在跳转...";
       btn.style.background = "linear-gradient(135deg, #059669, #10B981)";
@@ -741,6 +944,7 @@
     }
 
     showToast("账号或密码错误，请使用演示账号登录", "error");
+    if (typeof writeLog === 'function') writeLog({ module: 'system', actionType: 'login', targetType: 'account', targetId: account, detail: '管理员登录失败：账号或密码错误', result: 'fail', failReason: '账号或密码错误' });
   });
 
 // ======= Toast =======
@@ -762,8 +966,81 @@
       loginForm.dispatchEvent(new Event('submit'));
     }
   });
+
+  // ======= Reset demo data =======
+  window.showResetConfirm = function() {
+    var overlay = document.getElementById('resetConfirmOverlay');
+    if (overlay) overlay.classList.add('show');
+  };
+  window.closeResetConfirm = function() {
+    var overlay = document.getElementById('resetConfirmOverlay');
+    if (overlay) overlay.classList.remove('show');
+  };
+  // Use event delegation on document for overlay click-outside-to-close
+  document.addEventListener('click', function(e) {
+    var overlay = document.getElementById('resetConfirmOverlay');
+    if (overlay && e.target === overlay) closeResetConfirm();
+  });
+  window.doResetDemoData = function() {
+    // Clear all demo-related localStorage keys
+    var keysToRemove = [
+      'teacher_accounts',
+      'admin_accounts',
+      'currentUser',
+      'pendingTeacherLogin',
+      'entry_records',
+      'promote_records',
+      'employ_records',
+      'exit_records',
+      'login_history'
+    ];
+    // Also remove all user_profile_* keys
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.indexOf('user_profile_') === 0) {
+        keysToRemove.push(key);
+      }
+    }
+    for (var k = 0; k < keysToRemove.length; k++) {
+      localStorage.removeItem(keysToRemove[k]);
+    }
+    // Re-seed teacher accounts
+    seedTeacherAccounts();
+    // Re-render demo cards
+    renderDemoAccounts();
+    // Clear form
+    accountInput.value = '';
+    passwordInput.value = '';
+    // Close dialog
+    closeResetConfirm();
+    showToast('演示数据已重置，可重新体验首次登录流程', 'success');
+  };
 })();
 </script>
+
+<script src="src/logger.js"></script>
+
+<!-- Reset demo data -->
+<button class="reset-btn" onclick="showResetConfirm()" title="恢复所有演示数据到初始状态">🔄 重置演示数据</button>
+
+<div class="reset-confirm-overlay" id="resetConfirmOverlay">
+  <div class="reset-confirm-dialog">
+    <div class="reset-confirm-header">🔄 重置演示数据</div>
+    <div class="reset-confirm-body">
+      确认重置所有演示数据？将恢复到初始状态：
+      <ul>
+        <li>账号密码恢复为初始密码</li>
+        <li>首次登录状态恢复（需重新改密）</li>
+        <li>个人信息、附件、证书清空</li>
+        <li>业务记录（入编/晋升/聘用等）恢复</li>
+      </ul>
+    </div>
+    <div class="reset-confirm-footer">
+      <button onclick="closeResetConfirm()">取消</button>
+      <button class="btn-danger" onclick="doResetDemoData()">确认重置</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

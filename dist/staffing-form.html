@@ -144,7 +144,7 @@ body {
 .role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .role-switch-dot.city { background: #3B82F6; }
 .role-switch-dot.district { background: #F59E0B; }
-.role-switch-dot.orgName { background: #10B981; }
+.role-switch-dot.school { background: #10B981; }
 .role-switch-dot.teacher { background: #A78BFA; }
 
 /* ===== MAIN CONTENT ===== */
@@ -290,6 +290,23 @@ body {
 .type-badge.control { background: #E0E7FF; color: #3730A3; }
 
 /* Footer actions */
+.two-columns { display: flex; gap: 24px; align-items: flex-start; }
+.form-col { flex: 1; min-width: 0; }
+.history-col { width: 340px; flex-shrink: 0; position: sticky; top: 80px; }
+.history-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 24px; }
+.history-card-title { font-size: 14px; font-weight: 600; color: var(--text); padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 16px; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot { position: absolute; left: -20px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); z-index: 1; }
+.timeline-time { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
+.timeline-action { font-size: 13px; font-weight: 500; color: var(--text); }
+.timeline-detail { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.file-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.file-link:hover { text-decoration: underline; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--border); }
+
 .form-footer {
   display: flex; justify-content: space-between; align-items: center;
   padding: 20px 0;
@@ -325,6 +342,11 @@ body {
 .toast.warning { background: var(--warning); color: #1E293B; }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+.bf-tip-icon { display: inline-block; width: 14px; height: 14px; line-height: 14px; text-align: center; border-radius: 50%; background: #DBEAFE; color: #1E40AF; font-size: 9px; cursor: pointer; margin-left: 2px; font-style: normal; vertical-align: middle; }
+.bf-tip-icon:hover { background: #BFDBFE; }
+.bf-tooltip-popup { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 16px; width: 300px; font-size: 12px; line-height: 1.7; color: var(--text); }
+.bf-tooltip-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.bf-tooltip-body { color: var(--text-secondary); }
 
 /* Quota summary bar */
 .quota-summary {
@@ -345,6 +367,20 @@ body {
   .main { margin-left: 0; }
   .form-row { flex-direction: column; }
 }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
+.modal-overlay.show { display: flex; }
+.modal-container { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 24px; color: var(--text-light); cursor: pointer; }
+.modal-close:hover { color: var(--text); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--border); }
+
+.modal-buttons{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
+.btn-cancel{background:var(--gray-bg);border:none;padding:8px 20px;border-radius:30px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-confirm-danger{background:#EF4444;color:#fff;border:none;padding:8px 24px;border-radius:30px;cursor:pointer;font-size:13px;font-family:inherit}
+.btn-confirm-danger:hover{background:#DC2626}
 </style>
 </head>
 <body>
@@ -464,7 +500,7 @@ body {
   <div class="form-card">
     <div class="form-card-title"><span class="step-num">2</span>附件上传</div>
     <div class="form-group">
-      <label id="attachmentLabel">附件 扫描件 <span class="required">*</span></label>
+      <label id="attachmentLabel"></label>
       <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()"
            ondragover="event.preventDefault(); this.classList.add('drag-over');"
            ondragleave="this.classList.remove('drag-over');"
@@ -582,7 +618,7 @@ var ROLES = {
         { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
       ]
     }
-  }, orgName: {
+  }, school: {
     name: '王玉兰', short: '王', org: '柳州市第八中学', role: '校管理员',
     sidebar: {
       top: [
@@ -662,8 +698,8 @@ var SCHOOL_PROFILE = {
     fOrgLevel: '正科级',
     fOrgNature: '全额拨款事业单位',
     fAuthStaff: 88, fCurrentStaff: 80,
-    fApprovedPlan: 5, fUsedPlan: 4, fUnusedPlan: 1, fAvailablePlan: 3,
-    fControlQuota: 16, fControlActual: 14, fControlApprovedPlan: 3, fControlUsedPlan: 1, fControlUnusedPlan: 2, fControlAvailablePlan: 1,
+    fApprovedPlan: 5, fUsedPlan: 4, fUnusedPlan: 1, fAvailablePlan: 3, expiredOccupiedPlan: 1,
+    fControlQuota: 16, fControlActual: 14, fControlApprovedPlan: 3, fControlUsedPlan: 1, fControlUnusedPlan: 2, fControlAvailablePlan: 1, expiredOccupiedControlPlan: 1,
     fAuthLeader: 5, fActualLeader: 4, fActualOtherLeader: 3
   }
 };
@@ -678,14 +714,14 @@ var TYPE_CONFIG = {
     icon: '📋',
     step1Title: '事业编制情况',
     fields: [
-      { id: 'fOrgLevel', label: '机构级别', unit: '', help: '机构编制部门确定的机构级别' },
+      { id: 'fOrgLevel', label: '单位级别', unit: '', help: '机构编制部门确定的机构级别' },
       { id: 'fOrgNature', label: '单位性质', unit: '', help: '事业单位分类，如全额拨款事业单位' },
-      { id: 'fAuthStaff', label: '核定编制数', unit: '名', help: '机构编制部门核定的本单位事业编制总数' },
+      { id: 'fAuthStaff', label: '事业编核定数', unit: '名', help: '机构编制部门核定的本单位事业编制总数' },
       { id: 'fCurrentStaff', label: '实有在编人数', unit: '人', help: '当前实际在编的事业编制人数' },
-      { id: 'fApprovedPlan', label: '已批复计划数', unit: '名', help: '已获批复的事业编制使用计划总数' },
-      { id: 'fUsedPlan', label: '已使用计划数', unit: '名', help: '已办理进编手续的人数' },
-      { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '未使用计划数 = 已批复计划数 − 已使用计划数', formula: '未使用计划数 = 已批复计划数 − 已使用计划数' },
-      { id: 'fAvailablePlan', label: '可申请编制数', unit: '名', help: '可申请编制数 = 核定编制数 − 实有在编人数 − 已批复计划数', formula: '可申请编制数 = 核定编制数 − 实有在编人数 − 已批复计划数' }
+      { id: 'fApprovedPlan', label: '已批复计划数', unit: '名', help: '已获批复的事业编制使用计划总数', tipIcon: 'approved' },
+      { id: 'fUsedPlan', label: '已使用计划数', unit: '名', help: '已办理进编手续的人数', tipIcon: 'used' },
+      { id: 'fUnusedPlan', label: '未使用计划数', unit: '名', help: '未使用计划数 = 已批复计划数 − 已使用计划数', tipIcon: 'unused' },
+      { id: 'fAvailablePlan', label: '可申请编制数', unit: '名', help: '可申请编制数 = max(0, 事业编核定数 − 实有在编人数 − 已批复计划数 − 到期占用中人数)', tipIcon: 'available' }
     ],
     countLabel: '使用事业编制（名）',
     countField: '使用事业编制',
@@ -708,14 +744,14 @@ var TYPE_CONFIG = {
     icon: '📎',
     step1Title: '控制数情况',
     fields: [
-      { id: 'fOrgLevel', label: '机构级别', unit: '', help: '机构编制部门确定的机构级别' },
+      { id: 'fOrgLevel', label: '单位级别', unit: '', help: '机构编制部门确定的机构级别' },
       { id: 'fOrgNature', label: '单位性质', unit: '', help: '事业单位分类，如全额拨款事业单位' },
-      { id: 'fControlQuota', label: '核定控制数', unit: '名', help: '机构编制部门核定的聘用教师控制数' },
+      { id: 'fControlQuota', label: '控制数核定数', unit: '名', help: '机构编制部门核定的聘用教师控制数' },
       { id: 'fControlActual', label: '实有控制数人数', unit: '人', help: '当前实际聘用的控制数教师人数' },
-      { id: 'fControlApprovedPlan', label: '已批复控制数', unit: '名', help: '已获批复的控制数使用计划总数' },
-      { id: 'fControlUsedPlan', label: '已使用控制数', unit: '名', help: '已办理增人手续的控制数人数' },
-      { id: 'fControlUnusedPlan', label: '未使用控制数', unit: '名', help: '未使用控制数 = 已批复控制数 − 已使用控制数', formula: '未使用控制数 = 已批复控制数 − 已使用控制数' },
-      { id: 'fControlAvailablePlan', label: '可申请控制数', unit: '名', help: '可申请控制数 = 核定控制数 − 实有控制数人数 − 已批复控制数', formula: '可申请控制数 = 核定控制数 − 实有控制数人数 − 已批复控制数' }
+      { id: 'fControlApprovedPlan', label: '已批复控制数', unit: '名', help: '已获批复的控制数使用计划总数', tipIcon: 'approved' },
+      { id: 'fControlUsedPlan', label: '已使用控制数', unit: '名', help: '已办理增人手续的控制数人数', tipIcon: 'used' },
+      { id: 'fControlUnusedPlan', label: '未使用控制数', unit: '名', help: '未使用控制数 = 已批复控制数 − 已使用控制数', tipIcon: 'unused' },
+      { id: 'fControlAvailablePlan', label: '可申请控制数', unit: '名', help: '可申请控制数 = max(0, 控制数核定数 − 实有控制数人数 − 已批复控制数 − 到期占用中人数)', tipIcon: 'available' }
     ],
     countLabel: '使用控制数（名）',
     countField: '使用控制数',
@@ -779,9 +815,8 @@ function sidebarClick(el, id) {
 // ===== ROLE SWITCH =====
 function switchRole(role) {
   currentRole = role;
-  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.role === role);
-  });
+  if (role === 'city' || role === 'district') { window.location.href = 'staffing-application.html'; return; }
+  if (role === 'teacher') { window.location.href = 'workbench.html'; return; }
   updateUserInfo();
   renderSidebar();
   showToast('已切换至：' + ROLES[role].role + ' — ' + ROLES[role].name);
@@ -798,8 +833,6 @@ function renderTypeSelector() {
     var isSelected = t.key === staffingType;
     html += '<div class="type-option' + (isSelected ? ' selected' : '') + '" onclick="selectType(\'' + t.key + '\')">';
     html += '<div class="type-name">' + t.config.icon + ' ' + t.config.label + '</div>';
-    html += '<div class="type-form">' + t.config.formName + ' — ' + t.config.formDesc + '</div>';
-    html += '<span class="type-badge ' + t.config.badgeClass + '">' + t.config.formName + '</span>';
     html += '</div>';
   });
   document.getElementById('typeSelector').innerHTML = html;
@@ -847,6 +880,40 @@ function renderForm() {
     }
   }
 
+  // Load previous form data in edit mode
+  if (isEditMode) {
+    var prevData = JSON.parse(localStorage.getItem('form_' + formId) || 'null');
+    if (!prevData) {
+      // Seed demo data for existing submissions (no localStorage yet)
+      prevData = {};
+      USE_FORM_ROWS.forEach(function(r, i) {
+        if (i === 0) r.num = 1; else if (i === 1) r.num = 1;
+        r.edu = '本科及以上，相关专业，教师资格证';
+        r.cond = '35周岁以下';
+      });
+      prevData.useForms = JSON.parse(JSON.stringify(USE_FORM_ROWS));
+      prevData.history = [
+        { time: '2026-05-06 10:30:00', action: '学校提交申报', detail: '使用控制数合计2名' },
+        { time: '2026-05-10 14:00:00', action: '主管单位审核退回', detail: '退回原因：材料不完整，请补充后重新提交' }
+      ];
+      localStorage.setItem('form_' + formId, JSON.stringify(prevData));
+    }
+    if (prevData.useForms && prevData.useForms.length > 0) {
+      USE_FORM_ROWS = prevData.useForms;
+    }
+    window._editFormData = prevData;
+    // Load previous attachment (seed demo if not exists)
+    var attachData = JSON.parse(localStorage.getItem('attach_' + formId) || 'null');
+    if (!attachData) {
+      attachData = { name: '附件9_柳州市第八中学_2026自主申报.pdf', size: 245760 };
+      localStorage.setItem('attach_' + formId, JSON.stringify(attachData));
+    }
+    window._editFile = attachData;
+  }
+
+  // Begin form HTML
+  var formBodyHtml = '';
+
   // Step 1: unit info (system auto-provided, read-only)
   var profile = SCHOOL_PROFILE[currentSchoolName] || {};
   document.getElementById('fUnitNameDisplay').textContent = profile.orgName || currentSchoolName;
@@ -857,7 +924,7 @@ function renderForm() {
     var val = profile[f.id] !== undefined ? profile[f.id] : '—';
     var unitSuffix = f.unit ? ' <span style="font-size:11px;color:var(--text-light);font-weight:400;">' + f.unit + '</span>' : '';
     fieldsHtml += '<div class="info-item">';
-    fieldsHtml += '<div class="info-label">' + f.label + '</div>';
+    fieldsHtml += '<div class="info-label">' + f.label + (f.tipIcon ? ' ' + tipIconHtml(f.tipIcon) : '') + '</div>';
     fieldsHtml += '<div class="info-value" id="' + f.id + 'Val">' + val + unitSuffix + '</div>';
     if (f.formula) {
       fieldsHtml += '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">' + f.formula + '</div>';
@@ -869,6 +936,29 @@ function renderForm() {
     }
   });
   document.getElementById('step1Fields').innerHTML = fieldsHtml;
+  var eoKey = staffingType === 'career' ? 'expiredOccupiedPlan' : 'expiredOccupiedControlPlan';
+  var sd = SCHOOL_PROFILE['柳州市第八中学'];
+  if (sd && sd[eoKey] > 0) {
+    var eoDiv = document.createElement('div');
+    eoDiv.className = 'info-item';
+    eoDiv.style.cssText = 'color:#C2410C;margin-top:8px;';
+    var ti = document.createElement('span');
+    ti.className = 'bf-tip-icon';
+    ti.textContent = 'ⓘ';
+    ti.style.cursor = 'pointer';
+    ti.onclick = function(e) { e.stopPropagation(); showAggTooltip(e, 'expiredOccupied'); };
+    var lbl = document.createElement('div');
+    lbl.className = 'info-label';
+    lbl.appendChild(document.createTextNode('到期占用中 '));
+    lbl.appendChild(ti);
+    var val = document.createElement('div');
+    val.className = 'info-value';
+    val.style.cssText = 'color:#C2410C;font-weight:500;';
+    val.textContent = sd[eoKey] + ' 人';
+    eoDiv.appendChild(lbl);
+    eoDiv.appendChild(val);
+    document.getElementById('step1Fields').appendChild(eoDiv);
+  }
 
   // Step 2 table header
   document.getElementById('thCount').textContent = cfg.countLabel;
@@ -893,7 +983,7 @@ function renderForm() {
   document.getElementById('useFormBody').innerHTML = rowsHtml;
 
   // Step 3 attachment
-  document.getElementById('attachmentLabel').innerHTML = cfg.formName + ' 扫描件 <span class="required">*</span>';
+  document.getElementById('attachmentLabel').innerHTML = '';
   document.getElementById('uploadHint').innerHTML = cfg.attachmentHints.join('。');
 
   // Quota summary
@@ -901,6 +991,58 @@ function renderForm() {
 
   // Submit button text
   document.getElementById('submitBtn').textContent = isEditMode ? '重新提交' : '提交申报';
+
+  // Edit mode: show previous attachment
+  if (isEditMode && window._editFile) {
+    var f = window._editFile;
+    document.getElementById('uploadArea').style.display = 'none';
+    document.getElementById('uploadedFile').innerHTML =
+      '<div class="upload-file" id="prevFileRow">📎 ' + f.name + ' (' + (f.size / 1024 / 1024).toFixed(1) + ' MB)' +
+      '<span style="display:inline-flex;gap:8px;margin-left:12px;">' +
+      '<a class="file-link" onclick="event.stopPropagation();showToast(\'📄 预览：' + f.name + '（Demo）\')">👁 预览</a>' +
+      '<a class="file-link" onclick="event.stopPropagation();showToast(\'📥 下载：' + f.name + '（Demo）\')">📥 下载</a>' +
+      '<a class="file-link" style="color:var(--danger);" onclick="event.stopPropagation();confirmDeleteFile(\'' + f.name + '\')">🗑 删除</a>' +
+      '</span></div>';
+  }
+
+  // Edit mode: set up two-column layout with history on the right
+  if (isEditMode) {
+    var mainEl = document.querySelector('.main');
+    var oldWrapper = document.getElementById('editLayout');
+    if (oldWrapper) oldWrapper.remove();
+    // Create two-column wrapper
+    var wrapper = document.createElement('div');
+    wrapper.id = 'editLayout';
+    wrapper.className = 'two-columns';
+    // Left column: move all existing main children into it
+    var leftCol = document.createElement('div');
+    leftCol.className = 'form-col';
+    while (mainEl.firstChild) { leftCol.appendChild(mainEl.firstChild); }
+    wrapper.appendChild(leftCol);
+    // Right column: history card
+    var rightCol = document.createElement('div');
+    rightCol.className = 'history-col';
+    var formData = window._editFormData || {};
+    rightCol.innerHTML = '<div class="history-card"><div class="history-card-title">📜 申报履历</div><div class="timeline">' + buildTimelineHtml(formData.history || []) + '</div></div>';
+    wrapper.appendChild(rightCol);
+    mainEl.appendChild(wrapper);
+  }
+}
+
+function buildTimelineHtml(hist) {
+  if (!hist || hist.length === 0) return '<div style="text-align:center;padding:20px;color:var(--text-light);font-size:12px;">暂无履历记录</div>';
+  var hh = '';
+  for (var hi = 0; hi < hist.length; hi++) {
+    var h = hist[hi];
+    hh += '<div class="timeline-item"><div class="timeline-dot"></div>';
+    hh += '<div class="timeline-time">' + (h.time || '') + '</div>';
+    hh += '<div class="timeline-action">' + (h.action || '') + '</div>';
+    if (h.detail) hh += '<div class="timeline-detail">' + h.detail + '</div>';
+    hh += '</div>';
+  }
+  hh += '<div class="timeline-item"><div class="timeline-dot" style="background:var(--warning);"></div>';
+  hh += '<div class="timeline-action" style="color:var(--warning);">当前：修改重提中</div></div>';
+  return hh;
 }
 
 function updateQuotaSummary() {
@@ -972,6 +1114,32 @@ function removeFile() {
   document.getElementById('fileInput').value = '';
   document.getElementById('uploadArea').style.display = '';
   document.getElementById('uploadedFile').innerHTML = '';
+  window._editFile = null;
+}
+
+function confirmDeleteFile(fileName) {
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay show';
+  overlay.id = 'deleteConfirmModal';
+  overlay.innerHTML = '<div class="modal-container" style="width:440px;padding:24px;border-radius:16px;">' +
+    '<h3 style="font-size:16px;font-weight:600;margin-bottom:16px;">确认删除</h3>' +
+    '<p style="font-size:14px;color:var(--text);">确定要删除附件「' + fileName + '」吗？</p>' +
+    '<p style="font-size:12px;color:var(--text-light);margin-top:8px;">删除后可重新上传新文件。</p>' +
+    '<div class="modal-buttons">' +
+      '<button class="btn-cancel" onclick="this.closest(\'.modal-overlay\').remove()">取消</button>' +
+      '<button class="btn-confirm-danger" onclick="doDeleteFile();this.closest(\'.modal-overlay\').remove()">确认删除</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+}
+
+function doDeleteFile() {
+  uploadedFile = null;
+  window._editFile = null;
+  if (formId) localStorage.removeItem('attach_' + formId);
+  document.getElementById('fileInput').value = '';
+  document.getElementById('uploadArea').style.display = '';
+  document.getElementById('uploadedFile').innerHTML = '';
+  showToast('附件已删除，可重新上传');
 }
 
 // ===== SUBMIT =====
@@ -1001,11 +1169,6 @@ function submitForm() {
     }
   }
 
-  if (!uploadedFile) {
-    showToast('请上传' + cfg.formName + ' 扫描件', 'warning');
-    return;
-  }
-
   // Build submission payload
   var submissionId = formId || ('S' + new Date().getFullYear() + '-A' + String(Math.floor(Math.random() * 1000)).padStart(3, '0'));
   var payload = {
@@ -1023,6 +1186,19 @@ function submitForm() {
 
   // Track submission for duplicate check
   saveSubmissionRecord(formBatchId, staffingType, submissionId);
+
+  // Save form data to localStorage for edit/reload
+  var historyEntry = { time: payload.submitDate, action: isEditMode ? '修改重提' : '学校提交申报', detail: '使用' + (staffingType === 'career' ? '事业编制' : '控制数') + '合计' + totalApply + '名' };
+  var key = 'form_' + submissionId;
+  var prev = JSON.parse(localStorage.getItem(key) || '{}');
+  var hist = prev.history || [];
+  hist.push(historyEntry);
+  localStorage.setItem(key, JSON.stringify({ useForms: USE_FORM_ROWS, submitDate: payload.submitDate, batchId: formBatchId, batchName: formBatchName, staffingType: staffingType, history: hist }));
+
+  // Save attachment info to localStorage
+  if (uploadedFile) {
+    localStorage.setItem('attach_' + submissionId, JSON.stringify({ name: uploadedFile.name, size: uploadedFile.size }));
+  }
 
   var msg = isEditMode ? '修改重提已提交，待主管单位审核' : '申报已提交，待主管单位审核';
   showToast(msg);
@@ -1069,5 +1245,38 @@ renderSidebar();
 updateUserInfo();
 renderTypeSelector();
 renderForm();
+
+
+function tipIconHtml(field) { return '<span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'' + field + '\')" style="cursor:pointer">ⓘ</span>'; }
+var AGG_TOOLTIPS = {
+  approved: { title:'已批复计划数', body:'仅统计<strong>有效期内</strong>的编制批复计划。<br>已到期的批复名额不计入此数字。<br><br>数据来源：计划明细自动汇总，不可手动修改。' },
+  used:     { title:'已使用计划数', body:'<strong>= 已占用 + 已入编</strong><br><br>有效期内计划中已占用和已入编的人数之和。<br>已到期计划中的使用数不计入。' },
+  unused:   { title:'未使用计划数', body:'<strong>= 已批复 − 已使用</strong><br><br>已到期的剩余名额不计入此数字。' },
+  available:{ title:'可申请数', body:'<strong>= 核定数 − 实有数 − 已批复计划数 − 到期占用中人数</strong><br><br>编制余额。还可向编办申请的编制名额数量。<br>结果 ≤ 0 表示编制已满或超额。<br><br>⚠️ 已过期但仍有占用的计划，其占用人数会扣减可申请数。' },
+  expiredOccupied:{ title:'到期占用中', body:'<strong>已过期但仍有人员占用的计划中，尚未入编的人数。</strong><br><br>占用名额仍有效，应尽快为占用人员办理入编手续。<br>入编完成后相关计划将自动标记为"已用完"。' }
+};
+function showAggTooltip(event, field) {
+  var existing = document.getElementById('bf-tooltip-popup');
+  if (existing) existing.remove();
+  var info = AGG_TOOLTIPS[field];
+  if (!info) return;
+  var popup = document.createElement('div');
+  popup.id = 'bf-tooltip-popup';
+  popup.className = 'bf-tooltip-popup';
+  popup.innerHTML = '<div class="bf-tooltip-title">' + info.title + ' ⓘ</div><div class="bf-tooltip-body">' + info.body + '</div><button class="btn btn-sm btn-primary" onclick="document.getElementById(\'bf-tooltip-popup\').remove()" style="margin-top:8px">知道了</button>';
+  popup.style.position = 'fixed';
+  popup.style.top = Math.min(event.clientY, window.innerHeight - 280) + 'px';
+  popup.style.left = Math.min(event.clientX, window.innerWidth - 320) + 'px';
+  popup.style.zIndex = '9999';
+  document.body.appendChild(popup);
+  setTimeout(function() {
+    document.addEventListener('click', function closeAgg(e) {
+      if (!popup.contains(e.target) && e.target.className.indexOf('bf-tip-icon') === -1) {
+        popup.remove();
+        document.removeEventListener('click', closeAgg);
+      }
+    });
+  }, 100);
+}
 </script>
 </body></html>

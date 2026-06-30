@@ -530,7 +530,7 @@ var MENU_ICONS = {
   entry: 'userp', staffing: 'monitor', exit: 'userx',
   promote: 'arrowup', postset: 'shield', recruit: 'search',
   employ: 'file',
-  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  retire: 'clock', ethics: 'warn',
   account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
@@ -561,11 +561,11 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
         { name: '系统设置', items: [
           { id: 'account', label: '账号管理' },
@@ -595,13 +595,13 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
   },
@@ -624,13 +624,13 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
   },
@@ -642,7 +642,7 @@ var ROLES = {
         { name: '业务申请', items: [
           { id: 'promote', label: '岗位晋升申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]}
       ]
     }
@@ -761,7 +761,7 @@ var MATERIAL_CATALOG = {
   education_cert: { name: '学历证书', required: false },
   degree_cert: { name: '学位证书', required: false },
   title_cert: { name: '职称证书', required: false },
-  license_cert: { name: '执业资格证书', required: false },
+  license_cert: { name: '教师资格证', required: false },
   id_card: { name: '个人身份证（正反面）', required: true },
   application_form: { name: '个人编制使用申请表', required: true },
   appointment_doc: { name: '任命文件或干部调动通知', required: true },
@@ -1507,6 +1507,8 @@ function sidebarClick(el, id) {
   if (id === 'recruit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
   if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
 
     if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
     showToast('无权限访问', 'warning');
@@ -1515,6 +1517,7 @@ function sidebarClick(el, id) {
   if (id === 'account') { window.location.href = 'account-management.html'; return; }
 
   if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
+    else if (id === 'org') { window.location.href = 'org-management.html'; }
   showToast('跳转至：' + el.querySelector('.menu-label').textContent);
 }
 

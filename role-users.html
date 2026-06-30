@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关联用户 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); }
+.topnav-user { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .logout { color: var(--danger); }
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.7); transition: var(--transition); text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); margin-top: auto; }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.page-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+.page-header h1 { font-size: 20px; font-weight: 700; }
+.card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.list-table th { background: #F8FAFC; padding: 10px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.list-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tr:hover { background: #FAFBFC; }
+.list-table .col-name { text-align: left; font-weight: 500; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; display: inline-flex; align-items: center; gap: 4px; }
+.btn-xs-primary { background: var(--primary); color: #fff; }
+.btn-xs-primary:hover { background: var(--primary-dark); }
+.btn-xs-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-xs-outline:hover { background: var(--gray-bg); }
+.btn-xs-danger { background: #fff; color: var(--danger); border: 1px solid var(--danger); }
+.btn-xs-danger:hover { background: #FEF2F2; }
+.action-links { display: flex; gap: 6px; justify-content: center; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 500px; max-width: 90vw; max-height: 70vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; font-size: 18px; cursor: pointer; color: var(--text-light); }
+.modal-close:hover { background: var(--gray-bg); color: var(--text); }
+.modal-body { padding: 16px 24px; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 0 24px 20px; }
+.toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; font-weight: 500; opacity: 0; transform: translateY(-10px); transition: var(--transition); pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.warning { background: var(--warning); color: #1E293B; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; }
+.pagination button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-secondary); transition: var(--transition); }
+.pagination button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+.pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+.pagination .page-info { font-size: 12px; color: var(--text-light); margin: 0 8px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/></svg></div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell" onclick="showToast('暂无新消息','warning')" style="position:relative;cursor:pointer;color:rgba(255,255,255,0.85);padding:6px;border-radius:6px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">系</div><span id="userName">系统管理员</span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="personal-center.html">个人中心</a><div class="divider"></div>
+        <a class="logout" onclick="logout()">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg><span class="menu-label">收起菜单</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="breadcrumb"><a href="workbench.html">首页</a> / <a href="perm-management.html">角色权限</a> / <span id="crumbTitle">关联用户</span></div>
+  <div class="page-header"><h1 id="pageTitle">关联用户</h1><button class="btn btn-primary btn-sm" onclick="openAddUser()">+ 添加用户</button></div>
+  <div class="filter-bar" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><label style="font-size:12px;color:var(--text-secondary);">搜索</label><input id="nameFilter" placeholder="姓名" oninput="renderUserTable()" style="padding:6px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;outline:none;width:200px;"></div>
+  <div class="card"><div class="table-scroll"><table class="list-table">
+    <thead><tr><th style="width:50px;">序号</th><th style="text-align:left;">姓名</th><th>所属单位</th><th style="width:120px;">所属角色</th><th style="width:100px;">操作</th></tr></thead>
+    <tbody id="userTableBody"></tbody>
+  </table></div></div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-header"><h3>添加用户</h3><button class="modal-close" onclick="closeAddUserModal()">✕</button></div>
+    <div class="modal-body" id="addUserBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeAddUserModal()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="saveAddedUsers()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header"><h3 id="confirmTitle">确认操作</h3><button class="modal-close" onclick="closeConfirm()">✕</button></div>
+    <div class="modal-body"><p id="confirmMsg" style="font-size:14px;color:var(--text-secondary);"></p></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary btn-sm" id="confirmBtn" onclick="execConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="src/menu-config.js"></script>
+<script src="src/logger.js"></script>
+<script>
+var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+if (currentUser.role !== 'system') {
+  document.querySelector('.main').innerHTML = '<div class="breadcrumb"><a href="workbench.html">首页</a></div><div class="card empty-state"><p style="font-size:16px;">🔒 无权访问</p></div>';
+}
+
+var R = { system:'系统管理员', city:'市管理员', district:'区管理员', school:'校管理员', teacher:'教师' };
+var ROLE_ID = (function() { var m = window.location.search.match(/[?&]roleId=([^&]*)/); return m ? decodeURIComponent(m[1]) : ''; })();
+var roleInfo = null;
+(function() {
+  try { var roles = JSON.parse(localStorage.getItem('role_permissions') || '{}'); roleInfo = roles[ROLE_ID]; } catch(e) {}
+  if (!roleInfo) { document.querySelector('.main').innerHTML = '<div class="breadcrumb"><a href="perm-management.html">角色权限</a></div><div class="card empty-state"><p>角色不存在</p></div>'; }
+  else {
+    document.getElementById('crumbTitle').textContent = '关联用户';
+    document.getElementById('pageTitle').textContent = '关联用户 — ' + (roleInfo.label || ROLE_ID);
+  }
+})();
+
+var ICONS = { users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/></svg>', key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777z"/></svg>', list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/></svg>', menu: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/></svg>' };
+renderSidebar();
+
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', 'system', 'perm');
+}
+function sidebarClick(id) {
+  if (id === 'workbench') window.location.href = 'workbench.html';
+  else if (id === 'account') window.location.href = 'account-management.html';
+  else if (id === 'org') window.location.href = 'org-management.html';
+  else if (id === 'perm') window.location.href = 'perm-management.html';
+  else if (id === 'log') window.location.href = 'log-management.html';
+  else if (id === 'menuMgr') window.location.href = 'menu-management.html';
+  else showToast('开发中', 'warning');
+}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
+
+// ===== DATA =====
+function getRoleUsers() {
+  var users = [];
+  try {
+    var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    teachers.forEach(function(t) { if (t.roles && t.roles.indexOf(ROLE_ID) !== -1) users.push({ name: t.name, school: t.school || '—', id: t.accountId, roles: t.roles }); });
+    var admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+    admins.forEach(function(a) { if ((a.roles && a.roles.indexOf(ROLE_ID) !== -1) || a.role === ROLE_ID) users.push({ name: a.name, school: a.school || '—', id: a.id, roles: a.roles || [a.role] }); });
+  } catch(e) {}
+  return users;
+}
+
+var currentPage = 1;
+var pageSize = 10;
+
+function renderUserTable() {
+  var users = getRoleUsers();
+  var nameQ = (document.getElementById('nameFilter').value || '').toLowerCase();
+  if (nameQ) users = users.filter(function(u) { return u.name.toLowerCase().indexOf(nameQ) !== -1; });
+  currentPage = 1;
+  var tbody = document.getElementById('userTableBody');
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p style="font-size:14px;">暂无关联用户</p></div></td></tr>'; return; }
+  var totalPages = Math.ceil(users.length / pageSize);
+  if (currentPage > totalPages) currentPage = totalPages;
+  var start = (currentPage - 1) * pageSize;
+  var pageData = users.slice(start, start + pageSize);
+  var html = '';
+  pageData.forEach(function(u, idx) {
+    var roleLabels = (u.roles || []).map(function(r) { return (R[r]||r); }).join('、');
+    html += '<tr><td>' + (start + idx + 1) + '</td><td class="col-name">' + u.name + '</td><td style="font-size:12px;color:var(--text-secondary);">' + u.school + '</td><td style="font-size:12px;">' + (roleLabels || '—') + '</td>';
+    html += '<td><div class="action-links"><button class="btn-xs btn-xs-danger" onclick="removeUser(\'' + u.id + '\')">移除</button></div></td></tr>';
+  });
+  tbody.innerHTML = html;
+  // Pagination
+  var oldPag = document.getElementById('userPagination');
+  if (oldPag) oldPag.remove();
+  if (users.length > 0) {
+    var ph = '<div class="pagination" id="userPagination">';
+    ph += '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goUserPage(' + (currentPage - 1) + ')">◀</button>';
+    for (var p = 1; p <= totalPages; p++) {
+      if (p <= 2 || p > totalPages - 2 || Math.abs(p - currentPage) <= 1) {
+        ph += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="goUserPage(' + p + ')">' + p + '</button>';
+      } else if (p === 3 || p === totalPages - 2) { ph += '<button disabled>…</button>'; }
+    }
+    ph += '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goUserPage(' + (currentPage + 1) + ')">▶</button>';
+    ph += '<span class="page-info">共 ' + totalPages + ' 页 / ' + users.length + ' 条</span></div>';
+    document.querySelector('.card').insertAdjacentHTML('beforeend', ph);
+  }
+}
+
+function goUserPage(p) { currentPage = p; renderUserTable(); }
+
+// ===== CONFIRM =====
+var pendingConfirm = null;
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  pendingConfirm = callback;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('show'); pendingConfirm = null; }
+function execConfirm() { if (pendingConfirm) pendingConfirm(); closeConfirm(); }
+document.getElementById('confirmModal').addEventListener('click', function(e) { if (e.target === this) closeConfirm(); });
+
+var pendingRemoveUid = null;
+
+function removeUser(uid) {
+  pendingRemoveUid = uid;
+  showConfirm('移除用户', '确认将该用户从「' + (roleInfo.label || ROLE_ID) + '」中移除？', execRemoveUser);
+}
+
+function execRemoveUser() {
+  var uid = pendingRemoveUid;
+  var found = false;
+  try {
+    var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    for (var i = 0; i < teachers.length; i++) {
+      if (teachers[i].accountId === uid) { var idx = (teachers[i].roles||[]).indexOf(ROLE_ID); if (idx !== -1) { teachers[i].roles.splice(idx, 1); found = true; } break; }
+    }
+    localStorage.setItem('teacher_accounts', JSON.stringify(teachers));
+    if (!found) {
+      var admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+      for (var j = 0; j < admins.length; j++) {
+        if (admins[j].id === uid) { var idx2 = (admins[j].roles||[]).indexOf(ROLE_ID); if (idx2 !== -1) { admins[j].roles.splice(idx2, 1); found = true; } break; }
+      }
+      localStorage.setItem('admin_accounts', JSON.stringify(admins));
+    }
+  } catch(e) {}
+  showToast('用户已移除', 'success');
+  if (typeof writeLog === 'function') writeLog({ module: 'perm', actionType: 'update', targetType: 'role', targetId: ROLE_ID, targetName: roleInfo.label, detail: '移除角色关联用户', result: 'success' });
+  renderUserTable();
+}
+
+function openAddUser() {
+  var existingUsers = getRoleUsers();
+  var existingIds = {};
+  existingUsers.forEach(function(u) { existingIds[u.id] = true; });
+  var allUsers = [];
+  try {
+    var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    teachers.forEach(function(t) { if (!existingIds[t.accountId]) allUsers.push({ name: t.name, id: t.accountId, school: t.school || '—', type: 'teacher' }); });
+    var admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+    admins.forEach(function(a) { if (!existingIds[a.id]) allUsers.push({ name: a.name, id: a.id, school: a.school || '—', type: 'admin' }); });
+  } catch(e) {}
+  var html = '<p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">选择要添加到「' + (roleInfo.label || ROLE_ID) + '」的用户：</p>';
+  if (!allUsers.length) { html += '<p style="color:var(--text-light);">所有用户已关联此角色</p>'; }
+  allUsers.forEach(function(u) {
+    html += '<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;cursor:pointer;"><input type="checkbox" class="addUserChk" value="' + u.id + '|' + u.type + '"> ' + u.name + ' <span style="font-size:11px;color:var(--text-light);">' + u.school + '</span></label>';
+  });
+  document.getElementById('addUserBody').innerHTML = html;
+  document.getElementById('addUserModal').classList.add('show');
+}
+
+function saveAddedUsers() {
+  var chks = document.querySelectorAll('.addUserChk:checked');
+  if (!chks.length) { showToast('请选择至少一个用户', 'warning'); return; }
+  for (var i = 0; i < chks.length; i++) {
+    var parts = chks[i].value.split('|'), uid = parts[0], type = parts[1];
+    if (type === 'teacher') {
+      var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+      for (var j = 0; j < teachers.length; j++) { if (teachers[j].accountId === uid) { if (!teachers[j].roles) teachers[j].roles = []; if (teachers[j].roles.indexOf(ROLE_ID) === -1) teachers[j].roles.push(ROLE_ID); break; } }
+      localStorage.setItem('teacher_accounts', JSON.stringify(teachers));
+    } else {
+      var admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+      for (var k = 0; k < admins.length; k++) { if (admins[k].id === uid) { if (!admins[k].roles) admins[k].roles = [admins[k].role]; if (admins[k].roles.indexOf(ROLE_ID) === -1) admins[k].roles.push(ROLE_ID); break; } }
+      localStorage.setItem('admin_accounts', JSON.stringify(admins));
+    }
+  }
+  closeAddUserModal();
+  showToast('用户已添加', 'success');
+  if (typeof writeLog === 'function') writeLog({ module: 'perm', actionType: 'update', targetType: 'role', targetId: ROLE_ID, targetName: roleInfo.label, detail: '添加角色关联用户', result: 'success' });
+  renderUserTable();
+}
+
+function closeAddUserModal() { document.getElementById('addUserModal').classList.remove('show'); }
+document.getElementById('addUserModal').addEventListener('click', function(e) { if (e.target === this) closeAddUserModal(); });
+
+function showToast(msg, type) { var t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + (type||'success') + ' show'; setTimeout(function() { t.classList.remove('show'); }, 2500); }
+function logout() { localStorage.removeItem('currentUser'); window.location.href = 'index.html'; }
+
+if (currentUser.role === 'system' && roleInfo) renderUserTable();
+</script>
+
+
+</body>
+</html>

@@ -144,8 +144,9 @@ npm install      # No real dependencies (only for build script)
 ## Key Constraints from Project Memory
 
 - **Sidebar is frozen**: Do not modify sidebar menu items unless specifically asked.
-- **post-detail.html**: Do not optimize or modify this file (project decision).
 - **Error debugging**: When a page "won't open" or displays blank, first add the standard `window.onerror` handler pattern.
+- **No draft feature (本项目不支持保存草稿功能)**: This project does not support a "save draft" (保存草稿) capability. Forms submit directly to a submitted/pending state — do not add "保存草稿" buttons or any draft status/flow.
+- **Consistent field labels across page types (字段名称跨页面保持一致)**: Within a module, the same logical field MUST use the identical label on every page type — new/create page (`*-form` / 新建弹框), list page (`*-list-*`), audit page (`*-audit-*` / `*-detail.html?mode=audit`), and detail/view page (`*-detail`). A field must not drift between names — e.g., a field shown as "学校" on the list page must NOT appear as "学校名称" on the audit page; pick one canonical label (e.g., "单位名称") and reuse it everywhere. When adding or renaming a field on one page, update all sibling pages of that module to match.
 
 ## Files to Reference for Common Patterns
 

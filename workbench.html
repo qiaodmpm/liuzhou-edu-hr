@@ -177,6 +177,7 @@
   .role-switch-dot.district { background: #F59E0B; }
   .role-switch-dot.school { background: #10B981; }
   .role-switch-dot.teacher { background: #A78BFA; }
+.role-switch-dot.system { background: #EF4444; }
 
   /* ===== MAIN CONTENT ===== */
   .main {
@@ -357,6 +358,46 @@
     .ethics-actions { flex-direction: column; }
     .topnav-title { font-size: 14px; }
   }
+
+  /* ===== Change Password Modal ===== */
+  .pwd-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+  .pwd-modal-overlay.show { display: flex; }
+  .pwd-modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 440px; max-width: 90vw; }
+  .pwd-modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .pwd-modal-header h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .pwd-modal-close { cursor: pointer; color: var(--text-light); font-size: 20px; padding: 4px; border: none; background: none; line-height: 1; }
+  .pwd-modal-close:hover { color: var(--text); }
+  .pwd-modal-body { padding: 20px 24px; }
+  .pwd-modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+  .pwd-field { margin-bottom: 16px; }
+  .pwd-field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .pwd-input-wrap { position: relative; display: flex; align-items: center; }
+  .pwd-input-wrap input { width: 100%; height: 42px; padding: 0 40px 0 12px; font-size: 14px; font-family: inherit; color: var(--text); background: #F8FAFC; border: 1.5px solid var(--border); border-radius: var(--radius); outline: none; transition: var(--transition); }
+  .pwd-input-wrap input:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 3px rgba(30,64,175,0.08); }
+  .pwd-eye { position: absolute; right: 8px; background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px; border-radius: 4px; }
+  .pwd-eye:hover { color: var(--text-secondary); background: #F1F5F9; }
+
+  .pwd-strength { display: flex; gap: 4px; margin-top: 8px; }
+  .pwd-strength-bar { flex: 1; height: 4px; border-radius: 2px; background: #E2E8F0; transition: var(--transition); }
+  .pwd-strength-bar.weak { background: var(--danger); }
+  .pwd-strength-bar.medium { background: var(--warning); }
+  .pwd-strength-bar.strong { background: var(--success); }
+  .pwd-strength-label { font-size: 11px; margin-top: 4px; font-weight: 500; }
+  .pwd-strength-label.weak { color: var(--danger); }
+  .pwd-strength-label.medium { color: var(--warning); }
+  .pwd-strength-label.strong { color: var(--success); }
+
+  .pwd-rules { margin-top: 12px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .pwd-rule { display: flex; align-items: center; gap: 6px; color: var(--text-light); }
+  .pwd-rule.pass { color: var(--success); }
+  .pwd-rule .rule-icon { width: 14px; text-align: center; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition); border: 1px solid transparent; font-family: inherit; text-decoration: none; }
+  .btn-primary { background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%); color: #fff; }
+  .btn-primary:hover { box-shadow: 0 4px 12px rgba(30,64,175,0.3); transform: translateY(-1px); }
+  .btn-cancel { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); padding: 8px 18px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 13px; }
+  .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
 </style>
 </head>
 <body>
@@ -379,10 +420,10 @@
       <span id="userName">张建国</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="user-dropdown" id="userDropdown">
-        <a href="personal-center.html">个人中心</a>
-        <a href="#">🔑 修改密码</a>
+        <a id="personalCenterLink" href="personal-center.html">个人中心</a>
+        <a href="javascript:void(0)" onclick="openChangePwdModal()">🔑 修改密码</a>
         <div class="divider"></div>
-        <a href="index.html" class="logout">退出登录</a>
+        <a href="index.html" class="logout" onclick="handleLogout()">退出登录</a>
       </div>
     </div>
   </div>
@@ -401,6 +442,55 @@
   <div class="msg-popover-footer"><a href="#">查看全部消息 →</a></div>
 </div>
 
+<!-- ===== CHANGE PASSWORD MODAL ===== -->
+<div class="pwd-modal-overlay" id="pwdModalOverlay">
+  <div class="pwd-modal">
+    <div class="pwd-modal-header">
+      <h3>🔑 修改密码</h3>
+      <button class="pwd-modal-close" onclick="closeChangePwdModal()">✕</button>
+    </div>
+    <div class="pwd-modal-body">
+      <div class="pwd-field">
+        <label>当前密码</label>
+        <div class="pwd-input-wrap">
+          <input type="password" id="pwdOld" placeholder="请输入当前密码" autocomplete="off">
+          <button class="pwd-eye" onclick="togglePwdEye('pwdOld', this)" title="显示/隐藏">👁</button>
+        </div>
+      </div>
+      <div class="pwd-field">
+        <label>新密码</label>
+        <div class="pwd-input-wrap">
+          <input type="password" id="pwdNew" placeholder="8-20位，含大小写字母+数字" autocomplete="off" oninput="checkPwdStrength()">
+          <button class="pwd-eye" onclick="togglePwdEye('pwdNew', this)" title="显示/隐藏">👁</button>
+        </div>
+        <div class="pwd-strength" id="pwdStrengthBars">
+          <span class="pwd-strength-bar"></span><span class="pwd-strength-bar"></span><span class="pwd-strength-bar"></span>
+        </div>
+        <div class="pwd-strength-label" id="pwdStrengthLabel"></div>
+        <div class="pwd-rules" id="pwdRules">
+          <div class="pwd-rule"><span class="rule-icon">⬜</span> 8-20位字符</div>
+          <div class="pwd-rule"><span class="rule-icon">⬜</span> 至少包含1个大写字母</div>
+          <div class="pwd-rule"><span class="rule-icon">⬜</span> 至少包含1个小写字母</div>
+          <div class="pwd-rule"><span class="rule-icon">⬜</span> 至少包含1个数字</div>
+          <div class="pwd-rule" id="pwdRuleSame"><span class="rule-icon">⬜</span> 新密码不能与当前密码相同</div>
+          <div class="pwd-rule" id="pwdRuleMatch"><span class="rule-icon">⬜</span> 两次密码输入一致</div>
+        </div>
+      </div>
+      <div class="pwd-field">
+        <label>确认密码</label>
+        <div class="pwd-input-wrap">
+          <input type="password" id="pwdConfirm" placeholder="请再次输入新密码" autocomplete="off" oninput="checkPwdMatch()">
+          <button class="pwd-eye" onclick="togglePwdEye('pwdConfirm', this)" title="显示/隐藏">👁</button>
+        </div>
+      </div>
+    </div>
+    <div class="pwd-modal-footer">
+      <button class="btn-cancel" onclick="closeChangePwdModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitChangePwd()">确认修改</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== SIDEBAR ===== -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-menu" id="sidebarMenu">
@@ -411,6 +501,11 @@
   <div class="role-switcher" id="roleSwitcher">
     <div class="role-switcher-label">切换演示角色</div>
     <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="system" onclick="switchRole('system')">
+        <span class="role-switch-dot system"></span>
+        <span class="role-switcher-name">系统管理员</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">赵建国</span>
+      </button>
       <button class="role-switch-btn active" data-role="city" onclick="switchRole('city')">
         <span class="role-switch-dot city"></span>
         <span class="role-switcher-name">市管理员</span>
@@ -500,9 +595,32 @@
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
+<script src="src/logger.js"></script>
 <script>
 // ===== DATA STORE =====
 const ROLES = {
+  system: {
+    name: '赵建国', short: '赵', org: '柳州教育人事管理平台', role: '系统管理员',
+    greeting: '下午好，赵建国',
+    todos: [],
+    lockCount: 0,
+    quickActs: [],
+    ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看处理进度与结果' },
+    announcements: [],
+    sidebar: {
+      top: [],
+      groups: [
+        { name: '系统设置', items: [
+          { id: 'account', label: '账号管理' },
+          { id: 'org', label: '机构管理' },
+          { id: 'menuMgr', label: '菜单管理' },
+          { id: 'perm', label: '角色权限' },
+          { id: 'log', label: '操作日志' }
+        ]}
+      ]
+    }
+  },
   city: {
     name: '张建国', short: '张', org: '柳州市教育局', role: '市管理员',
     greeting: '下午好，张建国',
@@ -518,10 +636,8 @@ const ROLES = {
       { label: '入编申请', desc: '教师入职登记', icon: '📝', clr: 'blue' },
       { label: '岗位晋升', desc: '等级晋升申报', icon: '📈', clr: 'green' },
       { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '工资核定', desc: '工资变动审批', icon: '💰', clr: 'purple' },
       { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
-      { label: '荣誉申报', desc: '奖项荣誉申报', icon: '🏆', clr: 'rose' }
-    ],
+      ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看处理进度与结果' },
     announcements: [
       { unread: true, title: '关于2026年度公开招聘岗位计划的通知', date: '2026-05-12', source: '市教育局' },
@@ -549,11 +665,14 @@ const ROLES = {
         { name: '聘用管理', items: [
           { id: 'employ', label: '聘用手续办理' }
         ]},
+        { name: '编外教师管理', items: [
+          { id: 'contract-entry', label: '教师入职管理' },
+          { id: 'contract-exit', label: '教师离职管理' }
+        ]},
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
         { name: '系统设置', items: [
           { id: 'account', label: '账号管理' },
@@ -579,10 +698,8 @@ const ROLES = {
       { label: '入编申请', desc: '教师入职登记', icon: '📝', clr: 'blue' },
       { label: '岗位晋升', desc: '等级晋升申报', icon: '📈', clr: 'green' },
       { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '工资核定', desc: '工资变动审批', icon: '💰', clr: 'purple' },
       { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
-      { label: '荣誉申报', desc: '奖项荣誉申报', icon: '🏆', clr: 'rose' }
-    ],
+      ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看辖区举报处理进度' },
     announcements: [
       { unread: true, title: '关于2026年度公开招聘岗位计划的通知', date: '2026-05-12', source: '市教育局' },
@@ -610,14 +727,18 @@ const ROLES = {
         { name: '聘用管理', items: [
           { id: 'employ', label: '聘用手续办理' }
         ]},
+        { name: '编外教师管理', items: [
+          { id: 'contract-entry', label: '教师入职管理' },
+          { id: 'contract-exit', label: '教师离职管理' }
+        ]},
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
         { name: '系统设置', items: [
-          { id: 'account', label: '账号管理' }
+          { id: 'account', label: '账号管理' },
+          { id: 'org', label: '机构管理' }
         ]}
       ]
     }
@@ -636,10 +757,8 @@ const ROLES = {
       { label: '入编申请', desc: '新教师入职', icon: '📝', clr: 'blue' },
       { label: '岗位晋升', desc: '教师晋升申报', icon: '📈', clr: 'green' },
       { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '工资核定', desc: '工资变动审批', icon: '💰', clr: 'purple' },
       { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
-      { label: '荣誉申报', desc: '奖项荣誉申报', icon: '🏆', clr: 'rose' }
-    ],
+      ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看本校举报处理进度' },
     announcements: [
       { unread: true, title: '关于做好2026年6月退休教师呈报的通知', date: '2026-05-10', source: '市教育局' },
@@ -667,14 +786,17 @@ const ROLES = {
         { name: '聘用管理', items: [
           { id: 'employ', label: '聘用手续办理' }
         ]},
+        { name: '编外教师管理', items: [
+          { id: 'contract-entry', label: '教师入职管理' },
+          { id: 'contract-exit', label: '教师离职管理' }
+        ]},
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
         { name: '系统设置', items: [
-          { id: 'account', label: '账号管理' }
+          { id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }
         ]}
       ]
     }
@@ -687,7 +809,6 @@ const ROLES = {
     lockCount: 0,
     quickActs: [
       { label: '岗位晋升', desc: '等级晋升申报', icon: '📈', clr: 'green' },
-      { label: '荣誉申报', desc: '奖项荣誉申报', icon: '🏆', clr: 'rose' },
       { label: '师德举报', desc: '违规行为举报', icon: '⚠️', clr: 'amber' }
     ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '我的举报', sdesc: '查看我提交的举报记录' },
@@ -706,7 +827,7 @@ const ROLES = {
         { name: '业务申请', items: [
           { id: 'promote', label: '岗位晋升申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]}
       ]
     }
@@ -738,38 +859,15 @@ const MENU_ICONS = {
   entry: 'userp', staffing: 'monitor', exit: 'userx',
   promote: 'arrowup', postset: 'shield', recruit: 'search',
   employ: 'file',
-  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
-  account: 'users', org: 'building', perm: 'key', log: 'list'
+  retire: 'clock', ethics: 'warn',
+  account: 'users', org: 'building', menuMgr: 'file', perm: 'key', log: 'list'
 };
 
 let currentRole = 'city';
 
 // ===== RENDER =====
 function renderSidebar() {
-  var data = ROLES[currentRole].sidebar;
-  var html = '';
-
-  // Top items
-  data.top.forEach(function(item) {
-    html += '<a class="menu-item' + (item.active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">';
-    html += ICONS[item.icon];
-    html += '<span class="menu-label">' + item.label + '</span>';
-    html += '</a>';
-  });
-
-  // Groups
-  data.groups.forEach(function(group) {
-    html += '<div class="menu-group">' + group.name + '</div>';
-    group.items.forEach(function(item) {
-      html += '<a class="menu-item" onclick="sidebarClick(this,\'' + item.id + '\')">';
-      html += ICONS[MENU_ICONS[item.id] || 'file'];
-      html += '<span class="menu-label">' + item.label + '</span>';
-      if (item.badge) html += '<span class="menu-badge">' + item.badge + '</span>';
-      html += '</a>';
-    });
-  });
-
-  document.getElementById('sidebarMenu').innerHTML = html;
+  renderSidebarMenu('sidebarMenu', currentRole, 'workbench');
 }
 
 function renderMain() {
@@ -778,8 +876,18 @@ function renderMain() {
   // Welcome
   document.getElementById('welcomeGreeting').textContent = '👋 ' + data.greeting;
   document.getElementById('welcomeOrg').textContent = data.org + ' · ' + data.role;
-  document.getElementById('userName').textContent = data.name;
-  document.getElementById('userAvatar').textContent = data.short;
+  // Use currentUser name, fallback to role default
+  var cu = null;
+  try { cu = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch(e) {}
+  var displayName = (cu && cu.name) ? cu.name : data.name;
+  document.getElementById('userName').textContent = displayName;
+  document.getElementById('userAvatar').textContent = displayName.charAt(0);
+
+  // Update personal center link with current user's accountId
+  var pcl = document.getElementById('personalCenterLink');
+  if (pcl && cu && cu.accountId) {
+    pcl.href = 'personal-center.html?accountId=' + encodeURIComponent(cu.accountId);
+  }
 
   // Todo area
   var todoHtml = '';
@@ -845,6 +953,11 @@ function renderMain() {
 
 // ===== ROLE SWITCH =====
 function switchRole(role) {
+  if (role === 'system') {
+    localStorage.setItem('currentUser', JSON.stringify({ role: 'system', name: '赵建国', id: '13807720000' }));
+    window.location.href = 'account-management.html';
+    return;
+  }
   currentRole = role;
   renderSidebar();
   renderMain();
@@ -915,9 +1028,13 @@ function getQuickActionUrl(label) {
   return null;
 }
 
-function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+function sidebarClick(elOrId, idOrUndefined) {
+  var id = arguments.length === 1 ? elOrId : idOrUndefined;
+  var el = arguments.length === 1 ? null : elOrId;
+  if (el) {
+    document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
+    el.classList.add('active');
+  }
   if (id === 'workbench') { window.location.href = 'workbench.html'; }
   else if (id === 'staffing') { window.location.href = 'staffing-application.html'; }
   else if (id === 'entry') { var url = getEntryUrl(); if (url) window.location.href = url; else showToast('跳转至：入编申请'); }
@@ -926,9 +1043,14 @@ function sidebarClick(el, id) {
   else if (id === 'promote') { var url = getPromoteUrl(); if (url) window.location.href = url; else showToast('跳转至：岗位晋升申请'); }
   else if (id === 'recruit') { var url = getRecruitUrl(); if (url) window.location.href = url; else showToast('跳转至：招聘岗位申请'); }
   else if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); }
+  else if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; }
+  else if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; }
   else if (id === 'ledger') { var url = getLedgerUrl(); if (url) window.location.href = url; else showToast('跳转至：编制岗位台账'); }
   else if (id === 'account') { window.location.href = 'account-management.html'; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  else if (id === 'menuMgr') { window.location.href = 'menu-management.html'; }
+  else if (id === 'perm') { window.location.href = 'perm-management.html'; }
+  else if (id === 'log') { window.location.href = 'log-management.html'; }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
 
@@ -941,6 +1063,9 @@ function toggleSidebar() {
 function toggleUserMenu() {
   document.getElementById('userDropdown').classList.toggle('show');
   document.getElementById('msgPopover').classList.remove('show');
+}
+function handleLogout() {
+  if (typeof writeLog === 'function') writeLog({ module: 'system', actionType: 'logout', detail: '用户登出', result: 'success' });
 }
 function toggleMsgPopover() {
   document.getElementById('msgPopover').classList.toggle('show');
@@ -960,10 +1085,171 @@ function showToast(msg) {
   setTimeout(function() { t.remove(); }, 2200);
 }
 
+// ===== Change Password =====
+function initAdminAccounts() {
+  if (!localStorage.getItem('admin_accounts')) {
+    var defaults = [
+      { role: 'city',     name: '张建国', id: '13807720001', password: 'Edu@2025' },
+      { role: 'district', name: '李振华', id: '13807720002', password: 'Edu@2025' },
+      { role: 'school',   name: '王玉兰', id: '13807720003', password: 'Edu@2025' }
+    ];
+    localStorage.setItem('admin_accounts', JSON.stringify(defaults));
+  }
+  return JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+}
+
+function openChangePwdModal() {
+  initAdminAccounts();
+  document.getElementById('pwdOld').value = '';
+  document.getElementById('pwdNew').value = '';
+  document.getElementById('pwdConfirm').value = '';
+  document.getElementById('pwdOld').type = 'password';
+  document.getElementById('pwdNew').type = 'password';
+  document.getElementById('pwdConfirm').type = 'password';
+  resetPwdStrength();
+  document.getElementById('pwdModalOverlay').classList.add('show');
+}
+
+function closeChangePwdModal() {
+  document.getElementById('pwdModalOverlay').classList.remove('show');
+}
+
+document.getElementById('pwdModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeChangePwdModal();
+});
+
+function togglePwdEye(inputId, btn) {
+  var input = document.getElementById(inputId);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function checkPwdStrength() {
+  var pwd = document.getElementById('pwdNew').value;
+  var bars = document.querySelectorAll('#pwdStrengthBars .pwd-strength-bar');
+  var label = document.getElementById('pwdStrengthLabel');
+  var rules = document.getElementById('pwdRules').querySelectorAll('.pwd-rule');
+
+  // Remove all classes
+  bars.forEach(function(b) { b.className = 'pwd-strength-bar'; });
+  label.className = 'pwd-strength-label';
+
+  // Check rules
+  var hasLen = pwd.length >= 8 && pwd.length <= 20;
+  var hasUpper = /[A-Z]/.test(pwd);
+  var hasLower = /[a-z]/.test(pwd);
+  var hasDigit = /[0-9]/.test(pwd);
+  var oldPwd = document.getElementById('pwdOld').value;
+
+  // Update rule icons
+  var ruleChecks = [hasLen, hasUpper, hasLower, hasDigit,
+    !oldPwd || pwd !== oldPwd,
+    document.getElementById('pwdConfirm').value === '' || pwd === document.getElementById('pwdConfirm').value
+  ];
+  rules.forEach(function(r, i) {
+    var icon = r.querySelector('.rule-icon');
+    if (ruleChecks[i]) { r.classList.add('pass'); icon.textContent = '✅'; }
+    else { r.classList.remove('pass'); icon.textContent = '⬜'; }
+  });
+
+  if (!pwd) { label.textContent = ''; return; }
+
+  var score = (hasLen?1:0) + (hasUpper?1:0) + (hasLower?1:0) + (hasDigit?1:0);
+  if (score <= 1 || !hasLen) {
+    bars[0].classList.add('weak');
+    label.textContent = '弱'; label.classList.add('weak');
+  } else if (score === 2 || score === 3) {
+    bars[0].classList.add('medium'); bars[1].classList.add('medium');
+    label.textContent = '中等'; label.classList.add('medium');
+  } else if (score >= 4 && hasLen) {
+    bars[0].classList.add('strong'); bars[1].classList.add('strong'); bars[2].classList.add('strong');
+    label.textContent = '强'; label.classList.add('strong');
+  }
+}
+
+function checkPwdMatch() {
+  var newPwd = document.getElementById('pwdNew').value;
+  var confirmPwd = document.getElementById('pwdConfirm').value;
+  var rule = document.getElementById('pwdRuleMatch');
+  var icon = rule.querySelector('.rule-icon');
+  if (confirmPwd && newPwd === confirmPwd) { rule.classList.add('pass'); icon.textContent = '✅'; }
+  else { rule.classList.remove('pass'); icon.textContent = '⬜'; }
+}
+
+function resetPwdStrength() {
+  var bars = document.querySelectorAll('#pwdStrengthBars .pwd-strength-bar');
+  bars.forEach(function(b) { b.className = 'pwd-strength-bar'; });
+  document.getElementById('pwdStrengthLabel').textContent = '';
+  document.getElementById('pwdStrengthLabel').className = 'pwd-strength-label';
+  var rules = document.getElementById('pwdRules').querySelectorAll('.pwd-rule');
+  rules.forEach(function(r) { r.classList.remove('pass'); r.querySelector('.rule-icon').textContent = '⬜'; });
+}
+
+function submitChangePwd() {
+  var user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  var oldPwd = document.getElementById('pwdOld').value;
+  var newPwd = document.getElementById('pwdNew').value;
+  var confirmPwd = document.getElementById('pwdConfirm').value;
+
+  if (!oldPwd) { showToast('请输入当前密码'); return; }
+  if (!newPwd) { showToast('请输入新密码'); return; }
+  if (!confirmPwd) { showToast('请确认新密码'); return; }
+
+  // Validate new password rules
+  if (newPwd.length < 8 || newPwd.length > 20) { showToast('密码须为8-20位'); return; }
+  if (!/[A-Z]/.test(newPwd)) { showToast('新密码须包含大写字母'); return; }
+  if (!/[a-z]/.test(newPwd)) { showToast('新密码须包含小写字母'); return; }
+  if (!/[0-9]/.test(newPwd)) { showToast('新密码须包含数字'); return; }
+  if (newPwd === oldPwd) { showToast('新密码不能与当前密码相同'); return; }
+  if (newPwd !== confirmPwd) { showToast('两次密码输入不一致'); return; }
+
+  if (user.role === 'teacher') {
+    // Update teacher_accounts
+    var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    var found = false;
+    for (var i = 0; i < teachers.length; i++) {
+      if (teachers[i].idCard === user.id || teachers[i].accountId === user.accountId) {
+        if (teachers[i].password !== oldPwd && (teachers[i].initialPassword || '') !== oldPwd) {
+          showToast('当前密码错误'); return;
+        }
+        teachers[i].password = newPwd;
+        if (!teachers[i].firstLogin) { teachers[i].firstLogin = true; }
+        found = true;
+        break;
+      }
+    }
+    if (!found) { showToast('账号数据异常，请联系管理员'); return; }
+    localStorage.setItem('teacher_accounts', JSON.stringify(teachers));
+  } else {
+    // Update admin_accounts
+    var admins = initAdminAccounts();
+    var foundAdmin = false;
+    for (var j = 0; j < admins.length; j++) {
+      if (admins[j].id === user.id) {
+        if (admins[j].password !== oldPwd) { showToast('当前密码错误'); return; }
+        admins[j].password = newPwd;
+        foundAdmin = true;
+        break;
+      }
+    }
+    if (!foundAdmin) { showToast('账号数据异常，请联系管理员'); return; }
+    localStorage.setItem('admin_accounts', JSON.stringify(admins));
+  }
+
+  closeChangePwdModal();
+  showToast('密码修改成功，即将跳转登录页…');
+
+  // Clear session and redirect
+  setTimeout(function() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html';
+  }, 1500);
+}
+
 // ===== Init =====
 renderSidebar();
 renderMain();
 </script>
+
 
 </body>
 </html>

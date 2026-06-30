@@ -21,12 +21,12 @@
 
 | 编码 | 名称 | 适用编制类型 |
 |---|---|---|
-| `publicRecruit` | 统一公开招聘 | 事业编 / 控制数 |
-| `selfRecruit` | 单位自主实施招聘 | 事业编 / 控制数 |
-| `talentMid` | 中高级人才招聘 | 事业编 / 控制数 |
-| `talentHigh` | 引进高层次人才 | 事业编 / 控制数 |
-| `transfer` | 调动 | 事业编 / 控制数 |
-| `other` | 其他 | 事业编 / 控制数 |
+| 统一公开招聘 | `publicRecruit` | 统一公开招聘 | 事业编 / 控制数 |
+| 单位自主实施招聘 | `selfRecruit` | 单位自主实施招聘 | 事业编 / 控制数 |
+| 中高级人才招聘 | `talentMid` | 中高级人才招聘 | 事业编 / 控制数 |
+| 引进高层次人才 | `talentHigh` | 引进高层次人才 | 事业编 / 控制数 |
+| 调动 | `transfer` | 调动 | 事业编 / 控制数 |
+| 其他 | `other` | 其他 | 事业编 / 控制数 |
 
 ### 1.4 批次类型
 
@@ -164,11 +164,11 @@
 
 ## 3. 页面清单
 
-| 页面 | 文件名 | 角色 | 功能 |
-|---|---|---|---|
-| 申请列表页 | `staffing-application.html` | 市/区/校 | 批次管理、申请列表、审核操作、导出 |
-| 新建/编辑页 | `staffing-form.html` | 校 | 填写申请表单、上传附件 |
-| 详情页 | `staffing-detail.html` | 市/区/校 | 查看申请全貌、进度、申报履历 |
+| 中文名称 | 页面标题 | 文件名 | 角色 | 功能 |
+|---------|---------|--------|------|------|
+| 编制使用申请列表页 | 编制使用申请 | `staffing-application.html` | 市/区/校 | 批次管理、申请列表、审核操作、导出 |
+| 编制使用申请表单页 | 编制使用申请表单 | `staffing-form.html` | 校 | 填写申请表单、上传附件 |
+| 编制使用申请详情页 | 编制使用申请详情 | `staffing-detail.html` | 市/区/校 | 查看申请全貌、进度、申报履历 |
 
 ---
 
@@ -195,16 +195,16 @@
 
 | # | UI字段名 | 代码变量 | 输入类型 | 枚举值（代码→中文） | 数据来源 |
 |---|---|---|---|---|---|
-| 1 | 编号 | `s.id` | 只读文本 | S{YYYYMMDD}{序号} | SUBMISSIONS |
-| 2 | 学校 | `s.school` | 只读文本 | 学校全称 | SUBMISSIONS |
-| 3 | 学校类型 | `s.schoolType` | 只读文本 | 自治区示范高中/普通高中/初中/小学 | SUBMISSIONS |
-| 4 | 编制类型 | `s.staffingType` | 标签 | career — 事业编 / control — 控制数 | SUBMISSIONS |
-| 5 | 申请总数 | 计算值 | 数字 | useForms各类型num求和 | SUBMISSIONS |
-| 6-11 | 6种使用类型人数 | `s.useForms[code].num` | 数字 | publicRecruit — 统一公开招聘 / selfRecruit — 自主实施招聘 / talentMid — 中高级人才招聘 / talentHigh — 引进高层次人才 / transfer — 调动 / other — 其他 | SUBMISSIONS |
-| 12 | 附件 | `s.attachment9` | 图标 | 已上传(✓)/未上传(✗) | SUBMISSIONS |
-| 13 | 编办确认文件 | `s.schoolFinalConfirm` | 图标 | 已上传(✓)/未上传(✗) | SUBMISSIONS |
-| 14 | 状态 | `s.status` | 标签 | submitted — 待一审 / first_approved — 一审通过 / final_submitted — 待二审 / approved — 已完成 / rejected — 一审驳回 | SUBMISSIONS |
-| 15 | 提交时间 | `s.submitDate` | 日期 | YYYY-MM-DD | SUBMISSIONS |
+| 1 | 申请编号 | 申请编号 `s.id` | 只读文本 | S{YYYYMMDD}{序号} | SUBMISSIONS |
+| 2 | 单位名称 | 学校 `s.school` | 只读文本 | 学校全称 | SUBMISSIONS |
+| 3 | 学校类型 | 学校类型 `s.schoolType` | 只读文本 | 自治区示范高中 / 普通高中 / 初中 / 小学 | SUBMISSIONS |
+| 4 | 编制类型 | 编制类型 `s.staffingType` | 标签 | career → 事业编 / control → 控制数 | SUBMISSIONS |
+| 5 | 申请总人数 | 计算值 | 数字 | useForms各类型num求和 | SUBMISSIONS |
+| 6-11 | 6种使用类型人数 | `s.useForms[code].num` | 数字 | publicRecruit → 统一公开招聘 / selfRecruit → 自主实施招聘 / talentMid → 中高级人才招聘 / talentHigh → 引进高层次人才 / transfer → 调动 / other → 其他 | SUBMISSIONS |
+| 12 | 附件 | 附件 `s.attachment9` | 图标 | 已上传(✓) / 未上传(✗) | SUBMISSIONS |
+| 13 | 编办确认文件 | 编办确认文件 `s.schoolFinalConfirm` | 图标 | 已上传(✓) / 未上传(✗) | SUBMISSIONS |
+| 14 | 状态 | 状态 `s.status` | 标签 | submitted → 待一审 / first_approved → 一审通过 / final_submitted → 待二审 / approved → 已完成 / rejected → 一审驳回 | SUBMISSIONS |
+| 15 | 提交时间 | 提交时间 `s.submitDate` | 日期 | YYYY-MM-DD | SUBMISSIONS |
 
 #### 4.1.3 操作按钮权限矩阵
 
@@ -220,16 +220,16 @@
 
 #### 4.2.1 申报类型选择
 
-| 字段名 | 代码变量 | 输入类型 | 选择方式 | 枚举值 | 默认值 | 数据来源 | 必填 |
+| 中文名称 | 代码变量 | 输入类型 | 选择方式 | 枚举值 | 默认值 | 数据来源 | 必填 |
 |---|---|---|---|---|---|---|---|
-| 申报类型 | `staffingType` | 卡片选择器 | 单选 | career — 事业编（使用附件2）/ control — 控制数（使用附件9） | URL参数或career | 用户选择 | 是 |
+| 申报类型 | 编制类型 | `staffingType` | 卡片选择器 | 单选 | career — 事业编（使用附件2）/ control — 控制数（使用附件9） | URL参数或career | 用户选择 | 是 |
 
 #### 4.2.2 单位信息（事业编 — 全部只读）
 
-| # | 字段名 | DOM ID | 输入类型 | 计算公式/数据来源 | 校验规则 |
+| # | 中文名称 | DOM ID | 输入类型 | 计算公式/数据来源 | 校验规则 |
 |---|---|---|---|---|---|
-| 1 | 单位全称 | 单位全称展示 `fUnitNameDisplay` | 只读文本 | SCHOOL_PROFILE.unitName | — |
-| 2 | 机构级别 | 机构级别展示 `fOrgLevelVal` | 只读文本 | SCHOOL_PROFILE(如:正科级) | — |
+| 1 | 单位名称 | 单位全称展示 `fUnitNameDisplay` | 只读文本 | SCHOOL_PROFILE.unitName | — |
+| 2 | 单位级别 | 机构级别展示 `fOrgLevelVal` | 只读文本 | SCHOOL_PROFILE(如:正科级) | — |
 | 3 | 单位性质 | 单位性质展示 `fOrgNatureVal` | 只读文本 | SCHOOL_PROFILE(如:全额拨款事业单位) | — |
 | 4 | 核定编制数 | 核定编制数展示 `fAuthStaffVal` | 只读数字 | SCHOOL_PROFILE(示例:88) | — |
 | 5 | 实有在编人数 | 实有人数展示 `fCurrentStaffVal` | 只读数字 | SCHOOL_PROFILE(示例:80) | — |
@@ -240,10 +240,10 @@
 
 #### 4.2.3 单位信息（控制数 — 全部只读）
 
-| # | 字段名 | DOM ID | 输入类型 | 计算公式/数据来源 | 校验规则 |
+| # | 中文名称 | DOM ID | 输入类型 | 计算公式/数据来源 | 校验规则 |
 |---|---|---|---|---|---|
-| 1 | 单位全称 | `fUnitNameDisplay` | 只读文本 | SCHOOL_PROFILE | — |
-| 2 | 机构级别 | `fOrgLevelVal` | 只读文本 | SCHOOL_PROFILE | — |
+| 1 | 单位名称 | `fUnitNameDisplay` | 只读文本 | SCHOOL_PROFILE | — |
+| 2 | 单位级别 | `fOrgLevelVal` | 只读文本 | SCHOOL_PROFILE | — |
 | 3 | 单位性质 | `fOrgNatureVal` | 只读文本 | SCHOOL_PROFILE | — |
 | 4 | 核定控制数 | 核定控制数展示 `fControlQuotaVal` | 只读数字 | SCHOOL_PROFILE(示例:16) | — |
 | 5 | 实有控制数人数 | 实有控制数展示 `fControlActualVal` | 只读数字 | SCHOOL_PROFILE(示例:14) | — |
@@ -254,7 +254,7 @@
 
 #### 4.2.4 使用类型明细表（6行×5列）
 
-| 列# | 字段名 | 代码变量 | 输入类型 | 枚举值(列1固定) | 必填 | 校验规则 | 边界条件 |
+| 列# | 中文名称 | 代码变量 | 输入类型 | 枚举值(列1固定) | 必填 | 校验规则 | 边界条件 |
 |---|---|---|---|---|---|---|---|
 | 1 | 使用形式 | 使用形式-类型 `USE_FORM_ROWS[i].type` | 只读文本 | publicRecruit — 统一公开招聘 / selfRecruit — 自主实施招聘 / talentMid — 中高级人才招聘 / talentHigh — 引进高层次人才 / transfer — 调动 / other — 其他 | — | 固定6行不可增减 | — |
 | 2 | 使用人数 | 使用形式-人数 `USE_FORM_ROWS[i].num` | 数字输入框 | — | 否(单行) | ≥0整数;所有行合计>0 | 0≤值≤999 |
@@ -264,13 +264,13 @@
 
 #### 4.2.5 附件上传
 
-| 字段名 | 输入类型 | 选择方式 | 必填 | 支持格式 | 禁止格式 | 大小上限 | 数据来源 |
+| 中文名称 | 输入类型 | 选择方式 | 必填 | 支持格式 | 禁止格式 | 大小上限 | 数据来源 |
 |---|---|---|---|---|---|---|---|
 | 附件文件 | 文件上传(拖拽/点击) | 单文件(替换上传) | 是 | .pdf/.jpg/.jpeg/.png/.doc/.docx/.xls/.xlsx | .zip/.rar/.7z/.tar/.gz/.bz2/.xz/.tgz | ≤10MB | 用户本地文件 |
 
 #### 4.2.6 名额汇总栏
 
-| 字段名 | 计算方式 | 显示规则 |
+| 中文名称 | 计算方式 | 显示规则 |
 |---|---|---|
 | 可申请编制数 | 核定-实有-已批复(事业编) 或 核定控制数-实有控制数-已批复控制数 | — |
 | 本次申请合计 | SUM(各使用形式人数 USE_FORM_ROWS[*].num) | 实时计算 |
@@ -280,7 +280,7 @@
 
 #### 4.3.1 摘要栏
 
-| 字段名 | DOM ID | 数据来源 |
+| 中文名称 | DOM ID | 数据来源 |
 |---|---|---|
 | 申报编号 | 摘要-申报编号 `sumId` | `s.id` |
 | 申报单位 | 摘要-申报单位 `sumSchool` | `s.school` |
@@ -321,7 +321,7 @@
 
 #### 4.3.5 审核弹框
 
-| 字段名 | DOM ID | 输入类型 | 必填 | 校验规则 | 边界条件 |
+| 中文名称 | DOM ID | 输入类型 | 必填 | 校验规则 | 边界条件 |
 |---|---|---|---|---|---|
 | 驳回原因 | 驳回原因输入框 `rejectReason` | 多行文本(textarea) | 是(驳回时) | 不可为空，不可仅空格 | ≤500字符 |
 | 确认通过 | — | 按钮(btn-confirm) | — | — | 仅通过时显示 |
@@ -329,7 +329,7 @@
 
 #### 4.3.6 编办确认弹框
 
-| 字段名 | DOM ID | 输入类型 | 必填 | 校验规则 | 边界条件 | 数据来源 |
+| 中文名称 | DOM ID | 输入类型 | 必填 | 校验规则 | 边界条件 | 数据来源 |
 |---|---|---|---|---|---|---|
 | 各类型确认数 | 动态生成 | 数字输入框 | 是 | 0≤确认数≤学校申请数 | 确认总数可<申请总数 | 逐行填写 |
 | 编制有效期起始 | 有效期起始选择器 `validStart` | 日期选择 | 是 | — | — | 用户选择 |
@@ -939,52 +939,52 @@
 
 ### 7.1 批次（Batch）
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| `id` | string | 是 | B{year}-{seq} 或 AUTO-{year} |
-| `year` | string | 是 | 年度 |
-| `name` | string | 是 | 批次名称 |
-| `org` | string | 是 | 发布单位 |
-| `startDate` | string | 是 | YYYY-MM-DD |
-| `publishDate` | string | 是 | 发布日期 |
-| `deadline` | string | 是 | 截止日期 |
-| `scope` | string | 是 | `全市`/`指定区` |
-| `scopeAreas` | array | 否 | 指定区列表 |
-| `status` | string | 是 | `open`/`closed` |
+| 中文名称 | 英文字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|---|
+| 批次编号 | `id` | string | 是 | B{year}-{seq} 或 AUTO-{year} |
+| 年度 | `year` | string | 是 | 年度 |
+| 批次名称 | `name` | string | 是 | 批次名称 |
+| 发布单位 | `org` | string | 是 | 发布单位 |
+| 开始日期 | `startDate` | string | 是 | YYYY-MM-DD |
+| 发布日期 | `publishDate` | string | 是 | 发布日期 |
+| 截止日期 | `deadline` | string | 是 | 截止日期 |
+| 适用范围 | `scope` | string | 是 | `全市`/`指定区` |
+| 指定区域列表 | `scopeAreas` | array | 否 | 指定区列表 |
+| 状态 | 状态 | `status` | string | 是 | `open`/`closed` |
 
 ### 7.2 申请记录（Submission）
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
+| 中文名称 | 英文字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|---|
 | `id` | string | 是 | `S{YYYYMMDD}{seq}` |
-| `batchId` | string | 是 | 关联批次 ID |
-| `batchName` | string | 是 | 批次名称（冗余） |
-| `school` | string | 是 | 学校全称 |
-| `schoolType` | string | 是 | 学校类型 |
+| 批次编号 | `batchId` | string | 是 | 关联批次 ID |
+| 批次名称 | `batchName` | string | 是 | 批次名称（冗余） |
+| 单位名称 | `school` | string | 是 | 学校全称 |
+| 学校类型 | `schoolType` | string | 是 | 学校类型 |
 | `staffingType` | string | 是 | `career`/`control` |
 | `status` | string | 是 | 见 §2.1 |
-| `totalStaff` | number | 是 | 核定编制数（事业编） |
-| `currentStaff` | number | 是 | 实有在编人数（事业编） |
-| `unusedPlan` | number | 是 | 可申请编制数（事业编） |
-| `controlNum` | number | 是 | 核定控制数（控制数） |
-| `controlActual` | number | 是 | 实有控制数人数（控制数） |
-| `unusedControl` | number | 是 | 可申请控制数（控制数） |
-| `useForms` | object | 是 | 6 种使用类型明细 |
-| `attachment9` | boolean | 是 | 是否已上传附件 |
-| `followUp` | boolean | 否 | 是否有后续补充材料 |
-| `finalApprovedCount` | number | 否 | 编办最终批复总数 |
-| `finalApprovedDetails` | array | 否 | 编办批复各类型明细 |
-| `validStart` | string | 否 | 编制有效期起始 |
-| `validEnd` | string | 否 | 编制有效期截止 |
-| `submitDate` | string | 是 | 提交日期 |
-| `approveDate` | string | 否 | 终审通过日期 |
-| `history` | array | 是 | 操作申报履历 |
-| `schoolFinalConfirm` | object | 否 | 编办确认信息 |
+| 核定编制数 | `totalStaff` | number | 是 | 核定编制数（事业编） |
+| 实有在编人数 | `currentStaff` | number | 是 | 实有在编人数（事业编） |
+| 可申请编制数 | `unusedPlan` | number | 是 | 可申请编制数（事业编） |
+| 核定控制数 | `controlNum` | number | 是 | 核定控制数（控制数） |
+| 实有控制数人数 | `controlActual` | number | 是 | 实有控制数人数（控制数） |
+| 可申请控制数 | `unusedControl` | number | 是 | 可申请控制数（控制数） |
+| 使用类型明细 | `useForms` | object | 是 | 6 种使用类型明细 |
+| 附件已上传 | `attachment9` | boolean | 是 | 是否已上传附件 |
+| 后续补充材料 | `followUp` | boolean | 否 | 是否有后续补充材料 |
+| 编办批复总数 | `finalApprovedCount` | number | 否 | 编办最终批复总数 |
+| 编办批复明细 | `finalApprovedDetails` | array | 否 | 编办批复各类型明细 |
+| 编制有效期起始 | `validStart` | string | 否 | 编制有效期起始 |
+| 编制有效期截止 | `validEnd` | string | 否 | 编制有效期截止 |
+| 提交日期 | `submitDate` | string | 是 | 提交日期 |
+| 终审通过日期 | `approveDate` | string | 否 | 终审通过日期 |
+| 操作履历 | `history` | array | 是 | 操作申报履历 |
+| 编办确认信息 | `schoolFinalConfirm` | object | 否 | 编办确认信息 |
 
 ### 7.3 使用类型明细（useForms）
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
+| 中文名称 | 英文字段名 | 类型 | 说明 |
+|---|---|---|---|
 | `publicRecruit` | object | 统一公开招聘 `{num, edu, cond, note}` |
 | `selfRecruit` | object | 单位自主实施招聘 |
 | `talentMid` | object | 中高级人才招聘 |
@@ -994,24 +994,24 @@
 
 ### 7.4 操作申报履历（history[]）
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `action` | string | `submit`/`first_approve`/`reject`/`resubmit`/`final_confirm`/`final_submit`/`upload` |
-| `title` | string | 操作标题 |
-| `time` | string | 操作时间 |
-| `desc` | string | 描述 |
-| `reason` | string | 驳回原因（仅 reject） |
+| 中文名称 | 英文字段名 | 类型 | 说明 |
+|---|---|---|---|
+| 操作类型 | `action` | string | `submit`/`first_approve`/`reject`/`resubmit`/`final_confirm`/`final_submit`/`upload` |
+| 操作标题 | `title` | string | 操作标题 |
+| 操作时间 | `time` | string | 操作时间 |
+| 描述 | `desc` | string | 描述 |
+| 驳回原因 | `reason` | string | 驳回原因（仅 reject） |
 
 ### 7.5 提醒日志（staffing_reminders）
 
 存储位置：localStorage key `staffing_reminders`
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
+| 中文名称 | 英文字段名 | 类型 | 说明 |
+|---|---|---|---|
 | `{batchId}\|{schoolName}` | object | 复合 key |
-| `.time` | string | 最近提醒时间 |
-| `.count` | number | 累计提醒次数 |
-| `.read` | boolean | 是否已读 |
+| 提醒时间 | `.time` | string | 最近提醒时间 |
+| 累计次数 | `.count` | number | 累计提醒次数 |
+| 是否已读 | `.read` | boolean | 是否已读 |
 
 ---
 

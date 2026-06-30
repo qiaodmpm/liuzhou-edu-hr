@@ -199,6 +199,12 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 <div id="toastContainer"></div>
 
 <script>
+function getSchoolCategoryMap() {
+  var map = {};
+  var stored = localStorage.getItem('org_directory');
+  if (stored) { try { JSON.parse(stored).forEach(function(o) { if (o.orgName) map[o.orgName] = o.schoolCategory || ''; }); } catch(e) {} }
+  return map;
+}
 var ICONS = {
   home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
   chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
@@ -218,13 +224,13 @@ var ICONS = {
   key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
   list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
 };
-var MENU_ICONS = { workbench:'home', dashboard:'chart', entry:'userp', staffing:'monitor', exit:'userx', promote:'arrowup', postset:'shield', recruit:'search', employ:'file', retire:'clock', salary:'dollar', ethics:'warn', honor:'star', account:'users', org:'building', perm:'key', log:'list' };
+var MENU_ICONS = { workbench:'home', dashboard:'chart', entry:'userp', staffing:'monitor', exit:'userx', promote:'arrowup', postset:'shield', recruit:'search', employ:'file', retire:'clock', ethics:'warn', account:'users', org:'building', perm:'key', log:'list' };
 
 var ROLES = {
-  city: { name:'张建国', short:'市', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:3},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:5},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'},{id:'perm',label:'角色权限'},{id:'log',label:'操作日志'}]}]}},
-  district: { name:'李振华', short:'区', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:1},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:3},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'}]}]}},
-  school: { name:'王玉兰', short:'校', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'}]}]}},
-  teacher: { name:'陈明辉', short:'师', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]}]}}
+  city: { name:'张建国', short:'市', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:3},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:5},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'},{id:'perm',label:'角色权限'},{id:'log',label:'操作日志'}]}]}},
+  district: { name:'李振华', short:'区', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:1},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:3},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  school: { name:'王玉兰', short:'校', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  teacher: { name:'陈明辉', short:'师', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'}]}]}}
 };
 
 var STATUS_MAP = { first_review:'待一审', first_approved:'一审通过', first_rejected:'一审驳回', second_review:'待二审', completed:'已完成' };
@@ -301,10 +307,16 @@ function sidebarClick(el, id) {
   if (id==='promote') { window.location.href = 'promote-list-school.html'; return; }
   if (id==='recruit') { window.location.href = 'recruit-list-school.html'; return; }
   if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
 
   if (id==='postset') return;
   if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
 
+
+  else if (id === 'account') { window.location.href = 'account-management.html'; }
+
+  else if (id === 'org') { window.location.href = 'org-management.html'; }
   showToast('跳转至：' + (el.querySelector('.menu-label')?el.querySelector('.menu-label').textContent:id));
 }
 
@@ -359,8 +371,8 @@ function renderTable() {
     return;
   }
   var h = '<div class="table-scroll"><table class="list-table"><thead><tr>';
-  h += '<th>申请编号</th><th>学校名称</th><th>学校类型</th><th>所属区域</th><th>机构规格</th><th>经费形式</th>';
-  h += '<th>总量控制数</th><th>事业编制数</th><th>聘用控制数</th>';
+  h += '<th>申请编号</th><th>学校名称</th><th>岗位设置分类</th><th>所属区域</th><th>单位级别</th><th>经费类型</th>';
+  h += '<th>总量控制数</th><th>事业编核定数</th><th>控制数核定数</th>';
   h += '<th>岗位总量</th>';
   h += '<th>管理岗</th><th>管理岗比</th>';
   h += '<th>专技岗</th><th>专技岗比</th>';
@@ -444,13 +456,13 @@ function exportRecord(id) {
   rows.push(['']);
   rows.push(['申请编号', r.id]);
   rows.push(['学校名称', r.schoolName || '']);
-  rows.push(['学校类型', r.schoolType || '']);
-  rows.push(['机构规格', r.orgLevel || '']);
-  rows.push(['经费形式', r.fundType || '']);
+  rows.push(['岗位设置分类', getSchoolCategoryMap()[r.schoolName] || r.schoolType || '']);
+  rows.push(['单位级别', r.orgLevel || '']);
+  rows.push(['经费类型', r.fundType || '']);
   rows.push(['总量控制数', r.totalControlQuota || 0]);
   rows.push(['小高地岗位数', r.highlandPosts || 0]);
-  rows.push(['事业编制数', r.careerStaffQuota || 0]);
-  rows.push(['聘用控制数', r.authControlNo || 0]);
+  rows.push(['事业编核定数', r.careerStaffQuota || 0]);
+  rows.push(['控制数核定数', r.authControlNo || 0]);
   rows.push(['']);
   rows.push(['岗位类别', '数量', '占比']);
   var tp = r.totalPosts || 1;

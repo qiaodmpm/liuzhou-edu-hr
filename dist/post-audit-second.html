@@ -223,6 +223,25 @@ body {
 .info-label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
 .info-value { font-size: 13px; font-weight: 500; color: var(--text); }
 
+/* Form grid — 对齐新建页机构基本信息布局 */
+.form-card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.form-card-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.form-grid .form-item { display: flex; flex-direction: column; }
+.form-grid .form-item.full-width { grid-column: 1 / -1; }
+.form-grid .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.form-grid .form-value { font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 12px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border); }
+.form-grid .form-value.calculated { color: var(--primary); }
+
+
 /* Data table */
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .data-table th {
@@ -583,6 +602,12 @@ body {
 <div id="toastContainer"></div>
 
 <script>
+function getSchoolCategoryMap() {
+  var map = {};
+  var stored = localStorage.getItem('org_directory');
+  if (stored) { try { JSON.parse(stored).forEach(function(o) { if (o.orgName) map[o.orgName] = o.schoolCategory || ''; }); } catch(e) {} }
+  return map;
+}
 window.onerror = function(msg, source, line, col, error) {
   document.body.innerHTML = "<div style='padding:40px;font-family:sans-serif;'><h2>JS Error</h2><pre>" + String(msg).replace(/</g, "&lt;") + "</pre><p>Line: " + line + "</p></div>";
 };
@@ -613,7 +638,7 @@ var MENU_ICONS = {
   entry: 'userp', staffing: 'monitor', exit: 'userx',
   promote: 'arrowup', postset: 'shield', recruit: 'search',
   employ: 'file',
-  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  retire: 'clock', ethics: 'warn',
   account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
@@ -665,11 +690,11 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
         { name: '系统设置', items: [
           { id: 'account', label: '账号管理' },
@@ -699,13 +724,13 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
   },
@@ -728,13 +753,13 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
   },
@@ -746,7 +771,7 @@ var ROLES = {
         { name: '业务申请', items: [
           { id: 'promote', label: '岗位晋升申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]}
       ]
     }
@@ -1100,17 +1125,17 @@ function renderProgress() {
 
 function renderSchoolInfo() {
   var r = currentRecord;
-  var html = '<div class="card"><div class="card-header">学校基本信息</div><div class="card-body">';
-  html += '<div class="info-grid">';
-  html += '<div class="info-item full"><div class="info-label">学校名称</div><div class="info-value">' + escapeHtml(r.schoolName) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">学校类型</div><div class="info-value">' + (r.schoolType || '--') + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">机构规格</div><div class="info-value">' + (r.orgLevel || '--') + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">经费形式</div><div class="info-value">' + (r.fundType || '--') + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">总量控制数</div><div class="info-value">' + (r.totalControlQuota || 0) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">事业编制数</div><div class="info-value">' + (r.careerStaffQuota || 0) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">聘用控制数</div><div class="info-value">' + (r.authControlNo || 0) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">小高地岗位数</div><div class="info-value">' + (r.highlandPosts || 0) + '</div></div>';
-  html += '</div></div></div>';
+  var html = '<div class="form-card"><div class="form-card-title">单位基本信息</div>';
+  html += '<div class="form-grid">';
+  html += '<div class="form-item full-width"><div class="form-label">单位全称</div><div class="form-value">' + escapeHtml(r.schoolName) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">单位级别</div><div class="form-value">' + (r.orgLevel || '--') + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">经费类型</div><div class="form-value">' + (r.fundType || '--') + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">岗位设置分类</div><div class="form-value">' + (getSchoolCategoryMap()[r.schoolName] || r.schoolType || '--') + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">总量控制数</div><div class="form-value">' + (r.totalControlQuota || 0) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">小高地岗位数</div><div class="form-value">' + (r.highlandPosts || 0) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">事业编核定数</div><div class="form-value">' + (r.careerStaffQuota || 0) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">控制数核定数</div><div class="form-value">' + (r.authControlNo || 0) + '</div></div>';
+  html += '</div></div>';
   return html;
 }
 
@@ -1118,7 +1143,7 @@ function renderSchoolInfo() {
 // ===== COMPARISON TABLE (UNIFIED) =====
 function renderCompareMgmtSection() {
   var hasHr = hasHrData();
-  var h = '<div class="compare-section-title">管理岗位明细</div>';
+  var h = '<div class="compare-section-title">管理岗位明细<span class="limit-hint">（合计应等于管理岗位数量：' + (currentRecord.mgmtPosts || 0) + '）</span></div>';
   h += '<table class="compare-table"><thead><tr><th>等级</th>';
   if (hasHr) {
     h += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
@@ -1159,12 +1184,17 @@ function renderCompareMgmtSection() {
 
 function renderCompareProfSection() {
   var hasHr = hasHrData();
-  var h = '<div class="compare-section-title">专业技术岗位明细</div>';
+  var h = '<div class="compare-section-title">专业技术岗位明细<span class="limit-hint">（合计应等于专技岗位数量：' + (currentRecord.profPosts || 0) + '）</span></div>';
   var grandOrig = 0, grandHr = 0, grandEff = 0;
 
   PROF_LAYER_CONFIG.forEach(function(layer) {
+    var limits = currentRecord.schoolType ? PROF_RATIO_LIMITS[currentRecord.schoolType] : null;
+    var limitPct = limits ? limits[layer.key] : null;
+    var layerTotal = getEditableValue('profLevels.' + layer.key + '.total');
+    var actualPct = currentRecord.profPosts > 0 ? (layerTotal / currentRecord.profPosts * 100).toFixed(1) : '0.0';
+    var layerHint = limitPct !== null ? '<span class="limit-hint' + (parseFloat(actualPct) > limitPct ? ' error' : '') + '">（上限 ' + limitPct + '%，当前 ' + actualPct + '%）</span>' : '';
     h += '<table class="compare-table" style="margin-bottom:8px">';
-    h += '<thead><tr class="layer-header"><td colspan="' + (hasHr ? 4 : 3) + '">' + layer.label + '</td></tr>';
+    h += '<thead><tr class="layer-header"><td colspan="' + (hasHr ? 4 : 3) + '">' + layer.label + layerHint + '</td></tr>';
     h += '<tr><th>等级</th>';
     if (hasHr) {
       h += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
@@ -1217,7 +1247,7 @@ function renderCompareProfSection() {
 
 function renderCompareLaborSection() {
   var hasHr = hasHrData();
-  var h = '<div class="compare-section-title">工勤技能岗位明细</div>';
+  var h = '<div class="compare-section-title">工勤技能岗位明细<span class="limit-hint">（合计应等于工勤技能岗位数量：' + (currentRecord.laborPosts || 0) + '）</span></div>';
   h += '<table class="compare-table"><thead><tr><th>等级</th>';
   if (hasHr) {
     h += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
@@ -1227,6 +1257,7 @@ function renderCompareLaborSection() {
   h += '</tr></thead><tbody>';
 
   var sumOrig = 0, sumHr = 0, sumEff = 0;
+  var LABOR_HINTS = { '1': '≤' + LABOR_RATIO_LIMITS.level_1 + '%', '2': '≤' + LABOR_RATIO_LIMITS.level_2 + '%', '3': '≤' + LABOR_RATIO_LIMITS.level_3 + '%', '4': '≤' + LABOR_RATIO_LIMITS.level_4 + '%', '5': '≥' + LABOR_RATIO_LIMITS.level_5_min + '%', 'common': '' };
   LABOR_GRADES.forEach(function(g) {
     var path = 'laborLevels.' + g;
     var orig = getOriginalValue(path);
@@ -1239,8 +1270,9 @@ function renderCompareLaborSection() {
     var isDiff = hasHr && hr !== null && orig !== hr;
     var isModified = modifiedFields.hasOwnProperty(path);
     h += '<tr class="' + (isDiff ? 'diff-row' : '') + (isModified ? ' modified-row' : '') + '">';
-    h += '<td>' + LABOR_GRADE_LABELS[g] + '</td>';
-    h += '<td class="col-original">' + (orig || 0) + '</td>';
+    h += '<td>' + LABOR_GRADE_LABELS[g];
+    if (LABOR_HINTS[g]) h += '<span class="labor-th-hint">' + LABOR_HINTS[g] + '</span>';
+    h += '</td>';    h += '<td class="col-original">' + (orig || 0) + '</td>';
     if (hasHr) {
       h += '<td class="col-hr' + (isDiff ? ' diff' : '') + '">' + (hr != null ? hr : '--') + '</td>';
     }
@@ -1253,6 +1285,7 @@ function renderCompareLaborSection() {
   if (hasHr) h += '<td class="col-hr"><strong>' + sumHr + '</strong></td>';
   h += '<td class="col-final"><strong>' + sumEff + '</strong></td>';
   h += '</tr></tbody></table>';
+  h += '<div class="labor-footnote">* 一级+二级合计 ≤ ' + LABOR_RATIO_LIMITS.total_1_2 + '%</div>';
   return h;
 }
 
@@ -1294,7 +1327,7 @@ function renderComparisonTable() {
   html += '</div>';
 
   // Total section
-  html += '<div class="compare-section-title">岗位总量</div>';
+  html += '<div class="compare-section-title">岗位总量<span class="limit-hint">（等于：' + ((currentRecord.totalControlQuota || 0) - (currentRecord.highlandPosts || 0)) + '）</span></div>';
   html += '<table class="compare-table"><thead><tr><th>项目</th>';
   if (hasHr) {
     html += '<th class="col-original-th">原始申报</th><th class="col-hr-th">人社核准</th><th class="col-final-th">最终结果</th>';
@@ -1719,12 +1752,18 @@ function sidebarClick(el, id) {
   if (id === 'recruit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
   if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
 
     if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
     return;
   }
   if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
 
+
+  else if (id === 'account') { window.location.href = 'account-management.html'; }
+
+  else if (id === 'org') { window.location.href = 'org-management.html'; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -1804,7 +1843,7 @@ function getEmployedTotal(empData, category, grade) {
   if (!cat) return 0;
   var entry = cat[grade];
   if (!entry) return 0;
-  return (entry.career || 0) + (entry.control || 0) + (entry.over || 0);
+  return (entry.career || 0) + (entry.control || 0);
 }
 function getEmployUrl() {
   if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;

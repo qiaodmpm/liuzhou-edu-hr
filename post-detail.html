@@ -269,6 +269,25 @@ body {
 .info-label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
 .info-value { font-size: 13px; font-weight: 500; color: var(--text); }
 
+/* Form grid — 对齐新建页机构基本信息布局 */
+.form-card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.form-card-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.form-grid .form-item { display: flex; flex-direction: column; }
+.form-grid .form-item.full-width { grid-column: 1 / -1; }
+.form-grid .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.form-grid .form-value { font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 12px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border); }
+.form-grid .form-value.calculated { color: var(--primary); }
+
+
 /* Data table */
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .data-table th {
@@ -458,32 +477,32 @@ body {
       <div class="card" id="progressCard"></div>
 
       <!-- Unit Basic Info -->
-      <div class="card">
-        <div class="card-header">单位基本信息</div>
-        <div class="card-body" id="unitInfo"></div>
+      <div class="form-card">
+        <div class="form-card-title">单位基本信息</div>
+        <div id="unitInfo"></div>
       </div>
 
       <!-- Position Totals -->
       <div class="card">
-        <div class="card-header">岗位总量</div>
+        <div class="card-header" id="posTotalHeader">岗位总量<span class="limit-hint" id="posTotalHint"></span></div>
         <div class="card-body" id="positionTotals"></div>
       </div>
 
       <!-- Management Position Details -->
       <div class="card">
-        <div class="card-header">管理岗位明细</div>
+        <div class="card-header" id="mgmtDetailHeader">管理岗位明细<span class="limit-hint" id="mgmtDetailHint"></span></div>
         <div class="card-body" id="mgmtDetails"></div>
       </div>
 
       <!-- Professional Technical Position Details -->
       <div class="card">
-        <div class="card-header">专业技术岗位明细</div>
+        <div class="card-header" id="profDetailHeader">专业技术岗位明细<span class="limit-hint" id="profDetailHint"></span></div>
         <div class="card-body" id="profDetails"></div>
       </div>
 
       <!-- Labor Skill Position Details -->
       <div class="card">
-        <div class="card-header">工勤技能岗位明细</div>
+        <div class="card-header" id="laborDetailHeader">工勤技能岗位明细<span class="limit-hint" id="laborDetailHint"></span></div>
         <div class="card-body" id="laborDetails"></div>
       </div>
 
@@ -527,6 +546,12 @@ body {
 <div id="toastContainer"></div>
 
 <script>
+function getSchoolCategoryMap() {
+  var map = {};
+  var stored = localStorage.getItem('org_directory');
+  if (stored) { try { JSON.parse(stored).forEach(function(o) { if (o.orgName) map[o.orgName] = o.schoolCategory || ''; }); } catch(e) {} }
+  return map;
+}
 // ===== ICONS =====
 var ICONS = {
   home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
@@ -544,7 +569,8 @@ var ICONS = {
   users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
   key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
-  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
 };
 
 var MENU_ICONS = {
@@ -552,7 +578,8 @@ var MENU_ICONS = {
   entry: 'userp', staffing: 'monitor', exit: 'userx',
   promote: 'arrowup', postset: 'shield', recruit: 'search',
   employ: 'file',
-  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  'contract-entry': 'userp', 'contract-exit': 'userx',
+  retire: 'clock', ethics: 'warn',
   account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
@@ -565,7 +592,8 @@ var ROLES = {
       { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请', badge: 3 }, { id: 'exit', label: '教师出编管理' }] },
       { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 5 }, { id: 'recruit', label: '招聘岗位申请' }] },
       { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
+      { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
+      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
       { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
     ] }
   },
@@ -575,8 +603,9 @@ var ROLES = {
       { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请', badge: 1 }, { id: 'exit', label: '教师出编管理' }] },
       { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 3 }, { id: 'recruit', label: '招聘岗位申请' }] },
       { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
-      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+      { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
+      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
+      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }] }
     ] }
   },
   school: {
@@ -585,14 +614,15 @@ var ROLES = {
       { name: '编制管理', items: [{ id: 'staffing', label: '编制使用申请' }, { id: 'entry', label: '入编申请' }, { id: 'exit', label: '教师出编管理' }] },
       { name: '岗位管理', items: [{ id: 'postset', label: '岗位设置申请' }, { id: 'promote', label: '岗位晋升申请', badge: 2 }, { id: 'recruit', label: '招聘岗位申请' }] },
       { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
-      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'salary', label: '工资核定申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] },
-      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }] }
+      { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
+      { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
+      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }] }
     ] }
   },
   teacher: {
     name: '陈明辉', short: '师', org: '柳州市第八中学', role: 'teacher',
     sidebar: { top: [{ id: 'workbench', icon: 'home', label: '工作台' }], groups: [
-      { name: '业务申请', items: [{ id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }, { id: 'honor', label: '荣誉申请' }] }
+      { name: '业务申请', items: [{ id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }] }
     ] }
   }
 };
@@ -1236,16 +1266,15 @@ function renderProgress() {
 
 // ===== UNIT INFO =====
 function renderUnitInfo() {
-  var html = '<div class="info-grid">';
-  html += '<div class="info-item full"><div class="info-label">单位全称</div><div class="info-value">' + escapeHtml(record.schoolName) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">机构规格</div><div class="info-value">' + (record.orgLevel || '—') + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">经费形式</div><div class="info-value">' + (record.fundType || '—') + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">学校类型</div><div class="info-value">' + (record.schoolType || '—') + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">总量控制数</div><div class="info-value">' + (record.totalControlQuota || 0) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">小高地岗位数</div><div class="info-value">' + (record.highlandPosts || 0) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">事业编制数</div><div class="info-value">' + (record.careerStaffQuota || 0) + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">聘用控制数</div><div class="info-value">' + (record.authControlNo != null ? record.authControlNo : '—') + '</div></div>';
-  html += '<div class="info-item"><div class="info-label">岗位总量（等于）</div><div class="info-value">' + ((record.totalControlQuota || 0) - (record.highlandPosts || 0)) + '</div></div>';
+  var html = '<div class="form-grid">';
+  html += '<div class="form-item full-width"><div class="form-label">单位全称</div><div class="form-value">' + escapeHtml(record.schoolName) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">单位级别</div><div class="form-value">' + (record.orgLevel || '—') + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">经费类型</div><div class="form-value">' + (record.fundType || '—') + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">岗位设置分类</div><div class="form-value">' + (getSchoolCategoryMap()[record.schoolName] || record.schoolType || '—') + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">总量控制数</div><div class="form-value">' + (record.totalControlQuota || 0) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">小高地岗位数</div><div class="form-value">' + (record.highlandPosts || 0) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">事业编核定数</div><div class="form-value">' + (record.careerStaffQuota || 0) + '</div></div>';
+  html += '<div class="form-item"><div class="form-label">控制数核定数</div><div class="form-value">' + (record.authControlNo != null ? record.authControlNo : '—') + '</div></div>';
   html += '</div>';
   document.getElementById('unitInfo').innerHTML = html;
 }
@@ -1253,6 +1282,8 @@ function renderUnitInfo() {
 // ===== POSITION TOTALS =====
 function renderPositionTotals() {
   var tp = (record.mgmtPosts || 0) + (record.profPosts || 0) + (record.laborPosts || 0);
+  var maxTotal = (record.totalControlQuota || 0) - (record.highlandPosts || 0);
+  document.getElementById('posTotalHint').textContent = '（等于：' + maxTotal + '）';
   var hr = record.hrResult;
   var hasHr = hr && (hr.mgmtPosts !== undefined || hr.profPosts !== undefined || hr.laborPosts !== undefined);
   var nRows = 1 + (hasHr ? 1 : 0);
@@ -1285,6 +1316,7 @@ function renderPositionTotals() {
 
 // ===== MANAGEMENT DETAILS =====
 function renderMgmtDetails() {
+  document.getElementById('mgmtDetailHint').textContent = '（合计应等于管理岗位数量：' + (record.mgmtPosts || 0) + '）';
   var hr = record.hrResult;
   var html = '<table class="data-table"><thead><tr><th></th>';
   MGMT_GRADES.forEach(function(g) { html += '<th>' + MGMT_GRADE_LABELS[g] + '</th>'; });
@@ -1319,6 +1351,7 @@ function renderMgmtDetails() {
 
 // ===== PROFESSIONAL TECHNICAL DETAILS =====
 function renderProfDetails() {
+  document.getElementById('profDetailHint').textContent = '（合计应等于专技岗位数量：' + (record.profPosts || 0) + '）';
   var html = '';
   var hr = record.hrResult;
   var limits = PROF_RATIO_LIMITS[record.schoolType] || {};
@@ -1397,6 +1430,7 @@ function renderProfDetails() {
 
 // ===== LABOR DETAILS =====
 function renderLaborDetails() {
+  document.getElementById('laborDetailHint').textContent = '（合计应等于工勤技能岗位数量：' + (record.laborPosts || 0) + '）';
   var hr = record.hrResult;
   var laborHints = { '1': '≤4%', '2': '≤6%', '3': '≤20%', '4': '≤40%', '5': '≥30%', 'common': '—' };
   var html = '<table class="data-table"><thead><tr><th></th>';
@@ -1670,7 +1704,7 @@ function getEmployedTotal(empData, category, grade) {
   if (!cat) return 0;
   var entry = cat[grade];
   if (!entry) return 0;
-  return (entry.career || 0) + (entry.control || 0) + (entry.over || 0);
+  return (entry.career || 0) + (entry.control || 0);
 }
 function getEmployUrl() {
   if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
@@ -1927,6 +1961,8 @@ function sidebarClick(el, id) {
   document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
   el.classList.add('active');
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'contract-entry') { window.location.href = (currentRole === 'city' || currentRole === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { window.location.href = (currentRole === 'city' || currentRole === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
   if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
   if (id === 'entry') {
     if (currentRole === 'school') { window.location.href = '教师入编管理（学校管理员视角）.html'; }
@@ -1953,6 +1989,10 @@ function sidebarClick(el, id) {
   }
   if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
 
+
+  else if (id === 'account') { window.location.href = 'account-management.html'; }
+
+  else if (id === 'org') { window.location.href = 'org-management.html'; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -1977,6 +2017,7 @@ function sidebarClick(el, id) {
   renderSidebar();
   renderAll();
 })();
+
 </script>
 
 </body>

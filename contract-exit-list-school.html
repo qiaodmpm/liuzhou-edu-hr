@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教师离职管理 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topnav { position: fixed; top:0; left:0; right:0; height:56px; background:linear-gradient(135deg,#1E3A8A,#1E40AF); display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display:flex; align-items:center; gap:14px; }
+.topnav-logo { width:38px; height:38px; background:rgba(255,255,255,0.18); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+.topnav-logo svg { width:24px; height:24px; }
+.topnav-title { font-size:17px; font-weight:600; color:#fff; letter-spacing:1px; }
+.topnav-right { display:flex; align-items:center; gap:18px; }
+.topnav-bell { position:relative; cursor:pointer; color:rgba(255,255,255,0.85); padding:6px; border-radius:6px; transition:var(--transition); }
+.topnav-bell:hover { background:rgba(255,255,255,0.1); color:#fff; }
+.topnav-bell .badge { position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:50%; background:var(--danger); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.topnav-user { display:flex; align-items:center; gap:8px; cursor:pointer; color:rgba(255,255,255,0.9); padding:6px 12px; border-radius:6px; transition:var(--transition); font-size:13px; position:relative; }
+.topnav-user:hover { background:rgba(255,255,255,0.1); }
+.topnav-user .avatar { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; }
+.user-dropdown { display:none; position:absolute; top:46px; right:0; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow-lg); min-width:160px; z-index:200; overflow:hidden; }
+.user-dropdown.show { display:block; }
+.user-dropdown a { display:block; padding:12px 18px; font-size:13px; color:var(--text); text-decoration:none; transition:var(--transition); }
+.user-dropdown a:hover { background:var(--primary-light); color:var(--primary); }
+.sidebar { position:fixed; top:56px; left:0; bottom:0; width:var(--sidebar-w); background:#1E3A8A; z-index:90; overflow-y:auto; display:flex; flex-direction:column; transition:width var(--transition); }
+.sidebar.collapsed { width:64px; }
+.sidebar.collapsed .menu-label,.sidebar.collapsed .menu-group,.sidebar.collapsed .menu-badge,.sidebar.collapsed .role-switcher-label,.sidebar.collapsed .role-switcher-name { display:none; }
+.sidebar.collapsed .menu-item { justify-content:center; padding:12px 0; }
+.sidebar.collapsed .menu-icon { margin-right:0; }
+.sidebar-menu { flex:1; padding:8px 0; }
+.menu-group { padding:14px 20px 4px; font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:1px; text-transform:uppercase; }
+.menu-item { display:flex; align-items:center; padding:10px 20px; cursor:pointer; font-size:13px; font-weight:400; color:rgba(255,255,255,0.7); transition:var(--transition); position:relative; text-decoration:none; border-left:3px solid transparent; }
+.menu-item:hover { background:rgba(255,255,255,0.05); color:#fff; }
+.menu-item.active { background:rgba(255,255,255,0.08); color:#fff; font-weight:500; border-left-color:var(--accent); }
+.menu-item .menu-icon { width:18px; height:18px; margin-right:10px; flex-shrink:0; opacity:0.7; }
+.menu-item.active .menu-icon { opacity:1; }
+.menu-item .menu-badge { margin-left:auto; background:var(--danger); color:#fff; font-size:10px; padding:2px 7px; border-radius:10px; font-weight:600; }
+.sidebar-bottom { border-top:1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle { display:flex; align-items:center; gap:8px; padding:10px 20px; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.5); transition:var(--transition); }
+.sidebar-toggle:hover { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width:16px; height:16px; transition:transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform:rotate(180deg); }
+.role-switcher { padding:10px 16px 12px; border-top:1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size:10px; color:rgba(255,255,255,0.35); letter-spacing:1px; margin-bottom:8px; padding:0 4px; }
+.role-switcher-options { display:flex; flex-direction:column; gap:4px; }
+.role-switch-btn { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.55); transition:var(--transition); border:1px solid transparent; background:transparent; font-family:inherit; width:100%; text-align:left; }
+.role-switch-btn:hover { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.8); }
+.role-switch-btn.active { background:rgba(59,130,246,0.2); color:#fff; border-color:rgba(59,130,246,0.4); font-weight:500; }
+.role-switch-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.role-switch-dot.city { background:#3B82F6; }
+.role-switch-dot.district { background:#F59E0B; }
+.role-switch-dot.school { background:#10B981; }
+.role-switch-dot.teacher { background:#A78BFA; }
+.main { margin-left:var(--sidebar-w); margin-top:56px; padding:24px; min-height:calc(100vh - 56px); transition:margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left:64px; }
+.breadcrumb { font-size:12px; color:var(--text-light); margin-bottom:16px; }
+.breadcrumb a { color:var(--text-light); text-decoration:none; }
+.breadcrumb a:hover { color:var(--primary); }
+.breadcrumb span { color:var(--text-secondary); }
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.page-header h1 { font-size:20px; font-weight:700; }
+.page-header .subtitle { font-size:12px; color:var(--text-light); margin-top:2px; }
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; font-size:13px; font-weight:500; border-radius:6px; cursor:pointer; font-family:inherit; transition:var(--transition); border:1px solid transparent; text-decoration:none; }
+.btn-primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+.btn-danger { background:var(--danger); color:#fff; border-color:var(--danger); }
+.btn-danger:hover { filter:brightness(0.93); }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-sm { padding:5px 12px; font-size:12px; }
+.btn-outline { background:#fff; color:var(--text-secondary); border:1px solid var(--border); }
+.btn-outline:hover { background:var(--gray-bg); }
+.btn-success { background:var(--success); color:#fff; border-color:var(--success); }
+.btn-success:hover { filter:brightness(0.95); }
+/* toolbar */
+.list-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+.filter-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.filter-pill { padding:6px 16px; border-radius:20px; font-size:12px; cursor:pointer; border:1px solid var(--border); background:#fff; color:var(--text-secondary); transition:var(--transition); font-family:inherit; }
+.filter-pill:hover { border-color:var(--accent); color:var(--primary); }
+.filter-pill.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.search-box { position:relative; }
+.search-box svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-light); }
+.search-input { padding:8px 12px 8px 32px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; width:240px; }
+.search-input:focus { outline:none; border-color:var(--accent); }
+/* Table list */
+.list-card { background:#fff; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-sm); overflow:hidden; }
+.table-scroll { overflow-x:auto; }
+.list-table { width:100%; border-collapse:collapse; font-size:13px; }
+.list-table th { padding:11px 14px; text-align:center; font-weight:600; font-size:11px; color:var(--text-secondary); background:#F8FAFC; border-bottom:1px solid var(--border); white-space:nowrap; }
+.list-table td { padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle; text-align:center; }
+.list-table tr.data-row:hover { background:#FAFBFC; }
+.list-table .col-id { color:var(--primary); font-weight:600; cursor:pointer; }
+.list-table .col-id:hover { text-decoration:underline; }
+.status-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500; }
+.status-badge.pending { background:#FEF3C7; color:#92400E; }
+.status-badge.approved { background:#D1FAE5; color:#065F46; }
+.status-badge.rejected { background:#FEE2E2; color:#991B1B; }
+.status-badge.draft { background:#E2E8F0; color:#475569; }
+.type-tag { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500; background:#EFF6FF; color:var(--primary); }
+.type-tag.multi { background:#F3E8FF; color:#6B21A8; }
+.expand-btn { cursor:pointer; color:var(--primary); font-size:12px; user-select:none; display:inline-flex; align-items:center; gap:4px; }
+.expand-icon { display:inline-block; transition:transform .2s; font-size:10px; }
+.expand-icon.open { transform:rotate(90deg); }
+/* expanded detail row */
+.detail-row td { background:#F8FAFC; padding:0 !important; border-bottom:1px solid var(--border); }
+.detail-panel { padding:18px 22px; }
+.detail-panel h4 { font-size:13px; font-weight:600; margin:0 0 10px; color:var(--text); display:flex; align-items:center; gap:6px; }
+.detail-panel h4:not(:first-child) { margin-top:18px; }
+.detail-table { width:100%; border-collapse:collapse; font-size:12px; background:#fff; }
+.detail-table th { padding:8px 10px; background:#fff; border:1px solid var(--border); font-size:11px; color:var(--text-secondary); font-weight:600; }
+.detail-table td { padding:8px 10px; border:1px solid var(--border); text-align:center; }
+.att-links { display:flex; flex-wrap:wrap; gap:10px; }
+.att-link { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--border); border-radius:6px; padding:6px 12px; font-size:12px; color:var(--primary); cursor:pointer; text-decoration:none; transition:var(--transition); }
+.att-link:hover { border-color:var(--accent); background:var(--primary-light); }
+.att-link svg { width:14px; height:14px; }
+.reject-note { background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:10px 12px; font-size:12px; color:#991B1B; margin-top:14px; }
+.detail-actions { margin-top:16px; display:flex; gap:10px; }
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-light); }
+.empty-state .empty-icon { font-size:40px; margin-bottom:12px; }
+.empty-state .empty-text { font-size:14px; }
+/* modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,0.5); display:none; align-items:flex-start; justify-content:center; z-index:1000; overflow-y:auto; padding:40px 20px; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:100%; max-width:880px; animation:modalIn .25s ease; margin:auto; }
+@keyframes modalIn { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+.modal-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.modal-header h2 { font-size:16px; font-weight:600; }
+.modal-header .sub { font-size:12px; color:var(--text-light); margin-top:2px; font-weight:400; }
+.modal-close { cursor:pointer; color:var(--text-light); font-size:24px; line-height:1; background:none; border:none; padding:0 4px; }
+.modal-close:hover { color:var(--text); }
+.modal-body { padding:20px 24px; }
+.modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+.section-title { font-size:13px; font-weight:600; margin:0 0 10px; display:flex; align-items:center; justify-content:space-between; }
+.section-title .req { color:var(--danger); }
+.entry-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px; }
+.entry-table th { padding:8px; font-size:11px; color:var(--text-secondary); background:#F8FAFC; border:1px solid var(--border); font-weight:600; }
+.entry-table td { padding:6px; border:1px solid var(--border); vertical-align:middle; }
+.entry-table input, .entry-table select { width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:inherit; }
+.entry-table input:focus, .entry-table select:focus { outline:none; border-color:var(--accent); }
+.entry-table .row-del { color:var(--danger); cursor:pointer; font-size:16px; }
+.entry-table .row-del:hover { opacity:0.7; }
+.add-row-btn { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--primary); cursor:pointer; padding:6px 12px; border:1px dashed var(--accent); border-radius:6px; background:var(--primary-light); }
+.add-row-btn:hover { background:#DBEAFE; }
+.upload-section { margin-top:20px; padding-top:18px; border-top:1px solid var(--border); }
+.upload-label { font-size:13px; font-weight:600; margin-bottom:8px; display:block; }
+.upload-label .req { color:var(--danger); }
+.upload-label .hint { font-size:11px; color:var(--text-light); font-weight:400; margin-left:6px; }
+.dropzone { border:2px dashed var(--border); border-radius:var(--radius); padding:20px; text-align:center; cursor:pointer; transition:var(--transition); color:var(--text-secondary); font-size:13px; }
+.dropzone:hover { border-color:var(--accent); background:var(--primary-light); color:var(--primary); }
+.dropzone svg { width:26px; height:26px; margin-bottom:6px; opacity:0.6; }
+.file-chip { display:inline-flex; align-items:center; gap:8px; background:var(--gray-bg); padding:6px 12px; border-radius:6px; font-size:12px; margin-top:8px; }
+.file-chip svg { width:14px; height:14px; color:var(--primary); }
+.file-chip .rm { color:var(--danger); cursor:pointer; font-weight:700; }
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1E293B; color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; z-index:9999; animation:toastIn .3s ease; box-shadow:var(--shadow-lg); }
+.toast.warning { background:var(--warning); color:#1E293B; }
+.toast.success { background:var(--success); }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left"><div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div><span class="topnav-title">柳州教育人事管理平台</span></div>
+  <div class="topnav-right">
+    <div class="topnav-bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge">3</span></div>
+    <div class="topnav-user" onclick="toggleUserMenu()"><div class="avatar" id="userAvatar">王</div><span id="userName">王玉兰</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a></div></div>
+  </div>
+</nav>
+
+<aside class="sidebar" id="sidebar"><div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher"><div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span></button>
+      <button class="role-switch-btn active" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom"><div class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg><span class="menu-label">收起菜单</span></div></div>
+</aside>
+
+<main class="main">
+  <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>编外教师管理</span> &nbsp;/&nbsp; <span>教师离职管理</span></div>
+  <div class="page-header"><div><h1>教师离职管理</h1><div class="subtitle">合同制教师离职申报</div></div><button class="btn btn-primary" onclick="openNewModal()">+ 新建申报</button></div>
+  <div class="list-toolbar">
+    <div class="filter-bar" id="filterBar"></div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" id="searchInput" placeholder="搜索申请编号…" oninput="onSearch(this.value)">
+    </div>
+  </div>
+  <div id="recordList"></div>
+</main>
+
+<!-- 新增离职申报弹窗 -->
+<div class="modal-overlay" id="newModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h2>新增离职申报</h2><div class="sub">批量录入合同制教师离职信息</div></div>
+      <button class="modal-close" onclick="closeNewModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="section-title"><span>离职教师信息 <span class="req">*</span></span></div>
+      <div class="table-scroll">
+        <table class="entry-table" id="entryTable">
+          <thead><tr>
+            <th style="width:42px;">序号</th>
+            <th style="width:130px;">姓名</th>
+            <th style="width:80px;">性别</th>
+            <th style="width:190px;">身份证号</th>
+            <th style="width:150px;">离职类型</th>
+            <th style="width:150px;">离职日期</th>
+            <th style="width:48px;">操作</th>
+          </tr></thead>
+          <tbody id="entryTbody"></tbody>
+        </table>
+      </div>
+      <div class="add-row-btn" onclick="addTeacherRow()">+ 添加行</div>
+
+      <div class="upload-section">
+        <label class="upload-label">解除劳动合同证明 <span class="req">*</span><span class="hint">PDF 格式，单文件 ≤ 10MB，本批次共用</span></label>
+        <div class="dropzone" id="proofDrop" onclick="document.getElementById('proofInput').click()">
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          点击上传解除劳动合同证明（PDF）
+        </div>
+        <input type="file" id="proofInput" accept="application/pdf,.pdf" style="display:none" onchange="onProofPick(this)">
+        <div id="proofChip"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeNewModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitApplication()">提交审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="delConfirmModal" style="z-index:1100;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div><h2>确认删除</h2></div>
+      <button class="modal-close" onclick="closeDelConfirm()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="delConfirmMsg" style="font-size:14px;color:var(--text);line-height:1.7;margin:0;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDelConfirm()">取消</button>
+      <button class="btn btn-danger" onclick="confirmDeleteRow()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script>
+window.onerror = function(msg,url,line){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d);};
+
+var ICONS = {
+  home:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>',
+  monitor:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  warn:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  users:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building:'<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>'
+};
+var MENU_ICONS = { workbench:'home', ledger:'chart', staffing:'monitor', entry:'userp', exit:'userx', postset:'shield', promote:'arrowup', recruit:'search', employ:'file', 'contract-entry':'userp', 'contract-exit':'userx', retire:'clock', ethics:'warn', account:'users', org:'building' };
+
+var ROLES = {
+  school: { name:'王玉兰', short:'校', org:'柳州市第八中学', role:'school', sidebar:{
+    top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}],
+    groups:[
+      {name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},
+      {name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},
+      {name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},
+      {name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},
+      {name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},
+      {name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}
+    ]}}
+};
+
+var STORAGE_KEY = 'contract_exit_records';
+var STATUS_MAP = { pending:'待审核', approved:'已通过', rejected:'已驳回', draft:'草稿' };
+var EXIT_TYPES = ['合同到期','个人辞职','协商解除'];
+var currentRole = 'school';
+var currentSchool = '柳州市第八中学';
+var currentDistrict = '鱼峰区';
+var currentFilter = 'all';
+var searchKw = '';
+var expandedMap = {};
+
+function escapeHtml(s){ if(s===undefined||s===null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(m,t){var e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;document.getElementById('toastContainer').appendChild(e);setTimeout(function(){e.remove();},2500);}
+function toggleUserMenu(){document.getElementById('userDropdown').classList.toggle('show');}
+document.addEventListener('click',function(e){if(!e.target.closest('.topnav-user'))document.getElementById('userDropdown').classList.remove('show');});
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+
+/* ---------- data ---------- */
+function loadRecords(){
+  var s=localStorage.getItem(STORAGE_KEY);
+  var existing=[];
+  if(s){try{existing=JSON.parse(s);}catch(e){}}
+  var demos=[
+    { id:'CX20260701001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'pending', submitTime:'2026-07-01 10:24:00',
+      terminationProof:{name:'CX20260701001_解除劳动合同证明.pdf',size:1640000,type:'application/pdf'},
+      teachers:[
+        {name:'蓝雅琴',gender:'女',idCard:'450203199208145024',exitType:'个人辞职',exitDate:'2026-07-31',contractStart:'2023-08-01',contractEnd:'2026-07-31'},
+        {name:'覃国华',gender:'男',idCard:'450203198911230517',exitType:'协商解除',exitDate:'2026-07-15',contractStart:'2024-08-01',contractEnd:'2027-07-31'}
+      ],
+      reviewer:null, reviewTime:null, rejectReason:'',
+      timeline:[{time:'2026-07-01 10:24:00',action:'学校提交申报',operator:'王玉兰'}] },
+    { id:'CX20260625001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'approved', submitTime:'2026-06-25 15:10:00',
+      terminationProof:{name:'CX20260625001_解除劳动合同证明.pdf',size:1280000,type:'application/pdf'},
+      teachers:[
+        {name:'韦明珠',gender:'女',idCard:'450203199105062028',exitType:'合同到期',exitDate:'2026-06-30',contractStart:'2023-07-01',contractEnd:'2026-06-30'}
+      ],
+      reviewer:'李振华', reviewTime:'2026-06-26 09:50:00', rejectReason:'',
+      timeline:[{time:'2026-06-25 15:10:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-26 09:50:00',action:'主管部门审核通过',operator:'李振华'}] },
+    { id:'CX20260610001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'rejected', submitTime:'2026-06-10 11:36:00',
+      terminationProof:{name:'CX20260610001_解除劳动合同证明.pdf',size:1020000,type:'application/pdf'},
+      teachers:[
+        {name:'陆志远',gender:'男',idCard:'450203199407181235',exitType:'个人辞职',exitDate:'2026-06-30',contractStart:'2022-08-01',contractEnd:'2025-07-31'}
+      ],
+      reviewer:'李振华', reviewTime:'2026-06-11 10:18:00', rejectReason:'解除劳动合同证明缺少双方签字盖章，请补充完整后重新提交。',
+      timeline:[{time:'2026-06-10 11:36:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-11 10:18:00',action:'主管部门审核驳回',operator:'李振华',opinion:'解除劳动合同证明缺少双方签字盖章，请补充完整后重新提交。'}] }
+  ];
+  var demoIds={}; demos.forEach(function(r){demoIds[r.id]=true;});
+  var merged=existing.filter(function(r){return !demoIds[r.id];}).concat(demos);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+  return JSON.parse(JSON.stringify(merged));
+}
+function saveRecords(r){localStorage.setItem(STORAGE_KEY, JSON.stringify(r));}
+function getRecord(id){ var all=loadRecords(); for(var i=0;i<all.length;i++){if(all[i].id===id)return all[i];} return null; }
+function updateRecord(id, mutator){ var all=loadRecords(); for(var i=0;i<all.length;i++){ if(all[i].id===id){ mutator(all[i]); break; } } saveRecords(all); }
+
+/* ---------- sidebar / role ---------- */
+function renderSidebar(){
+  var rd=ROLES[currentRole]; if(!rd)return;
+  var h='';
+  (rd.sidebar.top||[]).forEach(function(i){h+='<a class="menu-item" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[i.icon]||'')+'<span class="menu-label">'+i.label+'</span></a>';});
+  (rd.sidebar.groups||[]).forEach(function(g){
+    h+='<div class="menu-group">'+g.name+'</div>';
+    g.items.forEach(function(i){h+='<a class="menu-item'+(i.id==='contract-exit'?' active':'')+'" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[MENU_ICONS[i.id]||'file'])+'<span class="menu-label">'+i.label+'</span>'+(i.badge?'<span class="menu-badge">'+i.badge+'</span>':'')+'</a>';});
+  });
+  document.getElementById('sidebarMenu').innerHTML=h;
+}
+function sidebarClick(el,id){
+  if(id==='contract-exit'){return;}
+  if(id==='workbench'){window.location.href='workbench.html';return;}
+  if(id==='ledger'){window.location.href='org-ledger-school.html';return;}
+  if(id==='staffing'){window.location.href='staffing-application.html';return;}
+  if(id==='entry'){window.location.href='教师入编管理（学校管理员视角）.html';return;}
+  if(id==='exit'){window.location.href='教师出编管理（学校管理员视角）.html';return;}
+  if(id==='postset'){window.location.href='post-list-school.html';return;}
+  if(id==='promote'){window.location.href='promote-list-school.html';return;}
+  if(id==='recruit'){window.location.href='recruit-list-school.html';return;}
+  if(id==='employ'){window.location.href='employ-list-school.html';return;}
+  if(id==='contract-entry'){window.location.href='contract-entry-list-school.html';return;}
+  if(id==='retire'){showToast('退休呈报页面开发中');return;}
+  if(id==='ethics'){showToast('师德师风举报页面开发中');return;}
+  if(id==='account'){window.location.href='account-management.html';return;}
+  if(id==='org'){window.location.href='org-management.html';return;}
+  showToast('跳转至：'+(el.textContent||id));
+}
+function switchRole(role){
+  if(role==='school'){window.location.href='contract-exit-list-school.html';return;}
+  showToast('编外教师管理为学校管理员模块','warning');
+}
+function updateRoleUI(){
+  var rd=ROLES[currentRole]; if(!rd)return;
+  document.getElementById('userAvatar').textContent=rd.short;
+  document.getElementById('userName').textContent=rd.name;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b){b.classList.toggle('active',b.dataset.role===currentRole);});
+}
+
+/* ---------- list ---------- */
+function onSearch(v){ searchKw=(v||'').trim().toLowerCase(); renderList(); }
+function viewDetail(id){ window.location.href='contract-exit-detail.html?id='+encodeURIComponent(id)+'&role=school'; }
+
+function fmtSize(b){ if(!b&&b!==0)return''; if(b<1024)return b+' B'; if(b<1048576)return (b/1024).toFixed(0)+' KB'; return (b/1048576).toFixed(1)+' MB'; }
+
+function getExitTypeLabel(r){
+  var seen={}, list=[];
+  (r.teachers||[]).forEach(function(t){ if(t.exitType&&!seen[t.exitType]){seen[t.exitType]=true;list.push(t.exitType);} });
+  if(list.length===0) return {text:'—', multi:false};
+  if(list.length===1) return {text:list[0], multi:false};
+  return {text:'多种', multi:true};
+}
+
+function renderList(){
+  var records=loadRecords().filter(function(r){return r.schoolName===currentSchool;});
+  var counts={ all:records.length, pending:0, approved:0, rejected:0 };
+  records.forEach(function(r){ if(counts[r.status]!==undefined && r.status!=='all') counts[r.status]++; });
+
+  var filters=[
+    {key:'all',label:'全部('+counts.all+')'},
+    {key:'pending',label:'待审核('+counts.pending+')'},
+    {key:'approved',label:'已通过('+counts.approved+')'},
+    {key:'rejected',label:'已驳回('+counts.rejected+')'}
+  ];
+  var fb=document.getElementById('filterBar'); fb.innerHTML='';
+  filters.forEach(function(f){
+    var b=document.createElement('button');
+    b.className='filter-pill'+(currentFilter===f.key?' active':'');
+    b.textContent=f.label;
+    b.onclick=function(){currentFilter=f.key;renderList();};
+    fb.appendChild(b);
+  });
+
+  var filtered=records;
+  if(currentFilter!=='all'){ filtered=filtered.filter(function(r){return r.status===currentFilter;}); }
+  if(searchKw){ filtered=filtered.filter(function(r){return r.id.toLowerCase().indexOf(searchKw)>=0;}); }
+
+  var list=document.getElementById('recordList');
+  if(filtered.length===0){
+    list.innerHTML='<div class="list-card"><div class="empty-state"><div class="empty-icon">&#128196;</div><div class="empty-text">暂无申报记录</div></div></div>';
+    return;
+  }
+
+  var h='<div class="list-card"><div class="table-scroll"><table class="list-table"><thead><tr>';
+  h+='<th>申请编号</th><th>申报人数</th><th>离职类型</th><th>提交时间</th><th>状态</th><th style="width:110px;">操作</th>';
+  h+='</tr></thead><tbody>';
+
+  filtered.forEach(function(r){
+    var statusLabel=STATUS_MAP[r.status]||r.status;
+    var teacherCount=(r.teachers||[]).length;
+    var et=getExitTypeLabel(r);
+    h+='<tr class="data-row">';
+    h+='<td class="col-id">'+escapeHtml(r.id)+'</td>';
+    h+='<td>'+teacherCount+' 人</td>';
+    h+='<td><span class="type-tag'+(et.multi?' multi':'')+'">'+escapeHtml(et.text)+'</span></td>';
+    h+='<td style="font-size:12px;">'+escapeHtml(r.submitTime||'—')+'</td>';
+    h+='<td><span class="status-badge '+r.status+'">'+statusLabel+'</span></td>';
+    h+='<td><button class="btn btn-outline btn-sm" onclick="viewDetail(\''+r.id+'\')">查看</button></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div></div>';
+  list.innerHTML=h;
+}
+
+function renderDetailPanel(r){
+  var h='<div class="detail-panel">';
+  h+='<h4>离职教师明细</h4>';
+  h+='<table class="detail-table"><thead><tr><th style="width:48px;">序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>离职类型</th><th>离职日期</th></tr></thead><tbody>';
+  (r.teachers||[]).forEach(function(t,i){
+    h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.gender)+'</td><td>'+escapeHtml(t.idCard)+'</td><td>'+escapeHtml(t.exitType)+'</td><td>'+escapeHtml(t.exitDate||'')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+
+  h+='<h4>附件材料</h4><div class="att-links">';
+  var dlIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+  if(r.terminationProof){ h+='<a class="att-link" onclick="downloadFile(\''+escapeHtml(r.terminationProof.name)+'\')">'+dlIcon+'解除劳动合同证明：'+escapeHtml(r.terminationProof.name)+'</a>'; }
+  else { h+='<span style="font-size:12px;color:var(--text-light);">暂无附件</span>'; }
+  h+='</div>';
+
+  if(r.status==='rejected'&&r.rejectReason){
+    h+='<div class="reject-note"><strong>驳回原因：</strong>'+escapeHtml(r.rejectReason)+'</div>';
+  }
+  if(r.status==='pending'||r.status==='draft'){
+    h+='<div class="detail-actions"><button class="btn btn-success btn-sm" onclick="submitFromDetail(\''+r.id+'\')">提交审核</button></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function downloadFile(name){ showToast('模拟下载：'+name); }
+
+function submitFromDetail(id){
+  updateRecord(id,function(rec){
+    if(rec.status==='draft'){
+      rec.status='pending';
+      rec.submitTime=nowStr();
+      rec.timeline=rec.timeline||[]; rec.timeline.push({time:rec.submitTime,action:'学校提交申报',operator:'王玉兰'});
+    }
+  });
+  showToast('已提交审核，等待主管部门处理','success');
+  renderList();
+}
+
+/* ---------- modal: new application ---------- */
+var modalTeachers=[];
+var modalProofFile=null;
+
+function nowStr(){
+  var d=new Date();
+  function p(n){return (n<10?'0':'')+n;}
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+function p3(n){ n=String(n); while(n.length<3)n='0'+n; return n; }
+function genId(){
+  var d=new Date();
+  function p(n){return (n<10?'0':'')+n;}
+  var prefix='CX'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate());
+  var all=loadRecords();
+  var max=0;
+  all.forEach(function(r){ if(r.id&&r.id.indexOf(prefix)===0){ var seq=parseInt(r.id.slice(prefix.length),10); if(!isNaN(seq)&&seq>max)max=seq; } });
+  return prefix+p3(max+1);
+}
+
+function openNewModal(){
+  modalTeachers=[{name:'',gender:'',idCard:'',exitType:'',exitDate:'',contractStart:'',contractEnd:''}];
+  modalProofFile=null;
+  renderEntryRows();
+  renderProofChip();
+  document.getElementById('newModal').classList.add('show');
+}
+function closeNewModal(){ document.getElementById('newModal').classList.remove('show'); }
+
+function renderEntryRows(){
+  var tb=document.getElementById('entryTbody');
+  var h='';
+  modalTeachers.forEach(function(t,i){
+    h+='<tr>';
+    h+='<td style="text-align:center;">'+(i+1)+'</td>';
+    h+='<td><input value="'+escapeHtml(t.name)+'" placeholder="姓名" oninput="setField('+i+',\'name\',this.value)"></td>';
+    h+='<td><select onchange="setField('+i+',\'gender\',this.value)"><option value="">请选择</option><option value="男"'+(t.gender==='男'?' selected':'')+'>男</option><option value="女"'+(t.gender==='女'?' selected':'')+'>女</option></select></td>';
+    h+='<td><input value="'+escapeHtml(t.idCard)+'" placeholder="18位身份证号" maxlength="18" oninput="setField('+i+',\'idCard\',this.value)"></td>';
+    h+='<td><select onchange="setField('+i+',\'exitType\',this.value)"><option value="">请选择</option>';
+    EXIT_TYPES.forEach(function(opt){ h+='<option value="'+opt+'"'+(t.exitType===opt?' selected':'')+'>'+opt+'</option>'; });
+    h+='</select></td>';
+    h+='<td><input type="date" value="'+escapeHtml(t.exitDate)+'" oninput="setField('+i+',\'exitDate\',this.value)"></td>';
+    h+='<td style="text-align:center;"><span class="row-del" title="删除" onclick="delTeacherRow('+i+')">&times;</span></td>';
+    h+='</tr>';
+  });
+  tb.innerHTML=h;
+}
+function setField(i,field,val){ if(modalTeachers[i]) modalTeachers[i][field]=val; }
+function addTeacherRow(){ modalTeachers.push({name:'',gender:'',idCard:'',exitType:'',exitDate:'',contractStart:'',contractEnd:''}); renderEntryRows(); }
+var pendingDelIdx=null;
+function teacherRowHasData(i){
+  var t=modalTeachers[i]; if(!t) return false;
+  return !!((t.name&&t.name.trim())||(t.idCard&&t.idCard.trim())||t.gender||t.exitType||t.exitDate);
+}
+function delTeacherRow(i){
+  if(modalTeachers.length<=1){ showToast('至少保留 1 名教师','warning'); return; }
+  if(!teacherRowHasData(i)){ modalTeachers.splice(i,1); renderEntryRows(); return; }
+  pendingDelIdx=i;
+  var nm=(modalTeachers[i].name||'').trim();
+  document.getElementById('delConfirmMsg').innerHTML='确定删除第 '+(i+1)+' 行教师'+(nm?'「'+escapeHtml(nm)+'」':'')+'？<br>删除后该行离职信息将被移除。';
+  document.getElementById('delConfirmModal').classList.add('show');
+}
+function confirmDeleteRow(){ if(pendingDelIdx!==null){ modalTeachers.splice(pendingDelIdx,1); renderEntryRows(); } pendingDelIdx=null; closeDelConfirm(); }
+function closeDelConfirm(){ document.getElementById('delConfirmModal').classList.remove('show'); pendingDelIdx=null; }
+
+function onProofPick(input){
+  var f=input.files&&input.files[0]; if(!f)return;
+  if(!/\.pdf$/i.test(f.name)&&f.type!=='application/pdf'){ showToast('解除劳动合同证明仅支持 PDF 格式','warning'); input.value=''; return; }
+  if(f.size>10*1024*1024){ showToast('解除劳动合同证明超过 10MB','warning'); input.value=''; return; }
+  modalProofFile={size:f.size,type:'application/pdf'};
+  input.value='';
+  renderProofChip();
+}
+function renderProofChip(){
+  var c=document.getElementById('proofChip');
+  if(!modalProofFile){ c.innerHTML=''; return; }
+  var fileIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  c.innerHTML='<div class="file-chip">'+fileIcon+'✔ 已上传 <span style="color:var(--text-light)">('+fmtSize(modalProofFile.size)+')</span> <span class="rm" onclick="clearProof()">&times;</span></div>';
+}
+function clearProof(){ modalProofFile=null; renderProofChip(); }
+
+function collectTeachers(){ return JSON.parse(JSON.stringify(modalTeachers)); }
+
+function validateFull(){
+  if(modalTeachers.length<1){ showToast('请至少录入 1 名教师','warning'); return false; }
+  for(var i=0;i<modalTeachers.length;i++){
+    var t=modalTeachers[i]; var no=(i+1);
+    if(!t.name||!t.name.trim()){ showToast('第'+no+'行：请填写姓名','warning'); return false; }
+    if(!t.gender){ showToast('第'+no+'行：请选择性别','warning'); return false; }
+    if(!t.idCard||!/^\d{17}[\dXx]$/.test(t.idCard.trim())){ showToast('第'+no+'行：身份证号格式不正确','warning'); return false; }
+    if(!t.exitType){ showToast('第'+no+'行：请选择离职类型','warning'); return false; }
+    if(!t.exitDate){ showToast('第'+no+'行：请选择离职日期','warning'); return false; }
+  }
+  if(!modalProofFile){ showToast('请上传解除劳动合同证明（PDF）','warning'); return false; }
+  return true;
+}
+
+// 解除劳动合同证明自动命名：{申请编号}_解除劳动合同证明.pdf，不使用原始文件名
+function namedProof(id){ return modalProofFile ? { name:id+'_解除劳动合同证明.pdf', size:modalProofFile.size, type:'application/pdf' } : null; }
+
+function submitApplication(){
+  if(!validateFull())return;
+  var t=nowStr();
+  var newId=genId();
+  var rec={ id:newId, schoolName:currentSchool, district:currentDistrict, status:'pending', submitTime:t,
+    terminationProof:namedProof(newId), teachers:collectTeachers(), reviewer:null, reviewTime:null, rejectReason:'',
+    timeline:[{time:t,action:'学校提交申报',operator:'王玉兰'}] };
+  var all=loadRecords(); all.unshift(rec); saveRecords(all);
+  closeNewModal();
+  currentFilter='all';
+  showToast('离职申报已提交，等待主管部门审核','success');
+  renderList();
+}
+
+document.getElementById('newModal').addEventListener('click',function(e){ if(e.target===this) closeNewModal(); });
+
+/* ---------- init ---------- */
+(function init(){
+  updateRoleUI();
+  renderSidebar();
+  renderList();
+})();
+</script>
+</body>
+</html>

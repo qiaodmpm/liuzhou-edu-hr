@@ -146,7 +146,7 @@ body {
 .role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .role-switch-dot.city { background: #3B82F6; }
 .role-switch-dot.district { background: #F59E0B; }
-.role-switch-dot.orgName { background: #10B981; }
+.role-switch-dot.school { background: #10B981; }
 .role-switch-dot.teacher { background: #A78BFA; }
 
 /* ===== MAIN CONTENT ===== */
@@ -221,6 +221,7 @@ body {
 }
 .batch-card-status.active { background: #EFF6FF; color: var(--primary); }
 .batch-card-status.closed { background: #F1F5F9; color: #64748B; }
+.batch-card-status.upcoming { background: #FEF3C7; color: #D97706; }
 .batch-card-meta { font-size: 11px; color: var(--text-light); margin-bottom: 10px; display: flex; gap: 16px; }
 .batch-card-progress { margin-bottom: 10px; }
 .batch-card-progress .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
@@ -525,7 +526,7 @@ tbody tr:last-child td { border-bottom: none; }
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="user-dropdown" id="userDropdown">
         <a href="personal-center.html">个人中心</a>
-        <a href="#">🔑 修改密码</a>
+        <a href="personal-center.html">🔑 修改密码</a>
         <div class="divider"></div>
         <a href="index.html" class="logout">退出登录</a>
       </div>
@@ -578,6 +579,7 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
 <script>
+
 // ===== SVG ICONS =====
 const ICONS = {
   home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
@@ -603,7 +605,7 @@ const MENU_ICONS = {
   entry: 'userp', staffing: 'monitor', exit: 'userx',
   promote: 'arrowup', postset: 'shield', recruit: 'search',
   employ: 'file',
-  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  retire: 'clock', ethics: 'warn',
   account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
@@ -628,11 +630,11 @@ const ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }]},
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
         { name: '系统设置', items: [
           { id: 'account', label: '账号管理' },
@@ -662,16 +664,16 @@ const ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }]},
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
-  }, orgName: {
+  }, school: {
     name: '王玉兰', short: '王', org: '柳州市第八中学', role: '校管理员',
     sidebar: {
       top: [
@@ -690,13 +692,13 @@ const ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }]},
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
   },
@@ -708,7 +710,7 @@ const ROLES = {
         { name: '业务申请', items: [
           { id: 'promote', label: '岗位晋升申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]}
       ]
     }
@@ -718,13 +720,14 @@ const ROLES = {
 // ===== DEMO DATA =====
 
 // Batches (主管单位 publish)
-const BATCHES = [
+let BATCHES = [
   { id: 'B2026-001', year: '2026', name: '2026年度中小学聘用教师控制数使用计划（第一批）', org: '柳州市教育局', startDate: '2026-03-01', publishDate: '2026-03-01', deadline: '2026-03-31', scope: '全市', status: '进行中', subCount: 15, reviewedCount: 12 },
   { id: 'B2026-002', year: '2026', name: '2026年度中小学聘用教师控制数使用计划（第二批）', org: '柳州市教育局', startDate: '2026-05-04', publishDate: '2026-05-04', deadline: '2026-06-15', scope: '全市', status: '进行中', subCount: 8, reviewedCount: 3 },
+  { id: 'B2026-003', year: '2026', name: '2026年度中小学聘用教师控制数使用计划（第三批）', org: '柳州市教育局', startDate: '2026-08-01', publishDate: '2026-07-01', deadline: '2026-09-15', scope: '全市', status: '未开始', subCount: 0, reviewedCount: 0 },
   { id: 'B2025-003', year: '2025', name: '2025年度中小学聘用教师控制数使用计划（补充批）', org: '柳州市教育局', startDate: '2025-09-15', publishDate: '2025-09-15', deadline: '2025-10-31', scope: '全市', status: '已结束', subCount: 10, reviewedCount: 10 }
 ];
 
-const BATCHES_DISTRICT = [
+let BATCHES_DISTRICT = [
   { id: 'B2026-D01', year: '2026', name: '2026年度鱼峰区聘用教师控制数使用计划', org: '鱼峰区教育局', startDate: '2026-03-10', publishDate: '2026-03-10', deadline: '2026-04-10', scope: '鱼峰区', status: '进行中', subCount: 6, reviewedCount: 4 },
   { id: 'B2026-D03', year: '2026', name: '2026年度鱼峰区聘用教师控制数使用计划（第二批）', org: '鱼峰区教育局', startDate: '2026-05-08', publishDate: '2026-05-08', deadline: '2026-06-15', scope: '鱼峰区', status: '进行中', subCount: 2, reviewedCount: 0 },
   { id: 'B2026-D04', year: '2026', name: '2026年度鱼峰区聘用教师控制数使用计划（第三批）', org: '鱼峰区教育局', startDate: '2026-06-01', publishDate: '2026-06-01', deadline: '2026-07-15', scope: '鱼峰区', status: '进行中', subCount: 1, reviewedCount: 0 },
@@ -847,8 +850,8 @@ const SUBMISSIONS = [
 ];
 
 var AUTO_BATCHES = [
-  { id: 'AUTO-2026', year: '2026', name: '2026年度自主申报', type: 'auto', status: '进行中' },
-  { id: 'AUTO-2025', year: '2025', name: '2025年度自主申报', type: 'auto', status: '已结束' }
+  { id: 'AUTO-2026', year: '2026', name: '2026年度自主申报', type: 'auto', status: '进行中', district: 'auto', startDate: '2026-01-01', deadline: '2026-12-31' },
+  { id: 'AUTO-2025', year: '2025', name: '2025年度自主申报', type: 'auto', status: '已结束', district: 'auto', startDate: '2025-01-01', deadline: '2025-12-31' }
 ];
 
 // Backfill: all legacy records default to 控制数
@@ -938,12 +941,12 @@ let selectedBatchIdsForSummary = [];
 
 // ===== ALL SCHOOLS UNDER JURISDICTION =====
 var ALL_SCHOOLS = [
-  { name: '柳州市第一中学', type: '市直属' },
-  { name: '柳州市第二中学', type: '市直属' },
-  { name: '柳州高级中学', type: '市直属' },
-  { name: '柳州市民族高中', type: '市直属' },
-  { name: '柳州市第三中学', type: '市直属' },
-  { name: '柳州市第六中学', type: '市直属' },
+  { name: '柳州市第一中学', district: '市直属' },
+  { name: '柳州市第二中学', district: '市直属' },
+  { name: '柳州高级中学', district: '市直属' },
+  { name: '柳州市民族高中', district: '市直属' },
+  { name: '柳州市第三中学', district: '市直属' },
+  { name: '柳州市第六中学', district: '市直属' },
   { name: '柳州市第八中学', district: '鱼峰区' },
   { name: '鱼峰区实验小学', district: '鱼峰区' },
   { name: '柳州市第十三中学', district: '鱼峰区' },
@@ -1029,25 +1032,25 @@ function getBatchStats(batchId) {
   function countCtrl(statuses) { return controlSubs.filter(function(s) { return statuses.indexOf(s.status) >= 0; }).length; }
   return {
     total: subs.length,
-    submitted: count(['submitted','reviewing']),
+    submitted: count(['submitted','reviewing','final_submitted']),
     firstApproved: count(['first_approved']),
     finalSubmitted: count(['final_submitted']),
-    approved: count(['approved']),
+    approved: count(['first_approved','approved']),
     rejected: count(['rejected']),
     career: {
       total: careerSubs.length,
-      submitted: countC(['submitted','reviewing']),
+      submitted: countC(['submitted','reviewing','final_submitted']),
       firstApproved: countC(['first_approved']),
       finalSubmitted: countC(['final_submitted']),
-      approved: countC(['approved']),
+      approved: countC(['first_approved','approved']),
       rejected: countC(['rejected'])
     },
     control: {
       total: controlSubs.length,
-      submitted: countCtrl(['submitted','reviewing']),
+      submitted: countCtrl(['submitted','reviewing','final_submitted']),
       firstApproved: countCtrl(['first_approved']),
       finalSubmitted: countCtrl(['final_submitted']),
-      approved: countCtrl(['approved']),
+      approved: countCtrl(['first_approved','approved']),
       rejected: countCtrl(['rejected'])
     }
   };
@@ -1127,7 +1130,7 @@ function getAllBatches() {
 
 function getStatusBadgeClass(status) {
   if (status === 'approved') return 'approved';
-  if (status === 'first_approved') return 'submitted';
+  if (status === 'first_approved') return 'approved';
   if (status === 'final_submitted') return 'submitted';
   if (status === 'submitted' || status === 'reviewing') return 'submitted';
   if (status === 'rejected') return 'rejected';
@@ -1199,11 +1202,11 @@ function renderSchoolBatchCards(batches) {
 
     h += '<div class="batch-card' + (isSelected ? ' selected' : '') + (isAuto ? ' auto' : '') + '" onclick="selectSchoolBatch(\'' + b.id + '\')">';
     h += '<div class="batch-card-header">';
-    h += '<span class="batch-card-name">' + b.name + '</span>';
-    h += '<span class="batch-card-status ' + (b.status === '进行中' ? 'active' : 'closed') + '">' + b.status + '</span>';
+    h += '<span class="batch-card-name" onclick="event.stopPropagation();showBatchDetail(\'' + b.id + '\')">' + b.name + '</span>';
+    h += '<span class="batch-card-status ' + (b.status === '进行中' ? 'active' : b.status === '未开始' ? 'upcoming' : 'closed') + '">' + b.status + '</span>';
     h += '</div>';
     if (isAuto) {
-      h += '<div class="batch-card-meta"><span>📅 ' + b.year + '年全年 · 系统自动生成</span></div>';
+      h += '<div class="batch-card-meta"><span>📅 ' + (b.startDate || b.year + '-01-01') + ' ~ ' + (b.deadline || b.year + '-12-31') + '</span><span style="color:var(--text-light);margin-left:8px;">自主申报</span></div>';
     } else {
       h += '<div class="batch-card-meta"><span>📅 ' + (b.startDate || '') + ' ~ ' + (b.deadline || '') + '</span><span>发布：' + (b.org || '') + '</span></div>';
     }
@@ -1241,15 +1244,16 @@ function renderSchoolSubmissionTable(batchId) {
 
   // Status filter
   if (currentFilter === 'pending') {
-    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved' || s.status === 'final_submitted'; });
+    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'final_submitted'; });
   } else if (currentFilter === 'approved') {
-    subs = subs.filter(function(s) { return s.status === 'approved'; });
+    subs = subs.filter(function(s) { return s.status === 'first_approved' || s.status === 'approved'; });
   } else if (currentFilter === 'rejected') {
     subs = subs.filter(function(s) { return s.status === 'rejected'; });
   }
 
   var batch = getSchoolBatches().find(function(b) { return b.id === batchId; });
   var isAuto = batch && batch.district === 'auto';
+  var isUpcoming = batch && batch.status === '未开始';
   var isActive = batch && batch.status === '进行中';
 
   // Empty state — no submissions at all for this batch
@@ -1257,7 +1261,9 @@ function renderSchoolSubmissionTable(batchId) {
     var eh = '<div class="empty-state">';
     eh += '<div class="empty-icon">📝</div>';
     eh += '<div class="empty-text">该批次暂未申报</div>';
-    if (isActive) {
+    if (isUpcoming) {
+      eh += '<div style="margin-top:8px;font-size:12px;color:#D97706;">⏳ 该批次尚未到申报期，暂不可申报</div>';
+    } else if (isActive) {
       eh += '<div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">';
       eh += '<button class="btn btn-primary btn-sm" onclick="window.location.href=\'staffing-form.html?batchId=' + encodeURIComponent(batchId) + '&batchName=' + encodeURIComponent(batch.name) + '&staffingType=career\'">申报事业编</button>';
       eh += '<button class="btn btn-primary btn-sm" onclick="window.location.href=\'staffing-form.html?batchId=' + encodeURIComponent(batchId) + '&batchName=' + encodeURIComponent(batch.name) + '&staffingType=control\'">申报控制数</button>';
@@ -1285,8 +1291,6 @@ function renderSchoolSubmissionTable(batchId) {
   h += '<th>引进高层次人才</th>';
   h += '<th>调动</th>';
   h += '<th>其他</th>';
-  h += '<th>附件</th>';
-  h += '<th>编办确认材料</th>';
   h += '<th>状态</th>';
   h += '<th>提交时间</th>';
   h += '<th>操作</th>';
@@ -1299,8 +1303,6 @@ function renderSchoolSubmissionTable(batchId) {
     var typeColor = isCareer ? 'color:#1456F0;' : 'color:#0E3EC0;';
     var uf = s.useForms || {};
     var useCount = Object.values(uf).reduce(function(a,b){return a+(b||0);},0);
-    var hasFinalDoc = (s.schoolFinalConfirm && s.schoolFinalConfirm.document) || s.followUp;
-
     h += '<tr>';
     h += '<td><span class="tb-link" onclick="window.location.href=\'staffing-detail.html?id=' + s.id + '\'">' + s.id + '</span></td>';
     h += '<td>' + (s.batchName || '—') + '</td>';
@@ -1312,8 +1314,6 @@ function renderSchoolSubmissionTable(batchId) {
     h += '<td>' + (uf.talentHigh || 0) + '</td>';
     h += '<td>' + (uf.transfer || 0) + '</td>';
     h += '<td>' + (uf.other || 0) + '</td>';
-    h += '<td>' + (s.attachment9 ? '<a onclick="downloadMockFile(\'' + s.id + '\',\'attachment\')" style="color:var(--primary);cursor:pointer;font-size:12px;">📥 下载</a>' : '<span style="color:var(--text-light);">——</span>') + '</td>';
-    h += '<td>' + (hasFinalDoc ? '<a onclick="downloadMockFile(\'' + s.id + '\',\'finalConfirm\')" style="color:var(--primary);cursor:pointer;font-size:12px;">📥 下载</a>' : '<span style="color:var(--text-light);">——</span>') + '</td>';
     h += '<td><span class="sbc-status ' + getStatusBadgeClass(s.status) + '" style="font-size:10px;">' + (STATUS_MAP[s.status] || s.status) + '</span></td>';
     h += '<td>' + (s.submitDate || '—') + '</td>';
     h += '<td><div class="action-links">';
@@ -1436,7 +1436,7 @@ function renderStatusFilters() {
   var filters = [
     { key: 'all', label: '全部' },
     { key: 'pending', label: '待审核' },
-    { key: 'approved', label: '已完成' },
+    { key: 'approved', label: '已通过' },
     { key: 'rejected', label: '已驳回' }
   ];
   if (currentRole === 'city' || currentRole === 'district') {
@@ -1525,8 +1525,10 @@ function sidebarClick(el, id) {
   else if (id === 'postset') { var url = getPostUrl(); if (url) window.location.href = url; else showToast('无权限访问', 'warning'); }
   else if (id === 'recruit') { var url = getRecruitUrl(); if (url) window.location.href = url; else showToast('无权限访问', 'warning'); }
   else if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); }
-	  else if (id === "account") { window.location.href = 'account-management.html'; }  else if (id === 'ledger') { var _r = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (_r === 'city' || _r === 'district') ? 'org-ledger-admin.html' : _r === 'school' ? 'org-ledger-school.html' : 'workbench.html'; }
-
+  else if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; }
+  else if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; }
+  else if (id === 'ledger') { var _r = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (_r === 'city' || _r === 'district') ? 'org-ledger-admin.html' : _r === 'school' ? 'org-ledger-school.html' : 'workbench.html'; }
+  else if (id === 'account') { window.location.href = 'account-management.html'; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
@@ -1553,9 +1555,11 @@ function renderMain() {
     var years = getBatchYears(batches);
     if (years.length > 0) currentBatchYear = years[0];
   }
-  // Auto-select first batch if none selected
-  if (!selectedBatchId || !batches.some(function(b) { return b.id === selectedBatchId; })) {
-    selectedBatchId = batches.length > 0 ? batches[0].id : null;
+  // Auto-select first batch if none selected (for admin view only)
+  if (currentRole !== 'school') {
+    if (!selectedBatchId || !batches.some(function(b) { return b.id === selectedBatchId; })) {
+      selectedBatchId = batches.length > 0 ? batches[0].id : null;
+    }
   }
   var html = '';
 
@@ -1674,9 +1678,9 @@ function getFilteredSubmissions() {
   }
   // Status filter
   if (currentFilter === 'pending') {
-    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'first_approved' || s.status === 'final_submitted'; });
+    subs = subs.filter(function(s) { return s.status === 'submitted' || s.status === 'reviewing' || s.status === 'final_submitted'; });
   } else if (currentFilter === 'approved') {
-    subs = subs.filter(function(s) { return s.status === 'approved'; });
+    subs = subs.filter(function(s) { return s.status === 'first_approved' || s.status === 'approved'; });
   } else if (currentFilter === 'rejected') {
     subs = subs.filter(function(s) { return s.status === 'rejected'; });
   }
@@ -1743,10 +1747,6 @@ function renderBatchCards(batches) {
   batches.forEach(function(b) {
     var stats = getBatchStats(b.id);
     var isSelected = b.id === selectedBatchId;
-    var pending = stats.submitted + stats.firstApproved + stats.finalSubmitted;
-    var approvedPct = stats.total > 0 ? Math.round(stats.approved / stats.total * 100) : 0;
-    var submittedPct = stats.total > 0 ? Math.round(pending / stats.total * 100) : 0;
-    var rejectedPct = stats.total > 0 ? Math.round(stats.rejected / stats.total * 100) : 0;
     var isChecked = selectedBatchIdsForSummary.indexOf(b.id) !== -1;
 
     var isAuto = b.district === 'auto';
@@ -1758,23 +1758,22 @@ function renderBatchCards(batches) {
       h += '<div class="batch-summary-checkbox' + (isChecked ? ' checked' : '') + '"></div>';
     }
     h += '<span class="batch-card-name" onclick="event.stopPropagation();showBatchDetail(\'' + b.id + '\')">' + b.name + '</span>';
-    h += '<span class="batch-card-status ' + (b.status === '进行中' ? 'active' : 'closed') + '">' + b.status + '</span>';
+    h += '<span class="batch-card-status ' + (b.status === '进行中' ? 'active' : b.status === '未开始' ? 'upcoming' : 'closed') + '">' + b.status + '</span>';
     h += '</div>';
     if (isAuto) {
-      h += '<div class="batch-card-meta"><span>📅 ' + b.year + '年全年 · 系统自动生成</span></div>';
+      h += '<div class="batch-card-meta"><span>📅 ' + (b.startDate || b.year + '-01-01') + ' ~ ' + (b.deadline || b.year + '-12-31') + '</span><span style="color:var(--text-light);margin-left:8px;">自主申报</span></div>';
     } else {
       h += '<div class="batch-card-meta"><span>📅 ' + (b.startDate || b.publishDate) + ' ~ ' + b.deadline + '</span><span>发布：' + b.org + '</span></div>';
     }
-    h += '<div class="batch-card-progress">';
-    h += '<div class="batch-card-progress-text">事业编 ' + stats.career.submitted + '/' + stats.career.total + ' | 控制数 ' + stats.control.submitted + '/' + stats.control.total + '</div>';
-    h += '<div class="progress-bar">';
-    if (approvedPct > 0) h += '<div class="progress-fill approved" style="width:' + approvedPct + '%"></div>';
-    if (submittedPct > 0) h += '<div class="progress-fill submitted" style="width:' + submittedPct + '%"></div>';
-    if (rejectedPct > 0) h += '<div class="progress-fill rejected" style="width:' + rejectedPct + '%"></div>';
-    h += '</div></div>';
+    h += '<div class="batch-card-progress-text" style="margin-bottom:4px;">事业编 ' + stats.career.submitted + '/' + stats.career.total + ' | 控制数 ' + stats.control.submitted + '/' + stats.control.total + '</div>';
     h += '<div class="batch-card-actions">';
-    if (b.status === '进行中' && !isAuto) {
+    if (!isAuto) {
       h += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showEditBatchModal(\'' + b.id + '\')">编辑</button>';
+      if (b.status === '未开始') {
+        h += '<button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);margin-left:6px;" onclick="event.stopPropagation();confirmDeleteBatch(\'' + b.id + '\')">删除</button>';
+      } else if (b.status === '进行中') {
+        h += '<button class="btn btn-outline btn-sm" style="color:#D97706;border-color:#D97706;margin-left:6px;" onclick="event.stopPropagation();confirmCloseBatch(\'' + b.id + '\')">关闭</button>';
+      }
     }
     h += '</div>';
     h += '</div>';
@@ -1792,7 +1791,8 @@ function selectBatch(id) {
 
 // ===== BATCH ACTIONS =====
 function showBatchDetail(id) {
-  var b = getAllBatches().find(function(x) { return x.id === id; });
+  var pool = currentRole === 'school' ? getSchoolBatches() : getAllBatches();
+  var b = pool.find(function(x) { return x.id === id; });
   if (!b) return;
   var stats = getBatchStats(id);
   var isAuto = b.district === 'auto';
@@ -1803,6 +1803,7 @@ function showBatchDetail(id) {
   c += '<div class="batch-detail-row"><span class="bdl">年度</span><span class="bdv">' + b.year + '</span></div>';
   if (isAuto) {
     c += '<div class="batch-detail-row"><span class="bdl">类型</span><span class="bdv" style="color:#059669;">📋 自主申报批次</span></div>';
+    c += '<div class="batch-detail-row"><span class="bdl">申报范围</span><span class="bdv">' + (b.startDate || b.year + '-01-01') + ' ~ ' + (b.deadline || b.year + '-12-31') + '</span></div>';
     c += '<div class="batch-detail-row"><span class="bdl">说明</span><span class="bdv">学校可在全年任意时间自主发起申报，不受截止日期限制</span></div>';
   } else {
     c += '<div class="batch-detail-row"><span class="bdl">发布机构</span><span class="bdv">' + (b.org || '—') + '</span></div>';
@@ -1811,8 +1812,8 @@ function showBatchDetail(id) {
     c += '<div class="batch-detail-row"><span class="bdl">申报截止</span><span class="bdv">' + (b.deadline || '—') + '</span></div>';
   }
   c += '<div class="batch-detail-row"><span class="bdl">状态</span><span class="bdv">' + b.status + '</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">申报单位数</span><span class="bdv">' + stats.career.total + ' 事业编 + ' + stats.control.total + ' 控制数</span></div>';
-  c += '<div class="batch-detail-row"><span class="bdl">待一审（事业/控制）</span><span class="bdv" style="color:var(--accent);">' + stats.career.submitted + ' / ' + stats.control.submitted + '</span></div>';
+  if (currentRole !== 'school') c += '<div class="batch-detail-row"><span class="bdl">申报单位数</span><span class="bdv">' + stats.career.total + ' 事业编 + ' + stats.control.total + ' 控制数</span></div>';
+  c += '<div class="batch-detail-row"><span class="bdl">待审（事业/控制）</span><span class="bdv" style="color:var(--accent);">' + stats.career.submitted + ' / ' + stats.control.submitted + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">一审通过（事业/控制）</span><span class="bdv" style="color:var(--primary);">' + stats.career.firstApproved + ' / ' + stats.control.firstApproved + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">待二审（事业/控制）</span><span class="bdv" style="color:var(--accent);">' + stats.career.finalSubmitted + ' / ' + stats.control.finalSubmitted + '</span></div>';
   c += '<div class="batch-detail-row"><span class="bdl">已完成（事业/控制）</span><span class="bdv" style="color:var(--success);">' + stats.career.approved + ' / ' + stats.control.approved + '</span></div>';
@@ -1823,17 +1824,43 @@ function showBatchDetail(id) {
 }
 
 function showCreateBatchModal() {
+  var isDistrict = currentRole === 'district';
+  var scopeDefault = isDistrict ? '鱼峰区' : '全市';
+  var scopeSelect = isDistrict
+    ? '<select disabled><option>' + scopeDefault + '</option></select><input type="hidden" id="batchScope" value="' + scopeDefault + '">'
+    : '<select id="batchScope"><option>全市</option><option>鱼峰区</option></select>';
   var c = '<div class="modal-header"><h3>新建批次</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body">';
-  c += '<div class="form-group"><label>批次名称</label><input placeholder="例：2026年度中小学聘用教师控制数使用计划（第三批）"></div>';
-  c += '<div class="form-group"><label>年度</label><select><option>2026</option><option>2027</option></select></div>';
-  c += '<div class="form-group"><label>申报开始日期</label><input type="date"></div>';
-  c += '<div class="form-group"><label>申报截止日期</label><input type="date"></div>';
-  c += '<div class="form-group"><label>适用范围</label><select><option>全市</option><option>鱼峰区</option></select></div>';
-  c += '<div class="form-group"><label>备注说明</label><textarea placeholder="批次说明..."></textarea></div>';
+  c += '<div class="form-group"><label>批次名称 <span style="color:var(--danger);">*</span></label><input id="batchName" placeholder="例：2026年度中小学聘用教师控制数使用计划（第三批）" required></div>';
+  c += '<div class="form-group"><label>年度 <span style="color:var(--danger);">*</span></label><select id="batchYear"><option>2026</option><option>2027</option></select></div>';
+  c += '<div class="form-group"><label>申报开始日期 <span style="color:var(--danger);">*</span></label><input type="date" id="batchStartDate" required></div>';
+  c += '<div class="form-group"><label>申报截止日期 <span style="color:var(--danger);">*</span></label><input type="date" id="batchDeadline" required></div>';
+  c += '<div class="form-group"><label>适用范围 <span style="color:var(--danger);">*</span></label>' + scopeSelect + '</div>';
+  c += '<div class="form-group"><label>备注说明</label><textarea id="batchNotes" placeholder="批次说明..."></textarea></div>';
   c += '</div>';
-  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast(\'批次创建成功\')">确认创建</button></div>';
+  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="createBatch()">确认创建</button></div>';
   openModal(c);
+}
+
+function createBatch() {
+  var name = (document.getElementById('batchName') || {}).value || '';
+  var year = (document.getElementById('batchYear') || {}).value || '';
+  var startDate = (document.getElementById('batchStartDate') || {}).value || '';
+  var deadline = (document.getElementById('batchDeadline') || {}).value || '';
+  var scope = currentRole === 'district' ? '鱼峰区' : ((document.getElementById('batchScope') || {}).value || '');
+  if (!name) { showToast('请填写批次名称', 'warning'); return; }
+  if (!year) { showToast('请选择年度', 'warning'); return; }
+  if (!startDate) { showToast('请选择申报开始日期', 'warning'); return; }
+  if (!deadline) { showToast('请选择申报截止日期', 'warning'); return; }
+  if (!scope) { showToast('请选择适用范围', 'warning'); return; }
+  var today = new Date().toISOString().slice(0,10);
+  var batchStatus = startDate > today ? '未开始' : '进行中';
+  var newBatch = { id: 'B' + year + '-NEW' + Date.now().toString(36).toUpperCase(), year: year, name: name, org: '柳州市教育局', startDate: startDate, publishDate: startDate, deadline: deadline, scope: scope, status: batchStatus, subCount: 0, reviewedCount: 0 };
+  if (currentRole === 'district') BATCHES_DISTRICT.push(newBatch);
+  else BATCHES.push(newBatch);
+  closeModal();
+  showToast('批次创建成功');
+  renderMain();
 }
 
 function showEditBatchModal(id) {
@@ -1852,11 +1879,33 @@ function showEditBatchModal(id) {
 }
 
 function confirmCloseBatch(id) {
-  var b = [...BATCHES, ...BATCHES_DISTRICT].find(function(x) { return x.id === id; });
+  var b = getAllBatches().find(function(x) { return x.id === id; });
+  if (!b) return;
   var c = '<div class="modal-header"><h3>关闭批次</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body"><p style="font-size:14px;">确认关闭批次「' + b.name + '」？</p><p style="font-size:12px;color:var(--text-light);margin-top:8px;">关闭后各单位将无法继续提交申报。</p></div>';
-  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast(\'批次已关闭\')">确认关闭</button></div>';
+  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-confirm-danger" onclick="doCloseBatch(\'' + id + '\');closeModal()">确认关闭</button></div>';
   openModal(c);
+}
+function doCloseBatch(id) {
+  var b = getAllBatches().find(function(x) { return x.id === id; });
+  if (b) { b.status = '已结束'; }
+  showToast('批次已关闭');
+  renderMain();
+}
+function confirmDeleteBatch(id) {
+  var b = getAllBatches().find(function(x) { return x.id === id; });
+  if (!b) return;
+  var c = '<div class="modal-header"><h3>删除批次</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  c += '<div class="modal-body"><p style="font-size:14px;">确认删除批次「' + b.name + '」？</p><p style="font-size:12px;color:var(--text-light);margin-top:8px;">删除后无法恢复。</p></div>';
+  c += '<div class="modal-footer"><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-confirm-danger" onclick="doDeleteBatch(\'' + id + '\');closeModal()">确认删除</button></div>';
+  openModal(c);
+}
+function doDeleteBatch(id) {
+  if (currentRole === 'district') { BATCHES_DISTRICT = BATCHES_DISTRICT.filter(function(b) { return b.id !== id; }); }
+  else { BATCHES = BATCHES.filter(function(b) { return b.id !== id; }); }
+  selectedBatchId = null;
+  showToast('批次已删除');
+  renderMain();
 }
 
 // ===== 编办确认提交 Modal =====
@@ -1899,11 +1948,11 @@ function openFinalConfirmModal(subId) {
     var ft = FINAL_CONFIRM_FORM_TYPES[t];
     var schoolNum = (s.useForms && s.useForms[ft.code]) || 0;
     c += '<tr>';
-    c += '<td>' + ft.district + '</td>';
+    c += '<td>' + ft.type + '</td>';
     c += '<td style="text-align:center;color:' + (schoolNum > 0 ? 'var(--text)' : 'var(--text-light)') + ';">' + (schoolNum > 0 ? schoolNum : '—') + '</td>';
     c += '<td style="text-align:center;">';
     if (schoolNum > 0) {
-      c += '<input type="number" class="num-input final-num-input" data-type="' + ft.district + '" data-code="' + ft.code + '" data-school-num="' + schoolNum + '" value="' + schoolNum + '" min="0" max="' + schoolNum + '">';
+      c += '<input type="number" class="num-input final-num-input" data-type="' + ft.type + '" data-code="' + ft.code + '" data-school-num="' + schoolNum + '" value="' + schoolNum + '" min="0" max="' + schoolNum + '">';
     } else {
       c += '<span style="color:var(--text-light);">—</span>';
     }
@@ -2362,7 +2411,21 @@ function renderSubmissionsTable(subs) {
   h += '<th>核定编制数</th><th>在编人数</th><th>控制数</th><th>控制数实有</th>';
   h += '<th>申请数</th>';
   h += '<th>统一公开招聘</th><th>单位自主实施招聘</th><th>中高级人才招聘</th><th>引进高层次人才</th><th>调动</th><th>其他</th>';
-  h += '<th>附件</th><th>编办确认材料</th><th>状态</th><th>提交时间</th><th>操作</th>';
+  h += '<th>状态</th><th>提交时间</th><th>操作</th>';
+  // Show "未开始" notice
+  if (selectedBatchId) {
+    var selBatch = getAllBatches().find(function(b) { return b.id === selectedBatchId; });
+    if (selBatch && selBatch.status === '未开始') {
+      h += '</tr></thead></table></div>';
+      h += '<div class="empty-state" style="padding:60px 20px;">';
+      h += '<div class="empty-icon">⏳</div>';
+      h += '<div class="empty-text">该批次尚未到申报期</div>';
+      h += '<div class="empty-sub" style="font-size:12px;color:var(--text-light);">申报时间：' + (selBatch.startDate || '') + ' ~ ' + (selBatch.deadline || '') + '</div>';
+      h += '</div>';
+      return h;
+    }
+  }
+
   h += '</tr></thead><tbody>';
 
   subs.forEach(function(s) {
@@ -2389,9 +2452,6 @@ function renderSubmissionsTable(subs) {
     h += '<td>' + (uf.talentHigh || 0) + '</td>';
     h += '<td>' + (uf.transfer || 0) + '</td>';
     h += '<td>' + (uf.other || 0) + '</td>';
-    h += '<td>' + (s.attachment9 ? '<a onclick="downloadMockFile(\'' + s.id + '\',\'attachment\')" style="color:var(--primary);cursor:pointer;font-size:12px;">📥 下载</a>' : '<span style="color:var(--text-light);">——</span>') + '</td>';
-    var hasFinalDoc = (s.schoolFinalConfirm && s.schoolFinalConfirm.document) || s.followUp;
-    h += '<td>' + (hasFinalDoc ? '<a onclick="downloadMockFile(\'' + s.id + '\',\'finalConfirm\')" style="color:var(--primary);cursor:pointer;font-size:12px;">📥 下载</a>' : '<span style="color:var(--text-light);">——</span>') + '</td>';
     h += '<td><span class="sbc-status ' + getStatusBadgeClass(s.status) + '" style="font-size:10px;">' + STATUS_MAP[s.status] + '</span></td>';
     h += '<td>' + (s.submitDate || '—') + '</td>';
     h += '<td><div class="action-links">';

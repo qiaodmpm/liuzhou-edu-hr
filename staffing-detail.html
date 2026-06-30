@@ -121,6 +121,21 @@ body {
 .sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
 .sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
 
+/* Role switcher */
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+.sidebar.collapsed .role-switcher-label,
+.sidebar.collapsed .role-switcher-name { display: none; }
+
 /* ===== MAIN CONTENT ===== */
 .main {
   margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px;
@@ -255,6 +270,18 @@ grid-column: 1 / -1;
   cursor: pointer; text-decoration: none; transition: var(--transition);
 }
 .attachment-item:hover { background: #DBEAFE; }
+	.bf-tip-icon { display: inline-block; width: 14px; height: 14px; line-height: 14px; text-align: center; border-radius: 50%; background: #DBEAFE; color: #1E40AF; font-size: 9px; cursor: pointer; margin-left: 2px; font-style: normal; vertical-align: middle; }
+	.bf-tip-icon:hover { background: #BFDBFE; }
+.bf-tooltip-popup { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 16px; width: 300px; font-size: 12px; line-height: 1.7; color: var(--text); }
+.bf-tooltip-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.bf-tooltip-body { color: var(--text-secondary); }
+	
+	#bf-tooltip-popup strong { color: #FBBF24; }
+.attachment-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+.attachment-name { font-size: 13px; color: var(--text); font-weight: 500; }
+.file-links { display: inline-flex; gap: 10px; }
+.file-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.file-link:hover { text-decoration: underline; }
 
 /* ===== PROGRESS TRACKER ===== */
 .progress-tracker {
@@ -326,6 +353,7 @@ grid-column: 1 / -1;
   color: #fff;
 }
 .btn-primary:hover { box-shadow: 0 4px 12px rgba(30,64,175,0.3); transform: translateY(-1px); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
 .btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
 .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
@@ -420,7 +448,7 @@ grid-column: 1 / -1;
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="user-dropdown" id="userDropdown">
         <a href="personal-center.html">个人中心</a>
-        <a href="#">🔑 修改密码</a>
+        <a href="personal-center.html">🔑 修改密码</a>
         <div class="divider"></div>
         <a href="index.html" class="logout">退出登录</a>
       </div>
@@ -471,28 +499,38 @@ grid-column: 1 / -1;
       <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       <span class="menu-label">聘用手续办理</span>
     </a>
+    <div class="menu-group">编外教师管理</div>
+    <a class="menu-item" href="#" onclick="event.preventDefault();var u=JSON.parse(localStorage.getItem('currentUser')||'{}');window.location.href=(u.role==='city'||u.role==='district')?'contract-entry-list-admin.html':'contract-entry-list-school.html';">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="menu-label">教师入职管理</span>
+    </a>
+    <a class="menu-item" href="#" onclick="event.preventDefault();var u=JSON.parse(localStorage.getItem('currentUser')||'{}');window.location.href=(u.role==='city'||u.role==='district')?'contract-exit-list-admin.html':'contract-exit-list-school.html';">
+      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="menu-label">教师离职管理</span>
+    </a>
     <div class="menu-group">人事管理</div>
     <a class="menu-item" href="#">
       <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span class="menu-label">退休呈报</span>
     </a>
     <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span class="menu-label">工资核定申请</span>
-    </a>
-    <a class="menu-item" href="#">
       <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <span class="menu-label">师德师风举报</span>
-    </a>
-    <a class="menu-item" href="#">
-      <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span class="menu-label">荣誉申请</span>
     </a>
     <div class="menu-group">系统设置</div>
     <a class="menu-item" href="#">
       <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span class="menu-label">账号管理</span>
     </a>
+  </div>
+  <div class="role-switcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span></button>
+      <button class="role-switch-btn active" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span></button>
+    </div>
   </div>
   <div class="sidebar-bottom">
     <div class="sidebar-toggle" onclick="toggleSidebar()">
@@ -619,7 +657,46 @@ grid-column: 1 / -1;
 
 </main>
 
+<!-- Plan Detail Modal -->
+<div class="modal-overlay" id="planDetailModal">
+  <div class="modal-container" style="width:800px;max-height:80vh">
+    <div class="modal-header">
+      <h3 id="planDetailTitle">计划明细</h3>
+      <button class="modal-close" onclick="document.getElementById('planDetailModal').classList.remove('show')">×</button>
+    </div>
+    <div class="modal-body" id="planDetailBody" style="max-height:55vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <script>
+function tipIconHtml(field) { return '<span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'' + field + '\')" style="cursor:pointer">ⓘ</span>'; }
+// ===== ROLE SWITCHER =====
+var ROLES = {
+  city:    { name: '张建国', short: '张' },
+  district:{ name: '李振华', short: '李' },
+  school:  { name: '王玉兰', short: '王' },
+  teacher: { name: '刘老师', short: '刘' }
+};
+var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"role":"school","name":"王玉兰","id":"S001"}');
+updateRoleUI();
+
+function updateRoleUI() {
+  document.querySelectorAll('.role-switch-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.role === currentUser.role); });
+  var info = ROLES[currentUser.role] || ROLES.school;
+  document.querySelector('.topnav-user .avatar').textContent = info.short;
+  document.querySelector('.topnav-user span').textContent = info.name;
+}
+
+function switchRole(role) {
+  var cfg = ROLES[role];
+  currentUser = { role: role, name: cfg.name, id: role === 'city' ? 'C001' : role === 'district' ? 'D001' : role === 'school' ? 'S001' : 'T001' };
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  if (role === 'teacher') { window.location.href = 'workbench.html'; return; }
+  if (role === 'city' || role === 'district') { window.location.href = 'staffing-application.html'; return; }
+  // school: reload
+  updateRoleUI();
+}
+
 // ===== DATA =====
 // Supports multiple detail views via URL param: ?id=S2026-004
 var urlParams = new URLSearchParams(window.location.search);
@@ -667,7 +744,7 @@ var submissions = [
   },
   { id: 'S2026-003', batchName: '2026年度第一批', orgName: '柳州高级中学', district: '市直属',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: 30, controlActual: 26, unusedControl: 1, controlApprovedPlan: 5, controlUsedPlan: 4, controlUnusedPlan: 1, controlAvailablePlan: -1,
+    totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: 30, controlActual: 26, unusedControl: 1, expiredOccupiedControlPlan: 1, controlApprovedPlan: 5, controlUsedPlan: 4, controlUnusedPlan: 1, controlAvailablePlan: -1,
     useForms: [
       { type: '统一公开招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
       { type: '单位自主实施招聘', num: 3, edu: '本科，语文/英语/物理，高中教师资格证', cond: '40周岁以下', note: '' },
@@ -687,7 +764,7 @@ var submissions = [
   },
   { id: 'S2026-004', batchName: '2026年度第一批', orgName: '柳州市第八中学', district: '鱼峰区',
     staffingType: 'control', formName: '附件9',
-    totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1, controlApprovedPlan: 3, controlUsedPlan: 2, controlUnusedPlan: 1, controlAvailablePlan: -1,
+    totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1, expiredOccupiedControlPlan: 1, controlApprovedPlan: 3, controlUsedPlan: 2, controlUnusedPlan: 1, controlAvailablePlan: -1,
     useForms: [
       { type: '统一公开招聘', num: 0, edu: '', cond: '', note: '' },
       { type: '单位自主实施招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
@@ -771,7 +848,7 @@ var submissions = [
   { id: 'S2026-008', batchName: '2026年度第一批', orgName: '柳州市第二中学', district: '市直属',
     staffingType: 'career', formName: '附件2',
     orgLevel: '正科级', orgNature: '全额拨款事业单位',
-    totalStaff: 95, currentStaff: 88, unusedPlan: 2,
+    totalStaff: 95, currentStaff: 88, unusedPlan: 2, expiredOccupiedPlan: 1,
     authLeader: 4, actualLeader: 3, actualOtherLeader: 2,
     useForms: [
       { type: '统一公开招聘', num: 1, edu: '本科，数学类，高中教师资格证', cond: '35周岁以下', note: '' },
@@ -1006,27 +1083,29 @@ function renderUnitInfo() {
 
   if (isCareer) {
   // Career / 附件2: 8 fields + 1 placeholder for 3-col alignment
-  h += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
   h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || '—') + '</div></div>';
   h += '<div class="info-item-placeholder"></div>';
-  h += '<div class="info-item"><div class="info-label">核定编制数</div><div class="info-value">' + (s.totalStaff || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">事业编核定数</div><div class="info-value">' + (s.totalStaff || '—') + '</div></div>';
   h += '<div class="info-item"><div class="info-label">实有在编人数</div><div class="info-value">' + (s.currentStaff || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">已批复计划数</div><div class="info-value">' + (s.approvedPlan || '0') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">已使用计划数</div><div class="info-value">' + (s.usedPlan || '0') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">未使用计划数</div><div class="info-value">' + (s.unusedPlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">未使用计划数 = 已批复计划数 − 已使用计划数</div></div>';
-  h += '<div class="info-item"><div class="info-label">可申请编制数</div><div class="info-value">' + (s.availablePlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请编制数 = 核定编制数 − 实有在编人数 − 已批复计划数</div></div>';
+  h += '<div class="info-item"><div class="info-label">已批复计划数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (s.approvedPlan || '0') + ' <a onclick="openPlanDetailModal(\'career\')" style="font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none;" onmouseover="this.style.color=\'var(--primary)\';this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'var(--text-light)\';this.style.textDecoration=\'none\'">查看明细 ›</a>' + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">已使用计划数 ' + tipIconHtml('used') + '</div><div class="info-value">' + (s.usedPlan || '0') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">未使用计划数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (s.unusedPlan || '0') + '</div></div>';
+  if ((s.expiredOccupiedPlan || 0) > 0) h += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + s.expiredOccupiedPlan + ' 人</div></div>';
+  h += '<div class="info-item"><div class="info-label">可申请编制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.availablePlan || '0') + '</div></div>';
   } else {
     // Control / 附件9: 9 items (1 full-width + 8 fields)
     h += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + s.orgName + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">机构级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
     h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || '—') + '</div></div>';
     h += '<div class="info-item-placeholder"></div>';
-    h += '<div class="info-item"><div class="info-label">核定控制数</div><div class="info-value">' + (s.controlNum || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">控制数核定数</div><div class="info-value">' + (s.controlNum || '—') + '</div></div>';
     h += '<div class="info-item"><div class="info-label">实有控制数人数</div><div class="info-value">' + (s.controlActual || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">已批复控制数</div><div class="info-value">' + (s.controlApprovedPlan || '0') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">已使用控制数</div><div class="info-value">' + (s.controlUsedPlan || '0') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">未使用控制数</div><div class="info-value">' + (s.controlUnusedPlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">未使用控制数 = 已批复控制数 − 已使用控制数</div></div>';
-    h += '<div class="info-item"><div class="info-label">可申请控制数</div><div class="info-value">' + (s.controlAvailablePlan || '0') + '</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">可申请控制数 = 核定控制数 − 实有控制数人数 − 已批复控制数</div></div>';
+    h += '<div class="info-item"><div class="info-label">已批复控制数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (s.controlApprovedPlan || '0') + ' <a onclick="openPlanDetailModal(\'control\')" style="font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none;" onmouseover="this.style.color=\'var(--primary)\';this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'var(--text-light)\';this.style.textDecoration=\'none\'">查看明细 ›</a>' + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">已使用控制数 ' + tipIconHtml('used') + '</div><div class="info-value">' + (s.controlUsedPlan || '0') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">未使用控制数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (s.controlUnusedPlan || '0') + '</div></div>';
+    if ((s.expiredOccupiedControlPlan || 0) > 0) h += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + s.expiredOccupiedControlPlan + ' 人</div></div>';
+    h += '<div class="info-item"><div class="info-label">可申请控制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.controlAvailablePlan || '0') + '</div></div>';
   }
 
   document.getElementById('unitInfoArea').innerHTML = h;
@@ -1037,24 +1116,29 @@ renderUnitInfo();
 function renderQuotaSummary() {
 var isCareer = s.staffingType === 'career';
 var isApproved = s.status === 'approved';
+var isFinalSubmitted = s.status === 'final_submitted';
 var totalApply = 0;
 	  s.useForms.forEach(function(f) { totalApply += f.num; });
 
 var quota, label;
 if (isCareer) {
-quota = (s.totalStaff || 0) - (s.currentStaff || 0) - (s.approvedPlan || 0);
+quota = Math.max(0, (s.totalStaff || 0) - (s.currentStaff || 0) - (s.approvedPlan || 0));
 label = '可申请编制数';
 } else {
-quota = (s.controlNum || 0) - (s.controlActual || 0) - (s.controlApprovedPlan || 0);
+quota = Math.max(0, (s.controlNum || 0) - (s.controlActual || 0) - (s.controlApprovedPlan || 0));
   label = '可申请控制数';
 }
 
 // For approved records, base on final confirmed count
+// For final_submitted, base on school confirmed count
 var effectiveNum, remaining;
+var totalFinalQ = 0;
 if (isApproved && s.finalApprovedDetails) {
-  var totalFinal = 0;
-  s.finalApprovedDetails.forEach(function(d) { totalFinal += d.finalNum; });
-  effectiveNum = totalFinal;
+  s.finalApprovedDetails.forEach(function(d) { totalFinalQ += d.finalNum; });
+  effectiveNum = totalFinalQ;
+} else if (isFinalSubmitted && s.schoolFinalConfirm && s.schoolFinalConfirm.details) {
+  s.schoolFinalConfirm.details.forEach(function(d) { totalFinalQ += d.finalNum; });
+  effectiveNum = totalFinalQ;
 } else {
   effectiveNum = totalApply;
 }
@@ -1072,8 +1156,8 @@ h += '</div>';
 
 	  if (isApproved && s.finalApprovedDetails) {
 	    // Approved: show school apply → final confirm → available
-	    var totalFinal = 0;
-	    s.finalApprovedDetails.forEach(function(d) { totalFinal += d.finalNum; });
+	    var totalFinalD = 0;
+	    s.finalApprovedDetails.forEach(function(d) { totalFinalD += d.finalNum; });
 	    h += '<div style="flex:1;text-align:center;padding:14px;background:#EFF6FF;border-radius:8px;">';
 	    h += '<div style="font-size:11px;color:var(--text-light);">学校申请</div>';
 	    h += '<div style="font-size:20px;font-weight:700;color:var(--primary);">' + totalApply + '</div>';
@@ -1081,7 +1165,19 @@ h += '</div>';
 	    h += '<div style="font-size:16px;color:var(--text-light);">→</div>';
 	    h += '<div style="flex:1;text-align:center;padding:14px;background:#FEF3C7;border-radius:8px;">';
 	    h += '<div style="font-size:11px;color:#D97706;">编办确认</div>';
-	    h += '<div style="font-size:20px;font-weight:700;color:#D97706;">' + totalFinal + '</div>';
+	    h += '<div style="font-size:20px;font-weight:700;color:#D97706;">' + totalFinalD + '</div>';
+	    h += '</div>';
+	  } else if (isFinalSubmitted && s.schoolFinalConfirm) {
+	    // final_submitted: show school apply → school confirm → remaining
+	    var scTotal = s.schoolFinalConfirm.totalFinalCount || 0;
+	    h += '<div style="flex:1;text-align:center;padding:14px;background:#EFF6FF;border-radius:8px;">';
+	    h += '<div style="font-size:11px;color:var(--text-light);">学校申请</div>';
+	    h += '<div style="font-size:20px;font-weight:700;color:var(--primary);">' + totalApply + '</div>';
+	    h += '</div>';
+	    h += '<div style="font-size:16px;color:var(--text-light);">→</div>';
+	    h += '<div style="flex:1;text-align:center;padding:14px;background:#FFF7ED;border-radius:8px;">';
+	    h += '<div style="font-size:11px;color:#EA580C;">学校确认</div>';
+	    h += '<div style="font-size:20px;font-weight:700;color:#EA580C;">' + scTotal + '</div>';
 	    h += '</div>';
 	  } else {
 	    // Not approved: show apply count
@@ -1104,15 +1200,19 @@ renderQuotaSummary();
 
 // Use forms table header
 var isApproved = s.status === 'approved';
+var isFinalSubmitted = s.status === 'final_submitted';
+var showFinalCol = isApproved || isFinalSubmitted;
 document.getElementById('thCountLabel').textContent = s.staffingType === 'career' ? '使用事业编制（名）' : '使用控制数（名）';
-if (isApproved) {
+if (showFinalCol) {
   document.getElementById('thFinalHead').style.display = '';
+  document.getElementById('thFinalHead').textContent = isFinalSubmitted ? '学校确认数（名）' : '编办确认数（名）';
 }
 
-// Build final approved lookup map
+// Build final approved lookup map (also covers schoolFinalConfirm for final_submitted)
 var finalMap = {};
-if (s.finalApprovedDetails) {
-  s.finalApprovedDetails.forEach(function(d) { finalMap[d.type] = d.finalNum; });
+var finalDetailsSource = s.finalApprovedDetails || (s.schoolFinalConfirm && s.schoolFinalConfirm.details) || null;
+if (finalDetailsSource) {
+  finalDetailsSource.forEach(function(d) { finalMap[d.type] = d.finalNum; });
 }
 
 // Use forms table
@@ -1123,19 +1223,19 @@ for (var i = 0; i < s.useForms.length; i++) {
   var f = s.useForms[i];
   if (f.num === 0) continue;
   totalNum += f.num;
-  var fn = isApproved ? (finalMap[f.type] !== undefined ? finalMap[f.type] : 0) : null;
+  var fn = showFinalCol ? (finalMap[f.type] !== undefined ? finalMap[f.type] : 0) : null;
   if (fn !== null) totalFinal += fn;
   ufHtml += '<tr>';
   ufHtml += '<td class="row-label">' + f.type + '</td>';
   ufHtml += '<td>' + f.num + '</td>';
-  if (isApproved) ufHtml += '<td>' + fn + '</td>';
+  if (showFinalCol) ufHtml += '<td>' + fn + '</td>';
   ufHtml += '<td>' + (f.edu || '—') + '</td>';
   ufHtml += '<td>' + (f.cond || '—') + '</td>';
   ufHtml += '<td>' + (f.note || '—') + '</td>';
   ufHtml += '</tr>';
 }
 ufHtml += '<tr class="total-row"><td class="row-label">合　计</td><td>' + totalNum + '</td>';
-if (isApproved) ufHtml += '<td>' + totalFinal + '</td>';
+if (showFinalCol) ufHtml += '<td>' + totalFinal + '</td>';
 ufHtml += '<td colspan="3"></td></tr>';
 document.getElementById('useFormBody').innerHTML = ufHtml;
 
@@ -1157,19 +1257,31 @@ var formLabel = s.staffingType === 'career' ? '附件2 — 中小学事业编制
 var formFileName = s.staffingType === 'career' ? (s.attachment2Name || '') : (s.attachment9Name || '');
 var formUploaded = s.staffingType === 'career' ? (s.attachment2 || false) : (s.attachment9 || false);
 
+function makeFileLinks(fileName) {
+  var fn = fileName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  return '<span class="file-links"><a class="file-link" onclick="previewAttach(\'' + fn + '\')">👁 预览</a><a class="file-link" onclick="downloadAttach(\'' + fn + '\')">📥 下载</a></span>';
+}
+
 var attHtml = '';
 if (formUploaded) {
-  attHtml += '<div style="margin-bottom:12px;">';
+  attHtml += '<div style="margin-bottom:16px;">';
   attHtml += '<div class="info-label" style="margin-bottom:6px;">' + formLabel + '<span style="color:var(--success);margin-left:8px;font-size:12px;">✅ 已上传</span></div>';
-  attHtml += '<a class="attachment-item" href="#" onclick="event.preventDefault();showToast(\'文件预览: ' + formFileName + '\')">📎 ' + formFileName + '</a>';
+  attHtml += '<div class="attachment-row"><span class="attachment-name">📎 ' + formFileName + '</span>' + makeFileLinks(formFileName) + '</div>';
   attHtml += '</div>';
 } else {
-  attHtml += '<div style="margin-bottom:12px;"><div class="info-label" style="margin-bottom:6px;">' + formLabel + ' <span style="color:var(--text-light);margin-left:8px;font-size:12px;">未上传</span></div></div>';
+  attHtml += '<div style="margin-bottom:16px;"><div class="info-label" style="margin-bottom:6px;">' + formLabel + ' <span style="color:var(--text-light);margin-left:8px;font-size:12px;">未上传</span></div></div>';
+}
+if (s.schoolFinalConfirm && s.schoolFinalConfirm.document) {
+  var docName = s.schoolFinalConfirm.document.name;
+  attHtml += '<div style="margin-bottom:16px;">';
+  attHtml += '<div class="info-label" style="margin-bottom:6px;">编办批复文件 <span style="color:var(--success);margin-left:8px;font-size:12px;">✅ 已上传</span></div>';
+  attHtml += '<div class="attachment-row"><span class="attachment-name">📎 ' + docName + '</span>' + makeFileLinks(docName) + '</div>';
+  attHtml += '</div>';
 }
 if (s.followUp) {
-  attHtml += '<div style="margin-bottom:12px;">';
+  attHtml += '<div style="margin-bottom:16px;">';
   attHtml += '<div class="info-label" style="margin-bottom:6px;">后续材料 — 市委编办审批等线下环节材料 <span style="color:var(--success);margin-left:8px;font-size:12px;">✅ 已上传</span></div>';
-  attHtml += '<a class="attachment-item" href="#" onclick="event.preventDefault();showToast(\'文件预览: ' + s.followUpName + '\')">📎 ' + s.followUpName + '</a>';
+  attHtml += '<div class="attachment-row"><span class="attachment-name">📎 ' + s.followUpName + '</span>' + makeFileLinks(s.followUpName) + '</div>';
   attHtml += '</div>';
 }
 document.getElementById('attachmentsArea').innerHTML = attHtml;
@@ -1184,6 +1296,13 @@ function showToast(msg, type) {
   t.textContent = msg;
   c.appendChild(t);
   setTimeout(function() { t.remove(); }, 2200);
+}
+
+function previewAttach(name) {
+  showToast('📄 预览文件：' + name + '（纯前端 Demo，未存储实际文件）', 'info');
+}
+function downloadAttach(name) {
+  showToast('📥 模拟下载：' + name + '（纯前端 Demo，未存储实际文件）', 'info');
 }
 
 // ===== RENDER PROGRESS =====
@@ -1314,6 +1433,231 @@ function toggleSidebar() {
 function goRecruit() {
   window.location.href = 'recruit-list-school.html';
 }
+
+var AGG_TOOLTIPS = {
+  approved: { title:'已批复计划数', body:'仅统计<strong>有效期内</strong>的编制批复计划。<br>已到期的批复名额不计入此数字。<br><br>数据来源：计划明细自动汇总，不可手动修改。<br><br>📋 示例：有 3 条计划记录，其中 1 条已到期<br>→ 已批复计划数 = 仅 2 条有效计划之和' },
+  used:     { title:'已使用计划数', body:'<strong>= 已占用 + 已入编</strong><br><br>有效期内计划中已占用（招聘途中）和已入编（正式落编）的人数之和。<br>已到期计划中的使用数不计入。<br><br>数据来源：计划明细自动汇总，不可手动修改。' },
+  unused:   { title:'未使用计划数', body:'<strong>= 已批复 − 已使用</strong><br><br>已到期的剩余名额不计入此数字。' },
+  available:{ title:'可申请数', body:'<strong>= 核定数 − 实有数 − 已批复计划数 − 到期占用中人数</strong><br><br>编制余额。还可向编办申请的编制名额数量。<br>结果 ≤ 0 表示编制已满或超额。<br><br>⚠️ 已过期但仍有占用的计划，其占用人数会扣减可申请数。' }
+,
+  expiredOccupied:{ title:'到期占用中', body:'<strong>已过期但仍有人员占用的计划中，尚未入编的人数。</strong><br><br>占用名额仍有效，应尽快为占用人员办理入编手续。<br>入编完成后相关计划将自动标记为"已用完"。' }
+};
+function showAggTooltip(event, field) {
+  var existing = document.getElementById('bf-tooltip-popup');
+  if (existing) existing.remove();
+  var info = AGG_TOOLTIPS[field];
+  if (!info) return;
+  var popup = document.createElement('div');
+  popup.id = 'bf-tooltip-popup';
+  popup.className = 'bf-tooltip-popup';
+  popup.innerHTML = '<div class="bf-tooltip-title">' + info.title + ' ⓘ</div><div class="bf-tooltip-body">' + info.body + '</div><button class="btn btn-sm btn-primary" onclick="document.getElementById(\'bf-tooltip-popup\').remove()" style="margin-top:8px">知道了</button>';
+  popup.style.position = 'fixed';
+  popup.style.top = Math.min(event.clientY, window.innerHeight - 280) + 'px';
+  popup.style.left = Math.min(event.clientX, window.innerWidth - 320) + 'px';
+  popup.style.zIndex = '9999';
+  document.body.appendChild(popup);
+  setTimeout(function() {
+    document.addEventListener('click', function closeAgg(e) {
+      if (!popup.contains(e.target) && e.target.className.indexOf('bf-tip-icon') === -1) {
+        popup.remove();
+        document.removeEventListener('click', closeAgg);
+      }
+    });
+  }, 100);
+}
+
+
+
+// Demo plan data for plan detail modal
+var _demoPlans = {
+  career: [
+    { id:'CP01', source:'online', sourceBatchId:'2026年度第一批', approvedCount:3, occupiedCount:1, usedCount:1, validEnd:'2026-12-31' },
+    { id:'CP02', source:'offline', offlineDocNo:'柳编办[2025]03号', approvedCount:2, occupiedCount:1, usedCount:0, validEnd:'2025-12-31' },
+    { id:'CP03', source:'online', sourceBatchId:'2026年度第二批', approvedCount:1, occupiedCount:0, usedCount:0, validEnd:'2026-06-30' }
+  ],
+  control: [
+    { id:'CT01', source:'online', sourceBatchId:'2026年度第一批', approvedCount:2, occupiedCount:1, usedCount:1, validEnd:'2026-12-31' },
+    { id:'CT02', source:'offline', offlineDocNo:'柳编办[2025]05号', approvedCount:2, occupiedCount:1, usedCount:0, validEnd:'2025-12-31' },
+    { id:'CT03', source:'online', sourceBatchId:'2026年度自主申报', approvedCount:1, occupiedCount:0, usedCount:0, validEnd:'2026-09-30' }
+  ]
+};
+
+var _planDetailFilter = {};
+var _planDetailPage = {};
+var _PLAN_PAGE_SIZE = 8;
+
+function resetPlanDetailFilter(track) {
+  _planDetailFilter[track] = { source: '', status: '', keyword: '' };
+  _planDetailPage[track] = 1;
+}
+
+function getPlanStatus(p) {
+  var now = new Date().toISOString().slice(0,10);
+  var remain = p.approvedCount - (p.occupiedCount||0) - (p.usedCount||0);
+  if (remain <= 0 && p.approvedCount > 0) return 'exhausted';
+  if (p.validEnd && p.validEnd < now && (p.occupiedCount||0) > 0) return 'expiring_occupied';
+  if (p.validEnd && p.validEnd < now) return 'expired';
+  return 'active';
+}
+
+var PLAN_STATUS_LABEL = { active:'有效', exhausted:'已用完', expiring_occupied:'过期·有占用', expired:'已到期' };
+var PLAN_STATUS_CLASS = { active:'active', exhausted:'exhausted', expiring_occupied:'warn', expired:'expired' };
+
+function openPlanDetailModal(track) {
+  var plans = _demoPlans[track] || [];
+  var label = track === 'career' ? '事业编' : '控制数';
+  resetPlanDetailFilter(track);
+  document.getElementById('planDetailTitle').textContent = label + ' — 已批复计划明细';
+  renderPlanDetailBody(track);
+  document.getElementById('planDetailModal').classList.add('show');
+}
+
+function renderPlanDetailBody(track) {
+  var plans = _demoPlans[track] || [];
+  var f = _planDetailFilter[track] || { source: '', status: '', keyword: '' };
+
+  // Compute aggregates
+  var agg = { approvedPlan:0, occupiedPlan:0, usedPlan:0, unusedPlan:0, expiredOccupiedPlan:0 };
+  plans.forEach(function(p) {
+    agg.approvedPlan += p.approvedCount;
+    agg.occupiedPlan += (p.occupiedCount||0);
+    agg.usedPlan += (p.usedCount||0);
+  });
+
+  // Filter
+  var filtered = plans.filter(function(p) {
+    if (f.source && p.source !== f.source) return false;
+    if (f.status && getPlanStatus(p) !== f.status) return false;
+    if (f.keyword) {
+      var kw = f.keyword.toLowerCase();
+      var doc = (p.offlineDocNo || p.sourceBatchId || '').toLowerCase();
+      if (doc.indexOf(kw) === -1) return false;
+    }
+    return true;
+  });
+
+  // Split active vs expired
+  var activePlans = [], expiredPlans = [];
+  filtered.forEach(function(p) {
+    if (getPlanStatus(p) === 'expired') expiredPlans.push(p);
+    else activePlans.push(p);
+  });
+
+  // Calculate expired occupied
+  filtered.forEach(function(p) {
+    var st = getPlanStatus(p);
+    if (st === 'expiring_occupied' || st === 'expired') {
+      agg.expiredOccupiedPlan += (p.occupiedCount||0);
+    }
+  });
+  agg.unusedPlan = agg.approvedPlan - agg.occupiedPlan - agg.usedPlan;
+
+  // Pagination
+  var page = _planDetailPage[track] || 1;
+  var totalPages = Math.max(1, Math.ceil(activePlans.length / _PLAN_PAGE_SIZE));
+  if (page > totalPages) { page = totalPages; _planDetailPage[track] = page; }
+  var start = (page - 1) * _PLAN_PAGE_SIZE;
+  var pagePlans = activePlans.slice(start, start + _PLAN_PAGE_SIZE);
+
+  var h = '';
+  // Filter bar
+  h += '<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">';
+  h += '<select onchange="_planDetailFilter[\'' + track + '\'].source=this.value;_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;">';
+  h += '<option value="">全部来源</option><option value="online">线上</option><option value="offline">线下</option></select>';
+  h += '<select onchange="_planDetailFilter[\'' + track + '\'].status=this.value;_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;">';
+  h += '<option value="">全部状态</option><option value="active">有效</option><option value="exhausted">已用完</option><option value="expiring_occupied">过期·有占用</option><option value="expired">已到期</option></select>';
+  h += '<input type="text" placeholder="搜索批复文号/批次..." oninput="_planDetailFilter[\'' + track + '\'].keyword=this.value;_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;width:160px;" value="' + escapeHtml(f.keyword || '') + '">';
+  h += '</div>';
+
+  // Summary
+  h += '<div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;font-size:12px;padding:10px 14px;background:#F8FAFC;border-radius:6px;">';
+  h += '<span>已批复 <strong>' + agg.approvedPlan + '</strong> 人</span>';
+  h += '<span>占用 <strong>' + (agg.occupiedPlan||0) + '</strong> 人</span>';
+  h += '<span>已入编 <strong>' + Math.max(0, agg.usedPlan - (agg.occupiedPlan||0)) + '</strong> 人</span>';
+  h += '<span>未使用 <strong>' + agg.unusedPlan + '</strong> 人</span>';
+  if ((agg.expiredOccupiedPlan||0) > 0) h += '<span style="color:#C2410C;">到期占用中 ' + agg.expiredOccupiedPlan + ' 人</span>';
+  h += '</div>';
+
+  if (filtered.length === 0) {
+    h += '<div style="text-align:center;padding:40px;color:var(--text-light);">无匹配记录</div>';
+  } else {
+    h += '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">序号</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">来源</th>';
+    h += '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复文号/批次</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">已占用</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">已入编</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">未使用</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">有效期</th>';
+    h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">状态</th>';
+    h += '</tr></thead><tbody>';
+
+    function renderRow(p, idx) {
+      var st = getPlanStatus(p);
+      var stLabel = PLAN_STATUS_LABEL[st] || st;
+      var stClass = PLAN_STATUS_CLASS[st] || '';
+      var remain = p.approvedCount - (p.occupiedCount||0) - (p.usedCount||0);
+      var isExpired = st === 'expired';
+      var sourceLabel = p.source === 'online' ? '线上' : '线下';
+      var sourceColor = p.source === 'online' ? '#2563EB' : '#9333EA';
+      var docLabel = p.source === 'online' ? (p.sourceBatchId||'') : (p.offlineDocNo||'');
+      var trStyle = isExpired ? 'opacity:0.5;' : '';
+      var r = '<tr style="' + trStyle + '">';
+      r += '<td style="padding:6px 8px;text-align:center;font-size:11px;color:var(--text-light);border-bottom:1px solid var(--border);">' + idx + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);"><span style="font-size:11px;padding:2px 6px;border-radius:4px;background:' + (p.source==='online'?'#EFF6FF':'#FAF5FF') + ';color:' + sourceColor + ';">' + sourceLabel + '</span></td>';
+      r += '<td style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">' + escapeHtml(docLabel) + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">' + p.approvedCount + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);' + ((p.occupiedCount||0)>0?'color:var(--warning);font-weight:500;':'') + '">' + (p.occupiedCount||0) + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">' + (p.usedCount||0) + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;">' + remain + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">' + (p.validEnd||'—') + '</td>';
+      r += '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);"><span style="font-size:10px;padding:2px 6px;border-radius:10px;' + (stClass==='active'?'background:#D1FAE5;color:#059669;':stClass==='exhausted'?'background:#FEE2E2;color:#DC2626;':stClass==='warn'?'background:#FFF7ED;color:#C2410C;':'background:#F1F5F9;color:#64748B;') + '">' + stLabel + '</span></td>';
+      r += '</tr>';
+      return r;
+    }
+
+    var idx = start + 1;
+    pagePlans.forEach(function(p) { h += renderRow(p, idx); idx++; });
+    h += '</tbody></table>';
+
+    // Expired plans section
+    if (expiredPlans.length > 0) {
+      h += '<div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-top:16px;margin-bottom:8px;">已到期计划</div>';
+      h += '<table style="width:100%;border-collapse:collapse;font-size:12px;opacity:0.6;"><thead><tr>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">序号</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">来源</th>';
+      h += '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复文号/批次</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">批复</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">有效期</th>';
+      h += '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);background:#F8FAFC;font-size:11px;">状态</th>';
+      h += '</tr></thead><tbody>';
+      var eIdx = 1;
+      expiredPlans.forEach(function(p) {
+        h += renderRow(p, '🔒 ' + eIdx);
+        eIdx++;
+      });
+      h += '</tbody></table>';
+    }
+
+    // Pagination
+    if (totalPages > 1) {
+      h += '<div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-secondary);">';
+      h += '<button onclick="_planDetailPage[\'' + track + '\']=1;renderPlanDetailBody(\'' + track + '\')" ' + (page<=1?'disabled':'') + ' style="padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;margin-right:4px;">«</button>';
+      h += '<span style="margin:0 8px;">' + page + ' / ' + totalPages + '</span>';
+      h += '<button onclick="_planDetailPage[\'' + track + '\']=' + (page+1) + ';renderPlanDetailBody(\'' + track + '\')" ' + (page>=totalPages?'disabled':'') + ' style="padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;margin-left:4px;">»</button>';
+      h += '</div>';
+    }
+  }
+
+  document.getElementById('planDetailBody').innerHTML = h;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 </script>
 
 <div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:6px;"></div>

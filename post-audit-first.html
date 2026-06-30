@@ -216,6 +216,25 @@ body {
 .info-label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
 .info-value { font-size: 13px; font-weight: 500; color: var(--text); }
 
+/* Form grid — 对齐新建页机构基本信息布局 */
+.form-card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.form-card-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.form-grid .form-item { display: flex; flex-direction: column; }
+.form-grid .form-item.full-width { grid-column: 1 / -1; }
+.form-grid .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.form-grid .form-value { font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 12px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border); }
+.form-grid .form-value.calculated { color: var(--primary); }
+
+
 .total-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .total-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 12px; color: var(--text-secondary); background: #F8FAFC; border: 1px solid var(--border); }
 .total-table td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
@@ -433,6 +452,12 @@ body {
 <div id="toastContainer"></div>
 
 <script>
+function getSchoolCategoryMap() {
+  var map = {};
+  var stored = localStorage.getItem('org_directory');
+  if (stored) { try { JSON.parse(stored).forEach(function(o) { if (o.orgName) map[o.orgName] = o.schoolCategory || ''; }); } catch(e) {} }
+  return map;
+}
 window.onerror = function(msg, source, line, col, error) {
   document.body.innerHTML = "<div style='padding:40px;font-family:sans-serif;'><h2>JS Error</h2><pre>" + String(msg).replace(/</g, "&lt;") + "</pre><p>Line: " + line + "</p></div>";
 };
@@ -462,7 +487,7 @@ var MENU_ICONS = {
   entry: 'userp', staffing: 'monitor', exit: 'userx',
   promote: 'arrowup', postset: 'shield', recruit: 'search',
   employ: 'file',
-  retire: 'clock', salary: 'dollar', ethics: 'warn', honor: 'star',
+  retire: 'clock', ethics: 'warn',
   account: 'users', org: 'building', perm: 'key', log: 'list'
 };
 
@@ -516,11 +541,11 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
         { name: '系统设置', items: [
           { id: 'account', label: '账号管理' },
@@ -550,13 +575,13 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
   },
@@ -579,13 +604,13 @@ var ROLES = {
           { id: 'recruit', label: '招聘岗位申请' }
         ]},
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }]},
+        { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [
           { id: 'retire', label: '退休呈报' },
-          { id: 'salary', label: '工资核定申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]},
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }]}
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }]}
       ]
     }
   },
@@ -597,7 +622,7 @@ var ROLES = {
         { name: '业务申请', items: [
           { id: 'promote', label: '岗位晋升申请' },
           { id: 'ethics', label: '师德师风举报' },
-          { id: 'honor', label: '荣誉申请' }
+          
         ]}
       ]
     }
@@ -1135,17 +1160,17 @@ function renderProgress() {
 
 function renderUnitInfo() {
   var r = currentRecord;
-  var h = '<div class="card"><div class="card-header">单位基本信息</div><div class="card-body">';
-  h += '<div class="info-grid">';
-  h += '<div class="info-item full"><div class="info-label">学校名称</div><div class="info-value">' + escapeHtml(r.schoolName) + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">机构规格</div><div class="info-value">' + (r.orgLevel || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">经费形式</div><div class="info-value">' + (r.fundType || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">学校类型</div><div class="info-value">' + (r.schoolType || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">总量控制数</div><div class="info-value">' + (r.totalControlQuota != null ? r.totalControlQuota : '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">事业编制数</div><div class="info-value">' + (r.careerStaffQuota != null ? r.careerStaffQuota : '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">聘用控制数</div><div class="info-value">' + (r.authControlNo || 0) + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">小高地岗位数</div><div class="info-value">' + (r.highlandPosts || 0) + '</div></div>';
-  h += '</div></div></div>';
+  var h = '<div class="form-card"><div class="form-card-title">单位基本信息</div>';
+  h += '<div class="form-grid">';
+  h += '<div class="form-item full-width"><div class="form-label">单位全称</div><div class="form-value">' + escapeHtml(r.schoolName) + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">单位级别</div><div class="form-value">' + (r.orgLevel || '—') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">经费类型</div><div class="form-value">' + (r.fundType || '—') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">岗位设置分类</div><div class="form-value">' + (getSchoolCategoryMap()[r.schoolName] || r.schoolType || '—') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">总量控制数</div><div class="form-value">' + (r.totalControlQuota != null ? r.totalControlQuota : '—') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">小高地岗位数</div><div class="form-value">' + (r.highlandPosts || 0) + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">事业编核定数</div><div class="form-value">' + (r.careerStaffQuota != null ? r.careerStaffQuota : '—') + '</div></div>';
+  h += '<div class="form-item"><div class="form-label">控制数核定数</div><div class="form-value">' + (r.authControlNo || 0) + '</div></div>';
+  h += '</div></div>';
   return h;
 }
 
@@ -1156,7 +1181,7 @@ function renderTotalSection() {
   var hasHr = hr && (hr.mgmtPosts !== undefined || hr.profPosts !== undefined || hr.laborPosts !== undefined);
   var maxTotal = (r.totalControlQuota || 0) - (r.highlandPosts || 0);
   var totalClass = tp > maxTotal && maxTotal > 0 ? ' style="color:var(--danger);font-weight:700;"' : '';
-  var totalHint = maxTotal > 0 ? '（核定总量上限：' + maxTotal + '）' : '';
+  var totalHint = maxTotal > 0 ? '（等于：' + maxTotal + '）' : '';
   var h = '<div class="card"><div class="card-header">岗位总量<span class="limit-hint">' + totalHint + '</span></div><div class="card-body">';
   h += '<table class="total-table"><thead><tr><th>项目</th><th>岗位总量</th><th>管理岗位数量</th><th>占比</th><th>专技岗位数量</th><th>占比</th><th>工勤技能岗位数量</th><th>占比</th></tr></thead>';
   h += '<tbody>';
@@ -1187,7 +1212,7 @@ function renderTotalSection() {
 
 function renderMgmtTable() {
   var r = currentRecord;
-  var h = '<div class="card"><div class="card-header">管理岗位明细</div><div class="card-body">';
+  var h = '<div class="card"><div class="card-header">管理岗位明细<span class="limit-hint">（合计应等于管理岗位数量：' + (r.mgmtPosts || 0) + '）</span></div><div class="card-body">';
   h += '<table class="grade-table"><thead><tr><th></th>';
   var mgmtGrades = ['5', '6', '7', '8', '9', '10'];
   mgmtGrades.forEach(function(g) { h += '<th>' + MGMT_GRADE_LABELS[g] + '</th>'; });
@@ -1211,7 +1236,7 @@ function renderMgmtTable() {
 
 function renderProfTable() {
   var r = currentRecord;
-  var h = '<div class="card"><div class="card-header">专业技术岗位明细</div><div class="card-body">';
+  var h = '<div class="card"><div class="card-header">专业技术岗位明细<span class="limit-hint">（合计应等于专技岗位数量：' + (r.profPosts || 0) + '）</span></div><div class="card-body">';
 
   var profGrand = 0;
   PROF_LAYER_CONFIG.forEach(function(layer) {
@@ -1270,7 +1295,7 @@ function renderLaborTable() {
     '5': '≥' + LABOR_RATIO_LIMITS.level_5_min + '%',
     'common': ''
   };
-  var h = '<div class="card"><div class="card-header">工勤技能岗位明细</div><div class="card-body">';
+  var h = '<div class="card"><div class="card-header">工勤技能岗位明细<span class="limit-hint">（合计应等于工勤技能岗位数量：' + (r.laborPosts || 0) + '）</span></div><div class="card-body">';
   h += '<table class="grade-table"><thead><tr><th></th>';
   laborGrades.forEach(function(g) {
     h += '<th>' + LABOR_GRADE_LABELS[g];
@@ -1413,7 +1438,7 @@ function getEmployedTotal(empData, category, grade) {
   if (!cat) return 0;
   var entry = cat[grade];
   if (!entry) return 0;
-  return (entry.career || 0) + (entry.control || 0) + (entry.over || 0);
+  return (entry.career || 0) + (entry.control || 0);
 }
 function getEmployUrl() {
   if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
@@ -1833,12 +1858,18 @@ function sidebarClick(el, id) {
   if (id === 'recruit') {
     if (currentRole === 'city' || currentRole === 'district') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
   if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
 
     if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
     return;
   }
   if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
 
+
+  else if (id === 'account') { window.location.href = 'account-management.html'; }
+
+  else if (id === 'org') { window.location.href = 'org-management.html'; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

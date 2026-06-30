@@ -105,6 +105,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .action-links { display: flex; gap: 8px; justify-content: center; }
 .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
 .status-badge.pending { background: #FEF3C7; color: #92400E; }
+.status-badge.rejected { background: #FEE2E2; color: #991B1B; }
 .status-badge.active { background: #D1FAE5; color: #065F46; }
 .status-badge.none { background: #F1F5F9; color: #94A3B8; }
 .action-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
@@ -193,23 +194,41 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 </aside>
 
 <div class="main">
-  <div class="breadcrumb"><a href="workbench.html">工作台</a> / <span>编制岗位台账管理</span></div>
+  <div class="breadcrumb"><a href="workbench.html">工作台</a> / <span>编制岗位台账管理</span><a href="javascript:resetLedgerData()" style="font-size:10px;color:var(--text-light);text-decoration:none;margin-left:16px;opacity:0.5;" title="清除本地台账数据并重新生成Demo数据">🔄 重置数据</a></div>
   <div class="page-header">
-    <h1>编制岗位台账</h1>
-    <div class="subtitle" id="pageSubtitle">全市学校编制与岗位概览</div>
+    <div>
+      <h1>编制岗位台账</h1>
+      <div class="subtitle" id="pageSubtitle">全市学校编制与岗位概览</div>
+    </div>
   </div>
   <div id="mainContent"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-
+<script src="src/ledger-plan-utils.js"></script>
+<script src="src/ledger-migrate.js"></script>
 <script>
+var LPU = window.LedgerPlanUtils;
+var LDM = window.LedgerMigrate;
 var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"role":"city","name":"市管理员","id":"C001"}');
 // Ensure district field exists for district admins
 if (currentUser.role === 'district' && !currentUser.district) { currentUser.district = '鱼峰区'; }
 var allLedgers = {};
 var filteredLedgers = [];
+
+function getOrgInfo(schoolName) {
+  var stored = localStorage.getItem('org_directory');
+  if (stored) {
+    try {
+      var dir = JSON.parse(stored);
+      for (var i = 0; i < dir.length; i++) {
+        if (dir[i].orgName === schoolName) return dir[i];
+      }
+    } catch(e) {}
+  }
+  return null;
+}
 var filterStatus = 'all';
 var filterDistrict = 'all';
 var searchText = '';
@@ -232,6 +251,23 @@ function init() {
   ensureSchoolIds();
   // Backfill change logs for existing ledgers
   backfillAllChangeLogs();
+  // Backfill demo plan records
+  backfillDemoPlans(allLedgers);
+  // Plan record migration
+  try {
+    if (LDM) {
+      var subs = [];
+      try { var sr = localStorage.getItem('staffing_submissions'); if (sr) subs = JSON.parse(sr); } catch(e2) {}
+      var planMigrated = false;
+      Object.keys(allLedgers).forEach(function(k) {
+        if (LDM.needsMigration(allLedgers[k])) {
+          var result = LDM.migrateLedger(allLedgers[k], subs);
+          if (result.migrated) planMigrated = true;
+        }
+      });
+      if (planMigrated) { saveLedgers(); }
+    }
+  } catch(e) { console.error('plan migration error:', e); }
   renderSidebar();
   renderList();
 }
@@ -239,17 +275,17 @@ function init() {
 function mergeDemoData() {
   // Inline demo data for initialization
   var demos = {
-    '柳州市第一中学': { schoolName:'柳州市第一中学', district:'市直属', schoolType:'普通高中', orgLevel:'正处级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:120, careerActual:108, careerApprovedPlan:8, careerUsedPlan:5, controlQuota:25, controlActual:20, controlApprovedPlan:4, controlUsedPlan:2, authLeader:5, actualLeader:4, actualOtherLeader:3, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:5},sectionLevel:{auth:0,actual:0}}, highlandPosts:0, postBreakdown:{admin:{auth:6,actual:5},tech:{auth:104,actual:98},logistics:{auth:35,actual:30}}, mgmtLevels:{'5':1,'6':2,'7':2,'8':1,'9':0,'10':0}, profLevels:{senior:{total:5,levels:{'3':1,'4':4}},vice:{total:25,levels:{'5':5,'6':10,'7':10}},middle:{total:48,levels:{'8':15,'9':18,'10':15}},junior:{total:26,levels:{'11':10,'12':10,'13':6}}}, laborLevels:{'1':1,'2':3,'3':5,'4':10,'5':12,'common':4}, status:'active', submittedAt:'2026-03-01', reviewedAt:'2026-03-05', reviewedBy:'市管理员', returnReason:'', updatedAt:'2026-03-05', updatedBy:'市管理员' },
-    '柳州市第二中学': { schoolName:'柳州市第二中学', district:'市直属', schoolType:'普通高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:95, careerActual:88, careerApprovedPlan:6, careerUsedPlan:4, controlQuota:18, controlActual:15, controlApprovedPlan:3, controlUsedPlan:2, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:5,actual:4},tech:{auth:80,actual:75},logistics:{auth:28,actual:24}}, mgmtLevels:{'5':1,'6':1,'7':1,'8':1,'9':1,'10':0}, profLevels:{senior:{total:2,levels:{'3':0,'4':2}},vice:{total:18,levels:{'5':3,'6':7,'7':8}},middle:{total:38,levels:{'8':12,'9':14,'10':12}},junior:{total:22,levels:{'11':8,'12':8,'13':6}}}, laborLevels:{'1':0,'2':2,'3':4,'4':8,'5':10,'common':4}, status:'active', submittedAt:'2026-03-10', reviewedAt:'2026-03-12', reviewedBy:'市管理员', returnReason:'', updatedAt:'2026-03-12', updatedBy:'市管理员' },
-    '柳州高级中学': { schoolName:'柳州高级中学', district:'市直属', schoolType:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:150, careerActual:142, careerApprovedPlan:8, careerUsedPlan:8, controlQuota:30, controlActual:26, controlApprovedPlan:5, controlUsedPlan:4, authLeader:6, actualLeader:5, actualOtherLeader:4, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:5},sectionLevel:{auth:6,actual:5}}, highlandPosts:0, postBreakdown:{admin:{auth:8,actual:7},tech:{auth:130,actual:125},logistics:{auth:42,actual:36}}, mgmtLevels:{'5':2,'6':2,'7':2,'8':1,'9':1,'10':0}, profLevels:{senior:{total:8,levels:{'3':2,'4':6}},vice:{total:35,levels:{'5':8,'6':12,'7':15}},middle:{total:55,levels:{'8':18,'9':20,'10':17}},junior:{total:32,levels:{'11':12,'12':12,'13':8}}}, laborLevels:{'1':1,'2':3,'3':6,'4':12,'5':14,'common':6}, status:'active', submittedAt:'2026-02-15', reviewedAt:'2026-02-20', reviewedBy:'市管理员', returnReason:'', updatedAt:'2026-02-20', updatedBy:'市管理员' },
-    '柳州市民族高中': { schoolName:'柳州市民族高中', district:'市直属', schoolType:'普通高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:72, careerActual:68, careerApprovedPlan:4, careerUsedPlan:3, controlQuota:12, controlActual:10, controlApprovedPlan:2, controlUsedPlan:2, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:4,actual:3},tech:{auth:60,actual:56},logistics:{auth:20,actual:19}}, mgmtLevels:{'5':0,'6':1,'7':1,'8':1,'9':1,'10':0}, profLevels:{senior:{total:1,levels:{'3':0,'4':1}},vice:{total:12,levels:{'5':2,'6':5,'7':5}},middle:{total:30,levels:{'8':10,'9':10,'10':10}},junior:{total:17,levels:{'11':6,'12':6,'13':5}}}, laborLevels:{'1':0,'2':1,'3':3,'4':6,'5':7,'common':3}, status:'active', submittedAt:'2026-04-01', reviewedAt:'2026-04-05', reviewedBy:'市管理员', returnReason:'', updatedAt:'2026-04-05', updatedBy:'市管理员' },
+    '柳州市第一中学': { schoolName:'柳州市第一中学', district:'市直属', schoolType:'普通高中', orgLevel:'正处级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:120, careerActual:108, careerApprovedPlan:8, careerUsedPlan:5, controlQuota:25, controlActual:20, controlApprovedPlan:4, controlUsedPlan:2, authLeader:5, actualLeader:4, actualOtherLeader:3, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:5},sectionLevel:{auth:0,actual:0}}, highlandPosts:0, postBreakdown:{admin:{auth:6,actual:5},tech:{auth:104,actual:98},logistics:{auth:35,actual:30}}, mgmtLevels:{'5':1,'6':2,'7':2,'8':1,'9':0,'10':0}, profLevels:{senior:{total:5,levels:{'3':1,'4':4}},vice:{total:25,levels:{'5':5,'6':10,'7':10}},middle:{total:48,levels:{'8':15,'9':18,'10':15}},junior:{total:26,levels:{'11':10,'12':10,'13':6}}}, laborLevels:{'1':1,'2':3,'3':5,'4':10,'5':12,'common':4}, status:'active', submittedAt:'2026-03-01', reviewedAt:'2026-03-05', reviewedBy:'张建国', returnReason:'', updatedAt:'2026-03-05', updatedBy:'市管理员' },
+    '柳州市第二中学': { schoolName:'柳州市第二中学', district:'市直属', schoolType:'普通高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:95, careerActual:88, careerApprovedPlan:6, careerUsedPlan:4, controlQuota:18, controlActual:15, controlApprovedPlan:3, controlUsedPlan:2, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:5,actual:4},tech:{auth:80,actual:75},logistics:{auth:28,actual:24}}, mgmtLevels:{'5':1,'6':1,'7':1,'8':1,'9':1,'10':0}, profLevels:{senior:{total:2,levels:{'3':0,'4':2}},vice:{total:18,levels:{'5':3,'6':7,'7':8}},middle:{total:38,levels:{'8':12,'9':14,'10':12}},junior:{total:22,levels:{'11':8,'12':8,'13':6}}}, laborLevels:{'1':0,'2':2,'3':4,'4':8,'5':10,'common':4}, status:'active', submittedAt:'2026-03-10', reviewedAt:'2026-03-12', reviewedBy:'张建国', returnReason:'', updatedAt:'2026-03-12', updatedBy:'市管理员' },
+    '柳州高级中学': { schoolName:'柳州高级中学', district:'市直属', schoolType:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:150, careerActual:142, careerApprovedPlan:8, careerUsedPlan:8, controlQuota:30, controlActual:26, controlApprovedPlan:5, controlUsedPlan:4, authLeader:6, actualLeader:5, actualOtherLeader:4, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:5},sectionLevel:{auth:6,actual:5}}, highlandPosts:0, postBreakdown:{admin:{auth:8,actual:7},tech:{auth:130,actual:125},logistics:{auth:42,actual:36}}, mgmtLevels:{'5':2,'6':2,'7':2,'8':1,'9':1,'10':0}, profLevels:{senior:{total:8,levels:{'3':2,'4':6}},vice:{total:35,levels:{'5':8,'6':12,'7':15}},middle:{total:55,levels:{'8':18,'9':20,'10':17}},junior:{total:32,levels:{'11':12,'12':12,'13':8}}}, laborLevels:{'1':1,'2':3,'3':6,'4':12,'5':14,'common':6}, status:'active', submittedAt:'2026-02-15', reviewedAt:'2026-02-20', reviewedBy:'张建国', returnReason:'', updatedAt:'2026-02-20', updatedBy:'市管理员' },
+    '柳州市民族高中': { schoolName:'柳州市民族高中', district:'市直属', schoolType:'普通高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:72, careerActual:68, careerApprovedPlan:4, careerUsedPlan:3, controlQuota:12, controlActual:10, controlApprovedPlan:2, controlUsedPlan:2, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:4,actual:3},tech:{auth:60,actual:56},logistics:{auth:20,actual:19}}, mgmtLevels:{'5':0,'6':1,'7':1,'8':1,'9':1,'10':0}, profLevels:{senior:{total:1,levels:{'3':0,'4':1}},vice:{total:12,levels:{'5':2,'6':5,'7':5}},middle:{total:30,levels:{'8':10,'9':10,'10':10}},junior:{total:17,levels:{'11':6,'12':6,'13':5}}}, laborLevels:{'1':0,'2':1,'3':3,'4':6,'5':7,'common':3}, status:'active', submittedAt:'2026-04-01', reviewedAt:'2026-04-05', reviewedBy:'张建国', returnReason:'', updatedAt:'2026-04-05', updatedBy:'市管理员' },
     '柳州市第八中学': { schoolName:'柳州市第八中学', district:'鱼峰区', schoolType:'初中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:88, careerActual:80, careerApprovedPlan:5, careerUsedPlan:4, controlQuota:16, controlActual:14, controlApprovedPlan:3, controlUsedPlan:1, authLeader:5, actualLeader:4, actualOtherLeader:3, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:5,actual:4}}, highlandPosts:0, postBreakdown:{admin:{auth:5,actual:4},tech:{auth:73,actual:68},logistics:{auth:26,actual:22}}, mgmtLevels:{'5':1,'6':2,'7':2,'8':0,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:15,levels:{'5':3,'6':6,'7':6}},middle:{total:38,levels:{'8':12,'9':14,'10':12}},junior:{total:20,levels:{'11':7,'12':7,'13':6}}}, laborLevels:{'1':0,'2':1,'3':3,'4':6,'5':8,'common':4}, status:'pending', submittedAt:'2026-06-14', reviewedAt:'', reviewedBy:'', returnReason:'', updatedAt:'2026-06-14', updatedBy:'柳州市第八中学' },
-    '柳州铁一中学': { schoolName:'柳州铁一中学', district:'市直属', schoolType:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'12450200498597851Y', city:'柳州市', careerQuota:628, careerActual:584, careerApprovedPlan:8, careerUsedPlan:6, controlQuota:30, controlActual:25, controlApprovedPlan:5, controlUsedPlan:3, authLeader:8, actualLeader:5, actualOtherLeader:0, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:5},sectionLevel:{auth:8,actual:5}}, highlandPosts:0, postBreakdown:{admin:{auth:10,actual:7},tech:{auth:580,actual:560},logistics:{auth:68,actual:42}}, mgmtLevels:{'5':2,'6':3,'7':3,'8':2,'9':0,'10':0}, profLevels:{senior:{total:20,levels:{'3':5,'4':15}},vice:{total:120,levels:{'5':30,'6':45,'7':45}},middle:{total:280,levels:{'8':90,'9':100,'10':90}},junior:{total:160,levels:{'11':60,'12':55,'13':45}}}, laborLevels:{'1':2,'2':4,'3':8,'4':18,'5':22,'common':14}, status:'active', submittedAt:'2026-01-10', reviewedAt:'2026-01-15', reviewedBy:'市管理员', returnReason:'', updatedAt:'2026-01-15', updatedBy:'市管理员' },
+    '柳州铁一中学': { schoolName:'柳州铁一中学', district:'市直属', schoolType:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'12450200498597851Y', city:'柳州市', careerQuota:628, careerActual:584, careerApprovedPlan:8, careerUsedPlan:6, controlQuota:30, controlActual:25, controlApprovedPlan:5, controlUsedPlan:3, authLeader:8, actualLeader:5, actualOtherLeader:0, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:5},sectionLevel:{auth:8,actual:5}}, highlandPosts:0, postBreakdown:{admin:{auth:10,actual:7},tech:{auth:580,actual:560},logistics:{auth:68,actual:42}}, mgmtLevels:{'5':2,'6':3,'7':3,'8':2,'9':0,'10':0}, profLevels:{senior:{total:20,levels:{'3':5,'4':15}},vice:{total:120,levels:{'5':30,'6':45,'7':45}},middle:{total:280,levels:{'8':90,'9':100,'10':90}},junior:{total:160,levels:{'11':60,'12':55,'13':45}}}, laborLevels:{'1':2,'2':4,'3':8,'4':18,'5':22,'common':14}, status:'active', submittedAt:'2026-01-10', reviewedAt:'2026-01-15', reviewedBy:'张建国', returnReason:'', updatedAt:'2026-01-15', updatedBy:'市管理员' },
     '柳州市第十三中学': { schoolName:'柳州市第十三中学', district:'鱼峰区', schoolType:'初中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:70, careerActual:65, careerApprovedPlan:4, careerUsedPlan:3, controlQuota:12, controlActual:10, controlApprovedPlan:2, controlUsedPlan:1, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:4,actual:3},tech:{auth:58,actual:54},logistics:{auth:20,actual:18}}, mgmtLevels:{'5':1,'6':1,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:12,levels:{'5':2,'6':5,'7':5}},middle:{total:30,levels:{'8':10,'9':10,'10':10}},junior:{total:16,levels:{'11':6,'12':5,'13':5}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':7,'common':3}, status:'pending', submittedAt:'2026-06-13', reviewedAt:'', reviewedBy:'', returnReason:'事业编制核定数请核实后重新提交', updatedAt:'2026-06-13', updatedBy:'柳州市第十三中学' },
-    '柳州市第二十五中学': { schoolName:'柳州市第二十五中学', district:'鱼峰区', schoolType:'初中', orgLevel:'副科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:55, careerActual:50, careerApprovedPlan:4, careerUsedPlan:4, controlQuota:8, controlActual:7, controlApprovedPlan:2, controlUsedPlan:2, authLeader:3, actualLeader:2, actualOtherLeader:1, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:3,actual:2}}, highlandPosts:0, postBreakdown:{admin:{auth:3,actual:2},tech:{auth:45,actual:42},logistics:{auth:15,actual:13}}, mgmtLevels:{'5':0,'6':1,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:8,levels:{'5':2,'6':3,'7':3}},middle:{total:22,levels:{'8':7,'9':8,'10':7}},junior:{total:15,levels:{'11':5,'12':5,'13':5}}}, laborLevels:{'1':0,'2':0,'3':2,'4':4,'5':5,'common':2}, status:'active', submittedAt:'2026-05-20', reviewedAt:'2026-05-25', reviewedBy:'鱼峰区管理员', returnReason:'', updatedAt:'2026-05-25', updatedBy:'鱼峰区管理员' },
-    '鱼峰区实验小学': { schoolName:'鱼峰区实验小学', district:'鱼峰区', schoolType:'小学', orgLevel:'副科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:60, careerActual:55, careerApprovedPlan:5, careerUsedPlan:5, controlQuota:10, controlActual:8, controlApprovedPlan:2, controlUsedPlan:1, authLeader:3, actualLeader:2, actualOtherLeader:1, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:3,actual:2}}, highlandPosts:0, postBreakdown:{admin:{auth:3,actual:2},tech:{auth:52,actual:48},logistics:{auth:15,actual:13}}, mgmtLevels:{'5':0,'6':1,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:8,levels:{'5':2,'6':3,'7':3}},middle:{total:28,levels:{'8':9,'9':10,'10':9}},junior:{total:16,levels:{'11':5,'12':6,'13':5}}}, laborLevels:{'1':0,'2':0,'3':1,'4':3,'5':5,'common':4}, status:'active', submittedAt:'2026-05-15', reviewedAt:'2026-05-18', reviewedBy:'鱼峰区管理员', returnReason:'', updatedAt:'2026-05-18', updatedBy:'鱼峰区管理员' },
-    '柳州市特色实验高中': { schoolName:'柳州市特色实验高中', district:'市直属', schoolType:'自治区特色高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:110, careerActual:102, careerApprovedPlan:6, careerUsedPlan:4, controlQuota:10, controlActual:8, controlApprovedPlan:3, controlUsedPlan:2, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:5,actual:4},tech:{auth:95,actual:88},logistics:{auth:20,actual:18}}, mgmtLevels:{'5':1,'6':1,'7':2,'8':1,'9':0,'10':0}, profLevels:{senior:{total:2,levels:{'3':0,'4':2}},vice:{total:20,levels:{'5':4,'6':8,'7':8}},middle:{total:48,levels:{'8':15,'9':18,'10':15}},junior:{total:25,levels:{'11':9,'12':8,'13':8}}}, laborLevels:{'1':0,'2':1,'3':3,'4':6,'5':6,'common':2}, status:'active', submittedAt:'2026-04-20', reviewedAt:'2026-04-25', reviewedBy:'市管理员', returnReason:'', updatedAt:'2026-04-25', updatedBy:'市管理员' },
-    '鱼峰区机关幼儿园': { schoolName:'鱼峰区机关幼儿园', district:'鱼峰区', schoolType:'幼儿园', orgLevel:'股级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:45, careerActual:40, careerApprovedPlan:3, careerUsedPlan:2, controlQuota:0, controlActual:0, controlApprovedPlan:0, controlUsedPlan:0, authLeader:2, actualLeader:1, actualOtherLeader:0, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:2,actual:1}}, highlandPosts:0, postBreakdown:{admin:{auth:2,actual:1},tech:{auth:38,actual:36},logistics:{auth:5,actual:3}}, mgmtLevels:{'5':0,'6':0,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:5,levels:{'5':1,'6':2,'7':2}},middle:{total:18,levels:{'8':6,'9':6,'10':6}},junior:{total:15,levels:{'11':5,'12':5,'13':5}}}, laborLevels:{'1':0,'2':0,'3':0,'4':1,'5':2,'common':0}, status:'active', submittedAt:'2026-04-10', reviewedAt:'2026-04-15', reviewedBy:'鱼峰区管理员', returnReason:'', updatedAt:'2026-04-15', updatedBy:'鱼峰区管理员' },
+    '柳州市第二十五中学': { schoolName:'柳州市第二十五中学', district:'鱼峰区', schoolType:'初中', orgLevel:'副科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:55, careerActual:50, careerApprovedPlan:4, careerUsedPlan:4, controlQuota:8, controlActual:7, controlApprovedPlan:2, controlUsedPlan:2, authLeader:3, actualLeader:2, actualOtherLeader:1, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:3,actual:2}}, highlandPosts:0, postBreakdown:{admin:{auth:3,actual:2},tech:{auth:45,actual:42},logistics:{auth:15,actual:13}}, mgmtLevels:{'5':0,'6':1,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:8,levels:{'5':2,'6':3,'7':3}},middle:{total:22,levels:{'8':7,'9':8,'10':7}},junior:{total:15,levels:{'11':5,'12':5,'13':5}}}, laborLevels:{'1':0,'2':0,'3':2,'4':4,'5':5,'common':2}, status:'active', submittedAt:'2026-05-20', reviewedAt:'2026-05-25', reviewedBy:'李振华', returnReason:'', updatedAt:'2026-05-25', updatedBy:'鱼峰区管理员' },
+    '鱼峰区实验小学': { schoolName:'鱼峰区实验小学', district:'鱼峰区', schoolType:'小学', orgLevel:'副科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:60, careerActual:55, careerApprovedPlan:5, careerUsedPlan:5, controlQuota:10, controlActual:8, controlApprovedPlan:2, controlUsedPlan:1, authLeader:3, actualLeader:2, actualOtherLeader:1, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:3,actual:2}}, highlandPosts:0, postBreakdown:{admin:{auth:3,actual:2},tech:{auth:52,actual:48},logistics:{auth:15,actual:13}}, mgmtLevels:{'5':0,'6':1,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:8,levels:{'5':2,'6':3,'7':3}},middle:{total:28,levels:{'8':9,'9':10,'10':9}},junior:{total:16,levels:{'11':5,'12':6,'13':5}}}, laborLevels:{'1':0,'2':0,'3':1,'4':3,'5':5,'common':4}, status:'active', submittedAt:'2026-05-15', reviewedAt:'2026-05-18', reviewedBy:'李振华', returnReason:'', updatedAt:'2026-05-18', updatedBy:'鱼峰区管理员' },
+    '柳州市特色实验高中': { schoolName:'柳州市特色实验高中', district:'市直属', schoolType:'自治区特色高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:110, careerActual:102, careerApprovedPlan:6, careerUsedPlan:4, controlQuota:10, controlActual:8, controlApprovedPlan:3, controlUsedPlan:2, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:5,actual:4},tech:{auth:95,actual:88},logistics:{auth:20,actual:18}}, mgmtLevels:{'5':1,'6':1,'7':2,'8':1,'9':0,'10':0}, profLevels:{senior:{total:2,levels:{'3':0,'4':2}},vice:{total:20,levels:{'5':4,'6':8,'7':8}},middle:{total:48,levels:{'8':15,'9':18,'10':15}},junior:{total:25,levels:{'11':9,'12':8,'13':8}}}, laborLevels:{'1':0,'2':1,'3':3,'4':6,'5':6,'common':2}, status:'active', submittedAt:'2026-04-20', reviewedAt:'2026-04-25', reviewedBy:'张建国', returnReason:'', updatedAt:'2026-04-25', updatedBy:'市管理员' },
+    '鱼峰区机关幼儿园': { schoolName:'鱼峰区机关幼儿园', district:'鱼峰区', schoolType:'幼儿园', orgLevel:'股级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:45, careerActual:40, careerApprovedPlan:3, careerUsedPlan:2, controlQuota:0, controlActual:0, controlApprovedPlan:0, controlUsedPlan:0, authLeader:2, actualLeader:1, actualOtherLeader:0, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:2,actual:1}}, highlandPosts:0, postBreakdown:{admin:{auth:2,actual:1},tech:{auth:38,actual:36},logistics:{auth:5,actual:3}}, mgmtLevels:{'5':0,'6':0,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:5,levels:{'5':1,'6':2,'7':2}},middle:{total:18,levels:{'8':6,'9':6,'10':6}},junior:{total:15,levels:{'11':5,'12':5,'13':5}}}, laborLevels:{'1':0,'2':0,'3':0,'4':1,'5':2,'common':0}, status:'active', submittedAt:'2026-04-10', reviewedAt:'2026-04-15', reviewedBy:'李振华', returnReason:'', updatedAt:'2026-04-15', updatedBy:'鱼峰区管理员' },
     // Draft schools (待提交)
     '柳州市第三中学': { schoolName:'柳州市第三中学', district:'市直属', schoolType:'普通高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:68, careerActual:62, careerApprovedPlan:3, careerUsedPlan:2, controlQuota:10, controlActual:8, controlApprovedPlan:2, controlUsedPlan:1, authLeader:4, actualLeader:3, actualOtherLeader:1, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:4,actual:3},tech:{auth:55,actual:50},logistics:{auth:19,actual:17}}, mgmtLevels:{'5':1,'6':1,'7':1,'8':1,'9':0,'10':0}, profLevels:{senior:{total:1,levels:{'3':0,'4':1}},vice:{total:12,levels:{'5':2,'6':5,'7':5}},middle:{total:28,levels:{'8':9,'9':10,'10':9}},junior:{total:14,levels:{'11':5,'12':5,'13':4}}}, laborLevels:{'1':0,'2':1,'3':3,'4':5,'5':6,'common':2}, status:'pending', submittedAt:'', reviewedAt:'', reviewedBy:'', returnReason:'', updatedAt:'2026-06-10', updatedBy:'柳州市第三中学' },
     '柳州市第六中学': { schoolName:'柳州市第六中学', district:'鱼峰区', schoolType:'普通高中', orgLevel:'正科级', orgNature:'事业单位', fundType:'全额拨款', creditCode:'', city:'柳州市', careerQuota:75, careerActual:70, careerApprovedPlan:4, careerUsedPlan:3, controlQuota:12, controlActual:10, controlApprovedPlan:2, controlUsedPlan:1, authLeader:4, actualLeader:3, actualOtherLeader:2, leaderBreakdown:{deptLevel:{auth:0,actual:0},divisionLevel:{auth:0,actual:0},sectionLevel:{auth:4,actual:3}}, highlandPosts:0, postBreakdown:{admin:{auth:5,actual:4},tech:{auth:62,actual:58},logistics:{auth:20,actual:18}}, mgmtLevels:{'5':1,'6':1,'7':2,'8':1,'9':0,'10':0}, profLevels:{senior:{total:1,levels:{'3':0,'4':1}},vice:{total:14,levels:{'5':3,'6':5,'7':6}},middle:{total:32,levels:{'8':10,'9':12,'10':10}},junior:{total:15,levels:{'11':5,'12':5,'13':5}}}, laborLevels:{'1':0,'2':1,'3':3,'4':5,'5':7,'common':2}, status:'pending', submittedAt:'', reviewedAt:'', reviewedBy:'', returnReason:'', updatedAt:'2026-06-12', updatedBy:'柳州市第六中学' },
@@ -258,6 +294,11 @@ function mergeDemoData() {
   var changed = false;
   Object.keys(demos).forEach(function(k) {
     if (!allLedgers[k]) { allLedgers[k] = demos[k]; changed = true; }
+    // Backfill returnReason for existing pending schools
+    else if (demos[k].returnReason && !allLedgers[k].returnReason && allLedgers[k].status === 'pending') {
+      allLedgers[k].returnReason = demos[k].returnReason;
+      changed = true;
+    }
   });
   if (changed) { saveLedgers(); }
   ensureSchoolIds();
@@ -270,7 +311,7 @@ function backfillAllChangeLogs() {
     if (!d.changeLog) d.changeLog = [];
     if (d.changeLog.length > 0) return;
     if (d.submittedAt) {
-      d.changeLog.push({ type:'submit', time:d.submittedAt+' 00:00:00', operator:d.schoolName||'', action:'学校提交申报' });
+      d.changeLog.push({ type:'submit', time:d.submittedAt+' 00:00:00', operator:d.schoolName||'', action:'提交申报' });
     }
     if (d.returnReason) {
       d.changeLog.push({ type:'return', time:(d.updatedAt||d.submittedAt||'')+' 00:00:00', operator:d.updatedBy||d.reviewedBy||'', action:'退回修改', reason:d.returnReason });
@@ -299,7 +340,7 @@ function ensureSchoolIds() {
     var needsNew = !d.schoolId || d.schoolId.indexOf('SCH-') === 0 || d.schoolId.indexOf('gxlj-') !== 0;
     if (needsNew) {
       regionCounters[prefix]++;
-      d.schoolId = prefix + '-' + String(regionCounters[prefix]).padStart(3, '0');
+      d.schoolId = prefix + '-' + String(regionCounters[prefix]).padStart(3, '');
       changed = true;
     } else {
       // Track max existing number for this region
@@ -333,12 +374,12 @@ var ICONS = {
   key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
   list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
 };
-var MENU_ICONS = { workbench:'home', ledger:'chart', entry:'userp', staffing:'monitor', exit:'userx', promote:'arrowup', postset:'shield', recruit:'search', employ:'file', retire:'clock', salary:'dollar', ethics:'warn', honor:'star', account:'users', org:'building', perm:'key', log:'list' };
+var MENU_ICONS = { workbench:'home', ledger:'chart', entry:'userp', staffing:'monitor', exit:'userx', promote:'arrowup', postset:'shield', recruit:'search', employ:'file', retire:'clock', ethics:'warn', account:'users', org:'building', perm:'key', log:'list' };
 var ROLES = {
-  city: { name:'张建国', short:'市', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:3},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:5},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'},{id:'perm',label:'角色权限'},{id:'log',label:'操作日志'}]}]}},
-  district: { name:'李振华', short:'区', district:'鱼峰区', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:1},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:3},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'}]}]}},
-  school: { name:'王玉兰', short:'校', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'salary',label:'工资核定申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'}]}]}},
-  teacher: { name:'陈明辉', short:'师', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'},{id:'honor',label:'荣誉申请'}]}]}}
+  city: { name:'张建国', short:'市', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:3},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:5},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'},{id:'perm',label:'角色权限'},{id:'log',label:'操作日志'}]}]}},
+  district: { name:'李振华', short:'区', district:'鱼峰区', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:1},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:3},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  school: { name:'王玉兰', short:'校', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  teacher: { name:'陈明辉', short:'师', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'}]}]}}
 };
 
 // ===== SIDEBAR =====
@@ -378,10 +419,10 @@ function sidebarClick(el, id) {
   else if (id === 'promote') { window.location.href = 'promote-list-admin.html'; }
   else if (id === 'recruit') { window.location.href = 'recruit-list-admin.html'; }
   else if (id === 'employ') { window.location.href = 'employ-list-admin.html'; }
+  else if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; }
+  else if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; }
   else if (id === 'retire') { showToast('跳转至：退休呈报'); }
-  else if (id === 'salary') { showToast('跳转至：工资核定申请'); }
   else if (id === 'ethics') { showToast('跳转至：师德师风举报'); }
-  else if (id === 'honor') { showToast('跳转至：荣誉申请'); }
   else if (id === 'account') { window.location.href = 'account-management.html'; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
   else { showToast('跳转至：' + el.textContent.trim()); }
@@ -406,10 +447,12 @@ function toggleSidebar() {
 
 // ===== COMPUTED =====
 function getComputed(d) {
+  var careerAgg = LPU.computeAggregates(d.careerPlans || []);
+  var controlAgg = LPU.computeAggregates(d.controlPlans || []);
   var careerUnusedPlan = d.careerApprovedPlan - d.careerUsedPlan;
-  var careerAvailable = d.careerQuota - d.careerActual - d.careerApprovedPlan;
+  var careerAvailable = d.careerQuota - d.careerActual - d.careerApprovedPlan - (careerAgg.expiredOccupiedPlan || 0);
   var controlUnusedPlan = d.controlApprovedPlan - d.controlUsedPlan;
-  var controlAvailable = d.controlQuota - d.controlActual - d.controlApprovedPlan;
+  var controlAvailable = d.controlQuota - d.controlActual - d.controlApprovedPlan - (controlAgg.expiredOccupiedPlan || 0);
   var totalControlQuota = d.careerQuota + d.controlQuota;
   var totalPosts = totalControlQuota - (d.highlandPosts || 0);
   return {
@@ -448,9 +491,13 @@ function renderList() {
     filteredLedgers = filteredLedgers.filter(function(d) { return d.district === userDistrict; });
   }
   if (filterStatus === 'pending') {
-    filteredLedgers = filteredLedgers.filter(function(d) { return d.status === 'pending' && d.submittedAt; });
+    filteredLedgers = filteredLedgers.filter(function(d) { return d.status === 'pending' && d.submittedAt && !d.returnReason; });
+  } else if (filterStatus === 'rejected') {
+    filteredLedgers = filteredLedgers.filter(function(d) { return d.status === 'pending' && d.submittedAt && d.returnReason; });
   } else if (filterStatus === 'active') {
     filteredLedgers = filteredLedgers.filter(function(d) { return d.status === 'active'; });
+  } else if (filterStatus === 'all') {
+    filteredLedgers = filteredLedgers.filter(function(d) { return d.submittedAt; });
   } else if (filterStatus === 'draft') {
     // Include schools without ledger data
     var existingNames = {};
@@ -487,6 +534,7 @@ function renderList() {
   h += '<div class="filter-tabs">';
   h += '<button class="filter-tab' + (filterStatus==='all'?' active':'') + '" onclick="filterStatus=\'all\';currentPage=1;renderList()">全部</button>';
   h += '<button class="filter-tab' + (filterStatus==='pending'?' active':'') + '" onclick="filterStatus=\'pending\';currentPage=1;renderList()">待审核</button>';
+  h += '<button class="filter-tab' + (filterStatus==='rejected'?' active':'') + '" onclick="filterStatus=\'rejected\';currentPage=1;renderList()">已驳回</button>';
   h += '<button class="filter-tab' + (filterStatus==='active'?' active':'') + '" onclick="filterStatus=\'active\';currentPage=1;renderList()">已生效</button>';
   h += '<button class="filter-tab' + (filterStatus==='draft'?' active':'') + '" onclick="filterStatus=\'draft\';currentPage=1;renderList()">待提交</button>';
   h += '</div>';
@@ -512,14 +560,16 @@ function renderList() {
   if (filterStatus === 'draft') {
     // Draft view: simplified 5-column table
     h += '<thead><tr>';
-    h += '<th style="width:100px;">学校编号</th><th style="width:160px;text-align:left;">学校名称</th><th style="width:80px;">所属区域</th><th style="width:80px;">最近提醒</th><th style="width:90px;">操作</th>';
+    h += '<th style="width:40px;">序号</th><th style="width:100px;">学校编号</th><th style="width:160px;text-align:left;">学校名称</th><th style="width:80px;">所属区域</th><th style="width:80px;">最近提醒</th><th style="width:90px;">操作</th>';
     h += '</tr></thead><tbody>';
     var today = new Date().toISOString().split('T')[0];
-    pageData.forEach(function(d) {
+    pageData.forEach(function(d, idx) {
       var isNew = d.status === 'none';
       var remindedToday = d.lastRemindDate === today;
       h += '<tr>';
-      h += '<td class="col-id">' + (d.schoolId || '—') + '</td>';
+      h += '<td style="color:var(--text-light);">' + (startIdxI + idx + 1) + '</td>';
+      var oi3 = getOrgInfo(d.schoolName);
+      h += '<td class="col-id">' + (oi3 ? oi3.orgId : (d.schoolId || '—')) + '</td>';
       h += '<td class="col-name">' + escapeHtml(d.schoolName) + '</td>';
       h += '<td style="text-align:center;">' + escapeHtml(d.district) + '</td>';
       h += '<td style="text-align:center;font-size:12px;color:var(--text-secondary);">' + (d.lastRemindDate ? d.lastRemindDate.substring(5) : '—') + '</td>';
@@ -537,26 +587,29 @@ function renderList() {
   } else {
     // Standard 13-column table
     h += '<thead><tr>';
-    h += '<th>学校编号</th><th>学校名称</th><th>所属区域</th><th>学校类型</th><th>机构级别</th>';
-    h += '<th>核定编制数</th><th>实有在编人数</th><th>核定控制数</th><th>实有控制数</th><th>岗位总量</th>';
+    h += '<th>序号</th><th>单位编号</th><th>单位名称</th><th>所属区域</th><th>学校类型</th><th>单位级别</th>';
+    h += '<th>事业编核定数</th><th>实有在编人数</th><th>控制数核定数</th><th>实有控制数</th><th>岗位总量</th>';
     h += '<th>提交时间</th><th>状态</th><th>操作</th>';
     h += '</tr></thead><tbody>';
 
-    pageData.forEach(function(d) {
+    pageData.forEach(function(d, idx) {
       var comp = getComputed(d);
       var isDraft = !d.submittedAt;
       var status = d.status || 'active';
       var statusLabel, statusCls;
       if (isDraft) { statusLabel = '待提交'; statusCls = 'none'; }
+      else if (status === 'pending' && d.returnReason) { statusLabel = '已驳回'; statusCls = 'rejected'; }
       else if (status === 'pending') { statusLabel = '待审核'; statusCls = 'pending'; }
       else { statusLabel = '已生效'; statusCls = 'active'; }
 
     h += '<tr>';
-    h += '<td class="col-id">' + escapeHtml(d.schoolId||'—') + '</td>';
+    h += '<td style="color:var(--text-light);">' + (startIdxI + idx + 1) + '</td>';
+    var oi2 = getOrgInfo(d.schoolName);
+    h += '<td class="col-id">' + escapeHtml(oi2 ? oi2.orgId : (d.schoolId||'—')) + '</td>';
     h += '<td class="col-name">' + escapeHtml(d.schoolName) + '</td>';
     h += '<td>' + escapeHtml(d.district) + '</td>';
-    h += '<td>' + escapeHtml(d.schoolType) + '</td>';
-    h += '<td>' + escapeHtml(d.orgLevel) + '</td>';
+    h += '<td>' + escapeHtml(oi2 ? oi2.schoolType : d.schoolType) + '</td>';
+    h += '<td>' + escapeHtml(oi2 ? oi2.orgLevel : d.orgLevel) + '</td>';
     h += '<td class="col-num">' + d.careerQuota + '</td>';
     h += '<td class="col-num">' + d.careerActual + '</td>';
     h += '<td class="col-num">' + d.controlQuota + '</td>';
@@ -567,10 +620,17 @@ function renderList() {
     h += '<td class="col-action"><div class="action-links">';
     if (isDraft) {
       h += '<a class="action-link" href="org-ledger-detail.html?school=' + encodeURIComponent(d.schoolName) + '&mode=view">查看</a>';
-    } else if (status === 'pending') {
-      h += '<a class="action-link" href="org-ledger-detail.html?school=' + encodeURIComponent(d.schoolName) + '&mode=review">审核</a>';
+    } else if (status === 'pending' && !d.returnReason) {
+      h += '<a class="action-link" href="org-ledger-detail.html?school=' + encodeURIComponent(d.schoolName) + '&mode=view">查看</a>';
+      var canReviewLedger = true;
+      if (currentUser.role === 'district' && d.district !== (currentUser.district || '')) canReviewLedger = false;
+      if (currentUser.role === 'city' && d.district !== '市直属') canReviewLedger = false;
+      if (canReviewLedger) {
+        h += '<a class="action-link" href="org-ledger-detail.html?school=' + encodeURIComponent(d.schoolName) + '&mode=review">审核</a>';
+      }
+    } else if (status === 'pending' && d.returnReason) {
+      h += '<a class="action-link" href="org-ledger-detail.html?school=' + encodeURIComponent(d.schoolName) + '&mode=view">查看</a>';
     } else {
-      h += '<a class="action-link" href="org-ledger-detail.html?school=' + encodeURIComponent(d.schoolName) + '&mode=edit">编辑</a>';
       h += '<a class="action-link" href="org-ledger-detail.html?school=' + encodeURIComponent(d.schoolName) + '&mode=view">查看</a>';
     }
     h += '</div></td>';
@@ -650,6 +710,8 @@ function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function escapeHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escapeAttr(s) { if (!s) return ''; return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 function showToast(msg, type) {
   var t = document.getElementById('toast');
   t.textContent = msg;
@@ -660,6 +722,274 @@ function showToast(msg, type) {
 function logout() {
   localStorage.removeItem('currentUser');
   window.location.href = 'index.html';
+}
+
+// ===== BACKFILL DEMO PLANS =====
+function backfillDemoPlans(allLedgers) {
+  if (!LPU || !LDM) return;
+  var changed = false;
+
+  function makeOnlinePlan(track, batchId, subId, approved, used, validEnd) {
+    return LPU.createPlanRecord({
+      track: track, source: 'online',
+      sourceBatchId: batchId, sourceSubmissionId: subId,
+      approvedCount: approved,
+      usedCount: used,
+      validStart: '2026-01-01', validEnd: validEnd || '2026-12-31',
+      createdBy: '系统', notes: ''
+    });
+  }
+
+  function makeOfflinePlan(track, docNo, approved, adjusted, used, validEnd, notes) {
+    var p = LPU.createPlanRecord({
+      track: track, source: 'offline',
+      offlineDocNo: docNo,
+      approvedCount: approved,
+      usedCount: used || 0,
+      validStart: (docNo.match(/\[(\d{4})\]/)||[])[1] ? (docNo.match(/\[(\d{4})\]/)[1]+'-01-01') : '2025-01-01', validEnd: (validEnd && validEnd.length >= 4) ? validEnd : ((docNo.match(/\[(\d{4})\]/)||[])[1] ? (parseInt(docNo.match(/\[(\d{4})\]/)[1])+1)+'-12-31' : '2025-12-31'),
+      attachment: { name: docNo.replace(/[\\/:*?"<>|]/g,'_') + '.pdf', size: 156000 + Math.floor(Math.random()*500000), type: 'application/pdf' },
+      createdBy: '校管理员', notes: notes || ''
+    });
+    return p;
+  }
+
+  // 柳州铁一中学（核减 + 线下补录）
+  var ty = allLedgers['柳州铁一中学'];
+  if (ty && (!ty.careerPlans || ty.careerPlans.length === 0)) {
+    ty.careerPlans = [
+      (function() {
+        var p = makeOnlinePlan('C', 'B2025-003', 'S20250315001', 6, 4, '2026-12-31');
+        p.occupiedCount = 2; // 聘用核减2人，释放占用
+        p.notes = '聘用(EMP20260320001)核减2人(语文教师:报名不足),依据:柳人社[2026]15号';
+        p.linkedEmployIds = ['EMP20260320001'];
+        LPU.refreshStatus(p); return p;
+      })(),
+      (function() {
+        var p = makeOfflinePlan('C', '柳编办[2025]15号', 4, 4, 2, '', '线下批复，用于2025年度教师招聘补员');
+        LPU.refreshStatus(p); return p;
+      })(),
+      (function() {
+        var p = makeOfflinePlan('C', '柳编办[2024]08号', 2, 2, 0, '', '线下批复，2025-12-31到期未使用');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    ty.controlPlans = [
+      (function() {
+        var p = makeOnlinePlan('K', 'B2025-003', 'S20250315002', 3, 2, '2026-12-31');
+        p.notes = '聘用(EMP20260320002)已占用1人:赵六-体检复查中，预计2026-09办理';
+        p.linkedEmployIds = ['EMP20260320002'];
+        LPU.refreshStatus(p); return p;
+      })(),
+      (function() {
+        var p = makeOfflinePlan('K', '柳编办[2025]18号', 2, 2, 1, '', '线下控制数批复');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+
+  // 鱼峰区机关幼儿园（含已到期计划）
+  var yf = allLedgers['鱼峰区机关幼儿园'];
+  if (yf && (!yf.careerPlans || yf.careerPlans.length === 0)) {
+    yf.careerPlans = [
+      makeOnlinePlan('C', 'B2026-009', 'S20260410001', 2, 2, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('C', '柳编办[2024]08号', 1, 1, 0, '', '线下批复，已到期未使用');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+
+  // 柳州市第十三中学（差额待补录）
+  var ss = allLedgers['柳州市第十三中学'];
+  if (ss && (!ss.careerPlans || ss.careerPlans.length === 0)) {
+    ss.careerPlans = [
+      makeOnlinePlan('C', 'B2026-006', 'S20260520001', 3, 3, '2026-12-31')
+    ];
+    ss._pendingBackfill = { career: 1, control: 2 };
+    ss.controlPlans = [];
+    changed = true;
+  }
+
+  // 柳州市第一中学
+  var yz = allLedgers['柳州市第一中学'];
+  if (yz && (!yz.careerPlans || yz.careerPlans.length === 0)) {
+    yz.careerPlans = [
+      makeOnlinePlan('C', 'B2026-001', 'S20260301001', 8, 5, '2026-12-31')
+    ];
+    yz.controlPlans = [
+      makeOnlinePlan('K', 'B2026-001', 'S20260301002', 2, 1, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('K', '柳编办[2025]20号', 2, 2, 1, '', '将于2026-06-30到期');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+
+  // 柳州高级中学（已用完）
+  var lg = allLedgers['柳州高级中学'];
+  if (lg && (!lg.careerPlans || lg.careerPlans.length === 0)) {
+    lg.careerPlans = [makeOnlinePlan('C', 'B2026-003', 'S20260201001', 8, 8, '2026-12-31')];
+    lg.controlPlans = [
+      makeOnlinePlan('K', 'B2026-003', 'S20260201002', 3, 3, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('K', '柳编办[2025]22号', 2, 2, 1, '');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+
+  // ===== 柳州市第八中学 =====
+  var lb = allLedgers['柳州市第八中学'];
+  if (lb && (!lb.careerPlans || lb.careerPlans.length === 0)) {
+    lb.careerPlans = [
+      makeOnlinePlan('C', 'B2026-005', 'S20260614001', 3, 2, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('C', '柳编办[2025]12号', 2, 2, 2, '', '线下批复，已全部入编');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    lb.controlPlans = [
+      makeOnlinePlan('K', 'B2026-005', 'S20260614002', 2, 1, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('K', '柳编办[2025]25号', 1, 1, 0, '', '线下控制数批复，未使用');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+  // ===== 柳州市第二中学 =====
+  var lz = allLedgers['柳州市第二中学'];
+  if (lz && (!lz.careerPlans || lz.careerPlans.length === 0)) {
+    lz.careerPlans = [
+      makeOnlinePlan('C', 'B2026-002', 'S20260310001', 4, 3, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('C', '柳编办[2025]09号', 2, 2, 1, '', '线下批复');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    lz.controlPlans = [
+      makeOnlinePlan('K', 'B2026-002', 'S20260310002', 2, 1, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('K', '柳编办[2025]26号', 1, 1, 1, '', '线下控制数批复');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+  // ===== 鱼峰区实验小学 =====
+  var sy = allLedgers['鱼峰区实验小学'];
+  if (sy && (!sy.careerPlans || sy.careerPlans.length === 0)) {
+    sy.careerPlans = [
+      makeOnlinePlan('C', 'B2026-007', 'S20260515001', 4, 4, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('C', '柳编办[2025]16号', 1, 1, 1, '', '即将到期，请尽快安排');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    sy.controlPlans = [
+      makeOnlinePlan('K', 'B2026-007', 'S20260515002', 1, 1, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('K', '柳编办[2025]27号', 1, 1, 0, '', '线下控制数批复，1人已占用');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+  // ===== 柳州市特色实验高中 =====
+  var ts = allLedgers['柳州市特色实验高中'];
+  if (ts && (!ts.careerPlans || ts.careerPlans.length === 0)) {
+    ts.careerPlans = [
+      makeOnlinePlan('C', 'B2026-008', 'S20260420001', 4, 3, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('C', '柳编办[2025]19号', 2, 2, 1, '', '线下批复');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    ts.controlPlans = [
+      makeOnlinePlan('K', 'B2026-008', 'S20260420002', 2, 1, '2026-12-31'),
+      (function() {
+        var p = makeOfflinePlan('K', '柳编办[2025]28号', 1, 1, 1, '', '线下控制数批复');
+        LPU.refreshStatus(p); return p;
+      })()
+    ];
+    changed = true;
+  }
+  // 柳州市第一中学：补充线下事业编
+  var yzC = allLedgers['柳州市第一中学'];
+  if (yzC && yzC.careerPlans && yzC.careerPlans.length === 1) {
+    yzC.careerPlans.push((function() { var p = makeOfflinePlan('C','柳编办[2025]05号',2,2,1,0,'2026-12-31','线下批复'); LPU.refreshStatus(p); return p; })());
+    changed = true;
+  }
+  // 柳州高级中学：补充线下事业编
+  var lgC = allLedgers['柳州高级中学'];
+  if (lgC && lgC.careerPlans && lgC.careerPlans.length === 1) {
+    lgC.careerPlans.push((function() { var p = makeOfflinePlan('C','柳编办[2025]06号',3,3,2,0,'2026-12-31','线下批复'); LPU.refreshStatus(p); return p; })());
+    changed = true;
+  }
+  // 柳州市第十三中学：补录差额
+  var ssP = allLedgers['柳州市第十三中学'];
+  if (ssP && ssP._pendingBackfill) {
+    if (ssP._pendingBackfill.career) ssP.careerPlans.push((function() { var p = makeOfflinePlan('C','柳编办[2025]07号',1,1,0,0,'2026-12-31','线下批复'); LPU.refreshStatus(p); return p; })());
+    if (ssP._pendingBackfill.control) { ssP.controlPlans = ssP.controlPlans || []; ssP.controlPlans.push((function() { var p = makeOfflinePlan('K','柳编办[2025]29号',2,2,1,0,'2026-12-31','线下控制数批复'); LPU.refreshStatus(p); return p; })()); }
+    delete ssP._pendingBackfill;
+    changed = true;
+  }
+  // 柳州市民族高中
+  var mz = allLedgers['柳州市民族高中'];
+  if (mz && (!mz.careerPlans || mz.careerPlans.length === 0)) {
+    mz.careerPlans = [makeOnlinePlan('C','B2026-004','S20260401001',3,2,'2026-12-31'), (function() { var p = makeOfflinePlan('C','柳编办[2025]10号',1,1,1,0,'2026-06-30','即将到期'); LPU.refreshStatus(p); return p; })()];
+    mz.controlPlans = [makeOnlinePlan('K','B2026-004','S20260401002',1,1,'2026-12-31'), (function() { var p = makeOfflinePlan('K','柳编办[2025]30号',1,1,1,0,'2026-12-31','全部已用'); LPU.refreshStatus(p); return p; })()];
+    changed = true;
+  }
+  // 柳州市第二十五中学
+  var esw = allLedgers['柳州市第二十五中学'];
+  if (esw && (!esw.careerPlans || esw.careerPlans.length === 0)) {
+    esw.careerPlans = [makeOnlinePlan('C','B2025-004','S20250520001',3,3,'2026-12-31'), (function() { var p = makeOfflinePlan('C','柳编办[2025]11号',1,1,1,0,'2026-12-31','全部已用'); LPU.refreshStatus(p); return p; })()];
+    esw.controlPlans = [makeOnlinePlan('K','B2025-004','S20250520002',1,1,'2026-12-31'), (function() { var p = makeOfflinePlan('K','柳编办[2025]31号',1,1,1,0,'2026-12-31','全部已用'); LPU.refreshStatus(p); return p; })()];
+    changed = true;
+  }
+  // 柳州市第三中学（待提交）
+  var l3 = allLedgers['柳州市第三中学'];
+  if (l3 && (!l3.careerPlans || l3.careerPlans.length === 0)) {
+    l3.careerPlans = [makeOnlinePlan('C','B2026-010','S20260610001',2,2,'2026-12-31'), (function() { var p = makeOfflinePlan('C','柳编办[2025]13号',1,1,0,0,'2026-12-31','未使用'); LPU.refreshStatus(p); return p; })()];
+    l3.controlPlans = [makeOnlinePlan('K','B2026-010','S20260610002',1,1,'2026-12-31'), (function() { var p = makeOfflinePlan('K','柳编办[2025]32号',1,1,0,0,'2026-12-31','未使用'); LPU.refreshStatus(p); return p; })()];
+    changed = true;
+  }
+  // 柳州市第六中学（待提交）
+  var l6 = allLedgers['柳州市第六中学'];
+  if (l6 && (!l6.careerPlans || l6.careerPlans.length === 0)) {
+    l6.careerPlans = [makeOnlinePlan('C','B2026-011','S20260612001',3,2,'2026-12-31'), (function() { var p = makeOfflinePlan('C','柳编办[2025]14号',1,1,1,0,'2026-07-31','即将到期'); LPU.refreshStatus(p); return p; })()];
+    l6.controlPlans = [makeOnlinePlan('K','B2026-011','S20260612002',1,1,'2026-12-31'), (function() { var p = makeOfflinePlan('K','柳编办[2025]33号',1,1,0,0,'2026-12-31','未使用'); LPU.refreshStatus(p); return p; })()];
+    changed = true;
+  }
+  // 城中区实验小学（待提交）
+  var cx = allLedgers['城中区实验小学'];
+  if (cx && (!cx.careerPlans || cx.careerPlans.length === 0)) {
+    cx.careerPlans = [makeOnlinePlan('C','B2026-012','S20260614001',2,1,'2026-12-31'), (function() { var p = makeOfflinePlan('C','柳编办[2025]17号',1,1,1,0,'2026-12-31','全部已用'); LPU.refreshStatus(p); return p; })()];
+    cx.controlPlans = [makeOnlinePlan('K','B2026-012','S20260614002',1,1,'2026-12-31'), (function() { var p = makeOfflinePlan('K','柳编办[2025]34号',1,1,0,0,'2026-12-31','未使用'); LPU.refreshStatus(p); return p; })()];
+    changed = true;
+  }
+
+  if (changed) {
+    Object.keys(allLedgers).forEach(function(k) {
+      if (allLedgers[k].careerPlans && allLedgers[k].careerPlans.length > 0) {
+        LDM.syncAggregatesFromPlans(allLedgers[k]);
+      }
+    });
+    saveLedgers();
+  }
+}
+
+// ===== RESET =====
+function resetLedgerData() {
+  if (!confirm('确认重置台账数据？\n\n此操作将清除本地存储的编制岗位台账数据，并重新生成Demo数据。\n所有手动补录的计划记录将丢失。')) return;
+  localStorage.removeItem('org_ledger');
+  showToast('台账数据已重置，正在重新加载...', 'success');
+  setTimeout(function() { location.reload(); }, 500);
 }
 
 // ===== INIT =====

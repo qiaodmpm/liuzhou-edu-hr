@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角色权限管理 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-user { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.7); transition: var(--transition); text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.page-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+.page-header h1 { font-size: 20px; font-weight: 700; }
+.card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.list-table th { background: #F8FAFC; padding: 10px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.list-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tr:hover { background: #FAFBFC; }
+.list-table .col-name { text-align: left; font-weight: 500; }
+.status-tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.status-active { background: #D1FAE5; color: #065F46; }
+.status-inactive { background: #F1F5F9; color: #94A3B8; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; }
+.btn-xs-primary { background: var(--primary); color: #fff; }
+.btn-xs-primary:hover { background: var(--primary-dark); }
+.btn-xs-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-xs-outline:hover { background: var(--gray-bg); }
+.btn-xs-danger { background: #fff; color: var(--danger); border: 1px solid var(--danger); }
+.btn-xs-danger:hover { background: #FEF2F2; }
+.action-links { display: flex; gap: 6px; justify-content: center; white-space: nowrap; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 640px; max-width: 90vw; max-height: 80vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; font-size: 18px; cursor: pointer; color: var(--text-light); }
+.modal-close:hover { background: var(--gray-bg); color: var(--text); }
+.modal-body { padding: 16px 24px; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 0 24px 20px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+.form-group label .required { color: var(--danger); }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.form-group input:read-only { background: #F8FAFC; color: var(--text-secondary); }
+fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padding: 0 8px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.form-group.span-full { grid-column: 1 / -1; }
+.check-cell { cursor: pointer; font-size: 16px; user-select: none; }
+.check-cell.on { color: var(--success); }
+.check-cell.off { color: #E2E8F0; }
+/* Tree permission UI */
+.perm-tree-item { }
+.perm-tree-parent { display: flex; align-items: center; gap: 4px; padding: 3px 0; cursor: pointer; font-size: 13px; }
+.perm-tree-parent .toggle-icon { font-size: 10px; width: 14px; text-align: center; color: var(--text-light); flex-shrink: 0; }
+.perm-tree-parent .check-icon { font-size: 16px; }
+.perm-tree-parent .check-icon.on { color: var(--success); }
+.perm-tree-parent .check-icon.off { color: #E2E8F0; }
+.perm-tree-parent .check-icon.partial { color: var(--warning); }
+.perm-tree-parent .parent-label { flex: 1; }
+.perm-tree-children { padding-left: 20px; display: none; }
+.perm-tree-children.open { display: block; }
+.perm-tree-child { display: flex; align-items: center; gap: 4px; padding: 2px 0; cursor: pointer; font-size: 13px; }
+.perm-tree-child .check-icon { font-size: 16px; }
+.perm-tree-child .check-icon.on { color: var(--success); }
+.perm-tree-child .check-icon.off { color: #E2E8F0; }
+.perm-tree-actions { display: flex; gap: 12px; margin-bottom: 8px; font-size: 12px; }
+.perm-tree-actions span { cursor: pointer; color: var(--accent); }
+.perm-tree-actions span:hover { text-decoration: underline; }
+.toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; font-weight: 500; opacity: 0; transform: translateY(-10px); transition: var(--transition); pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.warning { background: var(--warning); color: #1E293B; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+@media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/></svg></div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">系</div><span id="userName">系统管理员</span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="personal-center.html">个人中心</a><div class="divider"></div>
+        <a class="logout" onclick="logout()">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg><span class="menu-label">收起菜单</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="breadcrumb"><a href="workbench.html">首页</a> / <span>系统设置</span> / <span>角色权限</span></div>
+  <div class="page-header"><h1>角色权限管理</h1><button class="btn btn-primary btn-sm" onclick="openAddRole()">+ 新增角色</button></div>
+  <div class="card"><div class="table-scroll"><table class="list-table">
+    <thead><tr><th style="width:50px;">序号</th><th style="text-align:left;">角色名称</th><th>描述</th><th style="width:80px;">用户数</th><th style="width:80px;">状态</th><th style="width:280px;">操作</th></tr></thead>
+    <tbody id="roleTableBody"></tbody>
+  </table></div></div>
+</div>
+
+<!-- Add/Edit Role Modal -->
+<div class="modal-overlay" id="roleModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="roleModalTitle">新增角色</h3><button class="modal-close" onclick="closeRoleModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>角色名称 <span class="required">*</span></label><input id="fRoleName" placeholder="例：区管理员"></div>
+      <div class="form-group"><label>角色标识 <span class="required">*</span></label><input id="fRoleId" placeholder="英文标识，例：district" disabled style="background:#F8FAFC;"></div>
+      <div class="form-group"><label>描述</label><input id="fRoleDesc" placeholder="角色职责描述"></div>
+      <fieldset><legend>模块权限</legend><div id="permCheckboxes" style="max-height:50vh;overflow-y:auto;"></div></fieldset>
+      <fieldset><legend>数据权限</legend><div class="form-group"><label>数据范围</label><select id="fDataScope"><option value="all">全平台</option><option value="city">全市</option><option value="district">本区</option><option value="school">本校</option><option value="self">本人</option></select></div></fieldset>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeRoleModal()">取消</button>
+      <button class="btn btn-primary btn-sm" id="roleSaveBtn" onclick="saveRole()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header"><h3 id="confirmTitle">确认操作</h3><button class="modal-close" onclick="closeConfirm()">✕</button></div>
+    <div class="modal-body"><p id="confirmMsg" style="font-size:14px;color:var(--text-secondary);"></p></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary btn-sm" id="confirmBtn" onclick="execConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="src/menu-config.js"></script>
+<script src="src/module-permissions.js"></script>
+<script src="src/logger.js"></script>
+<script>
+var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+if (currentUser.role !== 'system') {
+  document.querySelector('.main').innerHTML = '<div class="breadcrumb"><a href="workbench.html">首页</a></div><div class="card empty-state"><p style="font-size:16px;">🔒 无权访问</p><p style="font-size:13px;margin-top:8px;">仅系统管理员可访问此模块</p></div>';
+}
+
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/></svg>',
+  menu: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
+};
+
+renderSidebar();
+
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', 'system', 'perm');
+}
+
+function sidebarClick(id) {
+  if (id === 'workbench') window.location.href = 'workbench.html';
+  else if (id === 'ledger') window.location.href = 'org-ledger-admin.html';
+  else if (id === 'account') window.location.href = 'account-management.html';
+  else if (id === 'org') window.location.href = 'org-management.html';
+  else if (id === 'menuMgr') window.location.href = 'menu-management.html';
+  else if (id === 'log') window.location.href = 'log-management.html';
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
+
+// ===== DATA =====
+// MODULES / MODULE_BUTTONS 由 src/module-permissions.js 提供（唯一权威来源）
+
+var DEFAULT_ROLES = {
+  // ── 系统管理员：系统设置模块全部权限 ──
+  system: {
+    label: '系统管理员',
+    description: '平台最高权限，管理系统配置',
+    status: 'active',
+    dataScope: 'all',
+    permissions: [
+      'account', 'org', 'menuMgr', 'perm', 'log'
+    ]
+  },
+
+  // ── 市管理员：全市业务审核 + 入编只读（CLAUDE.md: city admin read-only for entry）──
+  city: {
+    label: '市管理员',
+    description: '全市教育人事业务管理',
+    status: 'active',
+    dataScope: 'city',
+    permissions: [
+      'workbench',
+      'ledger.查看', 'ledger.审核', 'ledger.退回修改',
+      'staffing.查看列表', 'staffing.查看详情', 'staffing.审核', 'staffing.导出数据', 'staffing.提醒申报',
+      'entry.查看列表', 'entry.查看详情',
+      'exit.查看列表', 'exit.查看详情', 'exit.审批通过', 'exit.审批驳回',
+      'postset.查看列表', 'postset.查看详情', 'postset.审批通过', 'postset.审批驳回', 'postset.导出数据', 'postset.提醒申报',
+      'promote.查看列表', 'promote.查看详情', 'promote.审批通过', 'promote.审批驳回', 'promote.录入结果', 'promote.导出数据', 'promote.提醒申报',
+      'recruit.查看列表', 'recruit.查看详情', 'recruit.审批通过', 'recruit.审批驳回', 'recruit.提醒申报', 'recruit.修改结果',
+      'employ.查看列表', 'employ.查看详情', 'employ.审批通过', 'employ.审批驳回', 'employ.录入',
+      'contract-entry.查看列表', 'contract-entry.查看详情', 'contract-entry.审批通过', 'contract-entry.审批驳回',
+      'contract-exit.查看列表', 'contract-exit.查看详情', 'contract-exit.审批通过', 'contract-exit.审批驳回',
+      'retire.查看列表', 'retire.查看详情', 'retire.审批',
+      'ethics.查看列表', 'ethics.查看详情', 'ethics.处理举报',
+      'account', 'org'
+    ]
+  },
+
+  // ── 区管理员：本区业务初审 ──
+  district: {
+    label: '区管理员',
+    description: '本区教育人事业务管理',
+    status: 'active',
+    dataScope: 'district',
+    permissions: [
+      'workbench',
+      'ledger.查看', 'ledger.审核', 'ledger.退回修改',
+      'staffing.查看列表', 'staffing.查看详情', 'staffing.审核', 'staffing.导出数据', 'staffing.提醒申报',
+      'entry.查看列表', 'entry.查看详情', 'entry.审批通过', 'entry.审批驳回',
+      'exit.查看列表', 'exit.查看详情', 'exit.审批通过', 'exit.审批驳回',
+      'postset.查看列表', 'postset.查看详情', 'postset.审批通过', 'postset.审批驳回', 'postset.导出数据', 'postset.提醒申报',
+      'promote.查看列表', 'promote.查看详情', 'promote.审批通过', 'promote.审批驳回', 'promote.录入结果', 'promote.导出数据', 'promote.提醒申报',
+      'recruit.查看列表', 'recruit.查看详情', 'recruit.审批通过', 'recruit.审批驳回', 'recruit.提醒申报', 'recruit.修改结果',
+      'employ.查看列表', 'employ.查看详情', 'employ.审批通过', 'employ.审批驳回', 'employ.录入',
+      'contract-entry.查看列表', 'contract-entry.查看详情', 'contract-entry.审批通过', 'contract-entry.审批驳回',
+      'contract-exit.查看列表', 'contract-exit.查看详情', 'contract-exit.审批通过', 'contract-exit.审批驳回',
+      'retire.查看列表', 'retire.查看详情', 'retire.审批',
+      'ethics.查看列表', 'ethics.查看详情', 'ethics.处理举报',
+      'account', 'org'
+    ]
+  },
+
+  // ── 校管理员：本校业务申报 ──
+  school: {
+    label: '校管理员',
+    description: '本校教育人事业务管理',
+    status: 'active',
+    dataScope: 'school',
+    permissions: [
+      'workbench',
+      'ledger.查看', 'ledger.编辑', 'ledger.提交审核',
+      'staffing.查看列表', 'staffing.查看详情', 'staffing.新增申请', 'staffing.编辑', 'staffing.删除', 'staffing.提交',
+      'entry.查看列表', 'entry.查看详情', 'entry.新增入编', 'entry.编辑', 'entry.删除', 'entry.提交',
+      'exit.查看列表', 'exit.查看详情', 'exit.新增出编', 'exit.编辑', 'exit.删除', 'exit.提交',
+      'postset.查看列表', 'postset.查看详情', 'postset.新增申请', 'postset.编辑', 'postset.删除', 'postset.提交', 'postset.录入结果',
+      'promote.查看列表', 'promote.查看详情', 'promote.新增申报', 'promote.编辑', 'promote.删除', 'promote.提交', 'promote.批量操作', 'promote.录入结果',
+      'recruit.查看列表', 'recruit.查看详情', 'recruit.新增岗位', 'recruit.编辑', 'recruit.删除', 'recruit.提交',
+      'employ.查看列表', 'employ.查看详情', 'employ.新增', 'employ.编辑', 'employ.删除', 'employ.提交',
+      'contract-entry.查看列表', 'contract-entry.查看详情', 'contract-entry.新增入职', 'contract-entry.编辑', 'contract-entry.删除', 'contract-entry.提交',
+      'contract-exit.查看列表', 'contract-exit.查看详情', 'contract-exit.新增离职', 'contract-exit.编辑', 'contract-exit.删除', 'contract-exit.提交',
+      'retire.查看列表', 'retire.查看详情', 'retire.新增呈报', 'retire.编辑', 'retire.删除',
+      'ethics.查看列表', 'ethics.查看详情', 'ethics.新增举报',
+      'account',
+      'org.查看详情', 'org.新增机构', 'org.编辑', 'org.删除'
+    ]
+  },
+
+  // ── 教师：个人业务申请 ──
+  teacher: {
+    label: '教师',
+    description: '个人业务申请',
+    status: 'active',
+    dataScope: 'self',
+    permissions: [
+      'workbench',
+      'promote.查看列表', 'promote.查看详情', 'promote.新增申报', 'promote.提交',
+      'ethics.查看列表', 'ethics.新增举报'
+    ]
+  }
+};
+
+function loadRoles() {
+  try {
+    var stored = JSON.parse(localStorage.getItem('role_permissions') || 'null');
+    if (stored) {
+      // Migrate old flat-array format to new object format
+      var needsMigration = false;
+      Object.keys(stored).forEach(function(k) {
+        if (Array.isArray(stored[k])) {
+          var labelMap = { system:'系统管理员', city:'市管理员', district:'区管理员', school:'校管理员', teacher:'教师' };
+          var descMap = { system:'平台最高权限，管理系统配置', city:'全市教育人事业务管理', district:'本区教育人事业务管理', school:'本校教育人事业务管理', teacher:'个人业务申请' };
+          stored[k] = { label: labelMap[k] || k, description: descMap[k] || '', status: 'active', permissions: stored[k] };
+          needsMigration = true;
+        }
+      });
+      // Backfill missing dataScope
+      var scopeDefaults = { system:'all', city:'city', district:'district', school:'school', teacher:'self' };
+      var scopedBackfill = false;
+      Object.keys(stored).forEach(function(k) {
+        if (!stored[k].dataScope) { stored[k].dataScope = scopeDefaults[k] || 'self'; scopedBackfill = true; }
+      });
+      if (needsMigration || scopedBackfill) saveRoles(stored);
+      return stored;
+    }
+  } catch(e) {}
+  var defs = JSON.parse(JSON.stringify(DEFAULT_ROLES));
+  localStorage.setItem('role_permissions', JSON.stringify(defs));
+  return defs;
+}
+
+function saveRoles(roles) { localStorage.setItem('role_permissions', JSON.stringify(roles)); }
+
+function getRoleUserCount(roleId) {
+  var count = 0;
+  try {
+    var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    teachers.forEach(function(t) { if (t.roles && t.roles.indexOf(roleId) !== -1) count++; });
+    var admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+    admins.forEach(function(a) { if ((a.roles && a.roles.indexOf(roleId) !== -1) || a.role === roleId) count++; });
+  } catch(e) {}
+  return count;
+}
+
+function getRoleUsers(roleId) {
+  var users = [];
+  try {
+    var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    teachers.forEach(function(t) { if (t.roles && t.roles.indexOf(roleId) !== -1) users.push({ name: t.name, school: t.school || '—', accountId: t.accountId, type: 'teacher' }); });
+    var admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+    admins.forEach(function(a) { if ((a.roles && a.roles.indexOf(roleId) !== -1) || a.role === roleId) users.push({ name: a.name, school: a.school || '—', id: a.id, type: 'admin' }); });
+  } catch(e) {}
+  return users;
+}
+
+// ===== RENDER ROLE LIST =====
+var editingRoleId = null;
+var editPerms = {};
+var pendingConfirm = null;
+
+function renderRoleList() {
+  var roles = loadRoles();
+  var roleIds = Object.keys(roles);
+  var tbody = document.getElementById('roleTableBody');
+  var html = '';
+  roleIds.forEach(function(rid, idx) {
+    var r = roles[rid];
+    var userCount = getRoleUserCount(rid);
+    var statusText = r.status === 'active' ? '正常' : '已停用';
+    var statusCls = r.status === 'active' ? 'status-active' : 'status-inactive';
+    var isSystem = rid === 'system';
+    html += '<tr>';
+    html += '<td>' + (idx + 1) + '</td>';
+    html += '<td class="col-name">' + (r.label || rid) + '</td>';
+    html += '<td style="font-size:12px;color:var(--text-secondary);">' + (r.description || '—') + '</td>';
+    html += '<td>' + userCount + ' 人</td>';
+    html += '<td><span class="status-tag ' + statusCls + '">' + statusText + '</span></td>';
+    html += '<td><div class="action-links">';
+    html += '<button class="btn-xs btn-xs-primary" onclick="openEditRole(\'' + rid + '\')">权限</button>';
+    html += '<button class="btn-xs btn-xs-outline" onclick="window.location.href=\'role-users.html?roleId=' + encodeURIComponent(rid) + '\'">关联用户</button>';
+    if (!isSystem) {
+      html += '<button class="btn-xs btn-xs-outline" onclick="openEditRoleInfo(\'' + rid + '\')">编辑</button>';
+      html += r.status === 'active'
+        ? '<button class="btn-xs btn-xs-danger" onclick="confirmDisableRole(\'' + rid + '\')">停用</button>'
+        : '<button class="btn-xs btn-xs-primary" onclick="confirmEnableRole(\'' + rid + '\')">启用</button>';
+      html += '<button class="btn-xs btn-xs-danger" onclick="confirmDeleteRole(\'' + rid + '\')">删除</button>';
+    }
+    html += '</div></td>';
+    html += '</tr>';
+
+  });
+  tbody.innerHTML = html;
+}
+
+// ===== ROLE CRUD =====
+function openAddRole() {
+  editingRoleId = null;
+  document.getElementById('roleModalTitle').textContent = '新增角色';
+  document.getElementById('roleSaveBtn').textContent = '创建';
+  document.getElementById('fRoleName').value = '';
+  document.getElementById('fRoleId').value = '';
+  document.getElementById('fRoleId').disabled = false;
+  document.getElementById('fRoleDesc').value = '';
+  editPerms = {};
+  renderPermCheckboxes([]);
+  document.getElementById('roleModal').classList.add('show');
+}
+
+function openEditRole(rid) {
+  var roles = loadRoles();
+  var r = roles[rid];
+  if (!r) return;
+  editingRoleId = rid;
+  document.getElementById('roleModalTitle').textContent = '编辑权限 — ' + (r.label || rid);
+  document.getElementById('roleSaveBtn').textContent = '保存权限';
+  document.getElementById('fRoleName').value = r.label || '';
+  document.getElementById('fRoleId').value = rid;
+  document.getElementById('fRoleId').disabled = true;
+  document.getElementById('fRoleDesc').value = r.description || '';
+  editPerms = {};
+  (r.permissions || []).forEach(function(p) { editPerms[p] = true; });
+  renderPermCheckboxes(r.permissions || []);
+  setTimeout(function() { var ds = document.getElementById('fDataScope'); if (ds) ds.value = r.dataScope || 'all'; }, 50);
+  document.getElementById('roleModal').classList.add('show');
+}
+
+function openEditRoleInfo(rid) {
+  openEditRole(rid);
+  document.getElementById('roleModalTitle').textContent = '编辑角色';
+  document.getElementById('roleSaveBtn').textContent = '保存';
+}
+
+function closeRoleModal() {
+  document.getElementById('roleModal').classList.remove('show');
+  editingRoleId = null;
+  editPerms = {};
+}
+
+function renderPermCheckboxes(selected) {
+  var selectedMap = {};
+  selected.forEach(function(s) { selectedMap[s] = true; });
+  Object.keys(editPerms).forEach(function(k) { if (editPerms[k]) selectedMap[k] = true; });
+
+  // Check if a module is expanded
+  if (!window._permExpanded) window._permExpanded = {};
+  var expanded = window._permExpanded;
+
+  // Check icon for parent
+  function parentIcon(modId) {
+    var buttons = MODULE_BUTTONS[modId] || [];
+    var menuChecked = !!selectedMap[modId];
+    if (menuChecked) return 'on';
+    var childCount = 0, checkedCount = 0;
+    buttons.forEach(function(b) {
+      childCount++;
+      if (selectedMap[modId + '.' + b]) checkedCount++;
+    });
+    if (checkedCount === 0) return 'off';
+    if (checkedCount >= childCount) return 'on';
+    return 'partial';
+  }
+
+  // Toggle parent (menu level)
+  function toggleParent(modId) {
+    var cur = !!editPerms[modId];
+    editPerms[modId] = !cur;
+    var buttons = MODULE_BUTTONS[modId] || [];
+    buttons.forEach(function(b) {
+      editPerms[modId + '.' + b] = !cur;
+    });
+    renderPermCheckboxes([]);
+  }
+
+  // Toggle child (button level)
+  function toggleChild(modId, btnLabel) {
+    var key = modId + '.' + btnLabel;
+    editPerms[key] = !editPerms[key];
+    // If all children checked, also check parent
+    var buttons = MODULE_BUTTONS[modId] || [];
+    var allChecked = true;
+    buttons.forEach(function(b) {
+      if (!editPerms[modId + '.' + b]) allChecked = false;
+    });
+    editPerms[modId] = allChecked;
+    renderPermCheckboxes([]);
+  }
+
+  // Build tree HTML
+  var html = '';
+  // Quick actions
+  html += '<div class="perm-tree-actions"><span onclick="selectAllPerms()">全选</span><span onclick="clearAllPerms()">全不选</span></div>';
+
+  var lastGroup = '';
+  MODULES.forEach(function(m) {
+    if (m.group !== lastGroup) {
+      lastGroup = m.group;
+      html += '<div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">' + m.group + '</div>';
+    }
+    var pIcon = parentIcon(m.id);
+    var pIconCls = pIcon === 'on' ? 'on' : pIcon === 'partial' ? 'partial' : 'off';
+    var pIconChar = pIcon === 'on' ? '☑' : pIcon === 'partial' ? '▣' : '☐';
+    var isOpen = expanded[m.id] !== false; // default open
+    var toggleArrow = isOpen ? '▼' : '▶';
+
+    html += '<div class="perm-tree-item">';
+    html += '<div class="perm-tree-parent">';
+    html += '<span class="toggle-icon" onclick="window._permExpanded[\'' + m.id + '\']=!window._permExpanded[\'' + m.id + '\'];renderPermCheckboxes([])">' + toggleArrow + '</span>';
+    html += '<span class="check-icon ' + pIconCls + '" onclick="(function(){editPerms[\'' + m.id + '\']=!editPerms[\'' + m.id + '\'];var btns=MODULE_BUTTONS[\'' + m.id + '\']||[];btns.forEach(function(b){editPerms[\'' + m.id + '.\'+b]=!!editPerms[\'' + m.id + '\']});renderPermCheckboxes([])})()">' + pIconChar + '</span>';
+    html += '<span class="parent-label" onclick="(function(){window._permExpanded[\'' + m.id + '\']=!window._permExpanded[\'' + m.id + '\'];renderPermCheckboxes([])})()">' + m.label + '</span>';
+    html += '</div>';
+
+    // Children
+    var buttons = MODULE_BUTTONS[m.id] || [];
+    html += '<div class="perm-tree-children' + (isOpen ? ' open' : '') + '">';
+    buttons.forEach(function(b) {
+      var cKey = m.id + '.' + b;
+      var cChecked = !!selectedMap[cKey];
+      html += '<div class="perm-tree-child" onclick="(function(){var k=\'' + cKey + '\';editPerms[k]=!editPerms[k];var al=true;var bs=MODULE_BUTTONS[\'' + m.id + '\']||[];bs.forEach(function(x){if(!editPerms[\'' + m.id + '.\'+x])al=false});editPerms[\'' + m.id + '\']=al;renderPermCheckboxes([])})()">';
+      html += '<span class="check-icon ' + (cChecked ? 'on' : 'off') + '">' + (cChecked ? '☑' : '☐') + '</span>';
+      html += '<span>' + b + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '</div>';
+  });
+
+  document.getElementById('permCheckboxes').innerHTML = html;
+  document.getElementById('permCheckboxes').style.display = 'block';
+  document.getElementById('permCheckboxes').style.gridTemplateColumns = '1fr';
+}
+
+// Quick select/deselect all
+function selectAllPerms() {
+  MODULES.forEach(function(m) {
+    editPerms[m.id] = true;
+    var buttons = MODULE_BUTTONS[m.id] || [];
+    buttons.forEach(function(b) { editPerms[m.id + '.' + b] = true; });
+  });
+  renderPermCheckboxes([]);
+}
+function clearAllPerms() {
+  MODULES.forEach(function(m) {
+    editPerms[m.id] = false;
+    var buttons = MODULE_BUTTONS[m.id] || [];
+    buttons.forEach(function(b) { editPerms[m.id + '.' + b] = false; });
+  });
+  renderPermCheckboxes([]);
+}
+
+function saveRole() {
+  var name = document.getElementById('fRoleName').value.trim();
+  if (!name) { showToast('请输入角色名称', 'warning'); return; }
+  var rid = document.getElementById('fRoleId').value.trim();
+  if (!editingRoleId && !rid) { showToast('请输入角色标识', 'warning'); return; }
+  if (!editingRoleId) {
+    // Auto-generate id from name
+    var idMap = { '系统管理员':'system','市管理员':'city','区管理员':'district','校管理员':'school','教师':'teacher' };
+    rid = rid || idMap[name] || name.toLowerCase().replace(/[^a-z]/g,'');
+  } else {
+    rid = editingRoleId;
+  }
+  var roles = loadRoles();
+  if (!editingRoleId && roles[rid]) { showToast('角色标识已存在', 'warning'); return; }
+  var perms = [];
+  Object.keys(editPerms).forEach(function(k) { if (editPerms[k]) perms.push(k); });
+  // Filter: if a parent menu is checked, skip individual child buttons (redundant)
+  // But keep child buttons if parent is NOT checked
+  var menuChecked = {};
+  perms.forEach(function(p) {
+    if (p.indexOf('.') === -1) menuChecked[p] = true;
+  });
+  perms = perms.filter(function(p) {
+    var dotIdx = p.indexOf('.');
+    if (dotIdx === -1) return true; // always keep menu items
+    var parentId = p.substring(0, dotIdx);
+    return !menuChecked[parentId]; // keep button only if parent menu is NOT checked
+  });
+  roles[rid] = {
+    label: name,
+    description: document.getElementById('fRoleDesc').value.trim(),
+    status: roles[rid] ? roles[rid].status : 'active',
+    dataScope: document.getElementById('fDataScope').value,
+    permissions: perms
+  };
+  saveRoles(roles);
+  closeRoleModal();
+  if (typeof writeLog === 'function') writeLog({ module: 'perm', actionType: editingRoleId ? 'update' : 'create', targetType: 'role', targetId: rid, targetName: name, detail: editingRoleId ? '编辑角色' : '新增角色', result: 'success' });
+  showToast(editingRoleId ? '角色已更新' : '角色已创建', 'success');
+  renderRoleList();
+}
+
+// ===== STATUS ACTIONS =====
+function confirmDisableRole(rid) {
+  var r = loadRoles()[rid];
+  showConfirm('停用角色', '确定停用「' + r.label + '」？停用后该角色用户将无法登录。', function() {
+    var roles = loadRoles();
+    roles[rid].status = 'inactive';
+    saveRoles(roles);
+    if (typeof writeLog === 'function') writeLog({ module: 'perm', actionType: 'disable', targetType: 'role', targetId: rid, targetName: r.label, detail: '停用角色', result: 'success' });
+    showToast('角色已停用', 'success');
+    renderRoleList();
+  });
+}
+
+function confirmEnableRole(rid) {
+  var r = loadRoles()[rid];
+  showConfirm('启用角色', '确定启用「' + r.label + '」？', function() {
+    var roles = loadRoles();
+    roles[rid].status = 'active';
+    saveRoles(roles);
+    if (typeof writeLog === 'function') writeLog({ module: 'perm', actionType: 'enable', targetType: 'role', targetId: rid, targetName: r.label, detail: '启用角色', result: 'success' });
+    showToast('角色已启用', 'success');
+    renderRoleList();
+  });
+}
+
+function confirmDeleteRole(rid) {
+  var r = loadRoles()[rid];
+  var userCount = getRoleUserCount(rid);
+  if (userCount > 0) { showToast('该角色下还有 ' + userCount + ' 个用户，请先移除用户后再删除', 'warning'); return; }
+  showConfirm('删除角色', '确定删除「' + r.label + '」？此操作不可恢复。', function() {
+    var roles = loadRoles();
+    delete roles[rid];
+    saveRoles(roles);
+    if (typeof writeLog === 'function') writeLog({ module: 'perm', actionType: 'delete', targetType: 'role', targetId: rid, targetName: r.label, detail: '删除角色', result: 'success' });
+    showToast('角色已删除', 'success');
+    renderRoleList();
+  });
+}
+
+// ===== CONFIRM =====
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  pendingConfirm = callback;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('show'); pendingConfirm = null; }
+function execConfirm() { if (pendingConfirm) pendingConfirm(); closeConfirm(); }
+
+// ===== UTILS =====
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + (type || 'success') + ' show';
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+function logout() { localStorage.removeItem('currentUser'); window.location.href = 'index.html'; }
+
+// ===== INIT =====
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'roleModal' || e.target.id === 'confirmModal') {
+    e.target.classList.remove('show');
+  }
+});
+
+if (currentUser.role === 'system') renderRoleList();
+</script>
+
+
+</body>
+</html>
