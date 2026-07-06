@@ -365,7 +365,7 @@ flowchart TD
     <tr><td>F02.05</td><td>台账全局锁定提醒</td><td>台账审核中时待办区显示红色锁定警告条</td><td class="center"><span class="feat-priority p1">P1</span></td><td>市/区/校管理员、教师</td></tr>
     <tr><td>F02.06</td><td>全部待办弹窗</td><td>点击"全部待办"弹出汇总弹窗，按模块分组展示所有待处理项</td><td class="center"><span class="feat-priority p1">P1</span></td><td>市/区/校管理员、教师</td></tr>
     <tr><td>F02.07</td><td>待办排序与截断</td><td>待办列表按数量降序排列，卡片最多展示前 5 条，超出部分显示"查看全部 N 项待办"入口</td><td class="center"><span class="feat-priority p1">P1</span></td><td>市/区/校管理员、教师</td></tr>
-    <tr><td>F02.08</td><td>校管理员待申报统计</td><td>校管理员视角统计编制使用申请和招聘岗位申请的未提交批次数，合并计入待处理总数</td><td class="center"><span class="feat-priority p1">P1</span></td><td>校管理员</td></tr>
+    <tr><td>F02.08</td><td>待申报批次统计</td><td>校管理员统计编制/招聘未提交批次，教师统计岗位晋升未提交批次，合并计入待处理总数</td><td class="center"><span class="feat-priority p1">P1</span></td><td>校管理员、教师</td></tr>
     <tr><td>F03.01</td><td rowspan="15">个人中心</td><td>基本信息查看</td><td>个人档案卡 + 账号信息只读展示</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
     <tr><td>F03.02</td><td>编辑个人信息</td><td>弹框编辑性别、手机号、学历、职称等字段</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
     <tr><td>F03.03</td><td>教育教学信息查看与编辑</td><td>教学经历、学段学科、初次任教时间等</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
@@ -501,7 +501,7 @@ flowchart TD
           <tr><td>校管理员</td><td>提交申请</td><td>对应模块 −1（已提交，不再由我校处理）</td><td>管理员对应模块 +1（待审核）</td></tr>
           <tr><td>管理员</td><td>审批通过（非终审）</td><td>对应模块 −1</td><td>下一审管理员对应模块 +1（待审核）</td></tr>
           <tr><td>管理员</td><td>审批通过（终审）</td><td>对应模块 −1</td><td>无（流程结束，离开待办池）</td></tr>
-          <tr><td>管理员</td><td>审批驳回</td><td>对应模块 −1</td><td>提交人对应模块 +1（待修改重报）</td></tr>
+          4. 校管理员/教师角色：编制使用申请和招聘岗位申请的待处理数包含未提交批次数（F02.08）<br>
           <tr><td>提交人</td><td>修改后重新提交</td><td>对应模块 −1（已修改提交）</td><td>管理员对应模块 +1（待审核）</td></tr>
           <tr><td>校管理员</td><td>录入 HR 结果（如岗位晋升）</td><td>对应模块 −1</td><td>管理员对应模块 +1（待终审）</td></tr>
           <tr><td>主管部门</td><td>新建批次</td><td>不变</td><td>校管理员对应模块 +1（待申报）</td></tr>
@@ -664,26 +664,26 @@ flowchart TD
   <div class="feat-card">
     <div class="feat-header">
       <span class="feat-id">F02.08</span>
-      <span class="feat-name">校管理员待申报统计</span>
+      <span class="feat-name">待申报批次统计</span>
       <span class="feat-priority p1">P1</span>
     </div>
     <dl class="feat-dl">
-      <dt>适用角色</dt><dd><strong>仅校管理员</strong></dd>
-      <dt>触发条件</dt><dd>校管理员登录后加载工作台</dd>
-      <dt>前置条件</dt><dd>主管部门已创建编制使用申请或招聘岗位申请批次</dd>
+      <dt>适用角色</dt><dd><strong>校管理员、教师</strong></dd>
+      <dt>触发条件</dt><dd>校管理员或教师登录后加载工作台</dd>
+      <dt>前置条件</dt><dd>主管部门已创建编制使用申请/招聘岗位申请批次（校管理员场景），或校管理员已发布岗位晋升批次（教师场景）</dd>
       <dt>后置条件</dt><dd>未提交的批次数合并计入对应模块的待处理总数</dd>
       <dt>核心业务规则</dt>
         <dd>
           1. <strong>编制使用申请</strong>：读取已提交申报记录，与当前角色管辖范围内所有状态为"进行中"的批次逐一比对。该校未提交的批次数 = 进行中批次总数 − 已提交批次数<br>
           2. <strong>招聘岗位申请</strong>：读取已提交申报记录，与当前角色管辖范围内所有状态为"进行中"的批次逐一比对。该校未提交的批次数 = 进行中批次总数 − 已提交批次数<br>
-          3. <strong>合并规则</strong>：未提交批次数作为"待处理"数的一部分，与审批流程中的待处理计数合并（F02.02 规则 3）<br>
-          4. <strong>去重保护</strong>：如果编制使用申请或招聘岗位申请已有审批待办记录，系统按模块名称自动合并为一条，计数求和，不会出现重复行<br>
-          5. <strong>动态性</strong>：学校提交申报后，系统自动重新计算待处理数量，对应的模块计数即时更新（数据来源于后端接口，非静态演示数据）<br>
+          3. <strong>岗位晋升申请（教师）</strong>：读取教师已提交申报记录，与当前教师所属学校管辖范围内所有状态为"进行中"的岗位晋升批次逐一比对。该教师未提交的批次数 = 进行中批次总数 − 已提交批次数<br>
+          4. <strong>合并规则</strong>：未提交批次数作为"待处理"数的一部分，与审批流程中的待处理计数合并（F02.02 规则 3）<br>
+          5. <strong>去重保护</strong>：如果编制使用申请或招聘岗位申请已有审批待办记录，系统按模块名称自动合并为一条，计数求和，不会出现重复行<br>
+          6. <strong>动态性</strong>：校管理员/教师提交申报后，系统自动重新计算待处理数量，对应的模块计数即时更新（数据来源于后端接口，非静态演示数据）<br>
         </dd>
       <dt>产品交互规则</dt>
         <dd>
-          1. 市/区管理员不触发此统计（待申报批次仅针对校管理员角色，市/区管理员无需关注此项）<br>
-          2. 待申报批次数作为普通待处理数展示，不做视觉区分（与 F02.02 的"统一计数"原则一致）
+          1. 市/区管理员不触发此统计（待申报批次仅针对校管理员和教师角色）<br>
         </dd>
     </dl>
   </div>
