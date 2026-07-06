@@ -946,27 +946,67 @@ function getJurisdictionSchoolNames(role) {
 }
 
 function getUnsubmittedCount() {
-  if (currentRole !== 'city' && currentRole !== 'district') return 0;
-  var jurisdictionSchools = getJurisdictionSchoolNames(currentRole);
-  if (jurisdictionSchools.length === 0) return 0;
+  // City/district admins don't need unsubmitted tracking (removed per requirement)
+  if (currentRole === 'city' || currentRole === 'district') return 0;
+  // School admin: count active batches the school hasn't submitted to
+  if (currentRole !== 'school') return 0;
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return 0;
   var submissions = [];
   try { submissions = JSON.parse(localStorage.getItem('staffing_submissions') || '[]'); } catch(e) {}
-  var submittedNames = {};
-  submissions.forEach(function(s) { if (s.orgName) submittedNames[s.orgName] = true; });
+  var submittedBatchIds = {};
+  submissions.forEach(function(s) {
+    if (s.orgName === schoolName && s.batchId) submittedBatchIds[s.batchId] = true;
+  });
+  var activeBatchIds = getActiveBatchIdsForSchool();
   var unsubmitted = 0;
-  jurisdictionSchools.forEach(function(name) { if (!submittedNames[name]) unsubmitted++; });
+  activeBatchIds.forEach(function(bid) {
+    if (!submittedBatchIds[bid]) unsubmitted++;
+  });
   return unsubmitted;
 }
 
+function getCurrentSchoolName() {
+  var cu = null;
+  try { cu = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch(e) {}
+  if (cu && cu.org) return cu.org;
+  if (currentRole === 'school') {
+    var data = ROLES[currentRole];
+    if (data && data.org) return data.org;
+  }
+  return null;
+}
+
+function getActiveBatchIdsForSchool() {
+  return ['B2026-001', 'B2026-002', 'B2026-D01', 'B2026-D03', 'B2026-D04', 'AUTO-2026'];
+}
+
+function getActiveBatchNamesForSchool() {
+  return {
+    'B2026-001': '2026年度第一批',
+    'B2026-002': '2026年度第二批',
+    'B2026-D01': '2026年度鱼峰区第一批',
+    'B2026-D03': '2026年度鱼峰区第二批',
+    'B2026-D04': '2026年度鱼峰区第三批',
+    'AUTO-2026': '2026年度自主申报'
+  };
+}
+
 function getUnsubmittedSchoolNames() {
-  if (currentRole !== 'city' && currentRole !== 'district') return [];
-  var jurisdictionSchools = getJurisdictionSchoolNames(currentRole);
-  if (jurisdictionSchools.length === 0) return [];
+  if (currentRole === 'city' || currentRole === 'district') return [];
+  if (currentRole !== 'school') return [];
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return [];
   var submissions = [];
   try { submissions = JSON.parse(localStorage.getItem('staffing_submissions') || '[]'); } catch(e) {}
-  var submittedNames = {};
-  submissions.forEach(function(s) { if (s.orgName) submittedNames[s.orgName] = true; });
-  return jurisdictionSchools.filter(function(name) { return !submittedNames[name]; });
+  var submittedBatchIds = {};
+  submissions.forEach(function(s) {
+    if (s.orgName === schoolName && s.batchId) submittedBatchIds[s.batchId] = true;
+  });
+  var activeBatchIds = getActiveBatchIdsForSchool();
+  var batchNames = getActiveBatchNamesForSchool();
+  return activeBatchIds.filter(function(bid) { return !submittedBatchIds[bid]; })
+    .map(function(bid) { return batchNames[bid] || bid; });
 }
 
 // ===== RENDER =====
@@ -996,6 +1036,19 @@ function renderMain() {
   var todoHtml = '';
   var reminderTodo = getReminderTodo();
   var allTodos = reminderTodo ? [reminderTodo].concat(data.todos) : data.todos;
+
+  // For school admin: inject unsubmitted staffing todo item at the top
+  if (currentRole === 'school') {
+    var unsubStaffingCount = getUnsubmittedCount();
+    if (unsubStaffingCount > 0) {
+      var unsubStaffingItem = {
+        mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue',
+        pending: 0, review: 0, reject: 0, isUnsubStaffing: true
+      };
+      allTodos = [unsubStaffingItem].concat(allTodos);
+    }
+  }
+
   if (allTodos.length === 0) {
     todoHtml = '<div class="todo-empty">暂无待办事项</div>';
   } else {
@@ -1003,14 +1056,22 @@ function renderMain() {
     allTodos.forEach(function(t) {
       var targetUrl = '#';
       if (t.reminder) { targetUrl = 'post-list-school.html'; }
+      else if (t.isUnsubStaffing) { targetUrl = 'staffing-application.html'; }
       else if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
       else if (t.mod === '入编申请') targetUrl = getEntryUrl();
-      var nameHtml = t.reminder ? '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>主管单位提醒您尽快提交岗位设置申请</small></div>' : '<div class="todo-module-name">' + t.mod + '</div>';
+      var nameHtml;
+      if (t.reminder) {
+        nameHtml = '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>主管单位提醒您尽快提交岗位设置申请</small></div>';
+      } else if (t.isUnsubStaffing) {
+        nameHtml = '<div class="todo-module-name">' + t.mod + '<small style="color:#0D9488;">有 ' + getUnsubmittedCount() + ' 个批次待申报</small></div>';
+      } else {
+        nameHtml = '<div class="todo-module-name">' + t.mod + '</div>';
+      }
       todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (targetUrl !== '#' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += nameHtml;
       var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
-      var unsubCount = (t.mod === '编制使用申请') ? getUnsubmittedCount() : 0;
+      var unsubCount = (t.mod === '编制使用申请' && currentRole === 'school') ? getUnsubmittedCount() : 0;
       todoHtml += '<div class="todo-counts">';
       todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
       if (unsubCount > 0) {
@@ -1384,39 +1445,45 @@ function getTodoTargetUrl(mod) {
 
 function openAllTodosModal() {
   var data = ROLES[currentRole];
-  var todos = data.todos.slice(); // shallow copy
+  var todos = data.todos.slice();
   var body = document.getElementById('allTodosModalBody');
 
-  // Include reminder todo for school role
   var reminderTodo = getReminderTodo();
-  if (reminderTodo) {
-    todos.unshift(reminderTodo);
+  if (reminderTodo) { todos.unshift(reminderTodo); }
+
+  var schoolUnsubCount = 0;
+  var schoolUnsubNames = [];
+  if (currentRole === 'school') {
+    schoolUnsubCount = getUnsubmittedCount();
+    schoolUnsubNames = getUnsubmittedSchoolNames();
+    if (schoolUnsubCount > 0) {
+      todos.unshift({
+        mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue',
+        pending: 0, review: 0, reject: 0, isUnsubStaffing: true
+      });
+    }
   }
 
   if (!todos || todos.length === 0) {
     body.innerHTML = '<div class="alltodos-empty"><div class="empty-icon">🎉</div><div>暂无待办事项</div></div>';
   } else {
-    /* Calculate totals */
-    var totalPending = 0, totalReview = 0, totalReject = 0, totalUnsubmitted = 0;
+    var totalPending = 0, totalReview = 0, totalReject = 0;
     todos.forEach(function(t) {
       totalPending += (t.pending || 0);
       totalReview += (t.review || 0);
       totalReject += (t.reject || 0);
     });
-    // Add unsubmitted staffing count
-    totalUnsubmitted = getUnsubmittedCount();
 
     var html = '';
     html += '<div class="alltodos-summary">';
     html += '<div class="alltodos-summary-item pending"><div class="sum-num">' + totalPending + '</div><div class="sum-label">待处理</div></div>';
     html += '<div class="alltodos-summary-item review"><div class="sum-num">' + totalReview + '</div><div class="sum-label">审核中</div></div>';
     html += '<div class="alltodos-summary-item reject"><div class="sum-num">' + totalReject + '</div><div class="sum-label">已驳回</div></div>';
-    if (totalUnsubmitted > 0) {
-      html += '<div class="alltodos-summary-item" style="--sum-color:#0D9488;"><div class="sum-num" style="color:#0D9488;">' + totalUnsubmitted + '</div><div class="sum-label">待申报</div></div>';
+    if (currentRole === 'school' && schoolUnsubCount > 0) {
+      html += '<div class="alltodos-summary-item" style="--sum-color:#0D9488;"><div class="sum-num" style="color:#0D9488;">' + schoolUnsubCount + '</div><div class="sum-label">待申报</div></div>';
     }
     html += '</div>';
 
-    /* Group by module group */
     var groups = {};
     todos.forEach(function(t) {
       var g = t.group || '其他';
@@ -1428,7 +1495,6 @@ function openAllTodosModal() {
       html += '<div class="alltodos-group-label">' + g + '</div>';
       groups[g].forEach(function(t) {
         var url = getTodoTargetUrl(t.mod);
-        var isStaffing = t.mod === '编制使用申请';
         if (t.reminder) {
           html += '<a class="alltodos-item" href="post-list-school.html">';
           html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
@@ -1438,15 +1504,17 @@ function openAllTodosModal() {
         } else if (url !== '#') {
           html += '<a class="alltodos-item" href="' + url + '">';
           html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
-          html += '<div class="alltodos-item-name">' + t.mod + '</div>';
+          if (t.isUnsubStaffing) {
+            html += '<div class="alltodos-item-name">' + t.mod + '<span style="color:#0D9488;font-size:11px;margin-left:6px;">' + schoolUnsubCount + ' 个批次待申报</span></div>';
+          } else {
+            html += '<div class="alltodos-item-name">' + t.mod + '</div>';
+          }
           html += '<div class="alltodos-item-counts">';
           if (t.pending) html += '<span class="atc-pending">待处理 ' + t.pending + '</span>';
           if (t.review) html += '<span class="atc-review">审核中 ' + t.review + '</span>';
           if (t.reject) html += '<span class="atc-reject">已驳回 ' + t.reject + '</span>';
-          // Show unsubmitted for staffing module
-          if (isStaffing) {
-            var unsubCount = getUnsubmittedCount();
-            if (unsubCount > 0) html += '<span class="atc-unsubmitted" style="color:#0D9488;font-weight:600;">待申报 ' + unsubCount + '</span>';
+          if (t.isUnsubStaffing && schoolUnsubCount > 0) {
+            html += '<span style="color:#0D9488;font-weight:600;">待申报 ' + schoolUnsubCount + '</span>';
           }
           html += '</div>';
           html += '<span class="alltodos-item-arrow">→</span></a>';
@@ -1464,16 +1532,14 @@ function openAllTodosModal() {
       });
     });
 
-    // If there are unsubmitted staffing schools, add a dedicated section
-    if (totalUnsubmitted > 0) {
-      var unsubNames = getUnsubmittedSchoolNames();
+    if (currentRole === 'school' && schoolUnsubCount > 0) {
       html += '<div class="alltodos-group-label">待申报提醒</div>';
       html += '<div class="alltodos-item" style="cursor:pointer;background:#F0FDFA;border:1px dashed #0D9488;border-radius:8px;margin-bottom:4px;" onclick="window.location.href=\'staffing-application.html\'">';
       html += '<div class="alltodos-item-icon teal" style="background:#CCFBF1;color:#0D9488;">📋</div>';
-      html += '<div class="alltodos-item-name">编制使用申请 — 等待学校申报</div>';
-      html += '<div class="alltodos-item-counts"><span style="color:#0D9488;font-weight:600;">' + totalUnsubmitted + ' 所学校未提交</span></div>';
+      html += '<div class="alltodos-item-name">编制使用申请 — 以下批次尚未提交申报</div>';
+      html += '<div class="alltodos-item-counts"><span style="color:#0D9488;font-weight:600;">' + schoolUnsubCount + ' 个批次</span></div>';
       html += '<span class="alltodos-item-arrow">→</span></div>';
-      html += '<div style="font-size:11px;color:var(--text-light);padding:4px 12px 8px;">' + unsubNames.slice(0, 5).join('、') + (unsubNames.length > 5 ? ' 等' + unsubNames.length + '所' : '') + '</div>';
+      html += '<div style="font-size:11px;color:var(--text-light);padding:4px 12px 8px;">' + schoolUnsubNames.join('、') + '</div>';
     }
 
     body.innerHTML = html;
