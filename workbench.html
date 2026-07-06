@@ -1058,6 +1058,29 @@ function getRecruitUnsubmittedNames() {
     .map(function(bid) { return batchNames[bid] || bid; });
 }
 
+
+// Merge todo items with the same mod name by summing their counts
+function mergeTodos(todos) {
+  var map = {};
+  var order = [];
+  todos.forEach(function(t) {
+    var key = t.mod;
+    if (map[key]) {
+      map[key].pending += (t.pending || 0);
+      map[key].review  += (t.review || 0);
+      map[key].reject  += (t.reject || 0);
+    } else {
+      map[key] = {
+        mod: t.mod, group: t.group, icon: t.icon, iclass: t.iclass,
+        pending: (t.pending || 0), review: (t.review || 0), reject: (t.reject || 0),
+        reminder: t.reminder
+      };
+      order.push(key);
+    }
+  });
+  return order.map(function(k) { return map[k]; });
+}
+
 // ===== RENDER =====
 function renderSidebar() {
   renderSidebarMenu('sidebarMenu', currentRole, 'workbench');
@@ -1108,7 +1131,14 @@ function renderMain() {
     todoHtml = '<div class="todo-empty">暂无待办事项</div>';
   } else {
     todoHtml = '<div class="todo-module-list">';
+    // Deduplicate: merge items with the same module name
+    allTodos = mergeTodos(allTodos);
+
     allTodos.forEach(function(t) {
+      var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
+      // Skip modules with zero pending items — must be first, before any HTML
+      if (totalPending === 0) return;
+
       var targetUrl = '#';
       if (t.reminder) { targetUrl = 'post-list-school.html'; }
       else if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
@@ -1123,9 +1153,6 @@ function renderMain() {
       todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (targetUrl !== '#' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += nameHtml;
-      var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
-      // Skip modules with zero pending items
-      if (totalPending === 0) return;
       todoHtml += '<div class="todo-counts">';
       todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
       todoHtml += '</div><span class="todo-module-arrow">→</span></a>';
@@ -1521,6 +1548,9 @@ function openAllTodosModal() {
       todos.push({ mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple', pending: recruitUnsub, review: 0, reject: 0 });
     }
   }
+
+  // Deduplicate: merge items with the same module name
+  todos = mergeTodos(todos);
 
   // Filter out zero-count modules
   todos = todos.filter(function(t) {
