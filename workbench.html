@@ -214,6 +214,7 @@
   #todoArea .todo-module-list { flex: 1; }
   #quickArea { flex: 1; }
   #quickArea.quick-grid { grid-template-rows: 1fr 1fr; }
+  #quickArea.quick-grid-cols2 { grid-template-columns: repeat(2, 1fr); }
 
   /* Todo Module List */
   .todo-module-list {
@@ -629,7 +630,9 @@ const ROLES = {
       { mod: '入编申请', group: '编制管理', icon: '📝', iclass: 'green', pending: 1, review: 0, reject: 1 },
       { mod: '岗位晋升申请', group: '岗位管理', icon: '📈', iclass: 'amber', pending: 3, review: 2, reject: 0 },
       { mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple', pending: 2, review: 0, reject: 0 },
-      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 4, review: 0, reject: 1 }
+      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 4, review: 0, reject: 1 },
+      { mod: '教师入职管理', group: '编外教师管理', icon: '📥', iclass: 'purple', pending: 1, review: 0, reject: 0 },
+      { mod: '教师离职管理', group: '编外教师管理', icon: '📤', iclass: 'teal', pending: 0, review: 0, reject: 0 }
     ],
     lockCount: 1,
     quickActs: [
@@ -691,7 +694,9 @@ const ROLES = {
       { mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue', pending: 1, review: 1, reject: 0 },
       { mod: '岗位晋升申请', group: '岗位管理', icon: '📈', iclass: 'amber', pending: 2, review: 1, reject: 0 },
       { mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple', pending: 1, review: 0, reject: 0 },
-      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 3, review: 0, reject: 1 }
+      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 3, review: 0, reject: 1 },
+      { mod: '教师入职管理', group: '编外教师管理', icon: '📥', iclass: 'purple', pending: 0, review: 0, reject: 0 },
+      { mod: '教师离职管理', group: '编外教师管理', icon: '📤', iclass: 'teal', pending: 0, review: 0, reject: 0 }
     ],
     lockCount: 0,
     quickActs: [
@@ -750,7 +755,9 @@ const ROLES = {
     todos: [
       { mod: '入编申请', group: '编制管理', icon: '📝', iclass: 'green', pending: 1, review: 0, reject: 0 },
       { mod: '岗位晋升申请', group: '岗位管理', icon: '📈', iclass: 'amber', pending: 2, review: 0, reject: 0 },
-      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 1, review: 0, reject: 0 }
+      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 1, review: 0, reject: 0 },
+      { mod: '教师入职管理', group: '编外教师管理', icon: '📥', iclass: 'purple', pending: 0, review: 0, reject: 0 },
+      { mod: '教师离职管理', group: '编外教师管理', icon: '📤', iclass: 'teal', pending: 0, review: 0, reject: 0 }
     ],
     lockCount: 0,
     quickActs: [
@@ -928,7 +935,14 @@ function renderMain() {
     quickHtml += '<div class="qc-desc">' + q.desc + '</div>';
     quickHtml += '</div>';
   });
-  document.getElementById('quickArea').innerHTML = quickHtml;
+  var quickArea = document.getElementById('quickArea');
+  quickArea.innerHTML = quickHtml;
+  // Teacher role: 2-column grid (only 2 quick actions)
+  if (currentRole === 'teacher') {
+    quickArea.classList.add('quick-grid-cols2');
+  } else {
+    quickArea.classList.remove('quick-grid-cols2');
+  }
 
   // Ethics
   var eb = data.ethicsBtn;

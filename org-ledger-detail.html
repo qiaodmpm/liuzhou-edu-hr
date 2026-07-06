@@ -148,6 +148,12 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .personnel-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: center; }
 .personnel-table td:first-child { text-align: left; font-weight: 500; }
 .personnel-table tbody tr:hover { background: #FAFBFC; }
+
+/* Cross-school tags */
+.tag-cs { display:inline-flex; align-items:center; gap:3px; font-size:10px; padding:1px 7px; border-radius:3px; white-space:nowrap; font-weight:500; }
+.tag-secondment { background: #FEF3C7; color: #92400E; }
+.tag-support { background: #DBEAFE; color: #1E40AF; }
+.tag-rotation { background: #D1FAE5; color: #065F46; }
 .personnel-empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 13px; }
 .post-level-link { color: var(--accent); font-weight: 600; text-decoration: underline; cursor: pointer; }
 .post-level-link:hover { color: var(--primary); }
@@ -158,6 +164,8 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .personnel-warn a { color: var(--accent); cursor: pointer; }
 .personnel-summary.match { background: #ECFDF5; color: #065F46; }
 .personnel-summary.gap { background: #FFFBEB; color: #92400E; }
+.personnel-summary.excess { background: #FEF2F2; color: #991B1B; }
+.personnel-excess-warn { background: #FEF2F2; border: 1px solid #FECACA; padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: #991B1B; }
 .personnel-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 14px; }
 .personnel-tab { padding: 8px 20px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition); white-space: nowrap; }
 .personnel-tab:hover { color: var(--primary); }
@@ -166,6 +174,12 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .personnel-tab .badge.warn { background: #FEF3C7; color: #92400E; }
 .personnel-tab-panel { display: none; }
 .personnel-tab-panel.active { display: block; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; }
+.pagination button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-secondary); transition: var(--transition); }
+.pagination button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+.pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+.pagination .page-info { font-size: 12px; color: var(--text-light); margin: 0 8px; }
 .personnel-load-more { text-align: center; padding: 8px 0; }
 .personnel-load-more button { font-size: 12px; padding: 4px 16px; cursor: pointer; color: var(--accent); background: #fff; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; }
 .personnel-load-more button:hover { background: var(--primary-light); }
@@ -536,9 +550,7 @@ function renderPostLevelTable(label, levelKeys, levelData, showHighland, labelMa
     var total = (td.careerActual||0)+(td.controlActual||0)+(showHighland?(td.highland||0):0);
     var tCellId = 'ps_total_' + label.replace(/[^a-zA-Z]/g,'') + '_' + levelKeys[ti];
     var tCellStyle = 'text-align:center;font-weight:600;font-size:12px;' + tierSep(levelKeys[ti]);
-    var tCellContent = total > 0
-      ? '<span class="post-level-link" onclick="showPostLevelPersonnel(\'' + fieldMap + '\',\'' + levelKeys[ti] + '\',\'' + label + '\')">' + total + '</span>'
-      : '<span class="post-level-zero">0</span>';
+    var tCellContent = '<span class="post-level-link" onclick="showPostLevelPersonnel(\'' + fieldMap + '\',\'' + levelKeys[ti] + '\',\'' + label + '\')">' + total + '</span>';
     h += '<td id="' + tCellId + '" style="' + tCellStyle + '">' + tCellContent + '</td>';
   }
   h += '</tr>';
@@ -1074,7 +1086,7 @@ function renderDetail() {
   // Summary row
   h += '<div style="display:flex;gap:24px;margin-bottom:12px;font-size:13px;flex-wrap:wrap;">';
   h += '<div><span style="color:var(--text-light);">定编人数：</span><b>' + (d.careerQuota+d.controlQuota) + '</b><span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'authorizedTotal\')" style="cursor:pointer">ⓘ</span></div>';
-  h += '<div><span style="color:var(--text-light);">实有人数：</span><b>' + (d.careerActual+d.controlActual) + '</b><span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'actualTotal\')" style="cursor:pointer">ⓘ</span></div>';
+  h += '<div><span style="color:var(--text-light);">实有人数：</span><b>' + (d.careerActual+d.controlActual) + '</b><span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'staffActual\')" style="cursor:pointer">ⓘ</span></div>';
   h += '<div><span style="color:var(--text-light);">小高地岗位：</span><b>' + (d.highlandPosts||0) + '</b></div>';
   h += '<div><span style="color:var(--text-light);">岗位总量：</span><b>' + ((d.careerQuota+d.controlQuota)-(d.highlandPosts||0)) + '</b><span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'totalPosts\')" style="cursor:pointer">ⓘ</span></div>';
   h += '</div>';
@@ -1083,9 +1095,9 @@ function renderDetail() {
   var LABEL_MAP_L = { common:'普通工' };
   h += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px;">';
   h += '<tr style="background:var(--bg);"><th style="padding:8px 12px;text-align:left;font-weight:500;">类别</th><th style="padding:8px 12px;text-align:center;font-weight:500;">核定岗位数</th><th style="padding:8px 12px;text-align:center;font-weight:500;">实有人数</th></tr>';
-  h += '<tr><td style="padding:6px 12px;">管理岗位<span class="limit-hint" style="font-size:10px;color:var(--text-light);">（合计应等于下方等级分布合计）</span></td><td id="ps_pb_admin_auth" style="text-align:center;">' + pb.admin.auth + '</td><td id="ps_pb_admin_actual" style="text-align:center;">' + pb.admin.actual + '</td></tr>';
-  h += '<tr><td style="padding:6px 12px;">专业技术岗位<span class="limit-hint" style="font-size:10px;color:var(--text-light);">（合计应等于下方等级分布合计）</span></td><td id="ps_pb_tech_auth" style="text-align:center;">' + pb.tech.auth + '</td><td id="ps_pb_tech_actual" style="text-align:center;">' + pb.tech.actual + '</td></tr>';
-  h += '<tr><td style="padding:6px 12px;">工勤技能岗位<span class="limit-hint" style="font-size:10px;color:var(--text-light);">（合计应等于下方等级分布合计）</span></td><td id="ps_pb_logi_auth" style="text-align:center;">' + pb.logistics.auth + '</td><td id="ps_pb_logi_actual" style="text-align:center;">' + pb.logistics.actual + '</td></tr>';
+  h += '<tr><td style="padding:6px 12px;">管理岗位</td><td id="ps_pb_admin_auth" style="text-align:center;">' + pb.admin.auth + '</td><td id="ps_pb_admin_actual" style="text-align:center;">' + pb.admin.actual + '</td></tr>';
+  h += '<tr><td style="padding:6px 12px;">专业技术岗位</td><td id="ps_pb_tech_auth" style="text-align:center;">' + pb.tech.auth + '</td><td id="ps_pb_tech_actual" style="text-align:center;">' + pb.tech.actual + '</td></tr>';
+  h += '<tr><td style="padding:6px 12px;">工勤技能岗位</td><td id="ps_pb_logi_auth" style="text-align:center;">' + pb.logistics.auth + '</td><td id="ps_pb_logi_actual" style="text-align:center;">' + pb.logistics.actual + '</td></tr>';
   h += '</table>';
 
   // Management levels table
@@ -1956,7 +1968,7 @@ function getRoleLabel(role) {
 var CATEGORY_LABEL = { mgmt: '管理岗位', tech: '专业技术岗位', labor: '工勤技能岗位' };
 var CATEGORY_MAP = { mgmtLevels: 'mgmt', techLevels: 'tech', laborLevels: 'labor' };
 var LEVEL_LABEL_CH = { '1':'一级','2':'二级','3':'三级','4':'四级','5':'五级','6':'六级','7':'七级','8':'八级','9':'九级','10':'十级','11':'十一级','12':'十二级','13':'十三级','common':'普通工' };
-var INC_PAGE_SIZE = 10;
+var PER_PAGE = 10;
 
 function switchPersonnelTab(tabName) {
   var tabs = document.querySelectorAll('#personnelModalDyn .personnel-tab');
@@ -1966,6 +1978,76 @@ function switchPersonnelTab(tabName) {
   var panels = document.querySelectorAll('#personnelModalDyn .personnel-tab-panel');
   for (var j = 0; j < panels.length; j++) {
     panels[j].classList.toggle('active', panels[j].dataset.tab === tabName);
+  }
+  if (window._pd) window._pd.activeTab = tabName;
+}
+
+function buildPagination(tab, page, totalPages, total) {
+  if (totalPages <= 1) return '';
+  var h = '';
+  h += '<button ' + (page <= 1 ? 'disabled' : '') + ' onclick="goPersonnelPage(\'' + tab + '\',' + (page - 1) + ')">‹</button>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (p <= 3 || p > totalPages - 3 || Math.abs(p - page) <= 1) {
+      h += '<button class="' + (p === page ? 'active' : '') + '" onclick="goPersonnelPage(\'' + tab + '\',' + p + ')">' + p + '</button>';
+    } else if (p === 4 || p === totalPages - 3) {
+      h += '<button disabled>…</button>';
+    }
+  }
+  h += '<button ' + (page >= totalPages ? 'disabled' : '') + ' onclick="goPersonnelPage(\'' + tab + '\',' + (page + 1) + ')">›</button>';
+  h += '<span class="page-info">共 ' + totalPages + ' 页 / ' + total + ' 条</span>';
+  return h;
+}
+
+function goPersonnelPage(tab, page) {
+  if (!window._pd) return;
+  if (tab === 'matched') window._pd.matchedPage = page;
+  else window._pd.incPage = page;
+  renderPersonnelPage(tab);
+}
+
+function renderPersonnelRows(list) {
+  var rows = '';
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i];
+    var stBadge = t.staffingType === '事业编'
+      ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#EFF6FF;color:var(--primary);">事业编</span>'
+      : '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#FEF3C7;color:#92400E;">控制数</span>';
+    rows += '<tr><td>' + escapeHtml(t.name) + '</td><td>' + stBadge + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.idCard || '—') + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.entryMethod || '—') + '</td><td>' + renderCrossSchoolCell(t) + '</td></tr>';
+  }
+  return rows;
+}
+
+function renderPersonnelPage(tab) {
+  var data = window._pd || {};
+  var list = tab === 'matched' ? (data.matched || []) : (data.incomplete || []);
+  var page = tab === 'matched' ? (data.matchedPage || 1) : (data.incPage || 1);
+  // Apply cross-school filter for matched tab
+  if (tab === 'matched' && data.crossSchoolFilter && data.crossSchoolFilter !== 'all') {
+    list = list.filter(function(t) { return (t.crossSchoolType || 'normal') === data.crossSchoolFilter; });
+  }
+  var total = list.length;
+  var totalPages = Math.ceil(total / PER_PAGE);
+  if (page > totalPages) page = totalPages;
+  if (page < 1) page = 1;
+  if (tab === 'matched') data.matchedPage = page; else data.incPage = page;
+  var start = (page - 1) * PER_PAGE;
+  var pageData = list.slice(start, start + PER_PAGE);
+
+  var tbodyId = tab === 'matched' ? 'pmMatchedTbody' : 'pmIncTbody';
+  var tbody = document.getElementById(tbodyId);
+  if (tbody) {
+    if (pageData.length === 0) {
+      var emptyColspan = 5;
+      tbody.innerHTML = '<tr><td colspan="' + emptyColspan + '"><div class="personnel-empty">暂无数据</div></td></tr>';
+    } else {
+      tbody.innerHTML = renderPersonnelRows(pageData);
+    }
+  }
+
+  var pagId = tab === 'matched' ? 'pmMatchedPag' : 'pmIncPag';
+  var pagEl = document.getElementById(pagId);
+  if (pagEl) {
+    pagEl.innerHTML = buildPagination(tab, page, totalPages, total);
   }
 }
 
@@ -2006,46 +2088,42 @@ function showPostLevelPersonnel(fieldMap, level, categoryLabel) {
   var catLabel = CATEGORY_LABEL[category] || categoryLabel || '';
   var gap = ledgerCount - matched.length;
 
-  var summaryCls = gap > 0 ? 'personnel-summary gap' : 'personnel-summary match';
+  var csCounts = getCrossSchoolCounts(matched);
+  var crossSchoolCount = csCounts.secondment + csCounts.support + csCounts.rotation;
   var summaryHtml = '📊 台账实聘 <b>' + ledgerCount + '</b> 人 ｜ 已匹配 <b>' + matched.length + '</b> 人';
   if (gap > 0) summaryHtml += ' ｜ ⚠️ 差额 <b>' + gap + '</b> 人';
+  else if (gap < 0) summaryHtml += ' ｜ 🔴 超额 <b>' + Math.abs(gap) + '</b> 人';
+  if (crossSchoolCount > 0) summaryHtml += ' ｜ 🔄 跨校人员 <b>' + crossSchoolCount + '</b> 人';
 
-  var matchedRows = '';
-  if (matched.length === 0) {
-    matchedRows = '<tr><td colspan="4"><div class="personnel-empty">暂无已匹配人员</div></td></tr>';
-  } else {
-    matched.forEach(function(t) {
-      var stBadge = t.staffingType === '事业编'
-        ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#EFF6FF;color:var(--primary);">事业编</span>'
-        : '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#FEF3C7;color:#92400E;">控制数</span>';
-      matchedRows += '<tr><td>' + escapeHtml(t.name) + '</td><td>' + stBadge + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.idCard || '—') + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.entryMethod || '—') + '</td></tr>';
-    });
+  var excessWarnHTML = '';
+  if (gap < 0) {
+    excessWarnHTML = '<div class="personnel-excess-warn">⚠️ 教师账号已匹配 <b>' + matched.length + '</b> 人超过台账记录 <b>' + ledgerCount + '</b> 人，可能原因：<br>· 台账实聘数未及时更新<br>· 部分教师岗位等级填写有误<br>· 同一教师被分配到多个等级<br>请核实数据后更新台账或修正教师岗位等级。</div>';
   }
 
-  // Build incomplete rows (for tab panel)
-  var incRows = '';
-  if (incomplete.length > 0) {
-    incomplete.forEach(function(t) {
-      var stBadge = t.staffingType === '事业编'
-        ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#EFF6FF;color:var(--primary);">事业编</span>'
-        : '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#FEF3C7;color:#92400E;">控制数</span>';
-      incRows += '<tr><td>' + escapeHtml(t.name) + '</td><td>' + stBadge + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.idCard || '—') + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.entryMethod || '—') + '</td></tr>';
-    });
-  }
+  // Store data for pagination
+  window._pd = {
+    matched: matched,
+    incomplete: incomplete,
+    matchedPage: 1,
+    incPage: 1,
+    activeTab: 'matched',
+    crossSchoolFilter: 'all'
+  };
   var incBadgeHTML = incomplete.length > 0 ? '<span class="badge warn">' + incomplete.length + '</span>' : '';
 
-  var gs = gap > 0 ? '#FFFBEB' : '#ECFDF5';
-  var gc = gap > 0 ? '#92400E' : '#065F46';
+  var gs = gap > 0 ? '#FFFBEB' : (gap < 0 ? '#FEF2F2' : '#ECFDF5');
+  var gc = gap > 0 ? '#92400E' : (gap < 0 ? '#991B1B' : '#065F46');
   // Build complete modal HTML dynamically (tab layout)
   var incPanelHTML = incomplete.length > 0
-    ? '<div class="personnel-tab-panel" data-tab="incomplete"><div class="personnel-warn">💡 以下 <b>' + incomplete.length + '</b> 人属于本校但缺少岗位类别/等级信息，无法自动匹配到本等级。请前往<a href="account-management.html" target="_blank">账号管理</a>补充。</div><table class="personnel-table"><thead><tr><th style="text-align:left;">姓名</th><th>编制类型</th><th>身份证号</th><th>入编方式</th></tr></thead><tbody>' + incRows + '</tbody></table></div>'
+    ? '<div class="personnel-tab-panel" data-tab="incomplete"><div class="personnel-warn">💡 以下 <b>' + incomplete.length + '</b> 人属于本校但缺少岗位类别/等级信息，无法自动匹配到本等级。请前往<a href="account-management.html" target="_blank">账号管理</a>补充。</div><table class="personnel-table"><thead><tr><th style="text-align:left;">姓名</th><th>编制类型</th><th>身份证号</th><th>入编方式</th><th>跨校状态</th></tr></thead><tbody id="pmIncTbody"></tbody></table><div class="pagination" id="pmIncPag"></div></div>'
     : '';
 
   var modalHTML = '<div id="personnelModalDyn" onclick="if(event.target===this)closePersonnelModal()" style="display:flex;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">'
-    + '<div style="width:760px;max-width:92vw;background:#fff;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,0.12);max-height:80vh;display:flex;flex-direction:column;">'
+    + '<div style="width:880px;max-width:94vw;background:#fff;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,0.12);max-height:80vh;display:flex;flex-direction:column;">'
     + '<div style="padding:18px 24px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;"><h3 style="font-size:16px;font-weight:600;margin:0;">' + catLabel + ' — ' + levelLabel + ' 实聘人员</h3><button onclick="closePersonnelModal()" style="cursor:pointer;color:#94A3B8;font-size:20px;padding:4px;border:none;background:none;">&times;</button></div>'
     + '<div style="padding:20px 24px;overflow-y:auto;flex:1;">'
     + '<div style="padding:10px 16px;border-radius:6px;margin-bottom:14px;font-size:13px;background:' + gs + ';color:' + gc + ';">' + summaryHtml + '</div>'
+    + excessWarnHTML
     // Tabs
     + '<div class="personnel-tabs">'
     + '<div class="personnel-tab active" data-tab="matched" onclick="switchPersonnelTab(\'matched\')">已匹配（' + matched.length + '）</div>'
@@ -2053,7 +2131,8 @@ function showPostLevelPersonnel(fieldMap, level, categoryLabel) {
     + '</div>'
     // Matched panel
     + '<div class="personnel-tab-panel active" data-tab="matched">'
-    + '<table class="personnel-table"><thead><tr><th style="text-align:left;">姓名</th><th>编制类型</th><th>身份证号</th><th>入编方式</th></tr></thead><tbody>' + matchedRows + '</tbody></table>'
+    + '<table class="personnel-table"><thead><tr><th style="text-align:left;">姓名</th><th>编制类型</th><th>身份证号</th><th>入编方式</th><th>跨校状态</th></tr></thead><tbody id="pmMatchedTbody"></tbody></table>'
+    + '<div class="pagination" id="pmMatchedPag"></div>'
     + '</div>'
     // Incomplete panel
     + incPanelHTML
@@ -2067,6 +2146,9 @@ function showPostLevelPersonnel(fieldMap, level, categoryLabel) {
   var div = document.createElement('div');
   div.innerHTML = modalHTML;
   document.body.appendChild(div.firstElementChild);
+  // Initial page render for both tabs
+  renderPersonnelPage('matched');
+  if (incomplete.length > 0) renderPersonnelPage('incomplete');
   } catch(e) { console.error(e); }
 }
 
@@ -2075,6 +2157,62 @@ function closePersonnelModal() {
   if (pm) { pm.remove(); return; }
   var pm2 = document.getElementById('personnelModal');
   if (pm2) pm2.style.display = 'none';
+}
+
+// ===== CROSS-SCHOOL HELPERS =====
+var CROSS_SCHOOL_LABELS = { secondment: '借调', support: '支教', rotation: '轮岗' };
+var CROSS_SCHOOL_CLASSES = { secondment: 'tag-secondment', support: 'tag-support', rotation: 'tag-rotation' };
+
+function renderCrossSchoolCell(a) {
+  var csType = a.crossSchoolType || 'normal';
+  if (csType === 'normal' || !csType) return '<span style="color:var(--text-light);font-size:11px;">在岗（非跨校）</span>';
+  var label = CROSS_SCHOOL_LABELS[csType] || csType;
+  var cls = CROSS_SCHOOL_CLASSES[csType] || '';
+  var html = '<span class="tag-cs ' + cls + '">' + label + '</span>';
+  if (a.crossSchool) html += ' <span style="font-size:10px;color:var(--text-secondary);">' + escapeHtml(a.crossSchool) + '</span>';
+  var dateRange = '';
+  if (a.crossStartDate) dateRange += a.crossStartDate;
+  if (a.crossEndDate) dateRange += (dateRange ? ' ~ ' : '') + a.crossEndDate;
+  if (dateRange) html += '<div style="font-size:9px;color:var(--text-light);">' + dateRange + '</div>';
+  return html;
+}
+
+function getCrossSchoolCounts(list) {
+  var counts = { all: list.length, normal: 0, secondment: 0, support: 0, rotation: 0 };
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i];
+    var csType = t.crossSchoolType || 'normal';
+    if (counts[csType] !== undefined) counts[csType]++;
+    else counts.normal++;
+  }
+  return counts;
+}
+
+function renderCrossSchoolFilterTabs(counts, activeFilter) {
+  var tabs = [
+    { key: 'all', label: '全部' },
+    { key: 'normal', label: '在岗' },
+    { key: 'secondment', label: '借调' },
+    { key: 'support', label: '支教' },
+    { key: 'rotation', label: '轮岗' }
+  ];
+  var h = '<div class="cs-filter-tabs" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">';
+  for (var i = 0; i < tabs.length; i++) {
+    var t = tabs[i];
+    var active = t.key === activeFilter;
+    var count = counts[t.key] || 0;
+    if (count === 0 && t.key !== 'all' && t.key !== 'normal') continue;
+    h += '<span class="cs-filter-tab' + (active ? ' active' : '') + '" onclick="filterCrossSchool(\'' + t.key + '\')" style="padding:3px 12px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid ' + (active ? '#1E40AF' : '#E2E8F0') + ';background:' + (active ? '#1E40AF' : '#fff') + ';color:' + (active ? '#fff' : '#64748B') + ';transition:0.2s;">' + t.label + ' <span style="font-weight:600;">' + count + '</span></span>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function filterCrossSchool(csType) {
+  if (!window._pd) return;
+  window._pd.crossSchoolFilter = csType;
+  window._pd.matchedPage = 1;
+  renderPersonnelPage('matched');
 }
 
 // ===== UTILS =====
@@ -2454,13 +2592,16 @@ function downloadMockAttachment(fileName) {
 var AGG_TOOLTIPS = {
   totalPosts:{ title:'岗位总量', body:'<strong>= 事业编核定数 + 控制数核定数 − 小高地岗位数</strong><br><br>学校的总岗位数量上限。该数值由编制部门核定的两类编制之和减去小高地岗位数得出。' },
   authorizedTotal:{ title:'定编人数', body:'<strong>= 事业编核定数 + 控制数核定数</strong><br><br>编制部门为本校核定的事业编制数与聘用控制数之和，即学校的编制总额。' },
-  actualTotal:{ title:'实有人数', body:'<strong>= 实有在编人数 + 实有控制数人数</strong><br><br>当前实际在岗的实名编制人数与控制数人数之和。' },
+  // 顶层卡片 — 实有人数
+  staffActual:{ title:'实有人数', body:'<strong>= 实有在编人数 + 实有控制数人数</strong><br><br>当前实际在岗的实名编制人数与控制数人数之和。' },
   approved:{ title:'已批复计划数', body:'仅统计<strong>有效期内</strong>的编制批复计划。<br>已到期的批复名额不计入此数字。<br><br>数据来源：计划明细自动汇总，不可手动修改。<br><br>📋 示例：有 3 条计划记录，其中 1 条已到期<br>→ 已批复计划数 = 仅 2 条有效计划之和' },
   used:{ title:'已使用计划数', body:'<strong>= 已占用 + 已入编</strong><br><br>有效期内计划中已占用（招聘途中）和已入编（正式落编）的人数之和。<br>已到期计划中的使用数不计入。<br><br>数据来源：计划明细自动汇总，不可手动修改。' },
   unused:{ title:'未使用计划数', body:'<strong>= 已批复 − 已使用</strong><br><br>已到期的剩余名额不计入此数字。' },
   available:{ title:'可申请数', body:'<strong>= 核定数 − 实有数 − 已批复计划数 − 到期占用中人数</strong><br><br>编制余额。还可向编办申请的编制名额数量。<br>结果 ≤ 0 表示编制已满或超额。<br><br>⚠️ 已过期但仍有占用的计划，其占用人数会扣减可申请数。' },
   expiredOccupied:{ title:'到期占用中', body:'<strong>已过期但仍有人员占用的计划中，尚未入编的人数。</strong><br><br>占用名额仍有效，应尽快为占用人员办理入编手续。<br>入编完成后相关计划将自动标记为"已用完"。' },
-  actualTotal:{ title:'实聘数', body:'<strong>= 实名编 + 控制数</strong><br><br>各单位当前实际在岗人数之和。含事业编实名制人员和聘用控制数人员。<br><br>不含超岗聘用数（超岗聘用是计算结果，不参与自身求和）。<br><br>⚠️ 管理岗位和工勤技能岗位不包含小高地岗位。' },
+  // 管理岗/工勤岗 等级表 — 实聘数（无小高地）
+  actualTotal:{ title:'实聘数', body:'<strong>= 实名编 + 控制数</strong><br><br>本岗位类别当前实际在岗人数之和。含事业编实名制人员和聘用控制数人员。<br><br>不含超岗聘用数（超岗聘用是计算结果，不参与自身求和）。<br><br>本类别不包含小高地岗位。' },
+  // 专技岗 等级表 — 实聘数（含小高地）
   actualTotalTech:{ title:'实聘数（专技）', body:'<strong>= 实名编 + 控制数 + 小高地岗位</strong><br><br>专业技术岗位的实聘人数。含事业编实名制人员、聘用控制数人员和小高地岗位人员。<br><br>不含超岗聘用数（超岗聘用是计算结果，不参与自身求和）。' },
   overQuotaPost:{ title:'超岗聘用数', body:'<strong>= max(0, 实名编 + 控制数 − 核定岗位数)</strong><br><br>实际在岗人数超出核定岗位数的部分。系统根据核定岗位数和实聘数自动计算，不可手动修改。<br><br>超岗聘用不计入核定岗位数，但计入实聘数合计。' }
 };

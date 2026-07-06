@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD_系统基础模块 — 柳州教育人事管理平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC',sans-serif; color:var(--text); background:var(--bg); line-height:1.7; }
+
+.cover { background:linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #6366F1 100%); color:#fff; padding:80px 60px; text-align:center; }
+.cover .tag { display:inline-block; border:1px solid rgba(255,255,255,0.4); border-radius:20px; padding:6px 20px; font-size:13px; margin-bottom:24px; letter-spacing:2px; }
+.cover h1 { font-size:38px; font-weight:700; margin-bottom:12px; }
+.cover .sub { font-size:18px; opacity:0.85; margin-bottom:32px; }
+.cover .meta { font-size:13px; opacity:0.6; }
+.cover .meta span { margin:0 16px; }
+
+.container { max-width:1100px; margin:0 auto; padding:60px 40px; }
+.section { margin-bottom:64px; }
+.section-title { font-size:28px; font-weight:700; color:var(--primary); margin-bottom:8px; padding-bottom:12px; border-bottom:3px solid var(--primary); }
+.section-desc { color:var(--text-secondary); font-size:15px; margin-bottom:32px; }
+.sub-title { font-size:20px; font-weight:600; color:var(--text); margin:32px 0 16px; padding-left:12px; border-left:4px solid var(--accent); }
+.sub-sub-title { font-size:16px; font-weight:600; color:var(--primary); margin:24px 0 12px; }
+
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:20px; }
+.card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; box-shadow:var(--shadow); transition:0.2s; }
+.card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.12); }
+.card h4 { font-size:17px; font-weight:600; margin-bottom:8px; }
+.card p { font-size:14px; color:var(--text-secondary); }
+
+.table-wrap { overflow-x:auto; background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); margin-bottom:20px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:var(--primary); color:#fff; padding:10px 14px; text-align:left; font-weight:500; white-space:nowrap; }
+td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--primary-light); }
+td.center { text-align:center; }
+
+.flow-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:20px; }
+
+.rule-item { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; margin-bottom:12px; border-left:4px solid var(--accent); }
+.rule-item.danger { border-left-color:var(--danger); }
+.rule-item.warning { border-left-color:var(--warning); }
+.rule-item.success { border-left-color:var(--success); }
+.rule-item strong { color:var(--primary); }
+
+pre { background:#1E293B; color:#E2E8F0; padding:20px 24px; border-radius:var(--radius); overflow-x:auto; font-size:13px; line-height:1.6; margin:16px 0; }
+pre code { font-family:'Courier New',monospace; }
+
+.toc { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; box-shadow:var(--shadow); }
+.toc ol { padding-left:24px; }
+.toc li { padding:4px 0; }
+.toc a { color:var(--accent); text-decoration:none; }
+.toc a:hover { text-decoration:underline; }
+
+.badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:500; margin-left:8px; }
+.badge-done { background:#D1FAE5; color:#065F46; }
+
+.page-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:16px; box-shadow:var(--shadow); }
+.page-card h4 { font-size:16px; font-weight:600; margin-bottom:6px; }
+
+.feat-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:16px; box-shadow:var(--shadow); }
+.feat-card .feat-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.feat-card .feat-id { background:var(--primary); color:#fff; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+.feat-card .feat-name { font-size:16px; font-weight:600; }
+.feat-card .feat-priority { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600; }
+.feat-card .feat-priority.p0 { background:#FEE2E2; color:#991B1B; }
+.feat-card .feat-priority.p1 { background:#FEF3C7; color:#92400E; }
+.feat-card .feat-priority.p2 { background:#DBEAFE; color:#1E40AF; }
+.feat-dl { display:grid; grid-template-columns:100px 1fr; gap:6px 16px; font-size:13px; }
+.feat-dl dt { font-weight:600; color:var(--text-secondary); }
+.feat-dl dd { color:var(--text); }
+
+.matrix-yes { color:var(--success); font-weight:700; }
+.matrix-no { color:var(--danger); }
+.matrix-cond { color:var(--warning); }
+
+.summary-box { background:var(--primary-light); border:1px solid var(--accent); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:20px; }
+
+.footer { text-align:center; padding:40px; color:var(--text-secondary); font-size:13px; border-top:1px solid var(--border); }
+
+@media print {
+  .cover { padding:40px; }
+  .container { padding:20px; }
+  .card, .flow-box, .rule-item, .feat-card { break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="tag">MODULE PRODUCT REQUIREMENTS DOCUMENT</div>
+  <h1>系统基础模块</h1>
+  <div class="sub">产品需求文档 · 登录 / 工作台 / 个人中心 / 忘记密码</div>
+  <div class="meta">
+    <span>📅 2026-07-03</span>
+    <span>📌 Version 2.1（正式版）</span>
+    <span>📎 父文档：PRD_总纲_柳州教育人事管理平台.md</span>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="section">
+  <div class="section-title">📑 目录</div>
+  <div class="toc">
+    <ol>
+      <li><a href="#s1">模块概述</a> — 定位、业务背景、核心价值、适用角色</li>
+      <li><a href="#s2">业务流程</a> — 登录、忘记密码、首次登录改密、退出登录（Mermaid 流程图）</li>
+      <li><a href="#s3">功能清单</a> — F01~F04 完整功能点（含前置条件/角色/业务规则/交互规则）</li>
+      <li><a href="#s4">页面字段清单</a> — 各页面字段定义 + 校验规则表</li>
+      <li><a href="#s5">操作级权限矩阵</a></li>
+      <li><a href="#s6">数据模型</a> — 后端 API 接口 + 数据结构</li>
+      <li><a href="#s7">页面清单</a></li>
+      <li><a href="#s8">异常处理</a> — 边界情况 + 错误场景</li>
+      <li><a href="#s9">通知触发点</a></li>
+      <li><a href="#s10">操作日志埋点</a></li>
+      <li><a href="#s11">验收标准</a> — 功能判定 + 关键测试场景</li>
+      <li><a href="#s12">与代码比对差异</a></li>
+      <li><a href="#s13">迭代记录</a></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============= 1. 模块概述 ============= -->
+<div class="section" id="s1">
+  <div class="section-title">一、模块概述</div>
+
+  <div class="sub-title">1.1 模块定位</div>
+  <p>系统基础模块是柳州教育人事管理平台的<strong>入口层基础设施</strong>，承载用户身份认证（JWT 登录态）、角色路由、工作台门户、个人信息管理、密码安全等核心基础能力。所有业务模块（编制申请、入编、出编、岗位设置等）均依赖本模块提供的认证令牌和角色信息。</p>
+  <p>本模块在总纲排期中为 <strong>P0 第一位</strong>，是所有其他模块的前置依赖。</p>
+
+  <div class="sub-title">1.2 业务背景</div>
+  <p>平台面向市/区/校三级管理员 + 教师 + 系统管理员共 5 类角色，需要统一的身份认证入口和角色感知的工作门户。核心场景：</p>
+  <ul style="margin-left:20px; line-height:2;">
+    <li><strong>新旧平台共用账号体系</strong>：旧平台（lzjs.eduyunx.com）存量账号保留。新增账号在新平台创建后同步至旧平台，管理员权限各自独立维护</li>
+    <li><strong>首次登录初始化</strong>：新创建账号或管理员重置密码后，用户首次登录须完成<strong>强制改密 + 强制编辑个人信息</strong>（补充缺失字段）方可进入系统。校管理员首次登录还须额外<strong>编辑并提交学校信息审核</strong></li>
+    <li><strong>角色切换须重新登录</strong>：一个账号可拥有多个角色，但<strong>不支持侧边栏热切换</strong>。切换角色须退出登录，回到登录页重新选择角色后登录</li>
+    <li><strong>JWT 无状态认证</strong>：正式版采用 JWT Token 方案，Token 有效期 8 小时，支持 Refresh Token 续期</li>
+  </ul>
+
+  <div class="sub-title">1.3 核心价值</div>
+  <div class="card-grid">
+    <div class="card"><h4>🔐 统一身份入口</h4><p>5 类角色通过同一登录页进入，角色选择决定后续菜单和权限</p></div>
+    <div class="card"><h4>📊 角色感知工作台</h4><p>登录后展示角色专属待办提醒、快捷操作、通知消息；不同角色看到不同内容</p></div>
+    <div class="card"><h4>👤 个人信息中心</h4><p>可查看和编辑基本信息、教育教学信息、证书信息、家庭信息</p></div>
+    <div class="card"><h4>🔑 密码安全</h4><p>支持忘记密码找回（短信验证）、首次登录强制改密、密码强度实时校验</p></div>
+  </div>
+
+  <div class="sub-title">1.4 适用角色</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>角色</th><th>标识</th><th>本模块使用范围</th></tr>
+    <tr><td>系统管理员</td><td><code>system</code></td><td>登录（直接进入账号管理页，无工作台）、个人中心</td></tr>
+    <tr><td>市管理员</td><td><code>city</code></td><td>登录、工作台（全市待办+快捷操作）、个人中心</td></tr>
+    <tr><td>区管理员</td><td><code>district</code></td><td>登录、工作台（本区待办+快捷操作）、个人中心</td></tr>
+    <tr><td>校管理员</td><td><code>school</code></td><td>登录、工作台（本校待办+快捷操作）、个人中心</td></tr>
+    <tr><td>教师</td><td><code>teacher</code></td><td>登录、工作台（个人待办+快捷操作）、个人中心</td></tr>
+  </table>
+  </div>
+
+  <div class="summary-box">
+    <strong>📌 正式版与 Demo 版的关键差异：</strong><br>
+    ① 无侧边栏角色切换器，切换角色须退出登录重新登录；<br>
+    ② 认证方案为 JWT + Refresh Token（8h + 7d），不再使用 localStorage 明文存储密码；<br>
+    ③ 首次登录需完成初始化向导：改密 → 补全个人信息 →（校管理员）提交学校信息审核；<br>
+    ④ 短信验证码对接真实 SMS 网关，不再使用固定验证码；<br>
+    ⑤ 操作日志写入后端数据库，不可篡改。
+  </div>
+</div>
+
+<!-- ============= 2. 业务流程 ============= -->
+<div class="section" id="s2">
+  <div class="section-title">二、业务流程</div>
+
+  <div class="sub-title">2.1 登录与角色路由总流程</div>
+  <div class="flow-box">
+
+<pre class="mermaid">
+flowchart TD
+    A[用户访问系统] --> B{已登录?<br>检查 JWT Token}
+    B -->|Token 有效| C{角色?}
+    C -->|系统管理员| C1[跳转 account-management.html<br>（账号管理页）]
+    C -->|其他角色| C2[跳转 workbench.html<br>（工作台）]
+    B -->|Token 无效/不存在| D[显示登录页 index.html<br>（登录页）]
+
+    D --> E[选择登录角色<br>系统/市/区/校/教师]
+    E --> F[输入账号]
+    F --> G[输入密码]
+    G --> H[点击登录]
+
+    H --> I{后端校验账号密码}
+    I -->|成功| K{检查密码状态}
+    I -->|失败| J1{失败次数?}
+
+    J1 -->|&lt; 5 次| J2[返回错误信息<br>提示剩余尝试次数]
+    J2 --> F
+    J1 -->|第 5 次失败| J3[🔒 账号锁定 30 分钟<br>记录锁定时间]
+
+    J3 --> J4[等待 30 分钟<br>系统自动解锁<br>失败计数清零]
+    J4 --> D
+
+    K -->|首次登录/管理员重置| L[返回 needInit=true<br>跳转 personal-center.html?mode=init<br>（个人中心·初始化向导）]
+    K -->|正常| M[签发 JWT Token<br>+ Refresh Token]
+
+    L --> L1[Step 1: 强制改密<br>弹框不可关闭]
+    L1 --> L2[Step 2: 强制编辑个人信息<br>补充必填缺失字段]
+    L2 --> L3{角色=校管理员?}
+    L3 -->|是| L4[Step 3: 强制编辑学校信息<br>提交主管单位审核]
+    L3 -->|否| N[初始化完成<br>needInit=false]
+    L4 --> N
+    N --> M
+
+    M --> O{角色?}
+    O -->|系统管理员| O1[跳转 account-management.html<br>（账号管理页）]
+    O -->|其他角色| O2[跳转 workbench.html<br>（工作台）]
+    O2 --> P[根据 role 渲染工作台<br>+ 侧边栏菜单]
+
+    P --> Q{用户想切换角色?}
+    Q -->|是| R[退出登录<br>清除 Token]
+    R --> D
+    Q -->|否| S[正常使用]
+</pre>
+
+  </div>
+
+  <div class="sub-title">2.2 忘记密码流程</div>
+  <div class="flow-box">
+
+<pre class="mermaid">
+flowchart TD
+    A[点击登录页 忘记密码] --> B[跳转 forgot-password.html<br>（忘记密码页）]
+    B --> C[Step 1: 选择角色 + 输入账号]
+    C --> D[点击 下一步]
+    D --> E{后端校验账号是否存在}
+    E -->|否| F[提示: 账号不存在]
+    E -->|是| G[Step 2: 身份验证]
+
+    G --> H[显示已绑定手机号<br>13807720001]
+    H --> I[点击获取验证码<br>后端发送真实短信]
+    I --> J[输入6位短信验证码]
+    J --> K[点击 下一步]
+
+    K --> L{后端校验验证码}
+    L -->|错误或过期| M[提示: 验证码错误或已过期]
+    L -->|正确| N[Step 3: 设置新密码]
+
+    N --> O[输入新密码 + 确认密码]
+    O --> P{密码校验}
+    P -->|不符合规则| O
+    P -->|通过| Q[后端重置密码<br>设置 needInit=true]
+
+    Q --> R[显示成功页<br>3秒倒计时]
+    R --> S[自动跳转登录页]
+</pre>
+
+  </div>
+
+  <div class="sub-title">2.3 首次登录初始化流程（改密 + 补全信息）</div>
+  <div class="flow-box">
+
+<pre class="mermaid">
+flowchart TD
+    A[登录成功<br>后端返回 needInit=true] --> B[前端跳转 personal-center.html?mode=init<br>（个人中心·初始化向导）]
+
+    B --> C[Step 1: 强制改密弹框<br>不可关闭、不可跳过]
+    C --> D[输入原密码即初始密码]
+    D --> E[输入新密码 + 确认密码]
+    E --> F[提交后端改密 API]
+    F --> G{改密成功?}
+    G -->|失败| D
+    G -->|成功| H[关闭改密弹框]
+
+    H --> I[Step 2: 强制编辑个人信息弹框<br>不可关闭、不可跳过]
+    I --> J[展示个人信息表单<br>必填缺失字段红色标记]
+    J --> K[用户补充所有必填字段]
+    K --> L[提交后端更新 API]
+    L --> M{保存成功?}
+    M -->|校验失败| J
+    M -->|成功| N{角色=校管理员?}
+
+    N -->|是| O[Step 3: 强制编辑学校信息弹框<br>不可关闭、不可跳过]
+    N -->|否| P[初始化完成<br>needInit=false<br>签发新 JWT Token]
+
+    O --> Q[展示学校信息表单<br>预填已有数据]
+    Q --> R[校管理员编辑并提交审核]
+    R --> S[后端创建学校信息审核记录<br>状态: 待审核]
+    S --> P
+
+    P --> T[正常展示个人中心]
+</pre>
+
+  </div>
+
+  <div class="sub-title">2.4 退出登录与角色切换流程</div>
+  <div class="flow-box">
+
+<pre class="mermaid">
+flowchart TD
+    A[用户点击退出登录] --> B[确认弹框:<br>确定要退出登录吗]
+    B -->|取消| C[留在当前页]
+    B -->|确认| D[后端注销登录态<br>Token 加入黑名单]
+
+    D --> E[清除前端存储<br>JWT Token<br>Refresh Token<br>currentUser]
+    E --> F[跳转 index.html<br>（登录页）]
+
+    F --> G{用户想以不同角色登录}
+    G -->|是| H[选择新角色标签<br>输入账号密码<br>重新登录]
+    H --> I[后端返回新角色的<br>JWT Token + 权限]
+    G -->|否| J[流程结束]
+</pre>
+
+  </div>
+
+  <div class="sub-title">2.5 工作台待办加载流程</div>
+  <div class="flow-box">
+
+<pre class="mermaid">
+flowchart TD
+    A[进入 workbench.html<br>（工作台）] --> B[读取 JWT Token 中的<br>用户角色 + 所属单位]
+    B --> C[后端根据角色和单位<br>查询对应范围的待办数据]
+    C --> D{当前角色?}
+
+    D -->|市管理员| F[查询全市各模块<br>待审批记录]
+    D -->|区管理员| G[查询本区各模块<br>待审批记录]
+    D -->|校管理员| H[查询本校各模块<br>待处理记录]
+    D -->|教师| I[查询个人待处理记录]
+
+    F --> J[后端按模块聚合统计<br>返回: 待审核/审核中/已驳回]
+    G --> J
+    H --> J
+    I --> J
+
+    J --> K[渲染待办模块列表]
+    K --> L[渲染快捷操作区]
+    L --> M[渲染通知消息列表<br>展示最近通知消息]
+</pre>
+
+  </div>
+</div>
+
+<!-- ============= 3. 功能清单 ============= -->
+<div class="section" id="s3">
+  <div class="section-title">三、功能清单</div>
+
+  <div class="sub-title">3.0 功能清单总览</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>编号</th><th>功能模块</th><th>功能点</th><th>功能说明</th><th>优先级</th><th>适用角色</th></tr>
+    <tr><td>F01.01</td><td rowspan="2">登录认证</td><td>角色选择 + 账号密码登录</td><td>5 类角色通过统一登录页输入账号密码完成身份认证</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部角色（未登录）</td></tr>
+    <tr><td>F01.02</td><td>Token 自动续期</td><td>JWT 过期后自动使用 Refresh Token 无感续期</td><td class="center"><span class="feat-priority p1">P1</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F02.01</td><td rowspan="5">工作台</td><td>角色感知工作台渲染</td><td>登录后根据角色展示专属欢迎区、待办、快捷入口</td><td class="center"><span class="feat-priority p0">P0</span></td><td>市/区/校管理员、教师</td></tr>
+    <tr><td>F02.02</td><td>待办提醒统计</td><td>按模块聚合展示待审核/审核中/已驳回计数</td><td class="center"><span class="feat-priority p0">P0</span></td><td>市/区/校管理员、教师</td></tr>
+    <tr><td>F02.03</td><td>快捷操作入口</td><td>3×2 网格常用功能快捷跳转卡片</td><td class="center"><span class="feat-priority p0">P0</span></td><td>市/区/校管理员、教师</td></tr>
+    <tr><td>F02.04</td><td>通知消息中心</td><td>顶栏铃铛 + 消息列表弹框 + 未读角标</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F02.05</td><td>台账全局锁定提醒</td><td>台账审核中时待办区显示红色锁定警告条</td><td class="center"><span class="feat-priority p1">P1</span></td><td>市/区/校管理员、教师</td></tr>
+    <tr><td>F03.01</td><td rowspan="9">个人中心</td><td>基本信息查看</td><td>个人档案卡 + 账号信息只读展示</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F03.02</td><td>编辑个人信息</td><td>弹框编辑性别、手机号、学历、职称等字段</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F03.03</td><td>教育教学信息查看与编辑</td><td>教学经历、学段学科、初次任教时间等</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F03.04</td><td>证书信息管理</td><td>教师资格证、普通话证等证书增删改查</td><td class="center"><span class="feat-priority p1">P1</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F03.05</td><td>修改密码（普通场景）</td><td>弹框修改密码，含强度校验</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F03.06</td><td>首次登录 — Step 1：强制改密</td><td>初始化向导第 1 步，不可跳过</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部角色（needInit）</td></tr>
+    <tr><td>F03.07</td><td>首次登录 — Step 2：补全个人信息</td><td>初始化向导第 2 步，补齐必填缺失字段</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部角色（needInit）</td></tr>
+    <tr><td>F03.08</td><td>首次登录 — Step 3：提交学校信息</td><td>校管理员专属，提交学校信息审核</td><td class="center"><span class="feat-priority p0">P0</span></td><td>校管理员（needInit）</td></tr>
+    <tr><td>F03.09</td><td>登录历史查看</td><td>最近登录记录表格，含时间/IP/结果</td><td class="center"><span class="feat-priority p2">P2</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F04.01</td><td rowspan="3">忘记密码</td><td>身份确认</td><td>选择角色 + 输入账号，验证身份</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部角色（未登录）</td></tr>
+    <tr><td>F04.02</td><td>短信验证</td><td>发送短信验证码到绑定手机号</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部角色（未登录）</td></tr>
+    <tr><td>F04.03</td><td>设置新密码</td><td>重置密码 + 强度校验</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部角色（未登录）</td></tr>
+    <tr><td>F05.01</td><td rowspan="5">通用组件</td><td>顶栏导航（TopNav）</td><td>固定顶部，Logo + 通知铃铛 + 用户菜单</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F05.02</td><td>侧边栏菜单（Sidebar）</td><td>固定左侧，分组菜单 + 折叠 + 权限过滤</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部已登录角色</td></tr>
+    <tr><td>F05.03</td><td>Toast 通知组件</td><td>操作反馈，3s 自动消失，支持成功/错误/警告</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部</td></tr>
+    <tr><td>F05.04</td><td>模态弹框组件（Modal）</td><td>通用弹框，含标题/内容/按钮区</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部</td></tr>
+    <tr><td>F05.05</td><td>密码强度组件</td><td>3 格强度条 + 规则逐条校验，实时反馈</td><td class="center"><span class="feat-priority p0">P0</span></td><td>全部</td></tr>
+  </table>
+  </div>
+  <p style="color:var(--text-secondary);font-size:13px;">共 <strong>5 个功能模块、23 个功能点</strong></p>
+
+  <div class="sub-title">F01 — 登录认证</div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F01.01</span>
+      <span class="feat-name">角色选择 + 账号密码登录</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部 5 类角色（未登录状态）</dd>
+      <dt>触发条件</dt><dd>访问 index.html，无有效 JWT Token</dd>
+      <dt>前置条件</dt><dd>账号已在系统管理模块创建且状态为"正常"</dd>
+      <dt>后置条件</dt><dd>登录成功 → 前端存储 JWT Token + Refresh Token，跳转 workbench.html。首次登录 → 跳转 personal-center.html?mode=init</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 角色标签页 5 选 1（系统/市/区/校/教师），默认"校管理员"<br>
+          2. 账号为手机号或系统分配的用户名<br>
+          3. 后端校验账号存在、密码正确、账号未被锁定<br>
+          4. 连续 5 次密码错误 → 账号锁定 30 分钟。30 分钟后系统自动解锁，失败计数清零。管理员可在账号管理中手动立即解锁<br>
+          5. 登录成功返回 JWT Token（有效期 8h）+ Refresh Token（有效期 7d）<br>
+          6. 记录登录日志（成功/失败、IP、设备信息）
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 切换角色标签页时更新账号输入框 placeholder<br>
+          2. 密码输入框支持"显示/隐藏"切换（眼睛图标）<br>
+          3. 点击"登录"按钮后显示 loading 状态（按钮文字变为"登录中..."+ 不可点击）<br>
+          4. 登录失败 toast 提示错误信息，输入框不自动清空<br>
+          5. 账号锁定后 toast 提示"账号已被锁定，请30分钟后再试或联系管理员解锁"
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F01.02</span>
+      <span class="feat-name">Token 自动续期</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>JWT Token 过期（8h），Refresh Token 仍有效（7d）</dd>
+      <dt>前置条件</dt><dd>已登录，持有有效 Refresh Token</dd>
+      <dt>后置条件</dt><dd>前端自动获取新 JWT Token，用户无感知</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 请求拦截器检测到 401 → 自动调用 /api/auth/refresh<br>
+          2. Refresh Token 过期 → 跳转登录页，提示"登录已过期，请重新登录"<br>
+          3. 续期后使用新 Token 重放原请求
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. Token 续期过程中页面正常展示，无 loading 遮罩<br>2. 续期失败跳转登录页时 toast 提示原因</dd>
+    </dl>
+  </div>
+
+  <div class="sub-title">F02 — 工作台</div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F02.01</span>
+      <span class="feat-name">角色感知工作台渲染</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>市管理员、区管理员、校管理员、教师。<strong>系统管理员无工作台</strong>，登录后直接进入账号管理页</dd>
+      <dt>触发条件</dt><dd>登录成功后自动跳转 workbench.html（系统管理员跳转 account-management.html）</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token，角色非系统管理员</dd>
+      <dt>后置条件</dt><dd>展示角色专属的欢迎区 + 待办列表 + 快捷操作 + 通知消息</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 欢迎区：显示"你好，{姓名}"+ 当前角色中文名 + 所属单位 + 当前日期<br>
+          2. 市管理员统计全市待办，区管理员统计本区，校管理员统计本校，教师统计个人<br>
+          3. 台账全局锁定时，待办区顶部显示红色锁定警告条
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 页面首次加载显示骨架屏（skeleton），数据返回后替换<br>
+          2. 待办模块列表每个模块一行，含模块图标 + 名称 + 待审核/审核中/已驳回计数<br>
+          3. 点击待办模块行 → 跳转对应模块列表页<br>
+          4. 点击锁定警告条 → 跳转台账详情页
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F02.02</span>
+      <span class="feat-name">待办提醒统计</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>市/区/校管理员、教师。<strong>系统管理员不适用</strong>（无工作台）</dd>
+      <dt>触发条件</dt><dd>工作台加载时调用 /api/workbench/todo</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token，所属范围内存在业务数据</dd>
+      <dt>后置条件</dt><dd>展示按模块聚合的待办统计数字</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 扫描模块：编制使用申请、教师入编、教师出编、岗位设置、岗位晋升、招聘岗位、聘用手续、机构管理、编制岗位台账、编外教师入职管理、编外教师离职管理<br>
+          2. 统计维度：待一审/待二审/已驳回（按各模块实际审批级数）<br>
+          3. 权限过滤：仅统计当前角色管辖范围内的记录<br>
+          4. 计数为 0 的模块不显示
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 待办模块列表按模块固定顺序排列<br>2. 暂无待办时显示"暂无待办事项"空状态插画<br>3. 数据每 60 秒自动刷新一次</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F02.03</span>
+      <span class="feat-name">快捷操作入口</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>工作台加载时根据角色渲染</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>后置条件</dt><dd>展示 3×2 网格快捷入口，点击跳转对应模块</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 不同角色展示不同快捷入口（见下表）<br>
+          2. 每个角色均填满 6 格（教师仅 2 项，使用 2 列网格布局）<br>
+          3. 快捷入口选品原则：高频使用的业务模块优先
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 卡片 hover 上浮 + 边框变色<br>2. 点击跳转对应模块页面</dd>
+    </dl>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>角色</th><th>入口 1</th><th>入口 2</th><th>入口 3</th><th>入口 4</th><th>入口 5</th><th>入口 6</th></tr>
+    <tr><td>市/区管理员</td><td>编制使用申请</td><td>教师入编</td><td>教师出编</td><td>岗位晋升</td><td>招聘岗位</td><td>聘用手续</td></tr>
+    <tr><td>校管理员</td><td>编制使用申请</td><td>教师入编</td><td>教师出编</td><td>岗位晋升</td><td>招聘岗位</td><td>聘用手续</td></tr>
+    <tr><td>教师</td><td>个人中心</td><td>岗位晋升</td><td colspan="4">—（2 列网格布局）</td></tr>
+  </table>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F02.04</span>
+      <span class="feat-name">通知消息中心</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>点击顶栏铃铛图标</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>后置条件</dt><dd>展示通知消息列表弹框，未读消息数清零</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 数据来源：后端 /api/notifications（分页，每次 20 条）<br>
+          2. 未读消息左侧蓝色圆点，点击后标记已读<br>
+          3. 铃铛角标显示未读消息数量（红点+数字）<br>
+          4. 消息保留 90 天，超期自动清理<br>
+          5. 支持按消息类型筛选（审批/系统/安全）
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 点击铃铛 → 弹出浮层（宽 360px，最大高 400px，内部滚动）<br>
+          2. 点击消息条目 → 跳转对应详情页 + 标记已读<br>
+          3. 点击浮层外部区域 → 关闭浮层<br>
+          4. 底部"查看全部消息"链接 → 跳转消息列表页（规划中）<br>
+          5. 无消息时显示"暂无消息"空状态
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F02.05</span>
+      <span class="feat-name">台账全局锁定提醒</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>市/区/校管理员、教师（系统管理员无工作台，不适用）</dd>
+      <dt>触发条件</dt><dd>工作台加载时检查台账审核状态（遵循总纲规则 6）</dd>
+      <dt>前置条件</dt><dd>存在处于审核中的台账记录</dd>
+      <dt>后置条件</dt><dd>待办区顶部显示红色锁定警告条</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 仅当台账审核中时显示<br>
+          2. 显示被锁定的模块数量<br>
+          3. 点击跳转台账详情
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 红色背景警告条，置顶且不随待办列表滚动<br>2. 全局可点击，跳转台账详情</dd>
+    </dl>
+  </div>
+
+  <div class="sub-title">F03 — 个人中心</div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.01</span>
+      <span class="feat-name">基本信息查看</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>点击侧边栏"个人中心"或顶栏用户菜单"个人中心"</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>后置条件</dt><dd>展示个人档案卡 + 账号信息区</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 个人档案卡：头像（姓名字母缩写）、姓名、性别、身份证号、出生日期、民族、政治面貌、手机号、邮箱<br>
+          2. 账号信息区：账号、所属单位、角色、账号状态（正常/停用）、创建时间、最后登录时间（全部只读）<br>
+          3. 数据来源：后端 /api/user/profile
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 个人档案卡顶部包含"编辑资料"按钮<br>2. 身份证号中间 8 位显示为 *</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.02</span>
+      <span class="feat-name">编辑个人信息</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色。教师可编辑本人全部字段；管理员可编辑本人全部字段</dd>
+      <dt>触发条件</dt><dd>点击个人档案卡"编辑资料"按钮</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token，账号状态为正常</dd>
+      <dt>后置条件</dt><dd>弹出编辑模态框，保存后更新展示</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 可编辑字段：性别、手机号、邮箱、民族、政治面貌、学历、学位、职务、职称、任教学段、任教学科、汉语言水平<br>
+          2. 只读字段（不可编辑）：姓名、身份证号、所属单位、账号、角色<br>
+          3. 手机号修改需短信验证码确认<br>
+          4. 保存时调用后端 /api/user/profile/update
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 模态框宽度 680px，分"基本信息"和"教育教学信息"两个区块<br>
+          2. 只读字段灰色背景展示<br>
+          3. 下拉字段从后端字典接口获取枚举值<br>
+          4. 保存成功后 toast "保存成功"，关闭弹框，页面数据刷新
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.03</span>
+      <span class="feat-name">教育教学信息查看与编辑</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>切换到"教育教学信息"标签页</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>后置条件</dt><dd>展示教学经历、学段学科等字段，支持编辑</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 展示字段：学历、学位、职务、职称、任教学段、任教学科、汉语言水平、初次任教时间、主要学段、其他学段、主要学科、其他学科<br>
+          2. 初次任教时间影响退休时间自动计算<br>
+          3. 编辑入口同 F03.02 弹框
+        </dd>
+      <dt>产品交互规则</dt><dd>1. 网格布局展示，3 列排列<br>2. 编辑按钮在每个区块右上角</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.04</span>
+      <span class="feat-name">证书信息管理</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>切换到"证书信息"标签页</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>后置条件</dt><dd>展示证书列表，支持增删改</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 证书类型：教师资格证（必填）、普通话等级证、职称证书、学历学位证书、其他<br>
+          2. 每项证书包含：证书类型、发证机构、证书编号、发证日期、有效期、附件（PDF/图片）<br>
+          3. 教师资格证为必填项，教师角色缺少时显示红色警告<br>
+          4. 附件上传 ≤ 10MB，支持 PDF/JPG/PNG
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 证书卡片列表，每张卡片含证书信息 + 附件预览链接<br>2. "添加证书"按钮在列表底部<br>3. 附件点击弹出预览弹框</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.05</span>
+      <span class="feat-name">修改密码（普通场景）</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>顶栏用户下拉菜单 → "修改密码"；或"账号安全"标签页 → "修改密码"按钮</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>后置条件</dt><dd>密码修改成功，弹出提示，建议重新登录</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 表单字段：原密码、新密码、确认新密码<br>
+          2. 原密码须与当前密码一致（后端校验）<br>
+          3. 新密码规则：≥8 位，含大写字母、小写字母、数字、特殊字符中至少 3 种<br>
+          4. 新密码不可与最近 3 次历史密码相同<br>
+          5. 调用后端 /api/user/change-password
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 弹框模式（宽 440px）<br>
+          2. 实时密码强度指示器（3 格：弱红 / 中黄 / 强绿）+ 规则逐条标记<br>
+          3. 确认密码输入时实时比对（不一致时红色提示）<br>
+          4. 修改成功后 toast "密码修改成功，建议重新登录"，弹框关闭
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.06</span>
+      <span class="feat-name">首次登录初始化 — Step 1：强制改密</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部角色（needInit=true 的账号）</dd>
+      <dt>触发条件</dt><dd>登录成功，后端返回 needInit=true</dd>
+      <dt>前置条件</dt><dd>账号为新创建（初始密码）或管理员已重置密码</dd>
+      <dt>后置条件</dt><dd>改密成功，进入 Step 2（编辑个人信息）</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 登录后强制跳转 personal-center.html?mode=init<br>
+          2. 自动弹出改密弹框，<strong>不可关闭、不可跳过</strong>（无关闭按钮、无遮罩关闭）<br>
+          3. 改密成功后不立即结束初始化，而是进入 Step 2<br>
+          4. 表单同 F03.05
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 弹框标题显示"首次登录 · 第 1 步：修改初始密码"<br>
+          2. 改密成功后 toast "密码修改成功" → 弹框关闭 → 自动弹出 Step 2 编辑个人信息弹框
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.07</span>
+      <span class="feat-name">首次登录初始化 — Step 2：强制编辑个人信息</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部角色（needInit=true 的账号）</dd>
+      <dt>触发条件</dt><dd>Step 1 改密成功后自动触发</dd>
+      <dt>前置条件</dt><dd>已完成 Step 1 改密，账号 needInit=true</dd>
+      <dt>后置条件</dt><dd>必填缺失字段补充完毕。非校管理员 → 初始化完成。校管理员 → 进入 Step 3</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 展示个人信息编辑表单，<strong>不可关闭、不可跳过</strong><br>
+          2. 系统自动检测必填缺失字段（手机号、性别、民族、学历、职务、职称、任教学段、任教学科等），缺失字段红色标记"待补充"<br>
+          3. 已有数据的字段正常展示，用户可选择修改<br>
+          4. 所有必填字段补齐后"保存并继续"按钮才可点击<br>
+          5. 保存时调用后端 /api/user/profile/update<br>
+          6. 保存成功后——非校管理员：needInit=false，初始化完成；校管理员：进入 Step 3
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 弹框标题显示"首次登录 · 第 2 步：完善个人信息"<br>
+          2. 缺失必填字段红色边框 + "必填"角标<br>
+          3. 弹框分"基本信息"和"教育教学信息"两个区块<br>
+          4. 同 F03.02 编辑弹框布局<br>
+          5. 保存成功后 toast "个人信息已保存"
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.08</span>
+      <span class="feat-name">首次登录初始化 — Step 3：校管理员编辑学校信息</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>仅校管理员（needInit=true）</dd>
+      <dt>触发条件</dt><dd>Step 2 个人信息保存成功后自动触发</dd>
+      <dt>前置条件</dt><dd>已完成 Step 1 改密 + Step 2 个人信息编辑，当前角色为校管理员</dd>
+      <dt>后置条件</dt><dd>学校信息提交审核（状态：待审核），needInit=false，初始化完成</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 展示学校信息编辑表单，<strong>不可关闭、不可跳过</strong><br>
+          2. 学校信息字段（来自机构管理模块 21 字段模型）：学校全称、学校类型、办学规模、所属区域、组织机构代码、法人代表、联系电话、学校地址等<br>
+          3. 系统预填已有数据（如有），缺失字段红色标记<br>
+          4. 必填字段补齐后"提交审核"按钮才可点击<br>
+          5. 提交后调用后端 API 创建机构审核记录，状态为 <code>pending_first</code>（待主管单位审核）<br>
+          6. 提交成功后 needInit=false，初始化完成，进入工作台
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 弹框标题显示"首次登录 · 第 3 步：完善学校信息"<br>
+          2. 表单分为"基本信息""联系方式""办学信息"三个区块<br>
+          3. 提交后 toast "学校信息已提交审核，请等待主管单位审批"<br>
+          4. 提交后自动关闭弹框，正常进入个人中心。工作台顶部显示"学校信息审核中"提示条
+        </dd>
+    </dl>
+  </div>
+
+  <p style="margin:8px 0 16px 0;font-size:13px;color:var(--text-secondary);"><strong>F03.08 学校信息字段（校管理员首次初始化时提交）：</strong>以下字段与机构管理模块（org-management.html）完全一致，共 15 个字段，分 3 组。</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>分组</th><th>#</th><th>字段名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+    <tr><td rowspan="4">基本信息</td><td>1</td><td>单位名称</td><td>text</td><td>是</td><td>单位全称</td></tr>
+    <tr><td>2</td><td>单位简称</td><td>text</td><td>否</td><td></td></tr>
+    <tr><td>3</td><td>所属区域</td><td>select</td><td>是</td><td>市直属/鱼峰区/城中区/柳南区/柳北区等</td></tr>
+    <tr><td>4</td><td>单位级别</td><td>select</td><td>是</td><td>副厅级/正处级/副处级/正科级/副科级/其他未定级</td></tr>
+    <tr><td rowspan="7">编制属性</td><td>5</td><td>组织类型</td><td>select</td><td>是</td><td>学校/行政管理部门/局属二层机构</td></tr>
+    <tr><td>6</td><td>学校类型</td><td>select</td><td>是</td><td>小学/初中/高中/完中/九年一贯制/十二年一贯制/中职/幼儿园/特殊教育/专门学校</td></tr>
+    <tr><td>7</td><td>岗位设置分类</td><td>select</td><td>是</td><td>自治区示范高中/自治区特色高中/普通高中/初中/小学/幼儿园</td></tr>
+    <tr><td>8</td><td>单位性质</td><td>select</td><td>是</td><td>事业单位/参公事业单位/机关单位/其他</td></tr>
+    <tr><td>9</td><td>单位类型</td><td>select</td><td>是</td><td>公益一类/公益二类/行政部门</td></tr>
+    <tr><td>10</td><td>经费类型</td><td>select</td><td>是</td><td>全额拨款/差额拨款/自收自支</td></tr>
+    <tr><td>11</td><td>统一社会信用代码</td><td>text</td><td>是</td><td>18 位信用代码</td></tr>
+    <tr><td rowspan="4">管理信息</td><td>12</td><td>单位主管</td><td>select</td><td>是</td><td>从管理员列表中选择</td></tr>
+    <tr><td>13</td><td>单位地址</td><td>text</td><td>是</td><td>详细地址</td></tr>
+    <tr><td>14</td><td>联系电话</td><td>text</td><td>是</td><td>学校办公电话</td></tr>
+    <tr><td>15</td><td>邮编</td><td>text</td><td>是</td><td></td></tr>
+  </table>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F03.09</span>
+      <span class="feat-name">登录历史查看</span>
+      <span class="feat-priority p2">P2</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>切换到"账号安全"标签页</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>后置条件</dt><dd>展示最近 20 条登录记录表格</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 字段：登录时间、IP 地址、设备/浏览器、登录结果（成功绿色/失败红色）<br>
+          2. 仅展示最近 20 条，支持"加载更多"<br>
+          3. 数据来源：后端 /api/user/login-history
+        </dd>
+      <dt>产品交互规则</dt><dd>1. 表格展示，按时间倒序<br>2. 底部"加载更多"按钮（超过 20 条时显示）</dd>
+    </dl>
+  </div>
+
+  <div class="sub-title">F04 — 忘记密码</div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F04.01</span>
+      <span class="feat-name">忘记密码 — 身份确认</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部角色（未登录状态）</dd>
+      <dt>触发条件</dt><dd>登录页点击"忘记密码"链接</dd>
+      <dt>前置条件</dt><dd>无</dd>
+      <dt>后置条件</dt><dd>验证通过后进入 Step 2</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 选择角色 + 输入账号<br>
+          2. 后端查询：按 role + account 在 user 表中查找<br>
+          3. 账号不存在 → 提示"账号不存在，请检查角色和账号"<br>
+          4. 账号存在 → 返回已绑定手机号（如 13807720001），进入 Step 2
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 步骤条显示 3 步，Step 1 高亮<br>2. 点击"下一步"后调用后端接口，loading 状态显示</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F04.02</span>
+      <span class="feat-name">忘记密码 — 短信验证</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部角色（未登录状态）</dd>
+      <dt>触发条件</dt><dd>Step 1 验证通过</dd>
+      <dt>前置条件</dt><dd>账号存在，已绑定手机号</dd>
+      <dt>后置条件</dt><dd>验证码验证通过后进入 Step 3</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 展示已绑定手机号，用户确认后点击"获取验证码"<br>
+          2. 后端调用 SMS 网关发送 6 位数字验证码<br>
+          3. 验证码有效期 5 分钟，同一手机号每小时限发 5 次<br>
+          4. 输入验证码后提交后端校验
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. "获取验证码"按钮点击后倒计时 60 秒，置灰不可点击<br>
+          2. 未绑定手机号时提示"该账号未绑定手机号，请联系管理员重置密码"<br>
+          3. Step 2 显示步骤条高亮
+        </dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F04.03</span>
+      <span class="feat-name">忘记密码 — 设置新密码</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部角色（未登录状态）</dd>
+      <dt>触发条件</dt><dd>Step 2 验证通过</dd>
+      <dt>前置条件</dt><dd>短信验证码已验证通过</dd>
+      <dt>后置条件</dt><dd>密码重置成功，自动跳转登录页</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 新密码规则同 F03.05<br>
+          2. 调用后端 /api/auth/reset-password（含验证码 token）<br>
+          3. 重置成功后 needInit 设为 true（通过验证码重置后仍需首次登录初始化）
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>
+          1. 密码强度指示器（同 F03.05）<br>
+          2. 确认密码实时比对<br>
+          3. 提交成功后显示绿色对勾 + "密码重置成功"<br>
+          4. 3 秒倒计时自动跳转登录页，附带 toast "请使用新密码登录"
+        </dd>
+    </dl>
+  </div>
+
+  <div class="sub-title">F05 — 通用组件</div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F05.01</span>
+      <span class="feat-name">顶栏导航（TopNav）</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>所有内部页面自动渲染</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 固定顶部 56px，蓝色渐变背景<br>
+          2. 左侧：Logo + 平台名称"柳州教育人事管理平台"<br>
+          3. 右侧：通知铃铛（含未读角标）+ 用户头像 + 姓名 + 下拉菜单<br>
+          4. 下拉菜单：个人中心 / 修改密码 / 分隔线 / 退出登录
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 下拉菜单点击外部区域关闭<br>2. 退出登录有二次确认弹框</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F05.02</span>
+      <span class="feat-name">侧边栏菜单（Sidebar）</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部已登录角色</dd>
+      <dt>触发条件</dt><dd>所有内部页面自动渲染</dd>
+      <dt>前置条件</dt><dd>持有有效 JWT Token，已获取角色菜单权限</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 固定左侧 240px，深蓝背景<br>
+          2. 菜单分组 + 菜单项，根据角色权限过滤<br>
+          3. 支持折叠（64px 图标模式）<br>
+          4. 当前页面菜单项高亮（蓝色左边框 + 白色文字）<br>
+          5. <strong>正式版无角色切换器</strong>
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 菜单分组标题不可点击<br>2. 折叠模式下仅显示图标<br>3. 菜单数据来源：后端 /api/menu/config</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F05.03</span>
+      <span class="feat-name">Toast 通知组件</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部</dd>
+      <dt>触发条件</dt><dd>各操作完成/失败时调用</dd>
+      <dt>核心业务规则</dt>
+        <dd>1. 类型：success（绿）/ error（红）/ warning（黄）/ info（蓝）<br>2. 自动消失 3s，支持手动关闭<br>3. 同时最多显示 3 条（超出队列等待）</dd>
+      <dt>产品交互规则</dt><dd>1. 固定右上角弹出<br>2. 带图标 + 文字 + 关闭按钮</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F05.04</span>
+      <span class="feat-name">模态弹框组件（Modal）</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部</dd>
+      <dt>触发条件</dt><dd>编辑、确认、表单场景</dd>
+      <dt>核心业务规则</dt>
+        <dd>1. 标准结构：标题栏 + 内容区 + 底部按钮区<br>2. 支持关闭按钮（首次登录改密弹框除外）<br>3. 点击遮罩可关闭（首次登录改密弹框除外）</dd>
+      <dt>产品交互规则</dt><dd>1. 弹出动画 fadeIn + slideUp 0.2s<br>2. ESC 键关闭</dd>
+    </dl>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F05.05</span>
+      <span class="feat-name">密码强度组件</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>适用角色</dt><dd>全部</dd>
+      <dt>触发条件</dt><dd>输入新密码时实时触发</dd>
+      <dt>核心业务规则</dt>
+        <dd>
+          1. 3 格强度条：弱（仅满足部分规则）→ 中（满足 ≥ 2 种字符类型）→ 强（满足 ≥ 3 种 + ≥ 10 位）<br>
+          2. 规则逐条校验：≥8 位、含大写、含小写、含数字、含特殊字符<br>
+          3. 所有规则满足后提交按钮才可点击
+        </dd>
+      <dt>产品交互规则</dt>
+        <dd>1. 实时反馈，每输入一个字符即更新<br>2. 满足的规则图标变绿对勾</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ============= 4. 页面字段清单 ============= -->
+<div class="section" id="s4">
+  <div class="section-title">四、页面字段清单</div>
+
+  <div class="sub-title">4.1 登录页（index.html）</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>字段名</th><th>类型</th><th>必填</th><th>校验规则</th><th>说明</th></tr>
+    <tr><td>1</td><td>角色</td><td>标签页选择</td><td>是</td><td>5 选 1，默认 school</td><td>切换时更新账号输入框 placeholder</td></tr>
+    <tr><td>2</td><td>账号</td><td>text</td><td>是</td><td>不可为空；管理员为手机号，教师为身份证号/手机号</td><td></td></tr>
+    <tr><td>3</td><td>密码</td><td>password</td><td>是</td><td>不可为空</td><td>支持显示/隐藏切换</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">4.2 工作台（workbench.html）</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>区域</th><th>元素</th><th>数据来源</th><th>说明</th></tr>
+    <tr><td>欢迎区</td><td>姓名 + 角色 + 单位 + 日期</td><td>JWT Token payload（登录时签发的令牌中携带）</td><td>只读展示</td></tr>
+    <tr><td>待办区</td><td>按模块聚合的待办卡片列表</td><td>GET /api/workbench/todo（后端根据角色和单位查询待办统计）</td><td>含待审核/审核中/已驳回计数</td></tr>
+    <tr><td>快捷操作区</td><td>3×2 网格入口卡片</td><td>前端根据 role 渲染（各角色预设的快捷入口配置）</td><td>教师 2 列布局</td></tr>
+    <tr><td>通知铃铛</td><td>消息列表弹框</td><td>GET /api/notifications（后端查询当前用户的通知消息）</td><td>已读/未读状态 + 跳转链接</td></tr>
+    <tr><td>台账锁定提醒</td><td>红色警告条</td><td>GET /api/ledger/lock-status（后端查询台账是否处于审核中）</td><td>仅台账审核中显示</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">4.3 个人中心（personal-center.html）— 基本信息</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>字段名</th><th>类型</th><th>必填</th><th>可编辑</th><th>说明</th><th>数据来源</th></tr>
+    <tr><td>1</td><td>姓名</td><td>text</td><td>是</td><td>否</td><td>头像区显示姓名字母缩写</td><td>账号创建时录入（系统管理模块）</td></tr>
+    <tr><td>2</td><td>性别</td><td>select</td><td>是</td><td>是</td><td>男/女</td><td>账号创建时录入，个人中心可修改</td></tr>
+    <tr><td>3</td><td>身份证号</td><td>text</td><td>是</td><td>否</td><td>18 位</td><td>账号创建时录入（系统管理模块）</td></tr>
+    <tr><td>4</td><td>出生日期</td><td>date</td><td>是</td><td>否</td><td>由身份证号自动推算</td><td>系统根据身份证号自动计算</td></tr>
+    <tr><td>5</td><td>民族</td><td>select</td><td>是</td><td>是</td><td>枚举值来自字典接口</td><td>账号创建时录入，个人中心可修改</td></tr>
+    <tr><td>6</td><td>政治面貌</td><td>select</td><td>否</td><td>是</td><td>枚举值来自字典接口</td><td>个人中心自行维护</td></tr>
+    <tr><td>7</td><td>手机号</td><td>text</td><td>是</td><td>是</td><td>修改需短信验证</td><td>账号创建时录入，个人中心可修改</td></tr>
+    <tr><td>8</td><td>电子邮箱</td><td>text</td><td>否</td><td>是</td><td>邮箱格式校验</td><td>个人中心自行维护</td></tr>
+    <tr><td>9</td><td>所属单位</td><td>text</td><td>是</td><td>否</td><td>由账号创建时关联</td><td>机构管理模块（只读）</td></tr>
+    <tr><td>10</td><td>账号</td><td>text</td><td>是</td><td>否</td><td>系统分配</td><td>系统管理模块（只读）</td></tr>
+    <tr><td>11</td><td>角色</td><td>text</td><td>是</td><td>否</td><td>显示当前角色中文名</td><td>系统管理模块（只读）</td></tr>
+    <tr><td>12</td><td>账号状态</td><td>标签</td><td>—</td><td>否</td><td>正常（绿）/ 停用（红）</td><td>系统管理模块控制</td></tr>
+    <tr><td>13</td><td>创建时间</td><td>datetime</td><td>—</td><td>否</td><td></td><td>系统自动记录</td></tr>
+    <tr><td>14</td><td>最后登录</td><td>datetime</td><td>—</td><td>否</td><td></td><td>系统自动更新</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">4.4 个人中心 — 教育教学信息</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>字段名</th><th>类型</th><th>必填</th><th>可编辑</th><th>说明</th><th>数据来源</th></tr>
+    <tr><td>1</td><td>学历</td><td>select</td><td>是</td><td>是</td><td>枚举：博士/硕士/本科/专科/高中/初中/中专/其他</td><td>个人中心自行维护</td></tr>
+    <tr><td>2</td><td>学位</td><td>select</td><td>否</td><td>是</td><td>枚举：博士/硕士/学士/无</td><td>个人中心自行维护</td></tr>
+    <tr><td>3</td><td>职务</td><td>select</td><td>是</td><td>是</td><td>枚举值来自字典接口</td><td>个人中心自行维护</td></tr>
+    <tr><td>4</td><td>职称</td><td>select</td><td>是</td><td>是</td><td>枚举值来自字典接口</td><td>岗位晋升通过后自动更新；也可在个人中心手动维护</td></tr>
+    <tr><td>5</td><td>任教学段</td><td>select</td><td>是</td><td>是</td><td>枚举值来自字典接口</td><td>教师入编时带入，个人中心可修改</td></tr>
+    <tr><td>6</td><td>任教学科</td><td>select</td><td>是</td><td>是</td><td>枚举值来自字典接口</td><td>教师入编时带入，个人中心可修改</td></tr>
+    <tr><td>7</td><td>汉语言水平</td><td>select</td><td>否</td><td>是</td><td>针对少数民族教师</td><td>个人中心自行维护</td></tr>
+    <tr><td>8</td><td>初次任教时间</td><td>date</td><td>否</td><td>是</td><td>影响退休时间自动计算</td><td>个人中心自行维护；退休呈报模块引用</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">4.5 忘记密码（forgot-password.html）</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>步骤</th><th>#</th><th>字段名</th><th>类型</th><th>必填</th><th>校验规则</th></tr>
+    <tr><td>Step 1</td><td>1</td><td>角色</td><td>标签页</td><td>是</td><td>5 选 1</td></tr>
+    <tr><td>Step 1</td><td>2</td><td>账号</td><td>text</td><td>是</td><td>后端校验账号存在</td></tr>
+    <tr><td>Step 2</td><td>3</td><td>短信验证码</td><td>text</td><td>是</td><td>6 位数字，5 分钟有效</td></tr>
+    <tr><td>Step 3</td><td>4</td><td>新密码</td><td>password</td><td>是</td><td>≥8 位，≥3 种字符类型</td></tr>
+    <tr><td>Step 3</td><td>5</td><td>确认密码</td><td>password</td><td>是</td><td>与新密码一致</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============= 5. 操作级权限矩阵 ============= -->
+<div class="section" id="s5">
+  <div class="section-title">五、操作级权限矩阵</div>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>操作</th><th class="center">系统管理员</th><th class="center">市管理员</th><th class="center">区管理员</th><th class="center">校管理员</th><th class="center">教师</th><th class="center">未登录</th></tr>
+    <tr><td>登录</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center">—</td></tr>
+    <tr><td>查看工作台</td><td class="center matrix-no">—</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">❌</td></tr>
+    <tr><td>查看个人中心</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">❌</td></tr>
+    <tr><td>编辑个人信息</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">❌</td></tr>
+    <tr><td>修改密码</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">❌</td></tr>
+    <tr><td>退出登录</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">❌</td></tr>
+    <tr><td>忘记密码</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td></tr>
+  </table>
+  </div>
+
+  <div class="rule-item"><strong>路由守卫规则：</strong>除 index.html、forgot-password.html 外，所有内部页面在加载时检查 JWT Token 有效性。无效则跳转 index.html。首次登录 needInit=true 时，仅允许访问 personal-center.html?mode=init。系统管理员登录后直接进入 account-management.html，不经过工作台</div>
+  <div class="rule-item"><strong>角色权限规则：</strong>角色菜单权限由后端 /api/menu/config 返回。前端仅渲染该角色有权限的菜单项。URL 直接访问无权限页面时，后端返回 403，前端展示"无权限访问"并跳转工作台</div>
+  <div class="rule-item danger"><strong>切换角色规则（正式版）：</strong>不支持侧边栏热切换。切换角色须：退出登录 → 清除 Token → 回到登录页 → 重新选择角色 → 登录。这确保了每次登录都重新签发对应角色的 JWT Token</div>
+</div>
+
+<!-- ============= 6. 数据模型 ============= -->
+<div class="section" id="s6">
+  <div class="section-title">六、数据模型</div>
+
+  <div class="sub-title">6.1 后端 API 接口清单</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>方法</th><th>路径</th><th>说明</th><th>认证</th></tr>
+    <tr><td>POST</td><td><code>/api/auth/login</code></td><td>账号密码登录，返回 JWT + Refresh Token + needInit 字段</td><td>否</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/refresh</code></td><td>刷新 JWT Token</td><td>Refresh Token</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/logout</code></td><td>退出登录，Token 加入黑名单</td><td>JWT</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/forgot-password/verify-account</code></td><td>忘记密码 Step 1：校验账号</td><td>否</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/forgot-password/send-sms</code></td><td>忘记密码 Step 2：发送短信验证码</td><td>否</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/forgot-password/reset</code></td><td>忘记密码 Step 3：重置密码</td><td>验证码 Token</td></tr>
+    <tr><td>GET</td><td><code>/api/user/profile</code></td><td>获取当前用户个人信息</td><td>JWT</td></tr>
+    <tr><td>PUT</td><td><code>/api/user/profile/update</code></td><td>更新个人信息</td><td>JWT</td></tr>
+    <tr><td>POST</td><td><code>/api/user/init/complete</code></td><td>首次登录初始化完成，设置 needInit=false</td><td>JWT</td></tr>
+    <tr><td>POST</td><td><code>/api/org/submit</code></td><td>校管理员提交学校信息审核</td><td>JWT</td></tr>
+    <tr><td>POST</td><td><code>/api/user/change-password</code></td><td>修改密码</td><td>JWT</td></tr>
+    <tr><td>POST</td><td><code>/api/user/send-sms</code></td><td>发送短信验证码（改手机号用）</td><td>JWT</td></tr>
+    <tr><td>GET</td><td><code>/api/user/login-history</code></td><td>获取登录历史（分页）</td><td>JWT</td></tr>
+    <tr><td>GET</td><td><code>/api/workbench/todo</code></td><td>获取待办统计</td><td>JWT</td></tr>
+    <tr><td>GET</td><td><code>/api/notifications</code></td><td>获取通知消息列表（分页）</td><td>JWT</td></tr>
+    <tr><td>PUT</td><td><code>/api/notifications/:id/read</code></td><td>标记通知已读</td><td>JWT</td></tr>
+    <tr><td>GET</td><td><code>/api/menu/config</code></td><td>获取角色菜单配置</td><td>JWT</td></tr>
+    <tr><td>GET</td><td><code>/api/dict/:type</code></td><td>获取字典枚举值</td><td>JWT</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">6.2 JWT Token Payload 结构</div>
+  <pre><code>{
+  "sub": "u001",              // 用户 ID
+  "username": "admin_city",   // 登录账号
+  "name": "张建国",            // 显示姓名
+  "role": "city",             // 当前角色
+  "orgId": "org_001",         // 所属单位 ID
+  "orgName": "柳州市教育局",    // 所属单位名称
+  "district": "全市",          // 所属区域
+  "needInit": false,           // 是否需要首次登录初始化
+  "iat": 1720000000,          // 签发时间
+  "exp": 1720028800           // 过期时间（8h）
+}</code></pre>
+
+  <div class="sub-title">6.3 User 表核心字段（后端）</div>
+  <pre><code>{
+  "id": "u001",
+  "username": "admin_city",
+  "passwordHash": "$2b$10$...",
+  "name": "张建国",
+  "role": "city",
+  "orgId": "org_001",
+  "orgName": "柳州市教育局",
+  "district": "全市",
+  "phone": "13807720001",
+  "email": "admin@test.com",
+  "gender": "男",
+  "idCard": "450203198001150018",
+  "birthDate": "1980-01-15",
+  "ethnicity": "汉族",
+  "politicalStatus": "中共党员",
+  "education": "本科",
+  "degree": "学士",
+  "position": "局长",
+  "title": "高级教师",
+  "teachLevel": "初中",
+  "teachSubject": "语文",
+  "chineseLevel": null,
+  "firstTeachDate": null,
+  "status": "active",           // active | frozen
+  "needInit": false,             // 是否需要首次登录初始化（改密+补全信息）
+  "pwdHistory": ["hash1","hash2","hash3"], // 最近 3 次密码 hash
+  "loginFailCount": 0,
+  "lockedUntil": null,
+  "createTime": "2025-09-01T00:00:00Z",
+  "lastLogin": "2026-07-03T09:15:00Z"
+}</code></pre>
+
+  <div class="sub-title">6.4 Notification 表结构（后端）</div>
+  <pre><code>{
+  "id": "notif_001",
+  "userId": "u001",
+  "title": "编制申请已通过",
+  "content": "你提交的编制使用申请（S2026-C01）已审批通过",
+  "type": "approve",             // approve | reject | submit | system | security
+  "module": "staffing",
+  "recordId": "S2026-C01",
+  "linkUrl": "/staffing-detail.html?id=S2026-C01",
+  "isRead": false,
+  "createTime": "2026-07-03T09:15:00Z",
+  "expireTime": "2026-10-01T09:15:00Z"  // 90 天后自动清理
+}</code></pre>
+</div>
+
+<!-- ============= 7. 页面清单 ============= -->
+<div class="section" id="s7">
+  <div class="section-title">七、页面清单</div>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>页面</th><th>文件名</th><th>页面类型</th><th>布局</th><th>权限</th></tr>
+    <tr><td>1</td><td>登录页</td><td><code>index.html</code></td><td>入口页</td><td>左右分栏（品牌面板+表单）</td><td>未登录用户</td></tr>
+    <tr><td>2</td><td>工作台</td><td><code>workbench.html</code></td><td>门户页</td><td>标准（顶栏+侧边栏+主内容）</td><td>全部已登录角色</td></tr>
+    <tr><td>3</td><td>个人中心</td><td><code>personal-center.html</code></td><td>详情/编辑页</td><td>标准（顶栏+侧边栏+主内容）</td><td>全部已登录角色</td></tr>
+    <tr><td>4</td><td>忘记密码</td><td><code>forgot-password.html</code></td><td>表单页</td><td>左右分栏（品牌面板+3步表单）</td><td>未登录用户</td></tr>
+  </table>
+  </div>
+  <p><strong>共 4 页。</strong>原独立页面 <code>profile.html</code> 已废弃，首次登录改密功能合并到 personal-center.html 弹框模式。</p>
+</div>
+
+<!-- ============= 8. 异常处理 ============= -->
+<div class="section" id="s8">
+  <div class="section-title">八、异常处理</div>
+
+  <div class="sub-title">8.1 边界情况</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>场景</th><th>处理方式</th><th>优先级</th></tr>
+    <tr><td>JWT Token 过期</td><td>请求拦截器检测 401 → 自动调用 refresh 接口 → 失败则跳转登录页并 toast "登录已过期"</td><td>🔴 高</td></tr>
+    <tr><td>多标签页 Token 失效</td><td>一个标签页退出登录后，其他标签页下次 API 请求返回 401 → 跳转登录页</td><td>🔴 高</td></tr>
+    <tr><td>短信网关不可用</td><td>忘记密码页面显示"服务暂不可用，请联系管理员"，隐藏发送验证码按钮。记录异常日志</td><td>🔴 高</td></tr>
+    <tr><td>工作台待办统计为 0</td><td>显示"暂无待办事项"空状态</td><td>🟡 中</td></tr>
+    <tr><td>通知列表为空</td><td>显示"暂无消息"空状态</td><td>🟢 低</td></tr>
+    <tr><td>用户无任何快捷操作权限</td><td>教师仅 2 项，使用 2 列网格布局</td><td>🟢 低</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">8.2 错误场景</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>场景</th><th>用户操作</th><th>预期结果</th><th>优先级</th></tr>
+    <tr><td>账号不存在</td><td>输入不存在的账号点击登录</td><td>"账号或密码错误"（不区分提示）</td><td>🔴 高</td></tr>
+    <tr><td>密码错误</td><td>输入正确账号但错误密码</td><td>"账号或密码错误"。失败计数 +1</td><td>🔴 高</td></tr>
+    <tr><td>连续 5 次密码错误</td><td>同一账号连续 5 次输错</td><td>账号锁定 30 分钟，提示"账号已被锁定，请30分钟后再试或联系管理员解锁"。30 分钟后自动解锁，失败计数清零</td><td>🔴 高</td></tr>
+    <tr><td>首次登录未完成初始化</td><td>needInit=true 的用户访问非个人中心页面</td><td>前端路由守卫拦截 → 强制跳转 personal-center.html?mode=init</td><td>🔴 高</td></tr>
+    <tr><td>未登录访问内部页</td><td>直接 URL 输入 workbench.html</td><td>检测 JWT 无效 → 跳转 index.html</td><td>🔴 高</td></tr>
+    <tr><td>修改密码原密码错误</td><td>输入错误原密码</td><td>后端返回"原密码错误"，不修改密码</td><td>🟡 中</td></tr>
+    <tr><td>新密码与历史密码重复</td><td>输入最近 3 次用过的密码</td><td>提示"新密码不能与最近使用过的密码相同"</td><td>🟡 中</td></tr>
+    <tr><td>短信验证码错误/过期</td><td>输入错误或超时验证码</td><td>提示"验证码错误或已过期，请重新获取"</td><td>🟡 中</td></tr>
+    <tr><td>短信发送频率超限</td><td>1 小时内第 6 次请求验证码</td><td>提示"操作频繁，请稍后再试"，按钮保持置灰</td><td>🟡 中</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">8.3 兼容性</div>
+  <div class="rule-item"><strong>浏览器：</strong>Chrome/Edge/Firefox 最新两个大版本。不支持 IE 11</div>
+  <div class="rule-item"><strong>移动端：</strong>不做移动端适配（总纲明确规定）</div>
+</div>
+
+<!-- ============= 9. 通知触发点 ============= -->
+<div class="section" id="s9">
+  <div class="section-title">九、通知触发点</div>
+
+  <div class="sub-title">9.1 本模块产生的通知</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>触发操作</th><th>通知接收人</th><th>通知标题</th><th>通知内容模板</th></tr>
+    <tr><td>密码修改成功</td><td>操作人本人</td><td>密码修改成功</td><td>"你的账号密码已于 {时间} 修改成功。如非本人操作，请联系管理员"</td></tr>
+    <tr><td>账号被锁定</td><td>操作人本人</td><td>账号已锁定</td><td>"你的账号因连续密码错误已被锁定 30 分钟，请联系管理员解锁"</td></tr>
+    <tr><td>密码重置成功</td><td>操作人本人</td><td>密码重置成功</td><td>"你的账号密码已通过忘记密码流程重置成功。下次登录时需完成首次初始化"</td></tr>
+    <tr><td>首次初始化完成</td><td>操作人本人</td><td>账户初始化完成</td><td>"你的账户初始化已完成，现在可以正常使用平台功能"</td></tr>
+    <tr><td>学校信息提交审核</td><td>操作人本人</td><td>学校信息已提交</td><td>"你的学校信息已提交审核，请等待主管单位审批。审核期间不影响平台其他功能使用"</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">9.2 其他模块写入的通知（工作台展示）</div>
+  <p>遵循总纲 4.6 通知规则。各业务模块审批操作后调用统一的后端 <code>POST /api/notifications</code> 写入通知记录，工作台铃铛弹框中展示。</p>
+</div>
+
+<!-- ============= 10. 操作日志埋点 ============= -->
+<div class="section" id="s10">
+  <div class="section-title">十、操作日志埋点</div>
+
+  <p>遵循总纲 4.7 操作日志规范。所有日志写入后端 <code>operation_logs</code> 表，不可篡改。</p>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>操作类型</th><th>记录内容</th><th>日志类型</th></tr>
+    <tr><td>1</td><td>登录成功</td><td>操作人（账号+姓名+角色）、登录时间、IP、User-Agent</td><td>安全日志</td></tr>
+    <tr><td>2</td><td>登录失败</td><td>账号、登录时间、IP、失败原因（密码错误/账号不存在/已锁定）</td><td>安全日志</td></tr>
+    <tr><td>3</td><td>退出登录</td><td>操作人、退出时间、IP</td><td>安全日志</td></tr>
+    <tr><td>4</td><td>修改密码</td><td>操作人、时间、IP、变更类型（主动修改/首次登录改密/忘记密码重置）</td><td>安全日志</td></tr>
+    <tr><td>5</td><td>个人信息编辑</td><td>操作人、时间、变更字段 + 变更前后值（关键字段）</td><td>操作日志</td></tr>
+    <tr><td>6</td><td>密码重置（忘记密码）</td><td>操作人、时间、IP、重置方式（短信验证）</td><td>安全日志</td></tr>
+    <tr><td>7</td><td>查看登录历史</td><td>操作人、查看时间</td><td>审计日志</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============= 11. 验收标准 ============= -->
+<div class="section" id="s11">
+  <div class="section-title">十一、验收标准</div>
+
+  <div class="sub-title">11.1 功能完成的判定标准</div>
+  <ol style="margin-left:20px; line-height:2.5;">
+    <li><strong>登录页：</strong>5 个角色标签可切换，账号密码登录成功获取 JWT Token 并跳转工作台；密码错误有提示；连续 5 次错误锁定 30 分钟</li>
+    <li><strong>忘记密码：</strong>3 步流程完整可走通（确认身份→短信验证→重置），重置成功后跳转登录页，可用新密码登录</li>
+    <li><strong>首次登录初始化：</strong>needInit=true 的用户登录后进入 3 步初始化向导（改密 → 补全个人信息 → [校管理员]提交学校信息），每步不可跳过，完成后正常使用</li>
+    <li><strong>工作台：</strong>根据角色正确展示待办统计和快捷入口；通知铃铛正确展示消息列表；待办数据正确过滤权限范围</li>
+    <li><strong>个人中心：</strong>4 个标签页内容正确展示；编辑弹框可保存并刷新；修改密码流程完整含强度校验</li>
+    <li><strong>路由守卫：</strong>未登录无法通过 URL 访问内部页面；needInit 时仅可访问个人中心初始化向导</li>
+    <li><strong>Token 续期：</strong>JWT 过期后自动使用 Refresh Token 续期，用户无感知</li>
+    <li><strong>退出再登录切换角色：</strong>退出后 Token 失效，重新选择角色登录后权限和菜单正确更新</li>
+  </ol>
+
+  <div class="sub-title">11.2 关键测试场景</div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>测试场景</th><th>操作步骤</th><th>预期结果</th></tr>
+    <tr><td>TC-01</td><td>正常登录</td><td>选择校管理员 → 输入账号密码 → 登录</td><td>获取 JWT Token，跳转工作台，展示校管理员待办</td></tr>
+    <tr><td>TC-02</td><td>密码错误</td><td>正确账号 + 错误密码 → 登录</td><td>toast "账号或密码错误"，失败计数 +1</td></tr>
+    <tr><td>TC-03</td><td>账号锁定</td><td>同一账号连续 5 次输错 → 第 6 次尝试</td><td>toast "账号已被锁定，请30分钟后再试"</td></tr>
+    <tr><td>TC-04</td><td>忘记密码全流程</td><td>忘记密码 → 身份确认 → 短信验证 → 重置密码</td><td>成功页 → 3 秒跳转登录页 → 新密码可登录</td></tr>
+    <tr><td>TC-05</td><td>首次登录初始化（非校管理员）</td><td>needInit=true 的市/区/教师账号登录</td><td>Step 1 改密 → Step 2 补全个人信息 → 初始化完成 → 正常使用</td></tr>
+    <tr><td>TC-05a</td><td>首次登录初始化（校管理员）</td><td>needInit=true 的校管理员账号登录</td><td>Step 1 改密 → Step 2 个人信息 → Step 3 学校信息提交审核 → 初始化完成 → 工作台显示审核提示条</td></tr>
+    <tr><td>TC-06</td><td>退出后切换角色</td><td>退出登录 → 登录页选不同角色 → 登录</td><td>菜单和权限正确对应新角色</td></tr>
+    <tr><td>TC-07</td><td>未登录访问内部页</td><td>清除 Token → URL 输入 workbench.html</td><td>跳转 index.html</td></tr>
+    <tr><td>TC-08</td><td>Token 过期自动续期</td><td>等待 JWT 过期 → 操作任意 API</td><td>自动续期，用户无感知，原请求重放成功</td></tr>
+    <tr><td>TC-09</td><td>修改密码 — 原密码错</td><td>输入错误原密码</td><td>toast "原密码错误"</td></tr>
+    <tr><td>TC-10</td><td>修改密码 — 历史密码</td><td>新密码设为最近 3 次用过的</td><td>toast "新密码不能与最近使用过的密码相同"</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============= 12. 与代码比对差异 ============= -->
+<div class="section" id="s12">
+  <div class="section-title">十二、与代码比对 — 正式版 vs 当前 Demo 代码差异</div>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>差异项</th><th>正式版要求</th><th>Demo 代码现状</th><th>严重程度</th><th>处理建议</th></tr>
+    <tr>
+      <td>D1</td>
+      <td>profile.html 应废弃</td>
+      <td>首次登录改密合并到 personal-center.html 弹框模式</td>
+      <td>profile.html 独立存在，包含基本信息展示，与 personal-center 功能重叠</td>
+      <td>🔴 高</td>
+      <td>删除 profile.html，首次登录改密改为 personal-center 内弹框。清理 dist/ 中文件</td>
+    </tr>
+    <tr>
+      <td>D2</td>
+      <td>工作台待办模块不全</td>
+      <td>扫描全部 11 个模块</td>
+      <td>缺少编外教师入职/离职管理待办</td>
+      <td>🟡 中</td>
+      <td>补充 contract-entry、contract-exit 待办统计</td>
+    </tr>
+    <tr>
+      <td>D3</td>
+      <td>侧边栏含角色切换器</td>
+      <td><strong>正式版无角色切换器</strong></td>
+      <td>sidebar 底部有 role-switcher 组件</td>
+      <td>🔴 高</td>
+      <td>移除侧边栏角色切换器，仅保留折叠按钮</td>
+    </tr>
+    <tr>
+      <td>D4</td>
+      <td>认证方案为 localStorage 明文</td>
+      <td>JWT + Refresh Token（httpOnly cookie 或内存存储）</td>
+      <td>localStorage 存储明文密码和 currentUser JSON</td>
+      <td>🔴 高</td>
+      <td>Demo 阶段保留（便于演示）。正式迁移时替换为 JWT 方案</td>
+    </tr>
+    <tr>
+      <td>D5</td>
+      <td>localStorage key 不统一</td>
+      <td>后端 API 统一管理数据</td>
+      <td>各模块使用不同 key（staffing_submissions / staffingDemoData 等）</td>
+      <td>🟡 中</td>
+      <td>Demo 阶段制定统一命名规范并执行</td>
+    </tr>
+    <tr>
+      <td>D6</td>
+      <td>通知写入无统一入口</td>
+      <td>后端 POST /api/notifications 统一写入</td>
+      <td>各模块手动 push 到 notifications 数组，无统一工具函数</td>
+      <td>🟡 中</td>
+      <td>创建 src/addNotification.js 工具函数，各模块统一调用</td>
+    </tr>
+    <tr>
+      <td>D7</td>
+      <td>教师快捷操作 2 项</td>
+      <td>教师使用 2 列网格布局</td>
+      <td>教师仅 2 项快捷入口，但使用 3 列网格</td>
+      <td>🟢 低</td>
+      <td>教师角色使用 2 列网格</td>
+    </tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============= 13. 迭代记录 ============= -->
+<div class="section" id="s13">
+  <div class="section-title">十三、迭代记录</div>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>版本</th><th>日期</th><th>变更内容</th><th>变更人</th></tr>
+    <tr><td>v2.1</td><td>2026-07-03</td><td>首次登录流程升级：① Token 有效期 2h→8h；② 所有角色首次登录初始化：改密 → 补全个人信息（F03.06+F03.07）；③ 校管理员第三步：编辑提交学校信息审核（F03.08）；④ 登录历史查看重新编号为 F03.09；⑤ 新增 /api/user/init/complete 和 /api/org/submit 接口</td><td>产品团队</td></tr>
+    <tr><td>v2.0</td><td>2026-07-03</td><td>正式版重写：① 移除 Demo 模式描述（角色切换器、Demo 账号等）；② 认证方案改为 JWT + Refresh Token；③ 角色切换改为退出重新登录；④ 补充完整功能清单（F01~F05，含前置条件/角色/业务规则/交互规则）；⑤ 新增后端 API 接口表 + User/Notification 数据模型；⑥ 差异表更新</td><td>产品团队</td></tr>
+    <tr><td>v1.1</td><td>2026-07-03</td><td>评审修改：profile.html 废弃合并、页面 4 页、补充编辑弹框字段、差异表修正</td><td>产品团队</td></tr>
+    <tr><td>v1.0</td><td>2026-07-03</td><td>初始版本</td><td>产品团队</td></tr>
+  </table>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>柳州教育人事管理平台 · 系统基础模块 PRD · Version 2.0（正式版） · 2026-07-03</p>
+  <p>父文档：PRD_总纲_柳州教育人事管理平台.md · 内部文档 · 共 4 页 · 18 个 API 接口</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' } });</script>
+</body>
+</html>

@@ -72,10 +72,17 @@ body {
 .sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
 .sidebar.collapsed ~ .main { margin-left: 64px; }
 .role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
-.role-switcher-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
-.role-switch-btn { display: block; width: 100%; padding: 6px 10px; margin-bottom: 4px; border: none; border-radius: 4px; background: transparent; color: rgba(255,255,255,0.6); font-size: 12px; cursor: pointer; text-align: left; font-family: inherit; transition: var(--transition); }
-.role-switch-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.role-switch-btn.active { background: rgba(255,255,255,0.12); color: #fff; font-weight: 500; }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+.role-switch-dot.system { background: #64748B; }
 
 .main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px 28px; min-height: calc(100vh - 56px); }
 
@@ -110,6 +117,21 @@ tbody tr:hover { background: #FAFBFC; }
 .status-login-yes { background: #ECFDF5; color: #059669; }
 .status-login-no { background: #FEF3C7; color: #92400E; }
 
+/* Cross-school tags */
+.tag-cs { display:inline-flex; align-items:center; gap:3px; font-size:10px; padding:1px 7px; border-radius:3px; white-space:nowrap; font-weight:500; }
+.tag-secondment { background: #FEF3C7; color: #92400E; }
+.tag-support { background: #DBEAFE; color: #1E40AF; }
+.tag-rotation { background: #D1FAE5; color: #065F46; }
+
+/* Info rows in modals */
+.info-row { display:flex; gap:8px; font-size:11px; padding:2px 0; }
+.info-label { color:#94A3B8; min-width:70px; }
+.info-value { color:#1E293B; font-weight:500; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-sm { padding: 5px 14px; font-size: 12px; }
 .btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
 .btn-xs-primary { background: var(--primary); color: #fff; }
 .btn-xs-primary:hover { background: var(--primary-dark); }
@@ -264,6 +286,7 @@ tbody tr:hover { background: #FAFBFC; }
   <div class="breadcrumb" style="font-size:12px;color:var(--text-light);margin-bottom:16px;"><a href="workbench.html" style="color:var(--text-light);text-decoration:none;">首页</a> / <span style="color:var(--text-secondary);">账号管理</span></div>
   <div class="page-header">
     <h1>账号管理</h1>
+    <button class="btn btn-primary" id="btnAddAccount" onclick="showCreateModal()" style="display:none;">+ 新增账号</button>
   </div>
 
   <!-- Stats -->
@@ -299,6 +322,14 @@ tbody tr:hover { background: #FAFBFC; }
         <label><input type="checkbox" value="合同制" onchange="onStaffingTypeChange()"> 合同制</label>
       </div>
     </div>
+    <label>跨校状态</label>
+    <select class="filter-select" id="crossSchoolFilter" onchange="renderAccounts()">
+      <option value="all">全部</option>
+      <option value="normal">在岗（非跨校）</option>
+      <option value="secondment">借调</option>
+      <option value="support">支教</option>
+      <option value="rotation">轮岗</option>
+    </select>
     <label id="districtFilterLabel">所属区域</label>
     <select class="filter-select" id="districtFilter" onchange="renderAccounts()">
       <option value="all">全部区域</option>
@@ -327,6 +358,7 @@ tbody tr:hover { background: #FAFBFC; }
             <th>所属区域</th>
             <th>所属角色</th>
             <th>所属单位</th>
+            <th>跨校状态</th>
             <th>账号状态</th>
             <th>首次登录</th>
             <th>更新时间</th>
@@ -478,6 +510,15 @@ var ROLES = {
       ]
     }
   },
+  teacher: {
+    name: '陈明辉', short: '陈', org: '柳州市第八中学', role: 'teacher',
+    sidebar: {
+      top: [{ id: 'workbench', icon: 'home', label: '工作台' }, { id: 'person', icon: 'person', label: '个人中心' }],
+      groups: [
+        { name: '业务申请', items: [{ id: 'promote', label: '岗位晋升申请' }, { id: 'ethics', label: '师德师风举报' }] }
+      ]
+    }
+  },
   system: {
     name: '赵建国', short: '赵', org: '柳州教育人事管理平台', role: 'system',
     sidebar: {
@@ -540,27 +581,40 @@ function toggleSidebar() {
 
 function updateRoleUI() {
   var roleData = ROLES[currentRole];
-  if (!roleData) return;
-  document.getElementById('userAvatar').textContent = roleData.short;
-  document.getElementById('userName').textContent = roleData.name;
+  var avatarEl = document.getElementById('userAvatar');
+  var nameEl = document.getElementById('userName');
+  if (roleData) {
+    if (avatarEl) avatarEl.textContent = roleData.short;
+    if (nameEl) nameEl.textContent = roleData.name;
+  }
   var sw = document.getElementById('roleSwitcher');
   if (!sw) return;
   var roles = [
-    { key: 'system', label: '系统管理员', icon: '🔧' },
-    { key: 'city', label: '市管理员', icon: '🏙' },
-    { key: 'district', label: '区管理员', icon: '🏛' },
-    { key: 'school', label: '校管理员', icon: '🏫' }
+    { key: 'system', label: '系统管理员', dot: 'system' },
+    { key: 'city', label: '市管理员', dot: 'city' },
+    { key: 'district', label: '区管理员', dot: 'district' },
+    { key: 'school', label: '校管理员', dot: 'school' },
+    { key: 'teacher', label: '教 师', dot: 'teacher' }
   ];
-  sw.innerHTML = '<div class="role-switcher-label">快捷切换</div>' +
+  sw.innerHTML = '<div class="role-switcher-label">切换演示角色</div>' +
+    '<div class="role-switcher-options">' +
     roles.map(function(r) {
-      return '<button class="role-switch-btn' + (r.key === currentRole ? ' active' : '') + '" onclick="switchRole(\'' + r.key + '\')">' + r.icon + ' ' + r.label + '</button>';
-    }).join('');
+      return '<button class="role-switch-btn' + (r.key === currentRole ? ' active' : '') + '" onclick="switchRole(\'' + r.key + '\')"><span class="role-switch-dot ' + r.dot + '"></span><span class="role-switcher-name">' + r.label + '</span></button>';
+    }).join('') +
+    '</div>';
 }
 
 function switchRole(role) {
   if (role === currentRole) return;
-  if (role === 'system') {
-    localStorage.setItem('currentUser', JSON.stringify({ role: 'system', name: '赵建国', id: '13807720000' }));
+  var userMap = {
+    system:  { role: 'system',  name: '赵建国', id: '13807720000', school: '柳州教育人事管理平台' },
+    city:    { role: 'city',    name: '张建国', id: '13807720001', school: '柳州市教育局' },
+    district:{ role: 'district',name: '李振华', id: '13807720002', school: '鱼峰区教育局' },
+    school:  { role: 'school',  name: '王玉兰', id: '13807720003', school: '柳州市第八中学' },
+    teacher: { role: 'teacher', name: '陈明辉', id: '13807720004', school: '柳州市第八中学' }
+  };
+  if (userMap[role]) {
+    localStorage.setItem('currentUser', JSON.stringify(userMap[role]));
   }
   window.location.href = 'account-management.html?role=' + role;
 }
@@ -595,17 +649,66 @@ function loadAccounts() {
     if (stored[j].role && !stored[j].roles) { stored[j].roles = [stored[j].role]; delete stored[j].role; backfilled = true; }
     if (!stored[j].roles) { stored[j].roles = ['teacher']; backfilled = true; }
     if (!stored[j].staffingType) { stored[j].staffingType = '事业编'; backfilled = true; }
+    if (!stored[j].crossSchoolType) { stored[j].crossSchoolType = 'normal'; backfilled = true; }
+    if (stored[j].crossSchool === undefined) { stored[j].crossSchool = ''; backfilled = true; }
+    if (stored[j].crossStartDate === undefined) { stored[j].crossStartDate = ''; backfilled = true; }
+    if (stored[j].crossEndDate === undefined) { stored[j].crossEndDate = ''; backfilled = true; }
+    // Disable info fields
+    if (stored[j].disableType === undefined) { stored[j].disableType = ''; backfilled = true; }
+    if (stored[j].disableReason === undefined) { stored[j].disableReason = ''; backfilled = true; }
+    if (stored[j].disableDate === undefined) { stored[j].disableDate = ''; backfilled = true; }
+    if (stored[j].disableOperator === undefined) { stored[j].disableOperator = ''; backfilled = true; }
+    // Contract dates (contract teachers only)
+    if (stored[j].contractStart === undefined) { stored[j].contractStart = ''; backfilled = true; }
+    if (stored[j].contractEnd === undefined) { stored[j].contractEnd = ''; backfilled = true; }
     if (!stored[j].updatedAt) { stored[j].updatedAt = stored[j].createdAt || stored[j].activatedAt || '2026-01-01 00:00:00'; backfilled = true; }
   }
   if (backfilled) localStorage.setItem('teacher_accounts', JSON.stringify(stored));
+  // Seed cross-school demo data for specific accounts (runs once)
+  var CROSS_SCHOOL_SEEDS = {
+    '450201199001011234': { crossSchoolType: 'rotation', crossSchool: '柳州市第二中学', crossStartDate: '2026-02-01', crossEndDate: '2029-02-01' },
+    '450201199205156789': { crossSchoolType: 'secondment', crossSchool: '柳州市第十五中学', crossStartDate: '2026-03-01', crossEndDate: '2027-02-28' },
+    '450201199105156788': { crossSchoolType: 'support', crossSchool: '三江县民族中学', crossStartDate: '2025-09-01', crossEndDate: '2027-07-01' },
+    '450201198912014567': { crossSchoolType: 'rotation', crossSchool: '柳州市第一中学', crossStartDate: '2026-01-01', crossEndDate: '2028-12-31' }
+  };
+  var csSeeded = false;
+  for (var k = 0; k < stored.length; k++) {
+    var seed = CROSS_SCHOOL_SEEDS[stored[k].idCard];
+    if (seed && stored[k].crossSchoolType === 'normal') {
+      stored[k].crossSchoolType = seed.crossSchoolType;
+      stored[k].crossSchool = seed.crossSchool;
+      stored[k].crossStartDate = seed.crossStartDate;
+      stored[k].crossEndDate = seed.crossEndDate;
+      csSeeded = true;
+    }
+  }
+  if (csSeeded) localStorage.setItem('teacher_accounts', JSON.stringify(stored));
+  // Migrate existing disabled accounts: backfill disable fields
+  var disableMigrated = false;
+  for (var dm = 0; dm < stored.length; dm++) {
+    if (stored[dm].status === 'disabled' && !stored[dm].disableType) {
+      stored[dm].disableType = 'exit';
+      stored[dm].disableReason = stored[dm].statusReason || '教师出编冻结';
+      stored[dm].disableDate = stored[dm].updatedAt || '';
+      stored[dm].disableOperator = '系统（迁移）';
+      disableMigrated = true;
+    }
+    // Backfill contract dates for contract teachers
+    if (stored[dm].staffingType === '合同制' && !stored[dm].contractStart) {
+      stored[dm].contractStart = '2026-07-01';
+      stored[dm].contractEnd = '2029-06-30';
+      disableMigrated = true;
+    }
+  }
+  if (disableMigrated) localStorage.setItem('teacher_accounts', JSON.stringify(stored));
   if (!stored.length) {
     stored = [
-      { accountId: 'TEA20260601001', roles: ['teacher'], name: '赵刚', idCard: '450201199001011234', phone: '13912345678', staffingType: '事业编', school: '柳州铁一中学', entryRecordId: 'RN20260604001', status: 'active', entryMethod: '调动', initialPassword: 'Edu@19901234', password: 'Edu@19901234', firstLogin: true, createdAt: '2026-06-04T09:30:00', activatedAt: '2026-06-05T10:00:00', updatedAt: '2026-06-05 10:00:00', exitRecords: [], entryRecords: ['RN20260604001'] },
+      { accountId: 'TEA20260601001', roles: ['teacher'], name: '赵刚', idCard: '450201199001011234', phone: '13912345678', staffingType: '事业编', school: '柳州铁一中学', entryRecordId: 'RN20260604001', status: 'active', entryMethod: '调动', crossSchoolType: 'rotation', crossSchool: '柳州市第二中学', crossStartDate: '2026-02-01', crossEndDate: '2029-02-01', initialPassword: 'Edu@19901234', password: 'Edu@19901234', firstLogin: true, createdAt: '2026-06-04T09:30:00', activatedAt: '2026-06-05T10:00:00', updatedAt: '2026-06-05 10:00:00', exitRecords: [], entryRecords: ['RN20260604001'] },
       { accountId: 'TEA20260601002', roles: ['teacher'], name: '陈丽华', idCard: '450201198805150678', phone: '', staffingType: '控制数', school: '柳州铁一中学', entryRecordId: 'RN20260604002', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19880678', password: 'Edu@19880678', firstLogin: false, createdAt: '2026-06-04T10:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260604002'] },
-      { accountId: 'TEA20260601003', roles: ['teacher'], name: '张雅琴', idCard: '450201199205156789', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260510001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19926789', password: 'Edu@19926789', firstLogin: false, importedFromOld: true, createdAt: '2026-05-10T09:30:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260510001'] },
-      { accountId: 'TEA20260601004', roles: ['teacher'], name: '李思思', idCard: '450201199105156788', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260511001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19916788', password: 'Edu@19916788', firstLogin: false, createdAt: '2026-05-11T10:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260511001'] },
-      { accountId: 'TEA20260601005', roles: ['teacher'], name: '王明', idCard: '450201198912014567', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260511001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@19894567', password: 'Edu@19894567', firstLogin: false, createdAt: '2026-05-11T10:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260511001'] },
-      { accountId: 'TEA20260601006', roles: ['teacher'], name: '赵志华', idCard: '450201199006151234', phone: '', staffingType: '控制数', school: '柳州铁一中学', entryRecordId: 'RN20260515001', status: 'disabled', statusReason: '教师出编冻结', entryMethod: '统一公开招聘', initialPassword: 'Edu@19901234', password: 'Edu@19901234', firstLogin: true, createdAt: '2026-05-15T14:00:00', updatedAt: '2026-05-17 10:00:00', activatedAt: '2026-05-17T10:00:00', exitRecords: ['OC20260601001'], entryRecords: ['RN20260515001'] },
+      { accountId: 'TEA20260601003', roles: ['teacher'], name: '张雅琴', idCard: '450201199205156789', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260510001', status: 'active', entryMethod: '统一公开招聘', crossSchoolType: 'secondment', crossSchool: '柳州市第十五中学', crossStartDate: '2026-03-01', crossEndDate: '2027-02-28', initialPassword: 'Edu@19926789', password: 'Edu@19926789', firstLogin: false, importedFromOld: true, createdAt: '2026-05-10T09:30:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260510001'] },
+      { accountId: 'TEA20260601004', roles: ['teacher'], name: '李思思', idCard: '450201199105156788', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260511001', status: 'active', entryMethod: '统一公开招聘', crossSchoolType: 'support', crossSchool: '三江县民族中学', crossStartDate: '2025-09-01', crossEndDate: '2027-07-01', initialPassword: 'Edu@19916788', password: 'Edu@19916788', firstLogin: false, createdAt: '2026-05-11T10:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260511001'] },
+      { accountId: 'TEA20260601005', roles: ['teacher'], name: '王明', idCard: '450201198912014567', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260511001', status: 'active', entryMethod: '单位自主实施招聘', crossSchoolType: 'rotation', crossSchool: '柳州市第一中学', crossStartDate: '2026-01-01', crossEndDate: '2028-12-31', initialPassword: 'Edu@19894567', password: 'Edu@19894567', firstLogin: false, createdAt: '2026-05-11T10:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260511001'] },
+      { accountId: 'TEA20260601006', roles: ['teacher'], name: '赵志华', idCard: '450201199006151234', phone: '', staffingType: '控制数', school: '柳州铁一中学', entryRecordId: 'RN20260515001', status: 'disabled', statusReason: '教师出编冻结', disableType: 'exit', disableReason: '调动', disableDate: '2026-05-17', disableOperator: '周敏', entryMethod: '统一公开招聘', initialPassword: 'Edu@19901234', password: 'Edu@19901234', firstLogin: true, createdAt: '2026-05-15T14:00:00', updatedAt: '2026-05-17 10:00:00', activatedAt: '2026-05-17T10:00:00', exitRecords: ['OC20260601001'], entryRecords: ['RN20260515001'] },
       { accountId: 'TEA20260601007', roles: ['teacher'], name: '周明远', idCard: '450201198803201111', phone: '', staffingType: '事业编', school: '柳州高级中学', entryRecordId: 'RN20260514001', status: 'active', entryMethod: '引进高层次人才', initialPassword: 'Edu@19881111', password: 'Edu@19881111', firstLogin: false, createdAt: '2026-05-14T09:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260514001'] },
       { accountId: 'TEA20260601008', roles: ['teacher'], name: '陈晓霞', idCard: '450201199308201234', phone: '13612345678', staffingType: '控制数', school: '鱼峰区实验小学', entryRecordId: 'RN20260513001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@19931234', password: 'Edu@19931234', firstLogin: true, createdAt: '2026-05-13T08:15:00', updatedAt: '2026-05-14 09:00:00', activatedAt: '2026-05-14T09:00:00', exitRecords: [], entryRecords: ['RN20260513001'] },
       { accountId: 'TEA20260601009', roles: ['teacher'], name: '刘芳', idCard: '450201199410152345', phone: '13712345678', staffingType: '事业编', school: '城中区实验小学', entryRecordId: 'RN20260601001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19942345', password: 'Edu@19942345', firstLogin: false, createdAt: '2026-06-01T09:00:00', updatedAt: '2026-06-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260601001'] },
@@ -618,7 +721,9 @@ function loadAccounts() {
       { accountId: 'TEA20260601015', roles: ['teacher'], name: '吴建国', idCard: '450201198905100004', phone: '', staffingType: '控制数', school: '城中区教育局', entryRecordId: 'RN20260607001', status: 'active', entryMethod: '调动', initialPassword: 'Edu@19890004', password: 'Edu@19890004', firstLogin: false, createdAt: '2026-06-07T09:00:00', updatedAt: '2026-06-07 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260607001'] },
       { accountId: 'TEA20260601016', roles: ['teacher'], name: '郑晓芳', idCard: '450201199307180005', phone: '', staffingType: '控制数', school: '柳州市第八中学', entryRecordId: 'RN20260608001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@19930005', password: 'Edu@19930005', firstLogin: false, createdAt: '2026-06-08T09:00:00', updatedAt: '2026-06-08 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260608001'] },
       { accountId: 'TEA20260601017', roles: ['teacher'], name: '马文华', idCard: '450201199004220006', phone: '', staffingType: '控制数', school: '柳州高级中学', entryRecordId: 'RN20260609001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19900006', password: 'Edu@19900006', firstLogin: false, createdAt: '2026-06-09T09:00:00', updatedAt: '2026-06-09 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260609001'] },
-      { accountId: 'TEA20260601018', roles: ['teacher'], name: '梁雪梅', idCard: '450201199108300007', phone: '', staffingType: '控制数', school: '柳州铁一中学', entryRecordId: 'RN20260610001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19910007', password: 'Edu@19910007', firstLogin: false, createdAt: '2026-06-10T09:00:00', updatedAt: '2026-06-10 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260610001'] }
+      { accountId: 'TEA20260601018', roles: ['teacher'], name: '梁雪梅', idCard: '450201199108300007', phone: '', staffingType: '控制数', school: '柳州铁一中学', entryRecordId: 'RN20260610001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19910007', password: 'Edu@19910007', firstLogin: false, createdAt: '2026-06-10T09:00:00', updatedAt: '2026-06-10 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260610001'] },
+      // 合同制 demo 账号（编外教师）
+      { accountId: 'TEA20260701001', roles: ['teacher'], name: '徐小曼', idCard: '450201199608150009', phone: '', staffingType: '合同制', school: '柳州市第八中学', entryRecordId: 'CE20260701001', status: 'active', entryMethod: '单位自主实施招聘', contractStart: '2026-07-01', contractEnd: '2029-06-30', initialPassword: 'Edu@19960009', password: 'Edu@19960009', firstLogin: false, createdAt: '2026-07-01T09:00:00', updatedAt: '2026-07-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['CE20260701001'] }
     ];
     localStorage.setItem('teacher_accounts', JSON.stringify(stored));
   }
@@ -688,6 +793,24 @@ function saveAccounts(accounts) {
   if (admins.length) localStorage.setItem('admin_accounts', JSON.stringify(admins));
 }
 
+// ===== CROSS-SCHOOL HELPERS =====
+var CROSS_SCHOOL_LABELS = { secondment: '借调', support: '支教', rotation: '轮岗' };
+var CROSS_SCHOOL_CLASSES = { secondment: 'tag-secondment', support: 'tag-support', rotation: 'tag-rotation' };
+
+function renderCrossSchoolCell(a) {
+  var csType = a.crossSchoolType || 'normal';
+  if (csType === 'normal' || !csType) return '<span style="color:var(--text-light);font-size:11px;">在岗（非跨校）</span>';
+  var label = CROSS_SCHOOL_LABELS[csType] || csType;
+  var cls = CROSS_SCHOOL_CLASSES[csType] || '';
+  var html = '<span class="tag-cs ' + cls + '">' + label + '</span>';
+  if (a.crossSchool) html += ' <span style="font-size:10px;color:var(--text-secondary);">' + a.crossSchool + '</span>';
+  var dateRange = '';
+  if (a.crossStartDate) dateRange += a.crossStartDate;
+  if (a.crossEndDate) dateRange += (dateRange ? ' ~ ' : '') + a.crossEndDate;
+  if (dateRange) html += '<div style="font-size:9px;color:var(--text-light);">' + dateRange + '</div>';
+  return html;
+}
+
 // ===== RENDER =====
 function renderAccounts() {
   var accounts = loadAccounts();
@@ -748,6 +871,12 @@ function renderAccounts() {
     filtered = filtered.filter(function(a) { return staffingTypeFilter.indexOf(a.staffingType) !== -1; });
   }
 
+  // Apply cross-school filter
+  var crossSchoolFilter = document.getElementById('crossSchoolFilter').value;
+  if (crossSchoolFilter !== 'all') {
+    filtered = filtered.filter(function(a) { return (a.crossSchoolType || 'normal') === crossSchoolFilter; });
+  }
+
   // Stats — based on role-filtered data
   var total = filtered.length;
   var activeCount = filtered.filter(function(a) { return a.status === 'active'; }).length;
@@ -781,7 +910,7 @@ function renderAccounts() {
   // Table
   var tbody = document.getElementById('accountTableBody');
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="12"><div class="empty-state"><div class="icon">🔍</div><div class="text">暂无匹配的账号记录</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13"><div class="empty-state"><div class="icon">🔍</div><div class="text">暂无匹配的账号记录</div></div></td></tr>';
     return;
   }
 
@@ -804,13 +933,15 @@ function renderAccounts() {
       '<td>' + (a.district || getDistrictForSchool(a.school) || '—') + '</td>' +
       '<td><span style="font-size:12px;">' + (roleLabels || '—') + '</span></td>' +
       '<td>' + (a.school || '—') + '</td>' +
+      '<td>' + renderCrossSchoolCell(a) + '</td>' +
       '<td><span class="status-tag ' + (statusClass[a.status] || '') + '">' + (statusMap[a.status] || a.status) + '</span></td>' +
       '<td><span class="status-tag ' + (loginClass[a.firstLogin] || '') + '">' + (loginMap[a.firstLogin] || '—') + '</span></td>' +
       '<td style="font-size:12px;color:var(--text-secondary);">' + (a.updatedAt || '—') + '</td>' +
       '<td class="col-action"><div class="action-links">' +
         ((a.entryRecords && a.entryRecords.length > 0 && !a.firstLogin) ? '<button class="btn-xs btn-xs-primary" onclick="showPassword(\'' + a.accountId + '\')">查看密码</button>' : '<button class="btn-xs btn-xs-outline" onclick="resetPassword(\'' + a.accountId + '\')">重置密码</button>') +
-        '<button class="btn-xs btn-xs-outline" onclick="viewAccount(\'' + a.accountId + '\')">查看</button>' +
-        '<button class="btn-xs btn-xs-outline" onclick="editAccount(\'' + a.accountId + '\')">编辑</button>' +
+        '<button class="btn-xs btn-xs-outline" onclick="viewAccountModal(\'' + a.accountId + '\')">查看</button>' +
+        '<button class="btn-xs btn-xs-outline" onclick="viewAccount(\'' + a.accountId + '\')">个人详情</button>' +
+        (a.status !== 'disabled' ? '<button class="btn-xs btn-xs-outline" onclick="editAccount(\'' + a.accountId + '\')">编辑</button>' : '') +
         (a.status === 'disabled' && canEdit ? '<button class="btn-xs btn-xs-primary" onclick="restoreAccount(\'' + a.accountId + '\')">恢复</button>' : '') +
         (a.status === 'active' && canEdit ? '<button class="btn-xs btn-xs-danger" onclick="disableAccount(\'' + a.accountId + '\')">停用</button>' : '') +
       '</div></td>' +
@@ -1033,6 +1164,442 @@ function toggleSchoolDropdown(show) {
   else { setTimeout(function() { dd.classList.remove('show'); }, 200); }
 }
 
+function escapeHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function buildStatusCard(a) {
+  if (a.status !== 'disabled') return '';
+  var type = a.disableType || '';
+  var reason = a.disableReason || a.statusReason || '—';
+  var date = a.disableDate || '—';
+  var operator = a.disableOperator || '—';
+  var rows = '';
+
+  if (type === 'exit') {
+    rows += '<div class="info-row"><span class="info-label">出编形式：</span><span class="info-value">' + escapeHtml(reason) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">出编日期：</span><span class="info-value">' + escapeHtml(date) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">操作人：</span><span class="info-value">' + escapeHtml(operator) + '</span></div>';
+    return '<div style="background:#FFF5F5;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin:8px 0;">' +
+      '<div style="font-size:11px;font-weight:600;color:#991B1B;margin-bottom:6px;">🔒 出编信息</div>' + rows + '</div>';
+  }
+  if (type === 'contract_end') {
+    rows += '<div class="info-row"><span class="info-label">离职类型：</span><span class="info-value">' + escapeHtml(reason) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">离职日期：</span><span class="info-value">' + escapeHtml(date) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">操作人：</span><span class="info-value">' + escapeHtml(operator) + '</span></div>';
+    return '<div style="background:#FFF5F5;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin:8px 0;">' +
+      '<div style="font-size:11px;font-weight:600;color:#991B1B;margin-bottom:6px;">📋 离职信息</div>' + rows + '</div>';
+  }
+  // manual / unknown fallback
+  var typeLabel = type === 'manual' ? '手动停用' : (type ? '自动停用' : '停用');
+  rows += '<div class="info-row"><span class="info-label">停用方式：</span><span class="info-value">' + typeLabel + '</span></div>';
+  rows += '<div class="info-row"><span class="info-label">停用时间：</span><span class="info-value">' + escapeHtml(date) + '</span></div>';
+  rows += '<div class="info-row"><span class="info-label">操作人：</span><span class="info-value">' + escapeHtml(operator) + '</span></div>';
+  rows += '<div class="info-row"><span class="info-label">停用原因：</span><span class="info-value">' + escapeHtml(reason) + '</span></div>';
+  return '<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:10px 14px;margin:8px 0;">' +
+    '<div style="font-size:11px;font-weight:600;color:#64748B;margin-bottom:6px;">⏸ 停用信息</div>' + rows + '</div>';
+}
+
+// ===== CREATE ACCOUNT =====
+function showCreateModal() {
+  loadSchoolList();
+  var req = ' <span style="color:var(--danger);">*</span>';
+  // Build role checkboxes filtered by current role permissions
+  var ALL_ROLES = ['system','city','district','school','teacher'];
+  var ROLE_ICONS = { system:'🔧', city:'🏙', district:'🏛', school:'🏫', teacher:'👤' };
+  // Which roles can this operator create?
+  var allowedRoles = [];
+  if (currentRole === 'system') allowedRoles = ['city','district','school','teacher'];
+  else if (currentRole === 'city') allowedRoles = ['district','school','teacher'];
+  else if (currentRole === 'district') allowedRoles = ['school','teacher'];
+  var rolesHTML = '';
+  for (var ri = 0; ri < ALL_ROLES.length; ri++) {
+    var rv = ALL_ROLES[ri];
+    var canSelect = allowedRoles.indexOf(rv) !== -1;
+    rolesHTML += '<label class="role-chk' + (canSelect ? '' : ' disabled') + '" style="display:inline-flex;align-items:center;gap:3px;margin-right:12px;font-size:12px;white-space:nowrap;">' +
+      '<input type="checkbox" class="createRoleChk" value="' + rv + '"' + (canSelect ? '' : ' disabled') + ' onchange="onCreateRoleChange()"> ' +
+      ROLE_LABEL_MAP[rv] + '</label>';
+  }
+
+  document.getElementById('modalContainer').innerHTML =
+    '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">' +
+    '<div class="modal-container" style="width:600px;max-height:80vh;overflow-y:auto;padding:24px;">' +
+    '<h3 style="margin-bottom:16px;">新增账号</h3>' +
+
+    // 账号信息
+    '<fieldset class="modal-fieldset"><legend>账号信息</legend><div class="form-grid">' +
+    '<div class="form-group"><label>姓名' + req + '</label><input id="crName" placeholder="姓名"></div>' +
+    '<div class="form-group"><label>身份证号' + req + '</label><input id="crIdCard" placeholder="18位身份证号"></div>' +
+    '<div class="form-group"><label>手机号' + req + '</label><input id="crPhone" placeholder="11位手机号" maxlength="11"></div>' +
+    '<div class="form-group span-full"><label>所属角色' + req + '</label><div>' + rolesHTML + '</div></div>' +
+    '<div class="form-group"><label>所属单位' + req + '</label><div class="searchable-select"><input id="crSchoolInput" placeholder="输入关键字搜索单位..." autocomplete="off" oninput="filterCreateSchoolOptions()" onfocus="toggleCreateSchoolDropdown(true)"><div class="school-dropdown" id="crSchoolDropdown"></div><input type="hidden" id="crSchool" value=""></div></div>' +
+    '<div class="form-group" id="fgCrStaffingType"><label>编制类型' + req + '</label><select id="crStaffingType" onchange="onCreateStaffingTypeChange()"><option value="">—</option><option value="事业编">事业编</option><option value="控制数">控制数</option><option value="合同制">合同制</option></select></div>' +
+    '<div class="form-group" id="fgCrEntryMethod"><label>入编方式<span id="reqCrEntry"></span></label><select id="crEntryMethod"><option value="">—</option><option value="统一公开招聘">统一公开招聘</option><option value="单位自主实施招聘">单位自主实施招聘</option><option value="中高级人才招聘">中高级人才招聘</option><option value="引进高层次人才">引进高层次人才</option><option value="调动">调动</option><option value="其他">其他</option></select></div>' +
+    '</div></fieldset>' +
+
+    // 岗位信息
+    '<fieldset class="modal-fieldset" id="crPostFieldset"><legend>岗位信息</legend><div class="form-grid">' +
+    '<div class="form-group" id="fgCrCategory"><label>岗位类别<span id="reqCrCategory"></span></label><select id="crCategoryName" onchange="onCreateCategoryChange()"><option value="">—</option><option value="专业技术岗位">专业技术岗位</option><option value="管理岗位">管理岗位</option><option value="工勤技能岗位">工勤技能岗位</option></select></div>' +
+    '<div class="form-group" id="fgCrLevel"><label>岗位等级<span id="reqCrLevel"></span></label><select id="crPostLevel"><option value="">—</option></select></div>' +
+    '<div class="form-group"><label>岗位名称<span id="reqCrPosition"></span></label><input id="crAssignPosition" placeholder="如：语文教师"></div>' +
+    '<div class="form-group"><label>任职时间<span id="reqCrAppoint"></span></label><input type="month" id="crAppointTime"></div>' +
+    '<div class="form-group" id="fgCrContractStart" style="display:none;"><label>合同开始日期<span id="reqCrContractStart"></span></label><input type="date" id="crContractStart"></div>' +
+    '<div class="form-group" id="fgCrContractEnd" style="display:none;"><label>合同结束日期<span id="reqCrContractEnd"></span></label><input type="date" id="crContractEnd"></div>' +
+    '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;" id="crPostHint"></div></fieldset>' +
+
+    '<div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">取消</button>' +
+    '<button class="btn-confirm primary" onclick="createAccount()">创建账号</button></div>' +
+    '</div></div>';
+
+  onCreateRoleChange();
+}
+
+// Filter school dropdown for create modal
+function filterCreateSchoolOptions() {
+  loadSchoolList();
+  var input = document.getElementById('crSchoolInput');
+  var q = (input.value || '').toLowerCase();
+  var html = '';
+  // District admin: only show schools in their district
+  var districtFilter = currentRole === 'district' ? (currentUser.district || '') : '';
+  for (var i = 0; i < ALL_SCHOOLS.length; i++) {
+    var s = ALL_SCHOOLS[i];
+    if (q && s.toLowerCase().indexOf(q) === -1) continue;
+    if (districtFilter) {
+      var sd = getDistrictForSchool(s);
+      if (sd !== districtFilter) continue;
+    }
+    html += '<div class="school-option" onclick="selectCreateSchool(\'' + s.replace(/'/g,"\\'") + '\')">' + s + '</div>';
+  }
+  var dd = document.getElementById('crSchoolDropdown');
+  if (dd) { dd.innerHTML = html; dd.classList.add('show'); }
+}
+function selectCreateSchool(name) {
+  document.getElementById('crSchoolInput').value = name;
+  document.getElementById('crSchool').value = name;
+  document.getElementById('crSchoolDropdown').classList.remove('show');
+}
+function toggleCreateSchoolDropdown(show) {
+  var dd = document.getElementById('crSchoolDropdown');
+  if (!dd) return;
+  if (show) { filterCreateSchoolOptions(); dd.classList.add('show'); }
+  else { setTimeout(function() { dd.classList.remove('show'); }, 200); }
+}
+
+// Role change → show/hide staffing type and post info
+function onCreateRoleChange() {
+  var chks = document.querySelectorAll('.createRoleChk:checked');
+  var hasTeacher = false, hasSchool = false;
+  for (var i = 0; i < chks.length; i++) {
+    if (chks[i].value === 'teacher') hasTeacher = true;
+    if (chks[i].value === 'school') hasSchool = true;
+  }
+  var needsPostInfo = hasTeacher || hasSchool;
+
+  // 编制类型 + 入编方式
+  document.getElementById('fgCrStaffingType').style.display = needsPostInfo ? '' : 'none';
+  document.getElementById('fgCrEntryMethod').style.display = needsPostInfo ? '' : 'none';
+  // 岗位信息
+  document.getElementById('crPostFieldset').style.display = needsPostInfo ? '' : 'none';
+
+  if (!needsPostInfo) {
+    document.getElementById('crStaffingType').value = '';
+    document.getElementById('crEntryMethod').value = '';
+  }
+  onCreateStaffingTypeChange();
+}
+
+// Staffing type change → show/hide entry method, contract dates, required markers
+function onCreateStaffingTypeChange() {
+  var st = document.getElementById('crStaffingType').value;
+  var isBianzhi = (st === '事业编' || st === '控制数');
+  var isContract = (st === '合同制');
+
+  // 入编方式
+  document.getElementById('fgCrEntryMethod').style.display = isBianzhi ? '' : 'none';
+  document.getElementById('reqCrEntry').innerHTML = isBianzhi ? ' <span style="color:var(--danger);">*</span>' : '';
+
+  // 岗位类别+等级 required for 事业编/控制数
+  document.getElementById('reqCrCategory').innerHTML = isBianzhi ? ' <span style="color:var(--danger);">*</span>' : '';
+  document.getElementById('reqCrLevel').innerHTML = isBianzhi ? ' <span style="color:var(--danger);">*</span>' : '';
+
+  // 岗位名称+任职时间 required when teacher or school role selected
+  var chks = document.querySelectorAll('.createRoleChk:checked');
+  var hasTeacherOrSchool = false;
+  for (var i = 0; i < chks.length; i++) {
+    if (chks[i].value === 'teacher' || chks[i].value === 'school') { hasTeacherOrSchool = true; break; }
+  }
+  document.getElementById('reqCrPosition').innerHTML = hasTeacherOrSchool ? ' <span style="color:var(--danger);">*</span>' : '';
+  document.getElementById('reqCrAppoint').innerHTML = hasTeacherOrSchool ? ' <span style="color:var(--danger);">*</span>' : '';
+
+  // 合同期限
+  document.getElementById('fgCrContractStart').style.display = isContract ? '' : 'none';
+  document.getElementById('fgCrContractEnd').style.display = isContract ? '' : 'none';
+  document.getElementById('reqCrContractStart').innerHTML = isContract ? ' <span style="color:var(--danger);">*</span>' : '';
+  document.getElementById('reqCrContractEnd').innerHTML = isContract ? ' <span style="color:var(--danger);">*</span>' : '';
+
+  // Hint
+  var hintEl = document.getElementById('crPostHint');
+  if (hintEl) {
+    if (isContract) hintEl.innerHTML = '※ 合同制教师必填合同期限。创建后合同期限变为只读，变更需走续聘审批。';
+    else if (isBianzhi) hintEl.innerHTML = '※ 事业编/控制数教师须填写完整岗位信息。';
+    else hintEl.innerHTML = '';
+  }
+}
+
+// Category change → cascade post levels (same as edit)
+function onCreateCategoryChange() {
+  var catEl = document.getElementById('crCategoryName');
+  var lvlEl = document.getElementById('crPostLevel');
+  if (!catEl || !lvlEl) return;
+  var cat = catEl.value;
+  var options = POST_LEVEL_OPTIONS[cat] || [];
+  var h = '<option value="">—</option>';
+  for (var i = 0; i < options.length; i++) {
+    h += '<option value="' + options[i] + '">' + options[i] + '</option>';
+  }
+  lvlEl.innerHTML = h;
+}
+
+function createAccount() {
+  var name = document.getElementById('crName').value.trim();
+  if (!name) { showToast('请输入姓名', 'warning'); return; }
+  var idCard = document.getElementById('crIdCard').value.trim();
+  if (!idCard) { showToast('请输入身份证号', 'warning'); return; }
+  if (idCard.length !== 18) { showToast('身份证号须为18位', 'warning'); return; }
+  var phone = document.getElementById('crPhone').value.trim();
+  if (!phone) { showToast('请输入手机号', 'warning'); return; }
+  if (!/^\d{11}$/.test(phone)) { showToast('请输入正确的11位手机号', 'warning'); return; }
+
+  var selectedRoles = [];
+  var chks = document.querySelectorAll('.createRoleChk:checked');
+  for (var i = 0; i < chks.length; i++) { selectedRoles.push(chks[i].value); }
+  if (!selectedRoles.length) { showToast('请选择至少一个角色', 'warning'); return; }
+  var hasTeacher = selectedRoles.indexOf('teacher') !== -1;
+  var hasSchool = selectedRoles.indexOf('school') !== -1;
+  var needsPostInfo = hasTeacher || hasSchool;
+
+  var school = document.getElementById('crSchool').value || '';
+  if (!school) { showToast('请选择所属单位', 'warning'); return; }
+
+  var staffingType = '';
+  var entryMethod = '';
+  var categoryName = '', postLevel = '', assignPosition = '', appointTime = '';
+  var contractStart = '', contractEnd = '';
+
+  if (needsPostInfo) {
+    staffingType = document.getElementById('crStaffingType').value;
+    if (!staffingType) { showToast('请选择编制类型', 'warning'); return; }
+    var isBianzhi = (staffingType === '事业编' || staffingType === '控制数');
+    var isContract = (staffingType === '合同制');
+
+    if (isBianzhi) {
+      entryMethod = document.getElementById('crEntryMethod').value;
+      if (!entryMethod) { showToast('请选择入编方式', 'warning'); return; }
+    }
+
+    // 岗位名称 + 任职时间 (required for all teacher types)
+    assignPosition = document.getElementById('crAssignPosition').value.trim();
+    if (!assignPosition) { showToast('请输入岗位名称', 'warning'); return; }
+    appointTime = document.getElementById('crAppointTime').value;
+    if (!appointTime) { showToast('请选择任职时间', 'warning'); return; }
+
+    if (isBianzhi) {
+      categoryName = document.getElementById('crCategoryName').value;
+      if (!categoryName) { showToast('请选择岗位类别', 'warning'); return; }
+      postLevel = document.getElementById('crPostLevel').value;
+      if (!postLevel) { showToast('请选择岗位等级', 'warning'); return; }
+    }
+
+    if (isContract) {
+      contractStart = document.getElementById('crContractStart').value;
+      if (!contractStart) { showToast('请选择合同开始日期', 'warning'); return; }
+      contractEnd = document.getElementById('crContractEnd').value;
+      if (!contractEnd) { showToast('请选择合同结束日期', 'warning'); return; }
+    }
+  } else {
+    // Pure admin account (city/district only, no school or teacher) — no staffing type or post info
+    staffingType = '—';
+  }
+
+  // Check idCard uniqueness
+  var accounts = loadAccounts();
+  for (var k = 0; k < accounts.length; k++) {
+    if (accounts[k].idCard === idCard) { showToast('身份证号已存在，请勿重复创建', 'warning'); return; }
+  }
+
+  // Generate account
+  var now = new Date();
+  var ts = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
+  var accountId = 'TEA' + ts;
+  var initialPwd = 'Edu@' + idCard.slice(-8);
+  var district = getDistrictForSchool(school) || '';
+
+  var newAccount = {
+    accountId: accountId,
+    roles: selectedRoles,
+    name: name,
+    idCard: idCard,
+    phone: phone,
+    staffingType: staffingType,
+    school: school,
+    district: district,
+    status: 'active',
+    entryMethod: entryMethod,
+    categoryName: categoryName,
+    postLevel: postLevel,
+    assignPosition: assignPosition,
+    appointTime: appointTime,
+    contractStart: contractStart,
+    contractEnd: contractEnd,
+    crossSchoolType: 'normal',
+    crossSchool: '',
+    crossStartDate: '',
+    crossEndDate: '',
+    disableType: '',
+    disableReason: '',
+    disableDate: '',
+    disableOperator: '',
+    initialPassword: initialPwd,
+    password: initialPwd,
+    firstLogin: true,
+    createdAt: now.toISOString(),
+    updatedAt: ts,
+    activatedAt: null,
+    entryRecords: [],
+    exitRecords: []
+  };
+
+  accounts.push(newAccount);
+  saveAccounts(accounts);
+  closeModal();
+
+  // Show password modal
+  showCreatedPassword(accountId, name, idCard, initialPwd);
+
+  if (typeof writeLog === 'function') writeLog({ module: 'account', actionType: 'create', targetType: 'account', targetId: accountId, targetName: name, detail: '新增账号', result: 'success' });
+  renderAccounts();
+}
+
+function showCreatedPassword(accountId, name, idCard, pwd) {
+  document.getElementById('modalContainer').innerHTML =
+    '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">' +
+    '<div class="modal-container" style="padding:24px;">' +
+    '<h3>🔑 账号已创建</h3>' +
+    '<div style="margin:12px 0;padding:14px;background:var(--gray-bg);border-radius:10px;">' +
+    '<div style="margin-bottom:6px;"><strong style="font-size:14px;">' + escapeHtml(name) + '</strong></div>' +
+    '<div style="font-size:12px;color:var(--text-secondary);">登录账号：<span style="font-family:monospace;font-weight:600;color:var(--text);">' + idCard + '</span></div>' +
+    '</div>' +
+    '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">初始密码（请线下安全传递给教师）</div>' +
+    '<div class="pwd-display" id="createdPwdDisplay">' + pwd + '</div>' +
+    '<button class="pwd-copy-btn" onclick="copyCreatedPassword()">📋 复制密码</button>' +
+    '<div class="pwd-info">⚠ 教师首次登录后需修改密码，此密码将不再可用</div>' +
+    '<div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">关闭</button></div>' +
+    '</div></div>';
+}
+
+function copyCreatedPassword() {
+  var el = document.getElementById('createdPwdDisplay');
+  if (!el) return;
+  var input = document.createElement('input');
+  input.value = el.textContent;
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('copy');
+  document.body.removeChild(input);
+  showToast('密码已复制到剪贴板', 'success');
+}
+
+// ===== VIEW ACCOUNT MODAL (read-only) =====
+function viewAccountModal(accountId) {
+  var accounts = loadAccounts();
+  var a = accounts.filter(function(ac) { return ac.accountId === accountId; })[0];
+  if (!a) return;
+  var rolesDisplay = (a.roles || []).map(function(r) { return ROLE_LABEL_MAP[r] || r; }).join('、');
+  var statusLabel = (a.status === 'active' ? '正常' : '停用');
+  var loginLabel = a.firstLogin ? '已登录' : '未登录';
+  var districtVal = a.district || getDistrictForSchool(a.school) || '—';
+  var updatedAt = a.updatedAt || '—';
+  var isContract = a.staffingType === '合同制';
+  var isBianzhi = a.staffingType === '事业编' || a.staffingType === '控制数';
+
+  var h = '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">' +
+    '<div class="modal-container" style="width:600px;max-height:80vh;overflow-y:auto;padding:24px;">' +
+    '<h3 style="margin-bottom:16px;">查看账号 — ' + escapeHtml(a.name) + '</h3>';
+
+  // 账号信息
+  h += '<fieldset class="modal-fieldset"><legend>账号信息</legend><div class="form-grid">';
+  h += fv('姓名', a.name);
+  h += fv('身份证号', a.idCard);
+  h += fv('手机号', a.phone || '—');
+  h += '<div class="form-group span-full"><label>所属角色</label><div style="font-size:12px;font-weight:500;padding:4px 0;">' + (rolesDisplay || '—') + '</div></div>';
+  h += '</div></fieldset>';
+
+  // 归属信息
+  h += '<fieldset class="modal-fieldset"><legend>归属信息</legend><div class="form-grid">';
+  h += fv('所属单位', a.school || '—');
+  h += fv('编制类型', a.staffingType || '—');
+  if (isBianzhi) h += fv('入编方式', a.entryMethod || '—');
+  else if (isContract) h += '<div class="form-group"><label>入编方式</label><div style="font-size:12px;color:var(--text-light);padding:4px 0;">合同制无入编方式</div></div>';
+  h += fv('所属区域', districtVal);
+  h += '</div></fieldset>';
+
+  // 个人档案
+  h += '<fieldset class="modal-fieldset"><legend>个人档案</legend><div class="form-grid">';
+  var up = {}; try { up = JSON.parse(localStorage.getItem('user_profile_' + (a.idCard || '')) || '{}'); } catch(e) {}
+  h += fv('性别', up.gender || '—');
+  h += fv('民族', up.ethnicity || '—');
+  h += fv('出生日期', up.birthDate || '—');
+  h += fv('政治面貌', up.politicalStatus || '—');
+  h += fv('学历', up.education || '—');
+  h += fv('毕业院校', up.graduateInfo || '—');
+  h += '</div></fieldset>';
+
+  // 岗位信息
+  h += '<fieldset class="modal-fieldset"><legend>岗位信息</legend><div class="form-grid">';
+  h += fv('岗位类别', up.categoryName || '—');
+  h += fv('岗位等级', up.currentPost || '—');
+  h += fv('岗位名称', up.assignPosition || '—');
+  h += fv('任职时间', up.appointTime || '—');
+  if (isContract) {
+    h += '<div class="form-group span-full"><label>合同期限</label><div style="font-size:12px;font-weight:500;padding:4px 0;color:var(--text-secondary);">' + (a.contractStart || '—') + ' ~ ' + (a.contractEnd || '—') + '</div></div>';
+  }
+  h += '</div></fieldset>';
+
+  // 跨校信息
+  if (isBianzhi || isContract) {
+    var csType = a.crossSchoolType || 'normal';
+    var csLabel = csType === 'normal' ? '在岗（非跨校）' : ((CROSS_SCHOOL_LABELS && CROSS_SCHOOL_LABELS[csType]) || csType);
+    h += '<fieldset class="modal-fieldset"><legend>跨校信息</legend><div class="form-grid">';
+    h += fv('跨校类型', csLabel);
+    if (csType !== 'normal') {
+      h += fv('任职学校', a.crossSchool || '—');
+      h += fv('开始日期', a.crossStartDate || '—');
+      h += fv('结束日期', a.crossEndDate || '—');
+    }
+    h += '</div></fieldset>';
+  }
+
+  // 停用信息
+  h += buildStatusCard(a);
+
+  // 只读状态条
+  var stBg = a.status === 'disabled' ? '#FFF5F5' : '#F8FAFC';
+  var stBd = a.status === 'disabled' ? '#FECACA' : '#E2E8F0';
+  var stClr = a.status === 'active' ? '#059669' : '#EF4444';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:' + stBg + ';border-radius:6px;border:1px solid ' + stBd + ';margin-bottom:8px;font-size:11px;">';
+  h += '<span style="color:var(--text-light);">账号状态：<b style="color:' + stClr + ';">' + statusLabel + '</b></span>';
+  h += '<span style="color:var(--text-light);">首次登录：<b>' + loginLabel + '</b></span>';
+  h += '<span style="color:var(--text-light);">更新时间：<b>' + updatedAt + '</b></span>';
+  h += '</div>';
+
+  h += '<div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">关闭</button></div>';
+  h += '</div></div>';
+  document.getElementById('modalContainer').innerHTML = h;
+}
+
+function fv(label, value) {
+  return '<div class="form-group"><label>' + label + '</label><div style="font-size:12px;font-weight:500;padding:4px 0;color:var(--text);">' + escapeHtml(value || '—') + '</div></div>';
+}
+
 function editAccount(accountId) {
   loadSchoolList();
   var accounts = loadAccounts();
@@ -1050,38 +1617,66 @@ function editAccount(accountId) {
   var entryOptions = ENTRY_METHODS.map(function(em) { return '<option value="' + em + '">' + em + '</option>'; }).join('');
   var statusLabel = (a.status === 'active' ? '正常' : '停用');
   var loginLabel = a.firstLogin ? '已登录' : '未登录';
-  var currentDistrict = a.district || getDistrictForSchool(a.school) || '—';
   var req = ' <span style="color:var(--danger);">*</span>';
+  var currentDistrict = a.district || getDistrictForSchool(a.school) || '—';
+  var updatedAt = a.updatedAt || '—';
   document.getElementById('modalContainer').innerHTML =
     '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">' +
     '<div class="modal-container" style="width:600px;max-height:80vh;overflow-y:auto;padding:24px;">' +
     '<h3 style="margin-bottom:16px;">编辑账号</h3>' +
-    '<fieldset class="modal-fieldset"><legend>基本信息</legend><div class="form-grid">' +
+
+    // 1. 账号信息
+    '<fieldset class="modal-fieldset"><legend>账号信息</legend><div class="form-grid">' +
     '<div class="form-group"><label>姓名' + req + '</label><input id="editName" value="' + (a.name || '') + '" placeholder="姓名"></div>' +
     '<div class="form-group"><label>身份证号' + req + '</label><input id="editIdCard" value="' + (a.idCard || '') + '" placeholder="身份证号"></div>' +
     '<div class="form-group"><label>手机号' + req + '</label><input id="editPhone" value="' + (a.phone || '') + '" placeholder="11位手机号" maxlength="11"></div>' +
     '<div class="form-group span-full"><label>所属角色' + req + '</label><div>' + rolesCheckboxes + '</div></div>' +
-    '<div class="form-group"><label>账号状态</label><input value="' + statusLabel + '" readonly style="background:#F8FAFC;"></div>' +
-    '<div class="form-group"><label>首次登录</label><input value="' + loginLabel + '" readonly style="background:#F8FAFC;"></div>' +
     '</div></fieldset>' +
-    '<fieldset class="modal-fieldset"><legend>管理信息</legend><div class="form-grid">' +
+
+    // 2. 归属信息
+    '<fieldset class="modal-fieldset"><legend>归属信息</legend><div class="form-grid">' +
+    '<div class="form-group"><label>所属单位' + req + '</label><div class="searchable-select"><input id="editSchoolInput" value="' + (a.school || '') + '" placeholder="输入关键字搜索单位..." autocomplete="off" oninput="filterSchoolOptions()" onfocus="toggleSchoolDropdown(true)"><div class="school-dropdown" id="editSchoolDropdown"></div><input type="hidden" id="editSchool" value="' + (a.school || '') + '"></div></div>' +
+    '<div class="form-group"><label>编制类型' + req + '</label><select id="editStaffingType2" onchange="onStaffingTypeChange_cross()"><option value="">—</option><option value="事业编">事业编</option><option value="控制数">控制数</option><option value="合同制">合同制</option></select></div>' +
+    '<div class="form-group" id="fgEntryMethod"><label>入编方式<span id="reqEntryMethod"></span></label><select id="editEntryMethod2"><option value="">—</option><option value="统一公开招聘">统一公开招聘</option><option value="单位自主实施招聘">单位自主实施招聘</option><option value="中高级人才招聘">中高级人才招聘</option><option value="引进高层次人才">引进高层次人才</option><option value="调动">调动</option><option value="其他">其他</option></select></div>' +
     '<div class="form-group"><label>所属区域</label><input id="editDistrict" value="' + currentDistrict + '" readonly style="background:#F8FAFC;"></div>' +
-    '<div class="form-group"><label>所属单位</label><div class="searchable-select"><input id="editSchoolInput" value="' + (a.school || '') + '" placeholder="输入关键字搜索单位..." autocomplete="off" oninput="filterSchoolOptions()" onfocus="toggleSchoolDropdown(true)"><div class="school-dropdown" id="editSchoolDropdown"></div><input type="hidden" id="editSchool" value="' + (a.school || '') + '"></div></div>' +
-    '</div></fieldset>' +
-    '<fieldset class="modal-fieldset"><legend>人事档案信息</legend><div class="form-grid">' +
+    '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;">联动：编制类型=合同制时，入编方式自动隐藏</div></fieldset>' +
+
+    // 3. 个人档案
+    '<fieldset class="modal-fieldset"><legend>个人档案</legend><div class="form-grid">' +
     '<div class="form-group"><label>性别</label><select id="editGender"><option value="">—</option><option value="男">男</option><option value="女">女</option></select></div>' +
-    '<div class="form-group"><label>民族</label><input id="editEthnicity" value="" placeholder="如：汉族"></div>' +
-    '<div class="form-group"><label>出生年月</label><input type="month" id="editBirthDate" value=""></div>' +
-    '<div class="form-group"><label>学历</label><select id="editEducation"><option value="">—</option><option value="博士研究生">博士研究生</option><option value="硕士研究生">硕士研究生</option><option value="本科">本科</option><option value="大专">大专</option><option value="中专">中专</option><option value="高中">高中</option></select></div>' +
-    '<div class="form-group"><label>毕业院校</label><input id="editGraduateInfo" value="" placeholder="如：华中师范大学 教育学"></div>' +
+    '<div class="form-group"><label>民族</label><select id="editEthnicity"><option value="">—</option><option value="汉族">汉族</option><option value="壮族">壮族</option><option value="瑶族">瑶族</option><option value="苗族">苗族</option><option value="侗族">侗族</option><option value="仫佬族">仫佬族</option><option value="毛南族">毛南族</option><option value="回族">回族</option><option value="京族">京族</option><option value="彝族">彝族</option><option value="水族">水族</option><option value="仡佬族">仡佬族</option><option value="满族">满族</option><option value="蒙古族">蒙古族</option><option value="藏族">藏族</option><option value="维吾尔族">维吾尔族</option><option value="其他">其他</option></select></div>' +
+    '<div class="form-group"><label>出生日期</label><input type="date" id="editBirthDate" value=""></div>' +
     '<div class="form-group"><label>政治面貌</label><select id="editPolitics2"><option value="">—</option><option value="中共党员">中共党员</option><option value="中共预备党员">中共预备党员</option><option value="共青团员">共青团员</option><option value="民主党派">民主党派</option><option value="群众">群众</option></select></div>' +
+    '<div class="form-group"><label>学历</label><select id="editEducation"><option value="">—</option><option value="博士研究生">博士研究生</option><option value="硕士研究生">硕士研究生</option><option value="本科">本科</option><option value="大专">大专</option><option value="中专">中专</option><option value="高中">高中</option></select></div>' +
+    '<div class="form-group"><label>毕业院校</label><input id="editGraduateInfo" value="" placeholder="如：广西师范大学 汉语言文学"></div>' +
+    '</div></fieldset>' +
+
+    // 4. 岗位信息
+    '<fieldset class="modal-fieldset"><legend>岗位信息</legend><div class="form-grid">' +
     '<div class="form-group"><label>岗位类别</label><select id="editCategoryName" onchange="updatePostLevelOptions()"><option value="">—</option><option value="专业技术岗位">专业技术岗位</option><option value="管理岗位">管理岗位</option><option value="工勤技能岗位">工勤技能岗位</option></select></div>' +
     '<div class="form-group"><label>岗位等级</label><select id="editPostLevel"><option value="">—</option></select></div>' +
     '<div class="form-group"><label>岗位名称</label><input id="editAssignPosition" value="" placeholder="如：语文教师"></div>' +
     '<div class="form-group"><label>任职时间</label><input type="month" id="editAppointTime" value=""></div>' +
-    '<div class="form-group"><label>编制类型</label><select id="editStaffingType2"><option value="">—</option><option value="事业编">事业编</option><option value="控制数">控制数</option><option value="合同制">合同制</option></select></div>' +
-    '<div class="form-group"><label>入编方式</label><select id="editEntryMethod2"><option value="">—</option><option value="统一公开招聘">统一公开招聘</option><option value="单位自主实施招聘">单位自主实施招聘</option><option value="中高级人才招聘">中高级人才招聘</option><option value="引进高层次人才">引进高层次人才</option><option value="调动">调动</option><option value="其他">其他</option></select></div>' +
-    '</div></fieldset>' +
+    (a.staffingType === '合同制' ? '<div class="form-group span-full"><label>合同期限</label><div style="font-size:12px;font-weight:500;padding:4px 0;color:var(--text-secondary);">' + (a.contractStart || '—') + ' ~ ' + (a.contractEnd || '—') + ' <span style="font-size:9px;color:var(--text-light);">（只读，变更请走续聘审批）</span></div></div>' : '') +
+    '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;">联动：岗位类别改变时，岗位等级选项随之级联更新</div></fieldset>' +
+
+    // 5. 跨校信息
+    '<fieldset class="modal-fieldset" id="editModalCrossFieldset"><legend>跨校信息（借调 / 支教 / 轮岗）</legend><div class="form-grid">' +
+    '<div class="form-group"><label>跨校类型</label><select id="editCrossSchoolType" onchange="onCrossSchoolTypeChange()"><option value="normal">— 无（在岗）</option><option value="secondment">借调</option><option value="support">支教</option><option value="rotation">轮岗</option></select></div>' +
+    '<div class="form-group"><label>任职学校</label><div class="searchable-select"><input id="editCrossSchoolInput" value="" placeholder="搜索学校..." autocomplete="off" oninput="filterCrossSchoolOptions()" onfocus="toggleCrossSchoolDropdown(true)"><div class="school-dropdown" id="editCrossSchoolDropdown"></div><input type="hidden" id="editCrossSchool" value=""></div></div>' +
+    '<div class="form-group"><label>开始日期</label><input type="date" id="editCrossStartDate" value=""></div>' +
+    '<div class="form-group"><label>结束日期</label><input type="date" id="editCrossEndDate" value="" placeholder="轮岗可选"></div>' +
+    '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;">联动：编制类型=合同制时隐藏；跨校类型=无时子字段隐藏；借调/支教结束日期必填，轮岗选填</div></fieldset>' +
+
+    // 停用信息卡片（仅停用账号显示）
+    buildStatusCard(a) +
+    // 只读状态条
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:' + (a.status === 'disabled' ? '#FFF5F5' : '#F8FAFC') + ';border-radius:6px;border:1px solid ' + (a.status === 'disabled' ? '#FECACA' : '#E2E8F0') + ';margin-bottom:8px;font-size:11px;">' +
+    '<span style="color:var(--text-light);">账号状态：<b style="color:' + (a.status === 'active' ? '#059669' : '#EF4444') + ';">' + statusLabel + '</b></span>' +
+    '<span style="color:var(--text-light);">首次登录：<b>' + loginLabel + '</b></span>' +
+    '<span style="color:var(--text-light);">更新时间：<b>' + updatedAt + '</b></span>' +
+    '</div>' +
+
     '<div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">取消</button>' +
     '<button class="btn-confirm primary" onclick="saveAccount(\'' + accountId + '\')">保存</button></div>' +
     '</div></div>';
@@ -1106,6 +1701,23 @@ function editAccount(accountId) {
     setVal('editAssignPosition', up.assignPosition || '');
     setVal('editStaffingType2', up.staffingType || a.staffingType || '');
     setVal('editEntryMethod2', up.entryMethod || a.entryMethod || '');
+    // Cross-school fields — set values then trigger linkage
+    var csType = a.crossSchoolType || 'normal';
+    var csTypeEl = document.getElementById('editCrossSchoolType');
+    if (csTypeEl) csTypeEl.value = csType;
+    var csSchoolEl = document.getElementById('editCrossSchoolInput');
+    if (csSchoolEl) csSchoolEl.value = a.crossSchool || '';
+    var csSchoolHid = document.getElementById('editCrossSchool');
+    if (csSchoolHid) csSchoolHid.value = a.crossSchool || '';
+    // Default start date to today if empty and cross-school type is active
+    var defaultStart = (csType !== 'normal' && !a.crossStartDate) ? new Date().toISOString().slice(0,10) : (a.crossStartDate || '');
+    var csStartEl = document.getElementById('editCrossStartDate');
+    if (csStartEl) csStartEl.value = defaultStart;
+    var csEndEl = document.getElementById('editCrossEndDate');
+    if (csEndEl) csEndEl.value = a.crossEndDate || '';
+    // Trigger field linkage
+    onCrossSchoolTypeChange();
+    onStaffingTypeChange_cross();
   }, 50);
 }
 
@@ -1140,6 +1752,87 @@ function onEditSchoolChange() {
   var schoolVal = document.getElementById('editSchool').value;
   var distEl = document.getElementById('editDistrict');
   if (distEl) distEl.value = getDistrictForSchool(schoolVal) || '—';
+}
+
+// Cross-school school dropdown
+function filterCrossSchoolOptions() {
+  loadSchoolList();
+  var input = document.getElementById('editCrossSchoolInput');
+  var q = (input.value || '').toLowerCase();
+  var html = '';
+  for (var i = 0; i < ALL_SCHOOLS.length; i++) {
+    if (!q || ALL_SCHOOLS[i].toLowerCase().indexOf(q) !== -1) {
+      html += '<div class="school-option" onclick="selectCrossSchool(\'' + ALL_SCHOOLS[i].replace(/'/g,"\\'") + '\')">' + ALL_SCHOOLS[i] + '</div>';
+    }
+  }
+  var dd = document.getElementById('editCrossSchoolDropdown');
+  if (dd) { dd.innerHTML = html; dd.classList.add('show'); }
+}
+
+function selectCrossSchool(name) {
+  document.getElementById('editCrossSchoolInput').value = name;
+  document.getElementById('editCrossSchool').value = name;
+  document.getElementById('editCrossSchoolDropdown').classList.remove('show');
+}
+
+function toggleCrossSchoolDropdown(show) {
+  var dd = document.getElementById('editCrossSchoolDropdown');
+  if (!dd) return;
+  if (show) { filterCrossSchoolOptions(); dd.classList.add('show'); }
+  else { setTimeout(function() { dd.classList.remove('show'); }, 200); }
+}
+
+// Cross-school form field linkage
+function onCrossSchoolTypeChange() {
+  var typeEl = document.getElementById('editCrossSchoolType');
+  var isNormal = !typeEl || typeEl.value === 'normal' || !typeEl.value;
+  var fields = ['editCrossSchoolInput', 'editCrossSchool', 'editCrossStartDate', 'editCrossEndDate'];
+  for (var i = 0; i < fields.length; i++) {
+    var el = document.getElementById(fields[i]);
+    if (el) {
+      el.style.display = isNormal ? 'none' : '';
+      if (isNormal && fields[i] !== 'editCrossSchool') el.value = '';
+      if (isNormal && fields[i] === 'editCrossSchool') el.value = '';
+    }
+  }
+  // Show/hide labels by finding parent form-group
+  var labels = document.querySelectorAll('#editModalCrossFieldset .form-group');
+  for (var j = 1; j < labels.length; j++) { // skip first (跨校类型 itself)
+    labels[j].style.display = isNormal ? 'none' : '';
+  }
+}
+
+function onStaffingTypeChange_cross() {
+  var stEl = document.getElementById('editStaffingType2');
+  var stVal = stEl ? stEl.value : '';
+  var showCross = (stVal === '事业编' || stVal === '控制数');
+  var showEntryMethod = (stVal === '事业编' || stVal === '控制数');
+
+  // Cross-school fieldset visibility
+  var csFieldset = document.getElementById('editModalCrossFieldset');
+  if (csFieldset) {
+    csFieldset.style.display = showCross ? '' : 'none';
+    if (!showCross) {
+      var typeEl = document.getElementById('editCrossSchoolType');
+      if (typeEl) typeEl.value = 'normal';
+      onCrossSchoolTypeChange();
+    }
+  }
+
+  // 入编方式 visibility
+  var fgEntry = document.getElementById('fgEntryMethod');
+  if (fgEntry) {
+    fgEntry.style.display = showEntryMethod ? '' : 'none';
+    if (!showEntryMethod) {
+      var emEl = document.getElementById('editEntryMethod2');
+      if (emEl) emEl.value = '';
+    }
+  }
+  // Update 入编方式 required marker
+  var reqEm = document.getElementById('reqEntryMethod');
+  if (reqEm) {
+    reqEm.innerHTML = showEntryMethod ? ' <span style="color:var(--danger);">*</span>' : '';
+  }
 }
 
 // Filter school dropdown functions
@@ -1185,6 +1878,8 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('.searchable-select')) {
     var dd = document.getElementById('editSchoolDropdown');
     if (dd) dd.classList.remove('show');
+    var edd = document.getElementById('editCrossSchoolDropdown');
+    if (edd) edd.classList.remove('show');
     var fd = document.getElementById('filterSchoolDropdown');
     if (fd) fd.classList.remove('show');
   }
@@ -1206,17 +1901,50 @@ function saveAccount(accountId) {
   var chks = document.querySelectorAll('.roleChk:checked');
   for (var i = 0; i < chks.length; i++) { selectedRoles.push(chks[i].value); }
   if (!selectedRoles.length) { showToast('请选择至少一个角色', 'warning'); return; }
+  var schoolVal = (document.getElementById('editSchool') || {}).value || '';
+  if (!schoolVal) { showToast('请选择所属单位', 'warning'); return; }
+  var staffingType = document.getElementById('editStaffingType2').value;
+  if (!staffingType) { showToast('请选择编制类型', 'warning'); return; }
+  if ((staffingType === '事业编' || staffingType === '控制数') && !document.getElementById('editEntryMethod2').value) {
+    showToast('请选择入编方式', 'warning'); return;
+  }
   var accounts = loadAccounts();
   for (var j = 0; j < accounts.length; j++) {
     if (accounts[j].accountId === accountId) {
       accounts[j].phone = phone;
       accounts[j].name = name;
       accounts[j].idCard = idCard;
-      accounts[j].staffingType = document.getElementById('editStaffingType2').value || a.staffingType;
+      accounts[j].staffingType = staffingType;
       accounts[j].roles = selectedRoles;
-      accounts[j].school = document.getElementById('editSchool').value;
+      accounts[j].school = schoolVal;
       accounts[j].district = document.getElementById('editDistrict').value;
-      accounts[j].entryMethod = document.getElementById('editEntryMethod2').value || a.entryMethod;
+      accounts[j].entryMethod = staffingType === '合同制' ? '' : document.getElementById('editEntryMethod2').value;
+      // Cross-school fields — validate and save
+      var csType = document.getElementById('editCrossSchoolType').value || 'normal';
+      // Contract teachers cannot have cross-school info
+      if (staffingType === '合同制' || !staffingType || (staffingType !== '事业编' && staffingType !== '控制数')) {
+        accounts[j].crossSchoolType = 'normal';
+        accounts[j].crossSchool = '';
+        accounts[j].crossStartDate = '';
+        accounts[j].crossEndDate = '';
+      } else if (csType === 'normal') {
+        accounts[j].crossSchoolType = 'normal';
+        accounts[j].crossSchool = '';
+        accounts[j].crossStartDate = '';
+        accounts[j].crossEndDate = '';
+      } else {
+        // Validate required fields for cross-school
+        var csSchool = (document.getElementById('editCrossSchool') || {}).value || '';
+        var csStart = (document.getElementById('editCrossStartDate') || {}).value || '';
+        var csEnd = (document.getElementById('editCrossEndDate') || {}).value || '';
+        if (!csSchool) { showToast('请选择任职学校', 'warning'); return; }
+        if (!csStart) { showToast('请选择开始日期', 'warning'); return; }
+        if (csType !== 'rotation' && !csEnd) { showToast('借调/支教须填写结束日期', 'warning'); return; }
+        accounts[j].crossSchoolType = csType;
+        accounts[j].crossSchool = csSchool;
+        accounts[j].crossStartDate = csStart;
+        accounts[j].crossEndDate = csEnd;
+      }
       var now = new Date();
       accounts[j].updatedAt = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
       break;
@@ -1252,12 +1980,17 @@ var pendingAccountId = null;
 function showConfirmModal(title, msg, accountId, action) {
   pendingAccountId = accountId;
   pendingAction = action;
+  var reasonInput = '';
+  if (action === 'disable') {
+    reasonInput = '<div class="form-group" style="margin-top:12px;"><label>停用原因 <span style="color:var(--danger);">*</span></label><input id="disableReasonInput" placeholder="请输入停用原因" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;outline:none;"></div>';
+  }
   document.getElementById('modalContainer').innerHTML =
     '<div class="modal-overlay" onclick="if(event.target===this)closeConfirmModal()">' +
     '<div class="modal-container" style="padding:24px;">' +
     '<h3 style="margin-bottom:16px;">' + title + '</h3>' +
     '<fieldset class="modal-fieldset" style="margin-bottom:0;">' +
     '<p style="font-size:14px;color:var(--text-secondary);">' + msg + '</p>' +
+    reasonInput +
     '</fieldset>' +
     '<div class="modal-buttons"><button class="btn-cancel" onclick="closeConfirmModal()">取消</button>' +
     '<button class="btn-confirm warning" onclick="executePendingAction()">确认</button></div>' +
@@ -1277,6 +2010,10 @@ function executePendingAction() {
       if (accounts[i].accountId === pendingAccountId) {
         accounts[i].status = 'active';
         accounts[i].statusReason = null;
+        accounts[i].disableType = '';
+        accounts[i].disableReason = '';
+        accounts[i].disableDate = '';
+        accounts[i].disableOperator = '';
         break;
       }
     }
@@ -1284,16 +2021,26 @@ function executePendingAction() {
     showToast('账号已恢复', 'success');
     if (typeof writeLog === 'function') writeLog({ module: 'account', actionType: 'enable', targetType: 'account', targetId: pendingAccountId, detail: '恢复账号', result: 'success' });
   } else if (pendingAction === 'disable') {
+    var reasonEl = document.getElementById('disableReasonInput');
+    var reason = reasonEl ? reasonEl.value.trim() : '';
+    if (!reason) { showToast('请输入停用原因', 'warning'); return; }
     var accounts = loadAccounts();
+    var now = new Date();
+    var nowStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
     for (var i = 0; i < accounts.length; i++) {
       if (accounts[i].accountId === pendingAccountId) {
         accounts[i].status = 'disabled';
+        accounts[i].disableType = 'manual';
+        accounts[i].disableReason = reason;
+        accounts[i].disableDate = nowStr;
+        accounts[i].disableOperator = currentUser.name || '管理员';
+        accounts[i].updatedAt = nowStr;
         break;
       }
     }
     saveAccounts(accounts);
     showToast('账号已停用', 'success');
-    if (typeof writeLog === 'function') writeLog({ module: 'account', actionType: 'disable', targetType: 'account', targetId: pendingAccountId, detail: '停用账号', result: 'success' });
+    if (typeof writeLog === 'function') writeLog({ module: 'account', actionType: 'disable', targetType: 'account', targetId: pendingAccountId, detail: '停用账号，原因：' + reason, result: 'success' });
   }
   closeConfirmModal();
   renderAccounts();
@@ -1377,11 +2124,18 @@ function updateFilterVisibility() {
 }
 
 // ===== INIT =====
+if (currentRole === 'teacher') {
+  // 教师无权限访问系统设置模块，跳转到个人中心
+  window.location.href = 'personal-center.html';
+}
 document.getElementById('userAvatar').textContent = SHORT[currentRole] || '管';
 document.getElementById('userName').textContent = currentUser.name || '管理员';
 updateRoleUI();
 renderSidebar();
 updateFilterVisibility();
+// Show add button for system/city/district only
+var canAdd = (currentRole === 'system' || currentRole === 'city' || currentRole === 'district');
+document.getElementById('btnAddAccount').style.display = canAdd ? '' : 'none';
 renderAccounts();
 </script>
 
