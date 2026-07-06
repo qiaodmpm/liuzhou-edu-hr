@@ -1009,6 +1009,56 @@ function getUnsubmittedSchoolNames() {
     .map(function(bid) { return batchNames[bid] || bid; });
 }
 
+// ===== RECRUITMENT UNSUBMITTED TRACKING =====
+function getActiveRecruitBatchIds() {
+  // Active (open) recruitment batch IDs mirrored from recruit-list-school.html
+  return ['RCB20260701001', 'RCB20260501001', 'RCB20260415001', 'RCB20260515001', 'RCB20260401001'];
+}
+
+function getActiveRecruitBatchNames() {
+  return {
+    'RCB20260701001': '2026年自主招聘（第二批）',
+    'RCB20260501001': '2026年自主招聘（第一批）',
+    'RCB20260415001': '2026年中高级人才招聘',
+    'RCB20260515001': '2026年直属学校统一公招',
+    'RCB20260401001': '2026年鱼峰区统一公招'
+  };
+}
+
+function getRecruitUnsubmittedCount() {
+  if (currentRole !== 'school') return 0;
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return 0;
+  var records = [];
+  try { records = JSON.parse(localStorage.getItem('recruit_records') || '[]'); } catch(e) {}
+  var submittedBatchIds = {};
+  records.forEach(function(r) {
+    if (r.schoolName === schoolName && r.batchId) submittedBatchIds[r.batchId] = true;
+  });
+  var activeIds = getActiveRecruitBatchIds();
+  var unsubmitted = 0;
+  activeIds.forEach(function(bid) {
+    if (!submittedBatchIds[bid]) unsubmitted++;
+  });
+  return unsubmitted;
+}
+
+function getRecruitUnsubmittedNames() {
+  if (currentRole !== 'school') return [];
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return [];
+  var records = [];
+  try { records = JSON.parse(localStorage.getItem('recruit_records') || '[]'); } catch(e) {}
+  var submittedBatchIds = {};
+  records.forEach(function(r) {
+    if (r.schoolName === schoolName && r.batchId) submittedBatchIds[r.batchId] = true;
+  });
+  var activeIds = getActiveRecruitBatchIds();
+  var batchNames = getActiveRecruitBatchNames();
+  return activeIds.filter(function(bid) { return !submittedBatchIds[bid]; })
+    .map(function(bid) { return batchNames[bid] || bid; });
+}
+
 // ===== RENDER =====
 function renderSidebar() {
   renderSidebarMenu('sidebarMenu', currentRole, 'workbench');
@@ -1037,7 +1087,7 @@ function renderMain() {
   var reminderTodo = getReminderTodo();
   var allTodos = reminderTodo ? [reminderTodo].concat(data.todos) : data.todos;
 
-  // For school admin: inject unsubmitted staffing todo item at the top
+  // For school admin: inject unsubmitted staffing + recruitment todo items
   if (currentRole === 'school') {
     var unsubStaffingCount = getUnsubmittedCount();
     if (unsubStaffingCount > 0) {
@@ -1046,6 +1096,14 @@ function renderMain() {
         pending: 0, review: 0, reject: 0, isUnsubStaffing: true
       };
       allTodos = [unsubStaffingItem].concat(allTodos);
+    }
+    var unsubRecruitCount = getRecruitUnsubmittedCount();
+    if (unsubRecruitCount > 0) {
+      var unsubRecruitItem = {
+        mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple',
+        pending: 0, review: 0, reject: 0, isUnsubRecruit: true
+      };
+      allTodos = [unsubRecruitItem].concat(allTodos);
     }
   }
 
@@ -1057,13 +1115,17 @@ function renderMain() {
       var targetUrl = '#';
       if (t.reminder) { targetUrl = 'post-list-school.html'; }
       else if (t.isUnsubStaffing) { targetUrl = 'staffing-application.html'; }
+      else if (t.isUnsubRecruit) { targetUrl = 'recruit-list-school.html'; }
       else if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
+      else if (t.mod === '招聘岗位申请') targetUrl = getRecruitUrl();
       else if (t.mod === '入编申请') targetUrl = getEntryUrl();
       var nameHtml;
       if (t.reminder) {
         nameHtml = '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>主管单位提醒您尽快提交岗位设置申请</small></div>';
       } else if (t.isUnsubStaffing) {
         nameHtml = '<div class="todo-module-name">' + t.mod + '<small style="color:#0D9488;">有 ' + getUnsubmittedCount() + ' 个批次待申报</small></div>';
+      } else if (t.isUnsubRecruit) {
+        nameHtml = '<div class="todo-module-name">' + t.mod + '<small style="color:#0D9488;">有 ' + getRecruitUnsubmittedCount() + ' 个批次待申报</small></div>';
       } else {
         nameHtml = '<div class="todo-module-name">' + t.mod + '</div>';
       }
@@ -1071,7 +1133,11 @@ function renderMain() {
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += nameHtml;
       var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
-      var unsubCount = (t.mod === '编制使用申请' && currentRole === 'school') ? getUnsubmittedCount() : 0;
+      var unsubCount = 0;
+      if (currentRole === 'school') {
+        if (t.mod === '编制使用申请') unsubCount = getUnsubmittedCount();
+        else if (t.mod === '招聘岗位申请') unsubCount = getRecruitUnsubmittedCount();
+      }
       todoHtml += '<div class="todo-counts">';
       todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
       if (unsubCount > 0) {
@@ -1431,6 +1497,10 @@ function getTodoTargetUrl(mod) {
     var url = getRecruitUrl();
     return url || 'recruit-list-admin.html';
   }
+  if (mod === '招聘岗位申请') {
+    var url = getRecruitUrl();
+    return url || 'recruit-list-school.html';
+  }
   if (mod === '退休呈报') return '#';
   if (mod === '教师入职管理') {
     var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:"");
@@ -1451,15 +1521,23 @@ function openAllTodosModal() {
   var reminderTodo = getReminderTodo();
   if (reminderTodo) { todos.unshift(reminderTodo); }
 
-  var schoolUnsubCount = 0;
-  var schoolUnsubNames = [];
+  var schoolUnsubStaffing = 0, schoolUnsubRecruit = 0;
+  var schoolUnsubStaffingNames = [], schoolUnsubRecruitNames = [];
   if (currentRole === 'school') {
-    schoolUnsubCount = getUnsubmittedCount();
-    schoolUnsubNames = getUnsubmittedSchoolNames();
-    if (schoolUnsubCount > 0) {
+    schoolUnsubStaffing = getUnsubmittedCount();
+    schoolUnsubStaffingNames = getUnsubmittedSchoolNames();
+    schoolUnsubRecruit = getRecruitUnsubmittedCount();
+    schoolUnsubRecruitNames = getRecruitUnsubmittedNames();
+    if (schoolUnsubStaffing > 0) {
       todos.unshift({
         mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue',
         pending: 0, review: 0, reject: 0, isUnsubStaffing: true
+      });
+    }
+    if (schoolUnsubRecruit > 0) {
+      todos.unshift({
+        mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple',
+        pending: 0, review: 0, reject: 0, isUnsubRecruit: true
       });
     }
   }
@@ -1479,8 +1557,8 @@ function openAllTodosModal() {
     html += '<div class="alltodos-summary-item pending"><div class="sum-num">' + totalPending + '</div><div class="sum-label">待处理</div></div>';
     html += '<div class="alltodos-summary-item review"><div class="sum-num">' + totalReview + '</div><div class="sum-label">审核中</div></div>';
     html += '<div class="alltodos-summary-item reject"><div class="sum-num">' + totalReject + '</div><div class="sum-label">已驳回</div></div>';
-    if (currentRole === 'school' && schoolUnsubCount > 0) {
-      html += '<div class="alltodos-summary-item" style="--sum-color:#0D9488;"><div class="sum-num" style="color:#0D9488;">' + schoolUnsubCount + '</div><div class="sum-label">待申报</div></div>';
+    if (currentRole === 'school' && (schoolUnsubStaffing + schoolUnsubRecruit) > 0) {
+      html += '<div class="alltodos-summary-item" style="--sum-color:#0D9488;"><div class="sum-num" style="color:#0D9488;">' + (schoolUnsubStaffing + schoolUnsubRecruit) + '</div><div class="sum-label">待申报</div></div>';
     }
     html += '</div>';
 
@@ -1505,7 +1583,9 @@ function openAllTodosModal() {
           html += '<a class="alltodos-item" href="' + url + '">';
           html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
           if (t.isUnsubStaffing) {
-            html += '<div class="alltodos-item-name">' + t.mod + '<span style="color:#0D9488;font-size:11px;margin-left:6px;">' + schoolUnsubCount + ' 个批次待申报</span></div>';
+            html += '<div class="alltodos-item-name">' + t.mod + '<span style="color:#0D9488;font-size:11px;margin-left:6px;">' + schoolUnsubStaffing + ' 个批次待申报</span></div>';
+          } else if (t.isUnsubRecruit) {
+            html += '<div class="alltodos-item-name">' + t.mod + '<span style="color:#0D9488;font-size:11px;margin-left:6px;">' + schoolUnsubRecruit + ' 个批次待申报</span></div>';
           } else {
             html += '<div class="alltodos-item-name">' + t.mod + '</div>';
           }
@@ -1513,8 +1593,11 @@ function openAllTodosModal() {
           if (t.pending) html += '<span class="atc-pending">待处理 ' + t.pending + '</span>';
           if (t.review) html += '<span class="atc-review">审核中 ' + t.review + '</span>';
           if (t.reject) html += '<span class="atc-reject">已驳回 ' + t.reject + '</span>';
-          if (t.isUnsubStaffing && schoolUnsubCount > 0) {
-            html += '<span style="color:#0D9488;font-weight:600;">待申报 ' + schoolUnsubCount + '</span>';
+          if (t.isUnsubStaffing && schoolUnsubStaffing > 0) {
+            html += '<span style="color:#0D9488;font-weight:600;">待申报 ' + schoolUnsubStaffing + '</span>';
+          }
+          if (t.isUnsubRecruit && schoolUnsubRecruit > 0) {
+            html += '<span style="color:#0D9488;font-weight:600;">待申报 ' + schoolUnsubRecruit + '</span>';
           }
           html += '</div>';
           html += '<span class="alltodos-item-arrow">→</span></a>';
@@ -1532,14 +1615,27 @@ function openAllTodosModal() {
       });
     });
 
-    if (currentRole === 'school' && schoolUnsubCount > 0) {
+    // School admin: dedicated unsubmitted batches section
+    if (currentRole === 'school' && (schoolUnsubStaffing + schoolUnsubRecruit) > 0) {
       html += '<div class="alltodos-group-label">待申报提醒</div>';
-      html += '<div class="alltodos-item" style="cursor:pointer;background:#F0FDFA;border:1px dashed #0D9488;border-radius:8px;margin-bottom:4px;" onclick="window.location.href=\'staffing-application.html\'">';
-      html += '<div class="alltodos-item-icon teal" style="background:#CCFBF1;color:#0D9488;">📋</div>';
-      html += '<div class="alltodos-item-name">编制使用申请 — 以下批次尚未提交申报</div>';
-      html += '<div class="alltodos-item-counts"><span style="color:#0D9488;font-weight:600;">' + schoolUnsubCount + ' 个批次</span></div>';
-      html += '<span class="alltodos-item-arrow">→</span></div>';
-      html += '<div style="font-size:11px;color:var(--text-light);padding:4px 12px 8px;">' + schoolUnsubNames.join('、') + '</div>';
+
+      if (schoolUnsubStaffing > 0) {
+        html += '<div class="alltodos-item" style="cursor:pointer;background:#F0FDFA;border:1px dashed #0D9488;border-radius:8px;margin-bottom:4px;" onclick="window.location.href=\'staffing-application.html\'">';
+        html += '<div class="alltodos-item-icon teal" style="background:#CCFBF1;color:#0D9488;">📋</div>';
+        html += '<div class="alltodos-item-name">编制使用申请 — 以下批次尚未提交申报</div>';
+        html += '<div class="alltodos-item-counts"><span style="color:#0D9488;font-weight:600;">' + schoolUnsubStaffing + ' 个批次</span></div>';
+        html += '<span class="alltodos-item-arrow">→</span></div>';
+        html += '<div style="font-size:11px;color:var(--text-light);padding:4px 12px 8px;">' + schoolUnsubStaffingNames.join('、') + '</div>';
+      }
+
+      if (schoolUnsubRecruit > 0) {
+        html += '<div class="alltodos-item" style="cursor:pointer;background:#F0FDFA;border:1px dashed #0D9488;border-radius:8px;margin-bottom:4px;" onclick="window.location.href=\'recruit-list-school.html\'">';
+        html += '<div class="alltodos-item-icon teal" style="background:#CCFBF1;color:#0D9488;">🔍</div>';
+        html += '<div class="alltodos-item-name">招聘岗位申请 — 以下批次尚未提交申报</div>';
+        html += '<div class="alltodos-item-counts"><span style="color:#0D9488;font-weight:600;">' + schoolUnsubRecruit + ' 个批次</span></div>';
+        html += '<span class="alltodos-item-arrow">→</span></div>';
+        html += '<div style="font-size:11px;color:var(--text-light);padding:4px 12px 8px;">' + schoolUnsubRecruitNames.join('、') + '</div>';
+      }
     }
 
     body.innerHTML = html;
