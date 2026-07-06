@@ -399,6 +399,37 @@
   .btn-primary:hover { box-shadow: 0 4px 12px rgba(30,64,175,0.3); transform: translateY(-1px); }
   .btn-cancel { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); padding: 8px 18px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 13px; }
   .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+
+	  /* ===== All Todos Modal ===== */
+	  .alltodos-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+	  .alltodos-modal-overlay.show { display: flex; }
+	  .alltodos-modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 560px; max-width: 90vw; max-height: 70vh; display: flex; flex-direction: column; }
+	  .alltodos-modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+	  .alltodos-modal-header h3 { font-size: 16px; font-weight: 600; }
+	  .alltodos-modal-close { cursor: pointer; color: var(--text-light); font-size: 20px; padding: 4px; border: none; background: none; line-height: 1; }
+	  .alltodos-modal-close:hover { color: var(--text); }
+	  .alltodos-modal-body { padding: 16px 24px; overflow-y: auto; flex: 1; }
+	  .alltodos-empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 14px; }
+	  .alltodos-empty .empty-icon { font-size: 40px; margin-bottom: 12px; }
+	  .alltodos-summary { display: flex; gap: 16px; margin-bottom: 16px; }
+	  .alltodos-summary-item { flex: 1; background: var(--bg); border-radius: var(--radius); padding: 12px; text-align: center; }
+	  .alltodos-summary-item .sum-num { font-size: 22px; font-weight: 700; }
+	  .alltodos-summary-item .sum-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+	  .alltodos-summary-item.pending .sum-num { color: var(--primary); }
+	  .alltodos-summary-item.review .sum-num { color: #D97706; }
+	  .alltodos-summary-item.reject .sum-num { color: var(--danger); }
+	  .alltodos-group-label { font-size: 11px; color: var(--text-light); letter-spacing: 1px; margin: 12px 0 6px; padding: 0 4px; }
+	  .alltodos-group-label:first-child { margin-top: 0; }
+	  .alltodos-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; transition: var(--transition); text-decoration: none; color: inherit; }
+	  .alltodos-item:hover { background: var(--primary-light); }
+	  .alltodos-item-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+	  .alltodos-item-name { flex: 1; font-size: 13px; font-weight: 500; }
+	  .alltodos-item:hover .alltodos-item-name { color: var(--primary); }
+	  .alltodos-item-counts { display: flex; gap: 12px; font-size: 12px; }
+	  .alltodos-item-counts .atc-pending { color: var(--primary); font-weight: 600; }
+	  .alltodos-item-counts .atc-review { color: #D97706; font-weight: 600; }
+	  .alltodos-item-counts .atc-reject { color: var(--danger); font-weight: 600; }
+	  .alltodos-item-arrow { color: var(--text-light); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -492,6 +523,19 @@
   </div>
 </div>
 
+
+<!-- ===== ALL TODOS MODAL ===== -->
+<div class="alltodos-modal-overlay" id="allTodosModalOverlay">
+  <div class="alltodos-modal">
+    <div class="alltodos-modal-header">
+      <h3>📋 全部待办</h3>
+      <button class="alltodos-modal-close" onclick="closeAllTodosModal()">✕</button>
+    </div>
+    <div class="alltodos-modal-body" id="allTodosModalBody">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
 <!-- ===== SIDEBAR ===== -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-menu" id="sidebarMenu">
@@ -557,7 +601,7 @@
     <div class="section">
       <div class="section-header">
         <span class="section-title">待办提醒</span>
-        <a href="#" class="section-link" onclick="event.preventDefault();showToast('跳转至全部待办列表')">全部待办 →</a>
+        <a href="#" class="section-link" onclick="event.preventDefault();openAllTodosModal()">全部待办 →</a>
       </div>
       <div id="todoArea">
         <!-- Filled by JS -->
@@ -636,10 +680,12 @@ const ROLES = {
     ],
     lockCount: 1,
     quickActs: [
-      { label: '入编申请', desc: '教师入职登记', icon: '📝', clr: 'blue' },
-      { label: '岗位晋升', desc: '等级晋升申报', icon: '📈', clr: 'green' },
-      { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
+      { label: '编制使用申请', desc: '', icon: '📋', clr: 'blue' },
+      { label: '教师入编', desc: '', icon: '📝', clr: 'green' },
+      { label: '教师出编', desc: '', icon: '📤', clr: 'amber' },
+      { label: '岗位晋升', desc: '', icon: '📈', clr: 'purple' },
+      { label: '招聘岗位', desc: '', icon: '🔍', clr: 'teal' },
+      { label: '聘用手续', desc: '', icon: '✅', clr: 'rose' },
       ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看处理进度与结果' },
     announcements: [
@@ -700,10 +746,12 @@ const ROLES = {
     ],
     lockCount: 0,
     quickActs: [
-      { label: '入编申请', desc: '教师入职登记', icon: '📝', clr: 'blue' },
-      { label: '岗位晋升', desc: '等级晋升申报', icon: '📈', clr: 'green' },
-      { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
+      { label: '编制使用申请', desc: '', icon: '📋', clr: 'blue' },
+      { label: '教师入编', desc: '', icon: '📝', clr: 'green' },
+      { label: '教师出编', desc: '', icon: '📤', clr: 'amber' },
+      { label: '岗位晋升', desc: '', icon: '📈', clr: 'purple' },
+      { label: '招聘岗位', desc: '', icon: '🔍', clr: 'teal' },
+      { label: '聘用手续', desc: '', icon: '✅', clr: 'rose' },
       ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看辖区举报处理进度' },
     announcements: [
@@ -761,10 +809,12 @@ const ROLES = {
     ],
     lockCount: 0,
     quickActs: [
-      { label: '入编申请', desc: '新教师入职', icon: '📝', clr: 'blue' },
-      { label: '岗位晋升', desc: '教师晋升申报', icon: '📈', clr: 'green' },
-      { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
+      { label: '编制使用申请', desc: '', icon: '📋', clr: 'blue' },
+      { label: '教师入编', desc: '', icon: '📝', clr: 'green' },
+      { label: '教师出编', desc: '', icon: '📤', clr: 'amber' },
+      { label: '岗位晋升', desc: '', icon: '📈', clr: 'purple' },
+      { label: '招聘岗位', desc: '', icon: '🔍', clr: 'teal' },
+      { label: '聘用手续', desc: '', icon: '✅', clr: 'rose' },
       ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看本校举报处理进度' },
     announcements: [
@@ -896,7 +946,6 @@ function renderMain() {
     pcl.href = 'personal-center.html?accountId=' + encodeURIComponent(cu.accountId);
   }
 
-  // Todo area
   var todoHtml = '';
   var reminderTodo = getReminderTodo();
   var allTodos = reminderTodo ? [reminderTodo].concat(data.todos) : data.todos;
@@ -909,7 +958,7 @@ function renderMain() {
       if (t.reminder) { targetUrl = 'post-list-school.html'; }
       else if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
       else if (t.mod === '入编申请') targetUrl = getEntryUrl();
-      var nameHtml = t.reminder ? '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>' + t.group + ' · 主管单位提醒您尽快提交岗位设置申请</small></div>' : '<div class="todo-module-name">' + t.mod + '<small>' + t.group + '</small></div>';
+      var nameHtml = t.reminder ? '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>主管单位提醒您尽快提交岗位设置申请</small></div>' : '<div class="todo-module-name">' + t.mod + '</div>';
       todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (targetUrl !== '#' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += nameHtml;
@@ -920,24 +969,18 @@ function renderMain() {
     });
     todoHtml += '</div>';
   }
-  if (data.lockCount > 0) {
-    todoHtml += '<div class="lock-alert" onclick="showToast(\'跳转至账号管理\')"><span>🔒</span><span class="lock-count">' + data.lockCount + '</span><span class="lock-text">个账号因异常被锁定，请及时处理</span><span style="color:var(--danger);font-size:12px;">立即处理 →</span></div>';
-  }
   document.getElementById('todoArea').innerHTML = todoHtml;
 
-  // Quick actions
   var quickHtml = '';
   data.quickActs.forEach(function(q) {
     var qUrl = getQuickActionUrl(q.label);
     quickHtml += '<div class="quick-card" onclick="' + (qUrl ? "window.location.href='" + qUrl + "'" : "showToast('跳转至" + q.label + "')") + '">';
     quickHtml += '<div class="qc-icon ' + q.clr + '">' + q.icon + '</div>';
     quickHtml += '<div class="qc-title">' + q.label + '</div>';
-    quickHtml += '<div class="qc-desc">' + q.desc + '</div>';
     quickHtml += '</div>';
   });
   var quickArea = document.getElementById('quickArea');
   quickArea.innerHTML = quickHtml;
-  // Teacher role: 2-column grid (only 2 quick actions)
   if (currentRole === 'teacher') {
     quickArea.classList.add('quick-grid-cols2');
   } else {
@@ -1132,6 +1175,10 @@ document.getElementById('pwdModalOverlay').addEventListener('click', function(e)
   if (e.target === this) closeChangePwdModal();
 });
 
+document.getElementById('allTodosModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAllTodosModal();
+});
+
 function togglePwdEye(inputId, btn) {
   var input = document.getElementById(inputId);
   input.type = input.type === 'password' ? 'text' : 'password';
@@ -1257,6 +1304,111 @@ function submitChangePwd() {
     localStorage.removeItem('currentUser');
     window.location.href = 'index.html';
   }, 1500);
+}
+
+
+// ===== All Todos Modal =====
+function getTodoTargetUrl(mod) {
+  if (mod === '编制使用申请') return 'staffing-application.html';
+  if (mod === '入编申请') return getEntryUrl();
+  if (mod === '岗位晋升申请') {
+    var url = getPromoteUrl();
+    return url || 'promote-list-admin.html';
+  }
+  if (mod === '招聘岗位申请') {
+    var url = getRecruitUrl();
+    return url || 'recruit-list-admin.html';
+  }
+  if (mod === '退休呈报') return '#';
+  if (mod === '教师入职管理') {
+    var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:"");
+    return (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html';
+  }
+  if (mod === '教师离职管理') {
+    var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:"");
+    return (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html';
+  }
+  return '#';
+}
+
+function openAllTodosModal() {
+  var data = ROLES[currentRole];
+  var todos = data.todos.slice(); // shallow copy
+  var body = document.getElementById('allTodosModalBody');
+
+  // Include reminder todo for school role
+  var reminderTodo = getReminderTodo();
+  if (reminderTodo) {
+    todos.unshift(reminderTodo);
+  }
+
+  if (!todos || todos.length === 0) {
+    body.innerHTML = '<div class="alltodos-empty"><div class="empty-icon">🎉</div><div>暂无待办事项</div></div>';
+  } else {
+    /* Calculate totals */
+    var totalPending = 0, totalReview = 0, totalReject = 0;
+    todos.forEach(function(t) {
+      totalPending += (t.pending || 0);
+      totalReview += (t.review || 0);
+      totalReject += (t.reject || 0);
+    });
+
+    var html = '';
+    html += '<div class="alltodos-summary">';
+    html += '<div class="alltodos-summary-item pending"><div class="sum-num">' + totalPending + '</div><div class="sum-label">待处理</div></div>';
+    html += '<div class="alltodos-summary-item review"><div class="sum-num">' + totalReview + '</div><div class="sum-label">审核中</div></div>';
+    html += '<div class="alltodos-summary-item reject"><div class="sum-num">' + totalReject + '</div><div class="sum-label">已驳回</div></div>';
+    html += '</div>';
+
+    /* Group by module group */
+    var groups = {};
+    todos.forEach(function(t) {
+      var g = t.group || '其他';
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(t);
+    });
+
+    Object.keys(groups).forEach(function(g) {
+      html += '<div class="alltodos-group-label">' + g + '</div>';
+      groups[g].forEach(function(t) {
+        var url = getTodoTargetUrl(t.mod);
+        if (t.reminder) {
+          // Reminder items link to post-list-school.html
+          html += '<a class="alltodos-item" href="post-list-school.html">';
+          html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
+          html += '<div class="alltodos-item-name" style="color:var(--danger);">' + t.mod + '</div>';
+          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + (t.pending || 0) + '</span></div>';
+          html += '<span class="alltodos-item-arrow">→</span></a>';
+        } else if (url !== '#') {
+          html += '<a class="alltodos-item" href="' + url + '">';
+          html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
+          html += '<div class="alltodos-item-name">' + t.mod + '</div>';
+          html += '<div class="alltodos-item-counts">';
+          if (t.pending) html += '<span class="atc-pending">待处理 ' + t.pending + '</span>';
+          if (t.review) html += '<span class="atc-review">审核中 ' + t.review + '</span>';
+          if (t.reject) html += '<span class="atc-reject">已驳回 ' + t.reject + '</span>';
+          html += '</div>';
+          html += '<span class="alltodos-item-arrow">→</span></a>';
+        } else {
+          html += '<div class="alltodos-item" style="cursor:pointer;" onclick="event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\');">';
+          html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
+          html += '<div class="alltodos-item-name">' + t.mod + '</div>';
+          html += '<div class="alltodos-item-counts">';
+          if (t.pending) html += '<span class="atc-pending">待处理 ' + t.pending + '</span>';
+          if (t.review) html += '<span class="atc-review">审核中 ' + t.review + '</span>';
+          if (t.reject) html += '<span class="atc-reject">已驳回 ' + t.reject + '</span>';
+          html += '</div>';
+          html += '<span class="alltodos-item-arrow">→</span></div>';
+        }
+      });
+    });
+    body.innerHTML = html;
+  }
+  document.getElementById('allTodosModalOverlay').classList.add('show');
+}
+
+function closeAllTodosModal() {
+  document.getElementById('allTodosModalOverlay').classList.remove('show');
 }
 
 // ===== Init =====
