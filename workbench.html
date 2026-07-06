@@ -250,6 +250,14 @@
 
   .todo-module-arrow { color: var(--text-light); font-size: 12px; flex-shrink: 0; }
   .todo-module-item:hover .todo-module-arrow { color: var(--primary); }
+  .todo-view-all {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 16px; font-size: 12px; color: var(--primary); cursor: pointer;
+    transition: var(--transition); border-top: 1px solid var(--border);
+    background: #F8FAFC; font-weight: 500;
+  }
+  .todo-view-all:hover { background: var(--primary-light); }
+
 
   #todoArea .todo-empty {
     flex: 1; display: flex; align-items: center; justify-content: center;
@@ -1131,13 +1139,28 @@ function renderMain() {
     todoHtml = '<div class="todo-empty">暂无待办事项</div>';
   } else {
     todoHtml = '<div class="todo-module-list">';
-    // Deduplicate: merge items with the same module name
+    // Deduplicate and sort by total pending (descending)
     allTodos = mergeTodos(allTodos);
+    allTodos.sort(function(a, b) {
+      var totalA = (a.pending || 0) + (a.review || 0) + (a.reject || 0);
+      var totalB = (b.pending || 0) + (b.review || 0) + (b.reject || 0);
+      return totalB - totalA;
+    });
+
+    var topN = 5;
+    var displayed = 0, totalCount = 0;
+    allTodos.forEach(function(t) {
+      var tp = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
+      if (tp > 0) totalCount++;
+    });
 
     allTodos.forEach(function(t) {
       var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
       // Skip modules with zero pending items — must be first, before any HTML
       if (totalPending === 0) return;
+      // Stop after top N items
+      if (displayed >= topN) return;
+      displayed++;
 
       var targetUrl = '#';
       if (t.reminder) { targetUrl = 'post-list-school.html'; }
@@ -1157,6 +1180,11 @@ function renderMain() {
       todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
       todoHtml += '</div><span class="todo-module-arrow">→</span></a>';
     });
+
+    // View-all footer
+    if (totalCount > topN) {
+      todoHtml += '<div class="todo-view-all" onclick="openAllTodosModal()">查看全部 ' + totalCount + ' 项待办 →</div>';
+    }
     todoHtml += '</div>';
     // If all items were filtered out (all zero), show empty state
     if (todoHtml === '<div class="todo-module-list"></div>') {
@@ -1549,7 +1577,13 @@ function openAllTodosModal() {
     }
   }
 
-  // Deduplicate: merge items with the same module name
+  // Deduplicate and sort by total pending (descending)
+  todos = mergeTodos(todos);
+  todos.sort(function(a, b) {
+    var totalA = (a.pending || 0) + (a.review || 0) + (a.reject || 0);
+    var totalB = (b.pending || 0) + (b.review || 0) + (b.reject || 0);
+    return totalB - totalA;
+  });
   todos = mergeTodos(todos);
 
   // Filter out zero-count modules
