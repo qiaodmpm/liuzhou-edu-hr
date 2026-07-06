@@ -247,7 +247,6 @@
   .count-pending .count-num { color: var(--primary); }
   .count-review .count-num { color: #D97706; }
   .count-reject .count-num { color: var(--danger); }
-	  .count-unsubmitted .count-num { color: #0D9488; }
 
   .todo-module-arrow { color: var(--text-light); font-size: 12px; flex-shrink: 0; }
   .todo-module-item:hover .todo-module-arrow { color: var(--primary); }
@@ -1087,23 +1086,21 @@ function renderMain() {
   var reminderTodo = getReminderTodo();
   var allTodos = reminderTodo ? [reminderTodo].concat(data.todos) : data.todos;
 
-  // For school admin: inject unsubmitted staffing + recruitment todo items
+  // For school admin: inject unsubmitted batch counts as regular todo items
   if (currentRole === 'school') {
     var unsubStaffingCount = getUnsubmittedCount();
     if (unsubStaffingCount > 0) {
-      var unsubStaffingItem = {
+      allTodos.push({
         mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue',
-        pending: 0, review: 0, reject: 0, isUnsubStaffing: true
-      };
-      allTodos = [unsubStaffingItem].concat(allTodos);
+        pending: unsubStaffingCount, review: 0, reject: 0
+      });
     }
     var unsubRecruitCount = getRecruitUnsubmittedCount();
     if (unsubRecruitCount > 0) {
-      var unsubRecruitItem = {
+      allTodos.push({
         mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple',
-        pending: 0, review: 0, reject: 0, isUnsubRecruit: true
-      };
-      allTodos = [unsubRecruitItem].concat(allTodos);
+        pending: unsubRecruitCount, review: 0, reject: 0
+      });
     }
   }
 
@@ -1114,18 +1111,12 @@ function renderMain() {
     allTodos.forEach(function(t) {
       var targetUrl = '#';
       if (t.reminder) { targetUrl = 'post-list-school.html'; }
-      else if (t.isUnsubStaffing) { targetUrl = 'staffing-application.html'; }
-      else if (t.isUnsubRecruit) { targetUrl = 'recruit-list-school.html'; }
       else if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
-      else if (t.mod === '招聘岗位申请') targetUrl = getRecruitUrl();
+      else if (t.mod === '招聘岗位申请') targetUrl = getRecruitUrl() || 'recruit-list-school.html';
       else if (t.mod === '入编申请') targetUrl = getEntryUrl();
       var nameHtml;
       if (t.reminder) {
         nameHtml = '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>主管单位提醒您尽快提交岗位设置申请</small></div>';
-      } else if (t.isUnsubStaffing) {
-        nameHtml = '<div class="todo-module-name">' + t.mod + '<small style="color:#0D9488;">有 ' + getUnsubmittedCount() + ' 个批次待申报</small></div>';
-      } else if (t.isUnsubRecruit) {
-        nameHtml = '<div class="todo-module-name">' + t.mod + '<small style="color:#0D9488;">有 ' + getRecruitUnsubmittedCount() + ' 个批次待申报</small></div>';
       } else {
         nameHtml = '<div class="todo-module-name">' + t.mod + '</div>';
       }
@@ -1133,19 +1124,17 @@ function renderMain() {
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += nameHtml;
       var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
-      var unsubCount = 0;
-      if (currentRole === 'school') {
-        if (t.mod === '编制使用申请') unsubCount = getUnsubmittedCount();
-        else if (t.mod === '招聘岗位申请') unsubCount = getRecruitUnsubmittedCount();
-      }
+      // Skip modules with zero pending items
+      if (totalPending === 0) return;
       todoHtml += '<div class="todo-counts">';
       todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
-      if (unsubCount > 0) {
-        todoHtml += '<div class="todo-count-item count-unsubmitted"><div class="count-num">' + unsubCount + '</div><div class="count-label">待申报</div></div>';
-      }
       todoHtml += '</div><span class="todo-module-arrow">→</span></a>';
     });
     todoHtml += '</div>';
+    // If all items were filtered out (all zero), show empty state
+    if (todoHtml === '<div class="todo-module-list"></div>') {
+      todoHtml = '<div class="todo-empty">暂无待办事项</div>';
+    }
   }
   document.getElementById('todoArea').innerHTML = todoHtml;
 
@@ -1521,47 +1510,34 @@ function openAllTodosModal() {
   var reminderTodo = getReminderTodo();
   if (reminderTodo) { todos.unshift(reminderTodo); }
 
-  var schoolUnsubStaffing = 0, schoolUnsubRecruit = 0;
-  var schoolUnsubStaffingNames = [], schoolUnsubRecruitNames = [];
+  // For school admin: add unsubmitted batch counts as regular todo items
   if (currentRole === 'school') {
-    schoolUnsubStaffing = getUnsubmittedCount();
-    schoolUnsubStaffingNames = getUnsubmittedSchoolNames();
-    schoolUnsubRecruit = getRecruitUnsubmittedCount();
-    schoolUnsubRecruitNames = getRecruitUnsubmittedNames();
-    if (schoolUnsubStaffing > 0) {
-      todos.unshift({
-        mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue',
-        pending: 0, review: 0, reject: 0, isUnsubStaffing: true
-      });
+    var staffUnsub = getUnsubmittedCount();
+    if (staffUnsub > 0) {
+      todos.push({ mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue', pending: staffUnsub, review: 0, reject: 0 });
     }
-    if (schoolUnsubRecruit > 0) {
-      todos.unshift({
-        mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple',
-        pending: 0, review: 0, reject: 0, isUnsubRecruit: true
-      });
+    var recruitUnsub = getRecruitUnsubmittedCount();
+    if (recruitUnsub > 0) {
+      todos.push({ mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple', pending: recruitUnsub, review: 0, reject: 0 });
     }
   }
+
+  // Filter out zero-count modules
+  todos = todos.filter(function(t) {
+    return (t.pending || 0) + (t.review || 0) + (t.reject || 0) > 0;
+  });
 
   if (!todos || todos.length === 0) {
     body.innerHTML = '<div class="alltodos-empty"><div class="empty-icon">🎉</div><div>暂无待办事项</div></div>';
   } else {
-    var totalPending = 0, totalReview = 0, totalReject = 0;
-    todos.forEach(function(t) {
-      totalPending += (t.pending || 0);
-      totalReview += (t.review || 0);
-      totalReject += (t.reject || 0);
-    });
+    var grandTotal = 0;
+    todos.forEach(function(t) { grandTotal += (t.pending || 0) + (t.review || 0) + (t.reject || 0); });
 
     var html = '';
-    html += '<div class="alltodos-summary">';
-    html += '<div class="alltodos-summary-item pending"><div class="sum-num">' + totalPending + '</div><div class="sum-label">待处理</div></div>';
-    html += '<div class="alltodos-summary-item review"><div class="sum-num">' + totalReview + '</div><div class="sum-label">审核中</div></div>';
-    html += '<div class="alltodos-summary-item reject"><div class="sum-num">' + totalReject + '</div><div class="sum-label">已驳回</div></div>';
-    if (currentRole === 'school' && (schoolUnsubStaffing + schoolUnsubRecruit) > 0) {
-      html += '<div class="alltodos-summary-item" style="--sum-color:#0D9488;"><div class="sum-num" style="color:#0D9488;">' + (schoolUnsubStaffing + schoolUnsubRecruit) + '</div><div class="sum-label">待申报</div></div>';
-    }
-    html += '</div>';
+    // Single-line summary
+    html += '<div style="text-align:center;padding:4px 0 16px;font-size:14px;color:var(--text-secondary);">共 <strong style="color:var(--primary);font-size:18px;">' + grandTotal + '</strong> 项待处理</div>';
 
+    /* Group by module group */
     var groups = {};
     todos.forEach(function(t) {
       var g = t.group || '其他';
@@ -1572,71 +1548,29 @@ function openAllTodosModal() {
     Object.keys(groups).forEach(function(g) {
       html += '<div class="alltodos-group-label">' + g + '</div>';
       groups[g].forEach(function(t) {
+        var total = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
         var url = getTodoTargetUrl(t.mod);
         if (t.reminder) {
           html += '<a class="alltodos-item" href="post-list-school.html">';
           html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
           html += '<div class="alltodos-item-name" style="color:var(--danger);">' + t.mod + '</div>';
-          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + (t.pending || 0) + '</span></div>';
+          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + total + '</span></div>';
           html += '<span class="alltodos-item-arrow">→</span></a>';
         } else if (url !== '#') {
           html += '<a class="alltodos-item" href="' + url + '">';
           html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
-          if (t.isUnsubStaffing) {
-            html += '<div class="alltodos-item-name">' + t.mod + '<span style="color:#0D9488;font-size:11px;margin-left:6px;">' + schoolUnsubStaffing + ' 个批次待申报</span></div>';
-          } else if (t.isUnsubRecruit) {
-            html += '<div class="alltodos-item-name">' + t.mod + '<span style="color:#0D9488;font-size:11px;margin-left:6px;">' + schoolUnsubRecruit + ' 个批次待申报</span></div>';
-          } else {
-            html += '<div class="alltodos-item-name">' + t.mod + '</div>';
-          }
-          html += '<div class="alltodos-item-counts">';
-          if (t.pending) html += '<span class="atc-pending">待处理 ' + t.pending + '</span>';
-          if (t.review) html += '<span class="atc-review">审核中 ' + t.review + '</span>';
-          if (t.reject) html += '<span class="atc-reject">已驳回 ' + t.reject + '</span>';
-          if (t.isUnsubStaffing && schoolUnsubStaffing > 0) {
-            html += '<span style="color:#0D9488;font-weight:600;">待申报 ' + schoolUnsubStaffing + '</span>';
-          }
-          if (t.isUnsubRecruit && schoolUnsubRecruit > 0) {
-            html += '<span style="color:#0D9488;font-weight:600;">待申报 ' + schoolUnsubRecruit + '</span>';
-          }
-          html += '</div>';
+          html += '<div class="alltodos-item-name">' + t.mod + '</div>';
+          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + total + '</span></div>';
           html += '<span class="alltodos-item-arrow">→</span></a>';
         } else {
           html += '<div class="alltodos-item" style="cursor:pointer;" onclick="event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\');">';
           html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
           html += '<div class="alltodos-item-name">' + t.mod + '</div>';
-          html += '<div class="alltodos-item-counts">';
-          if (t.pending) html += '<span class="atc-pending">待处理 ' + t.pending + '</span>';
-          if (t.review) html += '<span class="atc-review">审核中 ' + t.review + '</span>';
-          if (t.reject) html += '<span class="atc-reject">已驳回 ' + t.reject + '</span>';
-          html += '</div>';
+          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + total + '</span></div>';
           html += '<span class="alltodos-item-arrow">→</span></div>';
         }
       });
     });
-
-    // School admin: dedicated unsubmitted batches section
-    if (currentRole === 'school' && (schoolUnsubStaffing + schoolUnsubRecruit) > 0) {
-      html += '<div class="alltodos-group-label">待申报提醒</div>';
-
-      if (schoolUnsubStaffing > 0) {
-        html += '<div class="alltodos-item" style="cursor:pointer;background:#F0FDFA;border:1px dashed #0D9488;border-radius:8px;margin-bottom:4px;" onclick="window.location.href=\'staffing-application.html\'">';
-        html += '<div class="alltodos-item-icon teal" style="background:#CCFBF1;color:#0D9488;">📋</div>';
-        html += '<div class="alltodos-item-name">编制使用申请 — 以下批次尚未提交申报</div>';
-        html += '<div class="alltodos-item-counts"><span style="color:#0D9488;font-weight:600;">' + schoolUnsubStaffing + ' 个批次</span></div>';
-        html += '<span class="alltodos-item-arrow">→</span></div>';
-        html += '<div style="font-size:11px;color:var(--text-light);padding:4px 12px 8px;">' + schoolUnsubStaffingNames.join('、') + '</div>';
-      }
-
-      if (schoolUnsubRecruit > 0) {
-        html += '<div class="alltodos-item" style="cursor:pointer;background:#F0FDFA;border:1px dashed #0D9488;border-radius:8px;margin-bottom:4px;" onclick="window.location.href=\'recruit-list-school.html\'">';
-        html += '<div class="alltodos-item-icon teal" style="background:#CCFBF1;color:#0D9488;">🔍</div>';
-        html += '<div class="alltodos-item-name">招聘岗位申请 — 以下批次尚未提交申报</div>';
-        html += '<div class="alltodos-item-counts"><span style="color:#0D9488;font-weight:600;">' + schoolUnsubRecruit + ' 个批次</span></div>';
-        html += '<span class="alltodos-item-arrow">→</span></div>';
-        html += '<div style="font-size:11px;color:var(--text-light);padding:4px 12px 8px;">' + schoolUnsubRecruitNames.join('、') + '</div>';
-      }
-    }
 
     body.innerHTML = html;
   }
