@@ -106,6 +106,7 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 <main class="main" id="mainContent"></main>
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 window.onerror=function(msg,url,line){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d);};
 
@@ -137,7 +138,12 @@ function renderAttachments(r){
   atts.forEach(function(f,i){h+='<div class="attachment-item"><span class="file-icon">&#x1F4C4;</span><span class="file-name">'+escapeHtml(f.name)+'</span><span class="file-size">'+formatSize(f.size)+'</span><a class="file-download" onclick="previewAttachment('+i+')" style="margin-right:10px;">预览</a><a class="file-download" onclick="downloadAttachment('+i+')">下载</a></div>';});
   h+='</div></div>';return h;
 }
-function previewAttachment(idx){var r=currentRecord;if(!r||!r.attachments||!r.attachments[idx])return;var f=r.attachments[idx];showToast('预览：'+f.name+'（模拟）');}
+function previewAttachment(idx){var r=currentRecord;if(!r||!r.attachments||!r.attachments[idx])return;var f=r.attachments[idx];
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+  if (id === 'menuMgr') { window.location.href = 'menu-management.html'; return; }
+  if (id === 'perm') { window.location.href = 'perm-management.html'; return; }
+  if (id === 'log') { window.location.href = 'log-management.html'; return; }
+showToast('预览：'+f.name+'（模拟）');}
 function downloadAttachment(idx){var r=currentRecord;if(!r||!r.attachments||!r.attachments[idx])return;var f=r.attachments[idx];showToast('下载：'+f.name+'（模拟）');}
 
 function renderModifications(r){
@@ -257,9 +263,9 @@ function renderPage(){
   document.getElementById('mainContent').innerHTML=html;
 }
 
-function sidebarClick(el,id){
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i){i.classList.remove('active');});
-  el.classList.add('active');
+function sidebarClick(el, id) {
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i){i.classList.remove('active');}); el.classList.add('active'); }
   if(id==='workbench'){window.location.href='workbench.html';return;}
   if(id==='staffing'){window.location.href='staffing-application.html';return;}
   if(id==='entry'){window.location.href='教师入编管理（学校管理员视角）.html';return;}
@@ -271,8 +277,14 @@ function sidebarClick(el,id){
   if(id==='retire'){showToast('退休呈报页面开发中');return;}
   if(id==='ethics'){showToast('师德师风举报页面开发中');return;}
   if(id==='account'){window.location.href='account-management.html';return;}
-  else if (id === 'org') { window.location.href = 'org-management.html'; }
-  showToast('跳转至：'+(el.textContent||id));
+  if(id==='org'){window.location.href='org-management.html';return;}
+  if(id==='announcement'){window.location.href='announcement-management.html';return;}
+  if(id==='perm'){window.location.href='perm-management.html';return;}
+  if(id==='log'){window.location.href='log-management.html';return;}
+  if(id==='menuMgr'){window.location.href='menu-management.html';return;}
+  if(id==='contract-entry'){var cr=(typeof currentUser!=='undefined'&&currentUser)?currentUser.role:(typeof currentRole!=='undefined'?currentRole:'');window.location.href=(cr==='city'||cr==='district')?'contract-entry-list-admin.html':'contract-entry-list-school.html';return;}
+  if(id==='contract-exit'){var cr2=(typeof currentUser!=='undefined'&&currentUser)?currentUser.role:(typeof currentRole!=='undefined'?currentRole:'');window.location.href=(cr2==='city'||cr2==='district')?'contract-exit-list-admin.html':'contract-exit-list-school.html';return;}
+  if(el)showToast('跳转至：'+(el.textContent||id));
 }
 function switchRole(role){
   if(role==='city'||role==='district'){window.location.href='employ-list-admin.html?role='+role;return;}
@@ -285,6 +297,8 @@ function goBack(){
 }
 
 (function init(){
+  var currentRole = 'school'; try { var cu = JSON.parse(localStorage.getItem('currentUser')||'null'); if(cu)currentRole=cu.role; } catch(e){}
+  renderSidebarMenu('sidebarMenu', currentRole, 'employ');
   var params=new URLSearchParams(window.location.search);var id=params.get('role');
   var records=loadEmployRecords();var rid=params.get('id');
   if(rid)currentRecord=records.find(function(r){return r.id===rid;})||null;

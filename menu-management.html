@@ -427,7 +427,8 @@ function getDefaultConfig() {
       { id: 'org', label: '机构管理', icon: 'building', group: '系统设置', order: 2, route: 'org-management.html', status: 'active' },
       { id: 'menuMgr', label: '菜单管理', icon: 'file', group: '系统设置', order: 3, route: 'menu-management.html', status: 'active' },
       { id: 'perm', label: '角色权限', icon: 'key', group: '系统设置', order: 4, route: 'perm-management.html', status: 'active' },
-      { id: 'log', label: '操作日志', icon: 'list', group: '系统设置', order: 5, route: 'log-management.html', status: 'active' }
+      { id: 'log', label: '操作日志', icon: 'list', group: '系统设置', order: 5, route: 'log-management.html', status: 'active' },
+      { id: 'announcement', label: '公告管理', icon: 'file', group: '系统设置', order: 6, route: 'announcement-management.html', status: 'active' }
     ]
   };
 }
@@ -494,6 +495,12 @@ function loadConfig() {
   }
   if (!hasCE) savedConfig.menus.push({ id: 'contract-entry', label: '教师入职管理', icon: 'userp', group: '编外教师管理', order: 1, route: '', status: 'active' });
   if (!hasCX) savedConfig.menus.push({ id: 'contract-exit', label: '教师离职管理', icon: 'userx', group: '编外教师管理', order: 2, route: '', status: 'active' });
+  // 迁移：补全公告管理菜单项
+  var hasAnn = false;
+  for (var j = 0; j < savedConfig.menus.length; j++) {
+    if (savedConfig.menus[j].id === 'announcement') { hasAnn = true; break; }
+  }
+  if (!hasAnn) savedConfig.menus.push({ id: 'announcement', label: '公告管理', icon: 'file', group: '系统设置', order: 6, route: 'announcement-management.html', status: 'active' });
   draftConfig = JSON.parse(JSON.stringify(savedConfig));
 }
 
@@ -1076,7 +1083,8 @@ function sidebarClick(id) {
   }
   var ROUTES = {
     account: 'account-management.html', org: 'org-management.html',
-    perm: 'perm-management.html', log: 'log-management.html', menuMgr: 'menu-management.html'
+    perm: 'perm-management.html', log: 'log-management.html', menuMgr: 'menu-management.html', announcement: 'announcement-management.html',
+    'contract-entry': 'contract-entry-list-admin.html', 'contract-exit': 'contract-exit-list-admin.html'
   };
   var dest = ROUTES[id];
   if (dest) window.location.href = dest;

@@ -384,6 +384,7 @@ body {
   </div>
 </div>
 
+<script src="src/menu-config.js"></script>
 <script>
 function tipIconHtml(field) { return '<span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'' + field + '\')" style="cursor:pointer">ⓘ</span>'; }
 window.onerror = function(msg, url, line, col, err) {
@@ -439,7 +440,7 @@ var ROLES = {
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
         { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }] }
       ]
     }
   },
@@ -918,55 +919,12 @@ if (!app) {
 
 // ==================== SIDEBAR ====================
 function renderSidebar() {
-  var data = ROLES[currentRole].sidebar;
-  var html = '';
-  data.top.forEach(function(item) {
-    html += '<a class="menu-item" onclick="sidebarClick(\'' + item.id + '\')">';
-    html += ICONS[item.icon];
-    html += '<span>' + item.label + '</span></a>';
-  });
-  data.groups.forEach(function(group) {
-    html += '<div class="menu-group">' + group.name + '</div>';
-    group.items.forEach(function(item) {
-      var isActive = item.id === 'staffing';
-      html += '<a class="menu-item' + (isActive ? ' active' : '') + '" onclick="sidebarClick(\'' + item.id + '\')">';
-      html += ICONS[MENU_ICONS[item.id] || 'file'];
-      html += '<span>' + item.label + '</span></a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = html;
+  renderSidebarMenu('sidebarMenu', currentRole, 'staffing');
+  var roleData = ROLES[currentRole]; if (!roleData) return;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
+  var n = document.querySelector('.topnav-user span'); if(n) n.textContent = roleData.name;
+  var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = roleData.short;
 }
-
-function updateUserInfo() {
-  var role = ROLES[currentRole];
-  var roleLabel = currentRole === 'city' ? '市管理员' : currentRole === 'district' ? '区管理员' : currentRole === 'school' ? '校管理员' : '教师';
-  var avatarEl = document.querySelector('.topnav-user .avatar');
-  var nameEl = document.querySelector('.topnav-user span');
-  if (avatarEl) avatarEl.textContent = role.short;
-  if (nameEl) nameEl.textContent = role.name + ' · ' + roleLabel;
-}
-
-function updateRoleUI() {
-  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.role === currentRole);
-  });
-  updateUserInfo();
-  renderSidebar();
-}
-
-function switchRole(role) {
-  if (role === 'city' || role === 'district') {
-    if (currentRole !== role) {
-      currentRole = role;
-      updateRoleUI();
-      renderPage();
-    }
-    return;
-  }
-  if (role === 'school') { window.location.href = 'staffing-application.html'; return; }
-  window.location.href = 'workbench.html';
-}
-
 function sidebarClick(id) {
   if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
   if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
@@ -980,6 +938,8 @@ function sidebarClick(id) {
   else if (id === "ledger") { var lr = (typeof currentUser!=="undefined"?currentUser.role:currentRole); window.location.href = (lr === "city" || lr === "district") ? "org-ledger-admin.html" : lr === "school" ? "org-ledger-school.html" : "workbench.html"; }
   else if (id === "account") { window.location.href = "account-management.html"; }
   else if (id === "org") { window.location.href = "org-management.html"; }
+
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
 }
 
 function showToast(message, callback) {

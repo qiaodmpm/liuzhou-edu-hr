@@ -272,6 +272,7 @@ body {
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 var ICONS = {
   home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
@@ -886,25 +887,12 @@ function goBack() {
 }
 
 function renderSidebar() {
-  var roleData = ROLES[currentRole];
-  if (!roleData) return;
-  var sidebar = roleData.sidebar;
-  var html = '';
-  (sidebar.top || []).forEach(function(item) {
-    html += '<a class="menu-item" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[item.icon] || '') + '<span class="menu-label">' + item.label + '</span></a>';
-  });
-  (sidebar.groups || []).forEach(function(group) {
-    html += '<div class="menu-group">' + group.name + '</div>';
-    group.items.forEach(function(item) {
-      html += '<a class="menu-item' + (item.id === 'recruit' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span>' + (item.badge ? '<span class="menu-badge">' + item.badge + '</span>' : '') + '</a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = html;
+  renderSidebarMenu('sidebarMenu', currentRole, 'recruit');
 }
 
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); }); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'recruit') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
   if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
@@ -922,6 +910,7 @@ function sidebarClick(el, id) {
   else if (id === 'account') { window.location.href = 'account-management.html'; }
 
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

@@ -127,6 +127,12 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .status-badge.fail { background: #FEE2E2; color: #991B1B; }
 /* Module tag */
 .module-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; background: #EFF6FF; color: #1E40AF; }
+/* Log type tag */
+.logtype-tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.logtype-tag.security { background: #FEE2E2; color: #991B1B; }
+.logtype-tag.operation { background: #DBEAFE; color: #1E40AF; }
+.logtype-tag.audit { background: #F1F5F9; color: #64748B; }
+
 /* Action type tag */
 .action-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
 .action-tag.create { background: #D1FAE5; color: #065F46; }
@@ -273,6 +279,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
       <button class="multi-select-btn" id="moduleSelectBtn" onclick="toggleModuleDrop()">功能模块 ▾</button>
       <div class="multi-select-drop" id="moduleDrop"></div>
     </div>
+    <select id="fLogType" onchange="onFilterChange()"><option value="all">全部日志类型</option><option value="安全日志">安全日志</option><option value="操作日志">操作日志</option><option value="审计日志">审计日志</option></select>
     <select id="fActionType" onchange="onFilterChange()"><option value="all">全部操作类型</option></select>
     <select id="fResult" onchange="onFilterChange()"><option value="all">全部结果</option><option value="success">成功</option><option value="fail">失败</option></select>
     <div class="date-range">
@@ -445,14 +452,13 @@ function generateDemoLogs() {
   var now = new Date();
   var actionPatterns = [
     { module: 'org', actionType: 'create', result: 'success', detailTpl: '新增机构：{target}' },
-    { module: 'org', actionType: 'update', result: 'success', detailTpl: '修改了单位主管、联系电话' },
+    { module: 'org', actionType: 'update', result: 'success', detailTpl: '修改了单位管理员、联系电话' },
     { module: 'org', actionType: 'update', result: 'success', detailTpl: '修改了单位地址、邮编' },
     { module: 'org', actionType: 'disable', result: 'success', detailTpl: '停用机构：{target}' },
     { module: 'org', actionType: 'enable', result: 'success', detailTpl: '启用机构：{target}' },
     { module: 'account', actionType: 'create', result: 'success', detailTpl: '新增账号：{target}' },
     { module: 'account', actionType: 'update', result: 'success', detailTpl: '修改了账号角色、所属单位' },
     { module: 'account', actionType: 'update', result: 'success', detailTpl: '修改了手机号' },
-    { module: 'account', actionType: 'reset_pwd', result: 'success', detailTpl: '重置密码' },
     { module: 'account', actionType: 'disable', result: 'success', detailTpl: '停用账号：{target}' },
     { module: 'account', actionType: 'enable', result: 'success', detailTpl: '启用账号：{target}' },
     { module: 'perm', actionType: 'create', result: 'success', detailTpl: '新增角色：{target}' },
@@ -474,10 +480,21 @@ function generateDemoLogs() {
     { module: 'exit', actionType: 'approve', result: 'success', detailTpl: '审核通过教师出编申请' },
     { module: 'post', actionType: 'submit', result: 'success', detailTpl: '提交岗位设置申请' },
     { module: 'employ', actionType: 'submit', result: 'success', detailTpl: '提交聘用手续申请' },
+    // —— 安全日志 ——
+    { module: 'system', actionType: 'login', result: 'success', detailTpl: '用户登录' },
     { module: 'system', actionType: 'login', result: 'success', detailTpl: '用户登录' },
     { module: 'system', actionType: 'login', result: 'fail', detailTpl: '用户登录', failReason: '密码错误' },
+    { module: 'system', actionType: 'login', result: 'fail', detailTpl: '用户登录', failReason: '密码错误' },
+    { module: 'system', actionType: 'login', result: 'fail', detailTpl: '用户登录', failReason: '账号已被锁定' },
     { module: 'system', actionType: 'logout', result: 'success', detailTpl: '用户登出' },
-    { module: 'log', actionType: 'export', result: 'success', detailTpl: '导出操作日志' }
+    { module: 'system', actionType: 'logout', result: 'success', detailTpl: '用户登出' },
+    { module: 'account', actionType: 'reset_pwd', result: 'success', detailTpl: '重置密码' },
+    { module: 'account', actionType: 'reset_pwd', result: 'success', detailTpl: '重置密码（忘记密码流程）' },
+    { module: 'account', actionType: 'reset_pwd', result: 'fail', detailTpl: '重置密码', failReason: '验证码错误' },
+    // —— 审计日志 ——
+    { module: 'log', actionType: 'export', result: 'success', detailTpl: '导出操作日志' },
+    { module: 'log', actionType: 'export', result: 'success', detailTpl: '导出操作日志' },
+    { module: 'log', actionType: 'export', result: 'success', detailTpl: '导出操作日志（CSV，筛选条件：近7天）' }
   ];
 
   for (var i = 0; i < 50; i++) {
@@ -491,6 +508,7 @@ function generateDemoLogs() {
     var s = String(Math.floor(Math.random() * 60)).padStart(2, '0');
     var ip = '192.168.' + Math.floor(Math.random() * 256) + '.' + Math.floor(Math.random() * 256);
     var detail = pattern.detailTpl.replace('{target}', target.name);
+    var logType = getLogType(pattern.actionType);
 
     logs.push({
       id: 'demo_log_' + i,
@@ -502,6 +520,7 @@ function generateDemoLogs() {
       orgDistrict: op.orgDistrict,
       module: pattern.module,
       actionType: pattern.actionType,
+      logType: logType,
       actionName: getActionName(pattern.actionType),
       targetType: target.type,
       targetId: target.id,
@@ -524,6 +543,12 @@ function formatLogTime(date, h, m, s) {
   var M = String(date.getMonth() + 1).padStart(2, '0');
   var d = String(date.getDate()).padStart(2, '0');
   return y + '-' + M + '-' + d + ' ' + (h || '00') + ':' + (m || '00') + ':' + (s || '00');
+}
+
+function getLogType(actionType) {
+  if (actionType === 'login' || actionType === 'logout' || actionType === 'reset_pwd') return '安全日志';
+  if (actionType === 'export') return '审计日志';
+  return '操作日志';
 }
 
 function getActionName(actionType) {
@@ -571,10 +596,13 @@ function init() {
 function loadLogs() {
   // Try localStorage first, fall back to demo data
   var raw = localStorage.getItem('operation_logs');
+  var needRegen = true;
   if (raw) {
     try { allLogs = JSON.parse(raw); } catch(e) { allLogs = []; }
+    // 检查是否为新版数据（含 logType 字段），否则重新生成
+    if (allLogs.length > 0 && allLogs[0].logType) needRegen = false;
   }
-  if (!allLogs || !allLogs.length) {
+  if (needRegen || !allLogs || !allLogs.length) {
     allLogs = generateDemoLogs();
     localStorage.setItem('operation_logs', JSON.stringify(allLogs));
   }
@@ -625,7 +653,10 @@ function sidebarClick(id) {
     org: 'org-management.html',
     menuMgr: 'workbench.html',
     perm: 'perm-management.html',
-    log: 'log-management.html'
+    log: 'log-management.html',
+    announcement: 'announcement-management.html',
+    'contract-entry': 'contract-entry-list-admin.html',
+    'contract-exit': 'contract-exit-list-admin.html'
   };
   if (id === 'menuMgr') { window.location.href = 'menu-management.html'; return; }
   var dest = ROUTES[id];
@@ -707,6 +738,7 @@ function resetFilters() {
   document.getElementById('fOrg').value = '';
   document.getElementById('fDistrict').value = 'all';
   document.getElementById('fActionType').value = 'all';
+  document.getElementById('fLogType').value = 'all';
   document.getElementById('fResult').value = 'all';
   var now = new Date();
   var thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -728,6 +760,7 @@ function applyFilters() {
   var orgQ = (document.getElementById('fOrg').value || '').toLowerCase();
   var districtV = document.getElementById('fDistrict').value;
   var actionTypeV = document.getElementById('fActionType').value;
+  var logTypeV = document.getElementById('fLogType').value;
   var resultV = document.getElementById('fResult').value;
   var dateStart = document.getElementById('fDateStart').value;
   var dateEnd = document.getElementById('fDateEnd').value;
@@ -748,6 +781,9 @@ function applyFilters() {
   }
   if (actionTypeV !== 'all') {
     filteredLogs = filteredLogs.filter(function(l) { return l.actionType === actionTypeV; });
+  }
+  if (logTypeV !== 'all') {
+    filteredLogs = filteredLogs.filter(function(l) { return (l.logType || '操作日志') === logTypeV; });
   }
   if (resultV !== 'all') {
     filteredLogs = filteredLogs.filter(function(l) { return l.result === resultV; });
@@ -815,7 +851,7 @@ function renderTable() {
   empty.style.display = 'none';
 
   var html = '<thead><tr>';
-  html += '<th>操作时间</th><th class="col-name">操作人</th><th>所属单位</th><th>功能模块</th><th>操作类型</th><th>操作对象</th><th>操作结果</th><th>操作IP</th><th>详情</th>';
+  html += '<th>操作时间</th><th class="col-name">操作人</th><th>所属单位</th><th>功能模块</th><th>操作类型</th><th>日志类型</th><th>操作对象</th><th>操作结果</th><th>操作IP</th><th>详情</th>';
   html += '</tr></thead><tbody>';
 
   for (var i = 0; i < pageData.length; i++) {
@@ -826,6 +862,9 @@ function renderTable() {
     html += '<td>' + escapeHtml(l.orgName || '--') + '</td>';
     html += '<td><span class="module-tag">' + getModuleName(l.module) + '</span></td>';
     html += '<td><span class="action-tag ' + l.actionType + '">' + escapeHtml(l.actionName || getActionName(l.actionType)) + '</span></td>';
+    var ltKey = l.logType || '操作日志';
+    var ltCls = (ltKey === '安全日志') ? 'security' : (ltKey === '审计日志') ? 'audit' : 'operation';
+    html += '<td><span class="logtype-tag ' + ltCls + '">' + ltKey + '</span></td>';
     html += '<td>' + escapeHtml(l.targetName || l.targetId || '--') + '</td>';
     html += '<td>' + (l.result === 'success'
       ? '<span class="status-badge success">✅ 成功</span>'
@@ -905,6 +944,9 @@ function openDetailModal(id) {
   html += '<tr><td>操作IP</td><td>' + escapeHtml(log.ip) + '</td></tr>';
   html += '<tr><td>功能模块</td><td><span class="module-tag">' + getModuleName(log.module) + '</span></td></tr>';
   html += '<tr><td>操作类型</td><td><span class="action-tag ' + log.actionType + '">' + escapeHtml(log.actionName || getActionName(log.actionType)) + '</span></td></tr>';
+  var ltKey2 = log.logType || '操作日志';
+  var ltCls2 = (ltKey2 === '安全日志') ? 'security' : (ltKey2 === '审计日志') ? 'audit' : 'operation';
+  html += '<tr><td>日志类型</td><td><span class="logtype-tag ' + ltCls2 + '">' + ltKey2 + '</span></td></tr>';
   html += '<tr><td>操作对象</td><td>' + escapeHtml(log.targetName || log.targetId || '--') + '（' + escapeHtml(log.targetType || '--') + '）</td></tr>';
   html += '<tr><td>操作结果</td><td>' + (log.result === 'success' ? '<span style="color:var(--success);">✅ 成功</span>' : '<span style="color:var(--danger);">❌ 失败' + (log.failReason ? ' — ' + escapeHtml(log.failReason) : '') + '</span>') + '</td></tr>';
   html += '<tr><td>操作详情</td><td>' + escapeHtml(log.detail || '--') + '</td></tr>';
@@ -972,7 +1014,7 @@ function doExport() {
 
   // Build CSV
   var BOM = '﻿';
-  var headers = ['操作时间', '操作人', '所属单位', '所属区域', '功能模块', '操作类型', '操作对象', '操作结果', '操作IP', '操作详情'];
+  var headers = ['操作时间', '操作人', '所属单位', '所属区域', '功能模块', '操作类型', '日志类型', '操作对象', '操作结果', '操作IP', '操作详情'];
   var csv = BOM + headers.join(',') + '\n';
 
   for (var i = 0; i < data.length; i++) {
@@ -984,6 +1026,7 @@ function doExport() {
       csvEscape(l.orgDistrict || ''),
       csvEscape(getModuleName(l.module)),
       csvEscape(l.actionName || getActionName(l.actionType)),
+      csvEscape(l.logType || '操作日志'),
       csvEscape(l.targetName || ''),
       csvEscape(l.result === 'success' ? '成功' : '失败'),
       csvEscape(l.ip || ''),

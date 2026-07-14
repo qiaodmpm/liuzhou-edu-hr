@@ -208,6 +208,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 
 <script src="src/ledger-plan-utils.js"></script>
 <script src="src/ledger-migrate.js"></script>
+<script src="src/menu-config.js"></script>
 <script>
 var LPU = window.LedgerPlanUtils;
 var LDM = window.LedgerMigrate;
@@ -384,32 +385,18 @@ var ROLES = {
 
 // ===== SIDEBAR =====
 function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', currentUser.role || 'city', 'ledger');
   var role = currentUser.role || 'city';
   var cfg = ROLES[role];
   if (!cfg) cfg = ROLES.city;
-  var h = '';
-  (cfg.sidebar.top||[]).forEach(function(item) {
-    var icon = ICONS[item.icon] || '';
-    var active = item.id === 'ledger';
-    h += '<a class="menu-item' + (active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + icon + item.label + '</a>';
-  });
-  (cfg.sidebar.groups||[]).forEach(function(group) {
-    h += '<div class="menu-group">' + group.name + '</div>';
-    (group.items||[]).forEach(function(item) {
-      var icon = ICONS[MENU_ICONS[item.id]] || '';
-      var badge = item.badge ? '<span class="menu-badge">' + item.badge + '</span>' : '';
-      h += '<a class="menu-item" onclick="sidebarClick(this,\'' + item.id + '\')">' + icon + item.label + badge + '</a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = h;
   document.getElementById('userName').textContent = cfg.name;
   document.getElementById('userAvatar').textContent = cfg.short;
   document.querySelectorAll('.role-switch-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.role === role); });
 }
 
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); }); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; }
   else if (id === 'ledger') { window.location.href = currentUser.role === 'city' || currentUser.role === 'district' ? 'org-ledger-admin.html' : 'org-ledger-school.html'; }
   else if (id === 'staffing') { window.location.href = 'staffing-application.html'; }
@@ -425,6 +412,7 @@ function sidebarClick(el, id) {
   else if (id === 'ethics') { showToast('跳转至：师德师风举报'); }
   else if (id === 'account') { window.location.href = 'account-management.html'; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
 

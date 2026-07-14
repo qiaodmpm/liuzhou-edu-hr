@@ -370,6 +370,7 @@ body {
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 // ===== SVG ICONS =====
 var ICONS = {
@@ -415,7 +416,7 @@ var ROLES = {
       { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
       { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
       { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
-      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
+      { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }] }
     ] }
   },
   district: {
@@ -633,31 +634,15 @@ function switchRole(role) {
 }
 
 function renderSidebar() {
-  var roleData = ROLES[currentRole];
-  if (!roleData) { document.getElementById('sidebarMenu').innerHTML = ''; return; }
-  var sidebar = roleData.sidebar;
-  var html = '';
-  (sidebar.top || []).forEach(function(item) {
-    html += '<a class="menu-item' + (item.id === 'entry' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[item.icon] || '') + '<span class="menu-label">' + item.label + '</span></a>';
-  });
-  (sidebar.groups || []).forEach(function(group) {
-    html += '<div class="menu-group">' + group.name + '</div>';
-    group.items.forEach(function(item) {
-      html += '<a class="menu-item' + (item.id === 'entry' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + (ICONS[MENU_ICONS[item.id] || 'file']) + '<span class="menu-label">' + item.label + '</span>' + (item.badge ? '<span class="menu-badge">' + item.badge + '</span>' : '') + '</a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = html;
-  var btns = document.querySelectorAll('.role-switch-btn');
-  btns.forEach(function(b) { b.classList.toggle('active', b.dataset.role === currentRole); });
-  var nameEl = document.querySelector('.topnav-user span');
-  if (nameEl) nameEl.textContent = roleData.name;
-  var avatarEl = document.querySelector('.topnav-user .avatar');
-  if (avatarEl) avatarEl.textContent = roleData.short;
+  renderSidebarMenu('sidebarMenu', currentRole, 'entry');
+  var roleData = ROLES[currentRole]; if (!roleData) return;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
+  var n = document.querySelector('.topnav-user span'); if(n) n.textContent = roleData.name;
+  var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = roleData.short;
 }
-
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); }); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
   if (id === 'entry') {
@@ -685,6 +670,7 @@ function sidebarClick(el, id) {
 
 
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

@@ -51,17 +51,18 @@
         { id: 'org', label: '机构管理', icon: 'building', group: '系统设置', order: 2, route: 'org-management.html', status: 'active' },
         { id: 'menuMgr', label: '菜单管理', icon: 'file', group: '系统设置', order: 3, route: 'menu-management.html', status: 'active' },
         { id: 'perm', label: '角色权限', icon: 'key', group: '系统设置', order: 4, route: 'perm-management.html', status: 'active' },
-        { id: 'log', label: '操作日志', icon: 'list', group: '系统设置', order: 5, route: 'log-management.html', status: 'active' }
+        { id: 'log', label: '操作日志', icon: 'list', group: '系统设置', order: 5, route: 'log-management.html', status: 'active' },
+        { id: 'announcement', label: '公告管理', icon: 'file', group: '系统设置', order: 6, route: 'announcement-management.html', status: 'active' }
       ]
     };
   }
 
   // ===== 默认角色权限 =====
   var DEFAULT_ROLE_PERMS = {
-    system: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'menuMgr', 'perm', 'log'],
-    city: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'perm', 'log'],
-    district: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org'],
-    school: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'account', 'org'],
+    system: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'menuMgr', 'perm', 'log', 'announcement'],
+    city: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'perm', 'log', 'announcement'],
+    district: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'announcement'],
+    school: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'account', 'org', 'announcement'],
     teacher: []
   };
 
@@ -85,18 +86,31 @@
     return cfg;
   }
 
+  /** 迁移：补全公告管理菜单项（兼容旧版持久化配置） */
+  function ensureAnnouncementMenu(cfg) {
+    if (!cfg || !cfg.menus) return cfg;
+    var has = false;
+    for (var i = 0; i < cfg.menus.length; i++) {
+      if (cfg.menus[i].id === 'announcement') { has = true; break; }
+    }
+    if (!has) {
+      cfg.menus.push({ id: 'announcement', label: '公告管理', icon: 'file', group: '系统设置', order: 6, route: 'announcement-management.html', status: 'active' });
+    }
+    return cfg;
+  }
+
   /**
-   * 读取菜单配置（menu_config），不存在时返回默认；自动迁移补全编外教师管理
+   * 读取菜单配置（menu_config），不存在时返回默认；自动迁移补全编外教师管理与公告管理
    */
   function getMenuConfig() {
     try {
       var raw = localStorage.getItem('menu_config');
       if (raw) {
         var cfg = JSON.parse(raw);
-        if (cfg && cfg.menus && cfg.groupOrder) return ensureContractMenus(cfg);
+        if (cfg && cfg.menus && cfg.groupOrder) return ensureAnnouncementMenu(ensureContractMenus(cfg));
       }
     } catch (e) {}
-    return ensureContractMenus(getDefaultConfig());
+    return ensureAnnouncementMenu(ensureContractMenus(getDefaultConfig()));
   }
 
   /**
@@ -113,6 +127,14 @@
     return ids;
   }
 
+  /** 迁移：非教师角色补全公告管理菜单权限（兼容旧版持久化权限） */
+  function ensureAnnouncementPerm(role, ids) {
+    if (role !== 'teacher' && ids && ids.indexOf('announcement') === -1) {
+      ids.push('announcement');
+    }
+    return ids;
+  }
+
   function getRolePermittedMenuIds(role) {
     try {
       var raw = localStorage.getItem('role_permissions');
@@ -120,18 +142,18 @@
         var perms = JSON.parse(raw);
         // Direct match by role key (system, city, district, school, teacher)
         if (perms[role] && perms[role].permissions && Array.isArray(perms[role].permissions)) {
-          return ensureContractPerms(role, perms[role].permissions);
+          return ensureAnnouncementPerm(role, ensureContractPerms(role, perms[role].permissions));
         }
         // Fallback: try matching by label
         var labelMap = { '系统管理员':'system','市管理员':'city','区管理员':'district','校管理员':'school','教师':'teacher' };
         for (var key in perms) {
           if (perms[key].label && labelMap[perms[key].label] === role && perms[key].permissions) {
-            return ensureContractPerms(role, perms[key].permissions);
+            return ensureAnnouncementPerm(role, ensureContractPerms(role, perms[key].permissions));
           }
         }
       }
     } catch (e) {}
-    return ensureContractPerms(role, (DEFAULT_ROLE_PERMS[role] || []).slice());
+    return ensureAnnouncementPerm(role, ensureContractPerms(role, (DEFAULT_ROLE_PERMS[role] || []).slice()));
   }
 
   /**

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统公告发布入口 — 页面示意图</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Noto Sans SC', sans-serif; background:#F1F5F9; color:#1E293B; padding:30px; }
+  h1 { font-size:22px; margin-bottom:4px; }
+  .subtitle { color:#64748B; font-size:13px; margin-bottom:24px; }
+  h2 { font-size:16px; margin:36px 0 14px; padding-bottom:6px; border-bottom:1px solid #E2E8F0; }
+  h3 { font-size:13px; margin:6px 0 4px; color:#64748B; }
+
+  .scene-label { display:inline-block; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:500; margin-right:6px; }
+  .scene-label.a { background:#EFF6FF; color:#1E40AF; }
+  .scene-label.b { background:#FEF3C7; color:#92400E; }
+  .scene-label.c { background:#D1FAE5; color:#065F46; }
+  .scene-label.d { background:#FEE2E2; color:#991B1B; }
+
+  .scene-row { display:flex; gap:14px; margin-bottom:8px; }
+  .scene-card { flex:1; background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden; min-width:0; }
+  .scene-topbar { background:linear-gradient(135deg,#1E3A8A,#1E40AF); height:28px; display:flex; align-items:center; padding:0 10px; gap:5px; }
+  .scene-topbar .dot { width:7px; height:7px; border-radius:50%; }
+  .scene-topbar .dot.r { background:#EF4444; } .scene-topbar .dot.y { background:#F59E0B; } .scene-topbar .dot.g { background:#10B981; }
+  .scene-topbar .title { color:rgba(255,255,255,0.55); font-size:9px; margin-left:4px; }
+  .scene-body { padding:12px; }
+
+  /* Breadcrumb */
+  .breadcrumb { font-size:10px; color:#94A3B8; margin-bottom:8px; }
+  .breadcrumb span { color:#64748B; }
+
+  /* Page header */
+  .pg-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .pg-header .pg-title { font-size:15px; font-weight:700; }
+
+  /* Buttons */
+  .btn { display:inline-flex; align-items:center; gap:4px; padding:5px 14px; border-radius:5px; font-size:11px; font-weight:500; cursor:pointer; border:1px solid transparent; font-family:inherit; }
+  .btn-primary { background:#1E40AF; color:#fff; }
+  .btn-outline { background:#fff; color:#64748B; border-color:#E2E8F0; }
+  .btn-xs { padding:3px 8px; font-size:10px; border-radius:4px; cursor:pointer; border:1px solid transparent; font-family:inherit; }
+  .btn-xs-primary { background:#1E40AF; color:#fff; }
+  .btn-xs-outline { background:#fff; color:#64748B; border-color:#E2E8F0; }
+  .btn-xs-danger { background:#fff; color:#EF4444; border-color:#FEE2E2; }
+  .btn-xs-ghost { background:transparent; color:#94A3B8; border:none; }
+
+  /* Tabs */
+  .tabs { display:flex; gap:0; margin-bottom:10px; border-bottom:2px solid #E2E8F0; }
+  .tab { padding:5px 14px; font-size:11px; font-weight:500; cursor:pointer; color:#64748B; border-bottom:2px solid transparent; margin-bottom:-2px; background:none; border-top:none; border-left:none; border-right:none; font-family:inherit; }
+  .tab.active { color:#1E40AF; border-bottom-color:#1E40AF; }
+
+  /* Filter */
+  .filter-bar { display:flex; gap:6px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
+  .filter-bar select { padding:4px 8px; font-size:10px; border:1px solid #E2E8F0; border-radius:4px; font-family:inherit; }
+
+  /* Table */
+  table { width:100%; border-collapse:collapse; font-size:10px; }
+  th { padding:6px 8px; text-align:center; font-weight:600; font-size:10px; color:#64748B; background:#F8FAFC; border-bottom:1px solid #E2E8F0; }
+  td { padding:5px 8px; border-bottom:1px solid #F1F5F9; vertical-align:middle; text-align:center; font-size:10px; }
+  tr:hover td { background:#FAFBFC; }
+  .col-t { text-align:left; font-weight:500; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* Tags */
+  .tag { display:inline-block; padding:1px 7px; border-radius:10px; font-size:9px; font-weight:500; }
+  .tag-blue { background:#DBEAFE; color:#1E40AF; }
+  .tag-gray { background:#F1F5F9; color:#94A3B8; }
+  .tag-yellow { background:#FEF3C7; color:#92400E; }
+  .tag-green { background:#D1FAE5; color:#065F46; }
+
+  /* Scope tag */
+  .scope-tag { display:inline-block; padding:1px 6px; border-radius:3px; font-size:9px; font-weight:500; }
+  .scope-tag.all { background:#EFF6FF; color:#1E40AF; }
+  .scope-tag.city { background:#DBEAFE; color:#1E40AF; }
+  .scope-tag.district { background:#FEF3C7; color:#92400E; }
+  .scope-tag.school { background:#D1FAE5; color:#065F46; }
+
+  /* Pagination */
+  .pgn { display:flex; justify-content:center; gap:3px; padding:8px 0; }
+  .pgn button { width:22px; height:22px; border-radius:4px; border:1px solid #E2E8F0; background:#fff; font-size:9px; cursor:pointer; color:#64748B; font-family:inherit; }
+  .pgn button.active { background:#1E40AF; color:#fff; border-color:#1E40AF; font-weight:600; }
+
+  /* Modal */
+  .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:300; }
+  .modal { background:#fff; border-radius:12px; box-shadow:0 12px 48px rgba(0,0,0,0.15); width:560px; }
+  .modal-h { padding:14px 20px 0; display:flex; justify-content:space-between; align-items:center; }
+  .modal-h h3 { font-size:14px; font-weight:600; color:#1E293B; }
+  .modal-x { width:24px; height:24px; border-radius:4px; border:none; background:transparent; font-size:14px; cursor:pointer; color:#94A3B8; }
+  .modal-b { padding:14px 20px; }
+  .modal-f { padding:0 20px 14px; display:flex; gap:6px; justify-content:flex-end; }
+
+  /* Form */
+  .fg { display:flex; flex-direction:column; gap:3px; margin-bottom:8px; }
+  .fg label { font-size:10px; color:#64748B; font-weight:500; }
+  .fg input, .fg select, .fg textarea { padding:5px 8px; border:1px solid #E2E8F0; border-radius:4px; font-size:11px; font-family:inherit; }
+  .fg textarea { min-height:80px; resize:vertical; }
+  .fg .hint { font-size:9px; color:#94A3B8; }
+  .req { color:#EF4444; }
+
+  /* Announce list in workbench */
+  .ann-list { background:#fff; border-radius:8px; border:1px solid #E2E8F0; }
+  .ann-item { display:flex; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid #F1F5F9; font-size:10px; }
+  .ann-item:last-child { border-bottom:none; }
+  .ann-dot { width:6px; height:6px; border-radius:50%; background:#3B82F6; flex-shrink:0; }
+  .ann-title { flex:1; font-weight:500; }
+  .ann-meta { font-size:9px; color:#94A3B8; display:flex; gap:8px; }
+
+  .divider { height:1px; background:#E2E8F0; margin:6px 0; }
+  .anno { font-size:10px; color:#64748B; background:#F8FAFC; padding:6px 10px; border-radius:4px; margin-top:6px; border-left:2px solid #3B82F6; line-height:1.5; }
+  .anno.warn { border-left-color:#F59E0B; background:#FFFBEB; color:#92400E; }
+  .hl-box { border:2px dashed #3B82F6; border-radius:6px; padding:6px; position:relative; margin-top:4px; }
+  .hl-box::before { content:'★'; position:absolute; top:-10px; left:8px; background:#3B82F6; color:#fff; font-size:8px; padding:1px 5px; border-radius:3px; font-weight:600; }
+
+  .note { font-size:10px; color:#D97706; padding:6px 8px; background:#FFFBEB; border-radius:4px; border:1px solid #FDE68A; }
+
+  /* Section header */
+  .section-h { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .section-h .st { font-size:12px; font-weight:600; }
+  .section-h .sl { font-size:10px; color:#3B82F6; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<h1>系统公告发布入口 — 页面示意图</h1>
+<p class="subtitle">announcement-management.html（公告管理） + workbench.html 公告模块升级</p>
+
+<!-- ====== SCENE 1: 公告管理列表页 × 4 角色视角 ====== -->
+<h2>一、公告管理列表页 — 四个角色视角（可见范围差异）</h2>
+
+<div class="scene-row">
+  <!-- 系统管理员 -->
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">系统管理员 — 全平台公告可见 + 可操作全部</span></div>
+    <div class="scene-body">
+      <div class="breadcrumb">首页 &nbsp;/&nbsp; <span>公告管理</span></div>
+      <div class="pg-header">
+        <div><div class="pg-title">公告管理</div><div style="font-size:9px;color:#94A3B8;">可管理全平台所有公告</div></div>
+        <button class="btn btn-primary">+ 发布公告</button>
+      </div>
+      <div class="tabs"><button class="tab active">全部消息</button><button class="tab">生效中</button><button class="tab">定时待发</button><button class="tab">已过期</button></div>
+      <div class="filter-bar">
+        <select><option>全部可见范围</option><option>全平台</option><option>全市</option><option>本区</option><option>本校</option></select>
+      </div>
+      <table>
+        <thead><tr><th style="width:60px;">可见范围</th><th class="col-t">标题</th><th style="width:70px;">发布来源</th><th style="width:65px;">状态</th><th style="width:80px;">发布时间</th><th style="width:80px;">操作</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="scope-tag all">全平台</span></td>
+            <td class="col-t">平台系统升级维护通知</td>
+            <td>系统管理员</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-09</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag city">全市</span></td>
+            <td class="col-t">关于2026年度公开招聘岗位计划的通知</td>
+            <td>市教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-08</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag district">本区</span></td>
+            <td class="col-t">城中区教师岗位调整申报通知</td>
+            <td>城中区教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-07</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag school">本校</span></td>
+            <td class="col-t">柳江中学暑假值班安排</td>
+            <td>柳江中学</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-06</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+          <tr style="background:#FFFBEB;">
+            <td><span class="scope-tag city">全市</span></td>
+            <td class="col-t">关于2026年度公开招聘岗位计划的通知（定时）</td>
+            <td>市教育局</td>
+            <td><span class="tag tag-yellow">定时待发</span></td>
+            <td>2026-07-15 09:00</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pgn"><button>‹</button><button class="active">1</button><button>2</button><button>›</button><span style="font-size:9px;color:#94A3B8;margin-left:4px;">共 2 页</span></div>
+      <div class="anno">系统管理员可编辑/删除<strong>所有</strong>公告，可见范围筛选包含四种类型。黄色高亮行为「定时待发」公告，到达发布时间后自动变更为「生效中」。</div>
+    </div>
+  </div>
+</div>
+
+<div class="scene-row">
+  <!-- 市管理员 -->
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">市管理员 — 全市范围公告可见 + 仅操作自己发布的</span></div>
+    <div class="scene-body">
+      <div class="breadcrumb">首页 &nbsp;/&nbsp; <span>公告管理</span></div>
+      <div class="pg-header">
+        <div><div class="pg-title">公告管理</div><div style="font-size:9px;color:#94A3B8;">发布范围：全市 · 可管理自己发布的公告</div></div>
+        <button class="btn btn-primary">+ 发布公告</button>
+      </div>
+      <div class="filter-bar">
+        <select><option>全部可见范围</option><option>全平台</option><option>全市</option></select>
+      </div>
+      <table>
+        <thead><tr><th style="width:60px;">可见范围</th><th class="col-t">标题</th><th style="width:70px;">发布来源</th><th style="width:65px;">状态</th><th style="width:80px;">发布时间</th><th style="width:80px;">操作</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="scope-tag all">全平台</span></td>
+            <td class="col-t">平台系统升级维护通知</td>
+            <td>系统管理员</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-09</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag city">全市</span></td>
+            <td class="col-t">关于2026年度公开招聘岗位计划的通知</td>
+            <td>市教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-08</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag district">本区</span></td>
+            <td class="col-t">城中区教师岗位调整申报通知</td>
+            <td>城中区教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-07</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag school">本校</span></td>
+            <td class="col-t">柳江中学暑假值班安排</td>
+            <td>柳江中学</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-06</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="anno">市管理员可看到<strong>全平台 + 本市 + 本市区/校</strong>发布的公告。仅<strong>自己发布</strong>的公告显示操作按钮，他人公告显示「无权操作」。</div>
+    </div>
+  </div>
+</div>
+
+<div class="scene-row">
+  <!-- 区管理员 -->
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">区管理员（城中区） — 本区+上级公告可见</span></div>
+    <div class="scene-body">
+      <div class="breadcrumb">首页 &nbsp;/&nbsp; <span>公告管理</span></div>
+      <div class="pg-header">
+        <div><div class="pg-title">公告管理</div><div style="font-size:9px;color:#94A3B8;">发布范围：本区（城中区）· 可管理自己发布的公告</div></div>
+        <button class="btn btn-primary">+ 发布公告</button>
+      </div>
+      <table>
+        <thead><tr><th style="width:60px;">可见范围</th><th class="col-t">标题</th><th style="width:70px;">发布来源</th><th style="width:65px;">状态</th><th style="width:80px;">发布时间</th><th style="width:80px;">操作</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="scope-tag all">全平台</span></td>
+            <td class="col-t">平台系统升级维护通知</td>
+            <td>系统管理员</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-09</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag city">全市</span></td>
+            <td class="col-t">关于2026年度公开招聘岗位计划的通知</td>
+            <td>市教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-08</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+          <tr style="background:#FFFBEB;">
+            <td><span class="scope-tag district">本区</span></td>
+            <td class="col-t">城中区教师岗位调整申报通知</td>
+            <td>城中区教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-07</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag school">本校</span></td>
+            <td class="col-t">柳江中学暑假值班安排</td>
+            <td>柳江中学</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-06</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="anno">区管理员（城中区）可看到<strong>全平台 + 全市 + 本区 + 本区下各校</strong>的公告。仅自己发布的（黄色高亮行）可编辑删除。若区管理员属于"鱼峰区"，则看不到城中区的公告。</div>
+    </div>
+  </div>
+
+  <!-- 校管理员 -->
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">校管理员（柳江中学） — 本校+上级公告可见</span></div>
+    <div class="scene-body">
+      <div class="breadcrumb">首页 &nbsp;/&nbsp; <span>公告管理</span></div>
+      <div class="pg-header">
+        <div><div class="pg-title">公告管理</div><div style="font-size:9px;color:#94A3B8;">发布范围：本校（柳江中学）· 可管理自己发布的公告</div></div>
+        <button class="btn btn-primary">+ 发布公告</button>
+      </div>
+      <table>
+        <thead><tr><th style="width:60px;">可见范围</th><th class="col-t">标题</th><th style="width:70px;">发布来源</th><th style="width:65px;">状态</th><th style="width:80px;">发布时间</th><th style="width:80px;">操作</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="scope-tag all">全平台</span></td>
+            <td class="col-t">平台系统升级维护通知</td>
+            <td>系统管理员</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-09</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag city">全市</span></td>
+            <td class="col-t">关于2026年度公开招聘岗位计划的通知</td>
+            <td>市教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-08</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+          <tr>
+            <td><span class="scope-tag district">本区</span></td>
+            <td class="col-t">城中区教师岗位调整申报通知</td>
+            <td>城中区教育局</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-07</td>
+            <td><span class="tag tag-gray" style="font-size:9px;">无权操作</span></td>
+          </tr>
+          <tr style="background:#FFFBEB;">
+            <td><span class="scope-tag school">本校</span></td>
+            <td class="col-t">柳江中学暑假值班安排</td>
+            <td>柳江中学</td>
+            <td><span class="tag tag-green">生效中</span></td>
+            <td>2026-07-06</td>
+            <td><button class="btn-xs btn-xs-outline">编辑</button> <button class="btn-xs btn-xs-danger">删除</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="anno">校管理员可看到<strong>全平台 + 全市 + 本区 + 本校</strong>的公告。若学校属于鱼峰区，则看不到城中区的公告。仅自己发布的（黄色高亮行）可操作。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCENE 2: 发布公告弹框 — 富文本 + 附件 + 定时发布 ====== -->
+<h2>二、发布公告弹框 — 富文本编辑器 + 附件上传 + 定时发布</h2>
+
+<div class="scene-row">
+  <!-- 完整功能展示：系统管理员视角，定时发布已展开 -->
+  <div class="scene-card" style="flex:2;">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">发布公告弹框（完整功能展示 · 定时发布已展开）</span></div>
+    <div class="scene-body">
+      <div class="modal-overlay" style="position:static;background:none;">
+        <div class="modal" style="width:100%;max-width:680px;box-shadow:none;border:1px solid #E2E8F0;">
+          <div class="modal-h"><h3>发布公告</h3><button class="modal-x">✕</button></div>
+          <div class="modal-b">
+
+            <!-- 标题 -->
+            <div class="fg"><label>标题 <span class="req">*</span></label><input value="关于2026年度公开招聘岗位计划的通知" style="font-weight:500;"></div>
+
+            <!-- 正文：富文本编辑器 -->
+            <div class="fg">
+              <label>正文 <span class="req">*</span></label>
+              <!-- 富文本工具栏 -->
+              <div style="border:1px solid #E2E8F0;border-bottom:none;border-radius:4px 4px 0 0;background:#F8FAFC;padding:4px 8px;display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+                <select style="font-size:10px;padding:2px 4px;border:1px solid #E2E8F0;border-radius:3px;font-family:inherit;"><option>正文</option><option>标题1</option><option>标题2</option><option>标题3</option></select>
+                <span style="color:#E2E8F0;">|</span>
+                <button style="font-size:10px;font-weight:700;padding:2px 6px;border:1px solid #E2E8F0;border-radius:3px;background:#fff;cursor:pointer;font-family:inherit;" title="加粗">B</button>
+                <button style="font-size:10px;font-style:italic;padding:2px 6px;border:1px solid #E2E8F0;border-radius:3px;background:#fff;cursor:pointer;font-family:inherit;" title="斜体">I</button>
+                <button style="font-size:10px;text-decoration:underline;padding:2px 6px;border:1px solid #E2E8F0;border-radius:3px;background:#fff;cursor:pointer;font-family:inherit;" title="下划线">U</button>
+                <span style="color:#E2E8F0;">|</span>
+                <button style="font-size:10px;padding:2px 6px;border:1px solid #E2E8F0;border-radius:3px;background:#fff;cursor:pointer;font-family:inherit;" title="编号列表">≡ 列表</button>
+                <button style="font-size:10px;padding:2px 6px;border:1px solid #E2E8F0;border-radius:3px;background:#fff;cursor:pointer;font-family:inherit;" title="链接">🔗</button>
+                <span style="color:#E2E8F0;">|</span>
+                <button style="font-size:10px;padding:2px 6px;border:1px solid #E2E8F0;border-radius:3px;background:#fff;cursor:pointer;font-family:inherit;" title="字体颜色">A<span style="color:#EF4444;">▼</span></button>
+                <button style="font-size:10px;padding:2px 6px;border:1px solid #E2E8F0;border-radius:3px;background:#fff;cursor:pointer;font-family:inherit;" title="背景色"><span style="background:#FEF3C7;">A▼</span></button>
+              </div>
+              <!-- 编辑区 -->
+              <div style="border:1px solid #E2E8F0;border-radius:0 0 4px 4px;padding:8px 10px;min-height:100px;font-size:11px;line-height:1.7;">
+                <p style="margin:0;"><b>各区教育局、各市属学校：</b></p>
+                <p style="margin:4px 0 0;">现将2026年度公开招聘岗位计划通知如下：</p>
+                <ol style="margin:4px 0 0;padding-left:18px;">
+                  <li>本次招聘计划共设岗位 <b style="color:#1E40AF;">1,200</b> 个，其中事业编 <b style="color:#1E40AF;">800</b> 个、控制数 <b style="color:#1E40AF;">400</b> 个。</li>
+                  <li>各校请于<span style="background:#FEF3C7;">2026年7月31日前</span>提交岗位需求申报表。</li>
+                  <li>详细岗位信息参见附件《2026年度公开招聘岗位一览表》。</li>
+                </ol>
+              </div>
+            </div>
+
+            <!-- 附件上传 -->
+            <div class="fg">
+              <label>附件</label>
+              <div style="border:2px dashed #E2E8F0;border-radius:6px;padding:10px 14px;background:#FAFBFC;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <button style="font-size:10px;padding:4px 12px;border:1px solid #3B82F6;border-radius:4px;background:#EFF6FF;color:#1E40AF;cursor:pointer;font-family:inherit;">📎 选择文件</button>
+                  <span style="font-size:10px;color:#94A3B8;">支持 PDF、Word、Excel、图片、压缩包（ZIP/RAR/7Z），单文件 ≤ 20MB，最多 5 个</span>
+                </div>
+                <!-- 已上传文件列表 -->
+                <div style="background:#fff;border:1px solid #E2E8F0;border-radius:4px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;font-size:10px;border-bottom:1px solid #F1F5F9;">
+                    <span>📄 2026年度公开招聘岗位一览表.xlsx</span>
+                    <span style="display:flex;gap:8px;align-items:center;">
+                      <span style="color:#94A3B8;">2.3 MB</span>
+                      <button style="border:none;background:none;color:#EF4444;cursor:pointer;font-size:12px;font-family:inherit;" title="删除">✕</button>
+                    </span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;font-size:10px;border-bottom:1px solid #F1F5F9;">
+                    <span>📄 岗位申报表模板.docx</span>
+                    <span style="display:flex;gap:8px;align-items:center;">
+                      <span style="color:#94A3B8;">1.1 MB</span>
+                      <button style="border:none;background:none;color:#EF4444;cursor:pointer;font-size:12px;font-family:inherit;" title="删除">✕</button>
+                    </span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;font-size:10px;">
+                    <span>🗜 岗位申报相关材料.zip</span>
+                    <span style="display:flex;gap:8px;align-items:center;">
+                      <span style="color:#94A3B8;">18.5 MB</span>
+                      <button style="border:none;background:none;color:#EF4444;cursor:pointer;font-size:12px;font-family:inherit;" title="删除">✕</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+              <div class="fg" style="flex:1;"><label>可见范围</label><input value="全市（柳州市所有人可见）" disabled style="background:#F8FAFC;color:#94A3B8;"></div>
+              <div class="fg" style="flex:1;"><label>发布来源</label><input value="市教育局" disabled style="background:#F8FAFC;color:#94A3B8;"></div>
+            </div>
+
+            <!-- 生效时间：定时发布已展开 -->
+            <div class="fg">
+              <label>生效时间</label>
+              <select style="margin-bottom:4px;"><option>立即生效</option><option selected>定时发布</option></select>
+              <div class="hl-box" style="border-color:#F59E0B;">
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span style="font-size:10px;color:#64748B;">发布日期</span>
+                    <input type="date" value="2026-07-15" style="font-size:10px;padding:3px 6px;border:1px solid #E2E8F0;border-radius:4px;font-family:inherit;width:120px;">
+                  </div>
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span style="font-size:10px;color:#64748B;">发布时间</span>
+                    <input type="time" value="09:00" style="font-size:10px;padding:3px 6px;border:1px solid #E2E8F0;border-radius:4px;font-family:inherit;width:100px;">
+                  </div>
+                </div>
+                <div style="font-size:9px;color:#94A3B8;margin-top:4px;">公告将于 <b style="color:#92400E;">2026-07-15 09:00</b> 自动发布，届时状态由「定时待发」变更为「生效中」。</div>
+              </div>
+            </div>
+
+            <div class="fg">
+              <label>置顶</label>
+              <select><option>否</option><option selected>是</option></select>
+            </div>
+            <div class="hint">※ 截止时间默认为发布日期 + 30 天（2026-08-14），到期自动标记为「已过期」。</div>
+          </div>
+          <div class="modal-f"><button class="btn btn-outline">取消</button><button class="btn btn-primary">确认发布</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 四角色的关键差异：可见范围 + 定时发布简述 -->
+<div class="scene-row">
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title"><span class="scene-label a">系统管理员</span> 可见范围 = 全平台</span></div>
+    <div class="scene-body">
+      <table style="font-size:10px;">
+        <tr><td style="color:#64748B;width:60px;">可见范围</td><td><span class="scope-tag all">全平台</span> 所有人可见，不可更改</td></tr>
+        <tr><td style="color:#64748B;">发布来源</td><td>系统管理员</td></tr>
+        <tr><td style="color:#64748B;">生效时间</td><td>可选择「立即生效」或「定时发布」</td></tr>
+        <tr><td style="color:#64748B;">定时发布</td><td>指定日期+时间，到期自动上线</td></tr>
+        <tr><td style="color:#64748B;">置顶</td><td>可置顶（工作台公告区优先展示）</td></tr>
+        <tr><td style="color:#64748B;">附件</td><td>支持上传（PDF/Word/Excel/图片/压缩包，≤20MB，最多5个）</td></tr>
+        <tr><td style="color:#64748B;">正文</td><td>富文本编辑器（加粗/斜体/列表/链接/颜色）</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title"><span class="scene-label b">市管理员</span> 可见范围 = 全市</span></div>
+    <div class="scene-body">
+      <table style="font-size:10px;">
+        <tr><td style="color:#64748B;width:60px;">可见范围</td><td><span class="scope-tag city">全市</span> 柳州市所有人可见，不可更改</td></tr>
+        <tr><td style="color:#64748B;">发布来源</td><td>市教育局</td></tr>
+        <tr><td style="color:#64748B;">生效时间</td><td>可选择「立即生效」或「定时发布」</td></tr>
+        <tr><td style="color:#64748B;">定时发布</td><td>指定日期+时间，到期自动上线</td></tr>
+        <tr><td style="color:#64748B;">置顶</td><td>可置顶（仅工作台公告区本层级内优先）</td></tr>
+        <tr><td style="color:#64748B;">附件</td><td>支持上传（PDF/Word/Excel/图片/压缩包，≤20MB，最多5个）</td></tr>
+        <tr><td style="color:#64748B;">正文</td><td>富文本编辑器（同系统管理员）</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title"><span class="scene-label c">区管理员</span> 可见范围 = 本区</span></div>
+    <div class="scene-body">
+      <table style="font-size:10px;">
+        <tr><td style="color:#64748B;width:60px;">可见范围</td><td><span class="scope-tag district">本区</span> 仅本区下各校可见，不可更改</td></tr>
+        <tr><td style="color:#64748B;">发布来源</td><td>城中区教育局</td></tr>
+        <tr><td style="color:#64748B;">生效时间</td><td>可选择「立即生效」或「定时发布」</td></tr>
+        <tr><td style="color:#64748B;">定时发布</td><td>指定日期+时间，到期自动上线</td></tr>
+        <tr><td style="color:#64748B;">置顶</td><td>可置顶（仅本区范围内优先）</td></tr>
+        <tr><td style="color:#64748B;">附件</td><td>支持上传（PDF/Word/Excel/图片/压缩包，≤20MB，最多5个）</td></tr>
+        <tr><td style="color:#64748B;">正文</td><td>富文本编辑器（同系统管理员）</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title"><span class="scene-label d">校管理员</span> 可见范围 = 本校</span></div>
+    <div class="scene-body">
+      <table style="font-size:10px;">
+        <tr><td style="color:#64748B;width:60px;">可见范围</td><td><span class="scope-tag school">本校</span> 仅本校用户可见，不可更改</td></tr>
+        <tr><td style="color:#64748B;">发布来源</td><td>柳江中学</td></tr>
+        <tr><td style="color:#64748B;">生效时间</td><td>可选择「立即生效」或「定时发布」</td></tr>
+        <tr><td style="color:#64748B;">定时发布</td><td>指定日期+时间，到期自动上线</td></tr>
+        <tr><td style="color:#64748B;">置顶</td><td>可置顶（仅本校范围内优先）</td></tr>
+        <tr><td style="color:#64748B;">附件</td><td>支持上传（PDF/Word/Excel/图片/压缩包，≤20MB，最多5个）</td></tr>
+        <tr><td style="color:#64748B;">正文</td><td>富文本编辑器（同系统管理员）</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCENE 3: 工作台公告模块 ====== -->
+<h2>三、工作台系统公告模块 — 升级前后对比</h2>
+
+<div class="scene-row">
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">升级前 — 硬编码 demo 数据 + 链接无跳转</span></div>
+    <div class="scene-body">
+      <div class="section-h"><span class="st">系统公告</span><a class="sl" href="#">查看全部 →</a></div>
+      <div class="ann-list">
+        <div class="ann-item"><span class="ann-dot"></span><span class="ann-title">关于2026年度公开招聘岗位计划的通知</span><span class="ann-meta"><span>2026-05-12</span><span>市教育局</span></span></div>
+        <div class="ann-item"><span class="ann-dot"></span><span class="ann-title">关于做好2026年6月退休教师呈报的通知</span><span class="ann-meta"><span>2026-05-10</span><span>市教育局</span></span></div>
+        <div class="ann-item"><span style="width:6px;flex-shrink:0;"></span><span class="ann-title">系统将于5月16日进行升级维护通知</span><span class="ann-meta"><span>2026-05-08</span><span>系统管理员</span></span></div>
+        <div class="ann-item"><span style="width:6px;flex-shrink:0;"></span><span class="ann-title">关于调整岗位设置比例的通知</span><span class="ann-meta"><span>2026-05-05</span><span>市教育局</span></span></div>
+        <div class="ann-item"><span style="width:6px;flex-shrink:0;"></span><span class="ann-title">2026年度优秀教师评选启动通知</span><span class="ann-meta"><span>2026-04-28</span><span>市教育局</span></span></div>
+      </div>
+      <div class="anno warn" style="margin-top:8px;">❌ 数据写死在 JS 中，所有角色看到相同内容<br>❌ "查看全部 →"仅弹出 toast<br>❌ 点击公告仅弹出 toast</div>
+    </div>
+  </div>
+
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">升级后 — 按可见范围过滤 + 可跳转详情/列表</span></div>
+    <div class="scene-body">
+      <div class="section-h"><span class="st">系统公告</span><a class="sl" href="#" style="cursor:pointer;">查看全部 →</a></div>
+      <div class="ann-list">
+        <div class="ann-item">
+          <span class="ann-dot"></span>
+          <span class="ann-title">平台系统升级维护通知</span>
+          <span class="tag tag-green" style="margin-right:4px;">新</span>
+          <span class="ann-meta"><span>2026-07-09</span><span>系统管理员</span><span class="scope-tag all">全平台</span></span>
+        </div>
+        <div class="ann-item">
+          <span class="ann-dot"></span>
+          <span class="ann-title">关于2026年度公开招聘岗位计划的通知</span>
+          <span class="tag tag-green" style="margin-right:4px;">新</span>
+          <span class="ann-meta"><span>2026-07-08</span><span>市教育局</span><span class="scope-tag city">全市</span></span>
+        </div>
+        <div class="ann-item">
+          <span style="width:6px;flex-shrink:0;"></span>
+          <span class="ann-title">城中区教师岗位调整申报通知</span>
+          <span class="ann-meta"><span>2026-07-07</span><span>城中区教育局</span><span class="scope-tag district">本区</span></span>
+        </div>
+        <div class="ann-item">
+          <span style="width:6px;flex-shrink:0;"></span>
+          <span class="ann-title">柳江中学暑假值班安排</span>
+          <span class="ann-meta"><span>2026-07-06</span><span>柳江中学</span><span class="scope-tag school">本校</span></span>
+        </div>
+        <div class="ann-item">
+          <span style="width:6px;flex-shrink:0;"></span>
+          <span class="ann-title">关于调整岗位设置比例的通知</span>
+          <span class="tag tag-gray">已过期</span>
+          <span class="ann-meta"><span>2026-05-05</span><span>市教育局</span></span>
+        </div>
+      </div>
+      <div class="anno" style="margin-top:8px;">✅ 数据从 localStorage 读取，按可见范围过滤<br>✅ "查看全部 →"跳转 announcement-management.html<br>✅ 点击公告跳转 announcement-detail.html<br>✅ 蓝点标记未读，生效中显示「新」标签，已过期显示灰色标签</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCENE 4: 可见范围总览 ====== -->
+<h2>四、可见范围规则总览</h2>
+
+<div class="scene-row">
+  <div class="scene-card" style="flex:2;">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">发布者 → 可见范围（向下包容）</span></div>
+    <div class="scene-body">
+      <table>
+        <thead><tr><th>发布者角色</th><th>示例</th><th>可见范围</th><th>谁能看到这条公告</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:600;">系统管理员</td><td>赵建国</td><td><span class="scope-tag all">全平台</span></td><td style="font-size:9px;">所有人（市/区/校管理员 + 教师）</td></tr>
+          <tr><td style="font-weight:600;">市管理员</td><td>张建国</td><td><span class="scope-tag city">全市</span></td><td style="font-size:9px;">柳州市下所有区/校用户 + 系统管理员</td></tr>
+          <tr><td style="font-weight:600;">区管理员</td><td>李振华（城中区）</td><td><span class="scope-tag district">本区</span></td><td style="font-size:9px;">城中区下所有校用户 + 市管理员 + 系统管理员</td></tr>
+          <tr><td style="font-weight:600;">校管理员</td><td>王玉兰（柳江中学）</td><td><span class="scope-tag school">本校</span></td><td style="font-size:9px;">柳江中学用户 + 城中区管理员 + 市管理员 + 系统管理员</td></tr>
+          <tr><td style="font-weight:600;color:#EF4444;">教师</td><td>陈明辉</td><td style="color:#EF4444;">—</td><td style="font-size:9px;color:#EF4444;">无发布权限，仅查看</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p style="text-align:center;margin-top:32px;color:#94A3B8;font-size:11px;">— 示意图完 · 待确认后实施 —</p>
+
+</body>
+</html>

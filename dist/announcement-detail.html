@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公告详情 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ===== TOP NAV ===== */
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+/* ===== SIDEBAR ===== */
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); margin-top: auto; }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.system { background: #EF4444; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
+/* ===== MAIN ===== */
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+
+/* Back button */
+.back-row { margin-bottom: 16px; }
+.btn-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px; color: var(--text-secondary); background: #fff; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); }
+.btn-back:hover { color: var(--primary); border-color: var(--primary); }
+
+/* Cards */
+.card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 20px; overflow: hidden; }
+.card-header { padding: 14px 20px; font-size: 14px; font-weight: 600; color: var(--text); background: #FAFBFC; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.card-body { padding: 20px; }
+
+/* Info grid */
+.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.info-item { display: flex; flex-direction: column; gap: 4px; }
+.info-item label { font-size: 11px; color: var(--text-light); font-weight: 500; }
+.info-item .info-value { font-size: 13px; color: var(--text); font-weight: 500; }
+
+/* Status stamp */
+.status-stamp { display: inline-block; padding: 4px 12px; border: 2px solid; font-weight: 700; font-size: 12px; background: #fff; }
+.status-stamp.active { color: #10B981; border-color: #10B981; }
+.status-stamp.scheduled { color: #F59E0B; border-color: #F59E0B; }
+.status-stamp.expired { color: #94A3B8; border-color: #94A3B8; }
+
+/* Page header for detail */
+.detail-page-header { margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.detail-page-header .header-left { flex: 1; min-width: 0; }
+.detail-page-header .header-left h1 { font-size: 22px; font-weight: 700; line-height: 1.4; }
+.detail-page-header .header-left .detail-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.detail-page-header .header-left .detail-subtitle .sep { color: var(--border); }
+.detail-page-header .header-right { flex-shrink: 0; }
+
+/* Scope tag */
+.scope-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 500; }
+.scope-tag.all { background: #EFF6FF; color: #1E40AF; }
+.scope-tag.city { background: #DBEAFE; color: #1E40AF; }
+.scope-tag.district { background: #FEF3C7; color: #92400E; }
+.scope-tag.school { background: #D1FAE5; color: #065F46; }
+
+/* Content area */
+.content-card .card-body { font-size: 14px; line-height: 1.8; color: var(--text); }
+.content-card .card-body p { margin-bottom: 12px; }
+.content-card .card-body ol, .content-card .card-body ul { padding-left: 24px; margin-bottom: 12px; }
+.content-card .card-body li { margin-bottom: 4px; }
+
+/* Attachments */
+.attach-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; transition: var(--transition); font-size: 13px; }
+.attach-item:hover { background: var(--gray-bg); }
+.attach-icon { font-size: 18px; }
+.attach-name { flex: 1; font-weight: 500; }
+.attach-size { color: var(--text-light); font-size: 12px; }
+.attach-download { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-size: 11px; font-weight: 500; color: var(--primary); background: var(--primary-light); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; font-family: inherit; transition: var(--transition); text-decoration: none; white-space: nowrap; }
+.attach-download:hover { background: #DBEAFE; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+
+/* Toast */
+.toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; font-weight: 500; opacity: 0; transform: translateY(-10px); transition: var(--transition); pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.warning { background: var(--warning); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text-light); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 13px; }
+
+@media (max-width: 768px) {
+  .main { margin-left: 0; padding: 16px; }
+  .sidebar { display: none; }
+  .info-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP NAVBAR ===== -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="20" width="8" height="22" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="14" y="14" width="8" height="28" rx="2" fill="rgba(255,255,255,0.85)"/><rect x="24" y="6" width="8" height="36" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="34" y="10" width="8" height="32" rx="2" fill="rgba(255,255,255,0.75)"/><circle cx="38" cy="10" r="6" fill="#fff" opacity="0.5"/><path d="M36.5 8.5L39.5 11.5L42 8" stroke="#1E40AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell" onclick="showToast('消息通知请前往工作台查看','warning')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">管</div>
+      <span id="userName">管理员</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="personal-center.html">个人中心</a>
+        <div class="divider"></div>
+        <a class="logout" href="index.html" onclick="localStorage.clear()">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher" id="roleSwitcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="system" onclick="switchRole('system')"><span class="role-switch-dot system"></span><span class="role-switcher-name">系统管理员</span><span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">赵建国</span></button>
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span><span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">张建国</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span><span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">李振华</span></button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span><span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">王玉兰</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教 师</span><span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">陈明辉</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      <span class="menu-label">收起菜单</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp;
+    <a href="announcement-management.html">公告管理</a> &nbsp;/&nbsp;
+    <span>公告详情</span>
+  </div>
+
+  <div class="back-row">
+    <button class="btn-back" onclick="history.back()">← 返回</button>
+  </div>
+
+  <div id="mainContent"></div>
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="src/menu-config.js"></script>
+<script src="src/logger.js"></script>
+<script>
+// ========== ERROR HANDLER ==========
+window.onerror = function(msg, url, line) {
+  var el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#FEE2E2;color:#991B1B;padding:8px 16px;font-size:12px;z-index:99999;';
+  el.textContent = '公告详情页 — 错误: ' + msg + ' @ ' + (url || '').split('/').pop() + ':' + line;
+  document.body.appendChild(el);
+  return false;
+};
+
+// ========== INIT ==========
+var currentUser = null;
+try { var raw = localStorage.getItem('currentUser'); if (raw) currentUser = JSON.parse(raw); } catch(e) {}
+if (!currentUser) { location.href = 'index.html'; }
+
+var userName = currentUser.name || '管理员';
+var currentRole = currentUser.role || 'city';
+
+document.getElementById('userName').textContent = userName;
+document.getElementById('userAvatar').textContent = userName.charAt(0);
+
+// Highlight active role
+(function() {
+  var btns = document.querySelectorAll('.role-switch-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.toggle('active', btns[i].getAttribute('data-role') === currentRole);
+  }
+})();
+
+// ========== SIDEBAR ==========
+renderSidebarMenu('sidebarMenu', currentRole, 'announcement');
+
+function sidebarClick(id) {
+  var ROUTES = { workbench: 'workbench.html', staffing: 'staffing-application.html', entry: 'entry-list-school.html', exit: 'exit-list-school.html', postset: 'post-list-school.html', promote: 'promote-list-school.html', recruit: 'recruit-list-school.html', employ: 'employ-list-school.html', 'contract-entry': 'contract-entry-list-school.html', 'contract-exit': 'contract-exit-list-school.html', retire: 'retire-list-school.html', ethics: 'ethics-list-school.html', ledger: 'org-ledger-admin.html', account: 'account-management.html', org: 'org-management.html', menuMgr: 'menu-management.html', perm: 'perm-management.html', log: 'log-management.html', announcement: 'announcement-management.html' };
+  var dest = ROUTES[id];
+  if (dest) { window.location.href = dest; }
+
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+}
+
+function switchRole(role) {
+  var roleData = { system: { name: '赵建国', id: '13807720000' }, city: { name: '张建国', id: '13807720001' }, district: { name: '李振华', id: '13807720002' }, school: { name: '王玉兰', id: '13807720003' }, teacher: { name: '陈明辉', id: '13807720004' } };
+  var data = roleData[role];
+  if (data) { localStorage.setItem('currentUser', JSON.stringify({ role: role, name: data.name, id: data.id })); }
+  window.location.reload();
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
+
+// ========== DATA HELPERS ==========
+function getAnnouncements() {
+  try { var raw = localStorage.getItem('announcements'); return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
+}
+
+function getQueryParam(name) {
+  var m = location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+var SCOPE_LABELS = { system: '全平台', city: '全市', district: '本区', school: '本校' };
+var SCOPE_CLASS = { system: 'all', city: 'city', district: 'district', school: 'school' };
+var STATUS_LABELS = { active: '生效中', scheduled: '定时待发', expired: '已过期' };
+var STATUS_CLASS = { active: 'active', scheduled: 'scheduled', expired: 'expired' };
+
+// ========== LOAD DETAIL ==========
+var annId = getQueryParam('id');
+var all = getAnnouncements();
+var ann = null;
+for (var i = 0; i < all.length; i++) { if (all[i].id === annId) { ann = all[i]; break; } }
+
+// 定时待发公告仅发布人和系统管理员可查看详情
+if (ann && ann.status === 'scheduled' && currentRole !== 'system' && ann.publisherId !== (currentUser.id || currentUser.uid)) {
+  ann = null;
+}
+
+if (!ann) {
+  document.getElementById('mainContent').innerHTML =
+    '<div class="empty-state">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+    '<p>公告不存在或无权查看</p>' +
+    '<a href="announcement-management.html" style="color:var(--primary);font-size:13px;">返回公告列表 →</a>' +
+    '</div>';
+} else {
+  var scopeLabel = SCOPE_LABELS[ann.scope] || ann.scope;
+  var scopeCls = SCOPE_CLASS[ann.scope] || 'city';
+  var statusLabel = STATUS_LABELS[ann.status] || ann.status;
+  var statusCls = STATUS_CLASS[ann.status] || 'active';
+  var timeStr = ann.publishTime || '';
+
+  // ===== PAGE HEADER =====
+  var pinnedBadge = ann.isPinned ? ' 📌' : '';
+  var html = '<div class="detail-page-header">';
+  html += '<div class="header-left">';
+  html += '<h1>' + escapeHtml(ann.title) + pinnedBadge + '</h1>';
+  html += '<div class="detail-subtitle">';
+  html += '<span><span class="scope-tag ' + scopeCls + '">' + scopeLabel + '</span></span>';
+  html += '<span class="sep">|</span>';
+  html += '<span>发布来源：' + escapeHtml(ann.source || '') + '</span>';
+  html += '<span class="sep">|</span>';
+  html += '<span>发布人：' + escapeHtml(ann.publisherName || '') + '</span>';
+  html += '<span class="sep">|</span>';
+  html += '<span>发布时间：' + timeStr + '</span>';
+  html += '<span class="sep">|</span>';
+  html += '<span>截止时间：' + (ann.expireTime || '—') + '</span>';
+  html += '</div></div>';
+  html += '<div class="header-right"><span class="status-stamp ' + statusCls + '">' + statusLabel + '</span></div>';
+  html += '</div>';
+
+  // ===== CARD 2: 正文 =====
+  html += '<div class="card content-card">';
+  html += '<div class="card-header">📄 公告正文</div>';
+  html += '<div class="card-body">' + (ann.content || '<p style="color:var(--text-light);">（无正文内容）</p>') + '</div>';
+  html += '</div>';
+
+  // ===== CARD 3: 附件（如有）=====
+  if (ann.attachments && ann.attachments.length > 0) {
+    html += '<div class="card">';
+    html += '<div class="card-header">📎 附件（' + ann.attachments.length + ' 个）</div>';
+    html += '<div class="card-body">';
+    for (var j = 0; j < ann.attachments.length; j++) {
+      var att = ann.attachments[j];
+      var icon = att.name.match(/\.(zip|rar|7z)$/i) ? '🗜' : '📄';
+      var downloadAttr = att.dataUrl ? ' href="' + att.dataUrl + '" download="' + escapeHtml(att.name) + '"' : ' href="#" onclick="event.preventDefault();showToast(\'Demo模式暂不支持下载\',\'warning\');"';
+      html += '<div class="attach-item"><span class="attach-icon">' + icon + '</span><span class="attach-name">' + escapeHtml(att.name) + '</span><span class="attach-size">' + (att.size || '') + '</span><a class="attach-download" ' + downloadAttr + '>⬇ 下载</a></div>';
+    }
+    html += '</div></div>';
+  }
+
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(msg, type) {
+  type = type || 'success';
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(function() { t.className = 'toast ' + type; }, 2200);
+}
+</script>
+
+</body>
+</html>

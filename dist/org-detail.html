@@ -1,0 +1,2683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>机构详情 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; background: #fff; color: var(--text-secondary); border: 1px solid var(--border); cursor: pointer; font-family: inherit; }
+.btn-outline:hover { background: var(--gray-bg); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-danger { background: var(--danger); color: #fff; border: none; }
+.btn-danger:hover { background: #DC2626; }
+.btn-success { background: var(--success); color: #fff; border: none; }
+.btn-success:hover { background: #059669; }
+.btn-warning { background: var(--warning); color: #fff; border: none; }
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.status-badge.pending { background: #FEF3C7; color: #D97706; }
+.status-badge.active { background: #D1FAE5; color: #059669; }
+.status-badge.none { background: #F1F5F9; color: #94A3B8; }
+.alert { padding: 12px 16px; border-radius: var(--radius); margin-bottom: 16px; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; }
+.alert-info { background: var(--primary-light); color: var(--primary); border: 1px solid #DBEAFE; }
+.form-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 24px; margin-bottom: 20px; }
+.form-card h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.form-card h2 .card-icon { width: 28px; height: 28px; background: var(--primary-light); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.form-card h3 { font-size: 13px; font-weight: 600; color: var(--primary); margin: 16px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+.form-group label .req { color: var(--danger); }
+.form-group input, .form-group select { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.form-group input:read-only, .form-group select:disabled { background: #F8FAFC; color: var(--text-secondary); }
+.form-row { display: flex; gap: 16px; }
+.form-row .form-group { flex: 1; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+/* 3 列布局 — 对齐岗位设置申请表机构基本信息 */
+.form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.form-grid-3 .form-group { display: flex; flex-direction: column; }
+.form-grid-3 .form-group.full-width { grid-column: 1 / -1; }
+.form-grid-3 label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.form-grid-3 input[readonly],
+.form-grid-3 .field-value { font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 12px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border); width: 100%; }
+.form-grid-3 input[readonly] { background: #F8FAFC; color: var(--text-secondary); }
+
+/* 角标图标 */
+.bf-tip-icon { display: inline-block; width: 14px; height: 14px; line-height: 14px; text-align: center; border-radius: 50%; background: #DBEAFE; color: #1E40AF; font-size: 9px; cursor: pointer; margin-left: 2px; font-style: normal; vertical-align: middle; }
+.bf-tip-icon:hover { background: #BFDBFE; }
+.bf-tooltip-popup { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 16px; width: 300px; font-size: 12px; line-height: 1.7; color: var(--text); }
+.bf-tooltip-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.bf-tooltip-body { color: var(--text-secondary); }
+.form-group.span-full { grid-column: 1 / -1; }
+.field-value { padding: 8px 12px; font-size: 13px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border); min-height: 36px; line-height: 1.5; word-break: break-all; }
+.field-value.empty { color: var(--text-light); font-style: italic; }
+.info-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.info-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.info-table td:first-child { color: var(--text-secondary); width: 140px; font-size: 12px; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+.modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { cursor: pointer; color: var(--text-light); font-size: 20px; padding: 4px; border: none; background: none; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.modal-body .form-group { margin-bottom: 16px; }
+.modal-body .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+.modal-body .form-group textarea { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; outline: none; resize: vertical; }
+.modal-body .form-group textarea:focus { border-color: var(--accent); }
+.modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+.toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; font-weight: 500; opacity: 0; transform: translateY(-10px); transition: var(--transition); pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.warning { background: var(--warning); }
+/* Personnel list modal */
+.personnel-summary { background: var(--primary-light); padding: 10px 16px; border-radius: 6px; margin-bottom: 14px; font-size: 13px; color: var(--primary-dark); display: flex; gap: 16px; flex-wrap: wrap; }
+.personnel-summary span { white-space: nowrap; }
+.personnel-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.personnel-table th { background: #F8FAFC; padding: 8px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); border-bottom: 2px solid var(--border); white-space: nowrap; }
+.personnel-table th:first-child { text-align: left; }
+.personnel-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: center; }
+.personnel-table td:first-child { text-align: left; font-weight: 500; }
+.personnel-table tbody tr:hover { background: #FAFBFC; }
+
+/* Cross-school tags */
+.tag-cs { display:inline-flex; align-items:center; gap:3px; font-size:10px; padding:1px 7px; border-radius:3px; white-space:nowrap; font-weight:500; }
+.tag-secondment { background: #FEF3C7; color: #92400E; }
+.tag-support { background: #DBEAFE; color: #1E40AF; }
+.tag-rotation { background: #D1FAE5; color: #065F46; }
+.personnel-empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 13px; }
+.post-level-link { color: var(--accent); font-weight: 600; text-decoration: underline; cursor: pointer; }
+.post-level-link:hover { color: var(--primary); }
+.post-level-zero { color: var(--text-light); }
+.personnel-section-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); padding: 8px 0 4px; margin-top: 8px; border-top: 1px solid var(--border); }
+.personnel-section-title:first-child { border-top: none; margin-top: 0; }
+.personnel-warn { background: #FFFBEB; border: 1px solid #FDE68A; padding: 10px 16px; border-radius: 6px; margin: 8px 0; font-size: 12px; color: #92400E; }
+.personnel-warn a { color: var(--accent); cursor: pointer; }
+.personnel-summary.match { background: #ECFDF5; color: #065F46; }
+.personnel-summary.gap { background: #FFFBEB; color: #92400E; }
+.personnel-summary.excess { background: #FEF2F2; color: #991B1B; }
+.personnel-excess-warn { background: #FEF2F2; border: 1px solid #FECACA; padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: #991B1B; }
+.personnel-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 14px; }
+.personnel-tab { padding: 8px 20px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition); white-space: nowrap; }
+.personnel-tab:hover { color: var(--primary); }
+.personnel-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.personnel-tab .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 4px; }
+.personnel-tab .badge.warn { background: #FEF3C7; color: #92400E; }
+.personnel-tab-panel { display: none; }
+.personnel-tab-panel.active { display: block; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; }
+.pagination button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-secondary); transition: var(--transition); }
+.pagination button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+.pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+.pagination .page-info { font-size: 12px; color: var(--text-light); margin: 0 8px; }
+.personnel-load-more { text-align: center; padding: 8px 0; }
+.personnel-load-more button { font-size: 12px; padding: 4px 16px; cursor: pointer; color: var(--accent); background: #fff; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; }
+.personnel-load-more button:hover { background: var(--primary-light); }
+.toast.error { background: var(--danger); }
+/* Submit bar */
+.submit-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; gap: 12px; }
+/* Fieldset */
+fieldset { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+legend { font-size: 13px; font-weight: 600; color: var(--primary); padding: 0 8px; }
+/* Section title */
+.section-title { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+/* Table number input */
+.table-input-num { width: 80px; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; text-align: center; }
+.table-input-num:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+/* Page header layout */
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.page-header-left h1 { font-size: 20px; font-weight: 700; }
+.page-header-left .subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.page-header-right { display: flex; gap: 8px; align-items: center; }
+/* Two-column layout for edit/view with history sidebar */
+.detail-layout { display: flex; gap: 24px; align-items: flex-start; }
+.detail-main { flex: 1; min-width: 0; }
+.detail-side { width: 320px; flex-shrink: 0; }
+.side-history { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: sticky; top: 76px; }
+.side-history h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.timeline { position: relative; padding-left: 20px; }
+.timeline::before { content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+.timeline-item { position: relative; padding-bottom: 16px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item::before { content: ''; position: absolute; left: -17px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.timeline-item.edit::before { background: var(--accent); }
+.timeline-item.approve::before { background: var(--success); }
+.timeline-item.submit::before { background: var(--primary); }
+.timeline-item.return::before { background: var(--danger); }
+.timeline-item .tl-time { font-size: 11px; color: var(--text-light); }
+.timeline-item .tl-action { font-size: 12px; font-weight: 500; margin-top: 2px; }
+.timeline-item .tl-operator { font-size: 11px; color: var(--text-secondary); }
+.timeline-item .tl-reason { font-size: 11px; color: var(--text-secondary); margin-top: 4px; padding: 6px 10px; background: #F8FAFC; border-radius: 4px; line-height: 1.5; }
+.timeline-item .tl-attachment { font-size: 11px; margin-top: 4px; }
+.timeline-item .tl-changes { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+/* Plan table styles */
+.plan-section { margin-top: 12px; padding: 14px; background: var(--gray-bg); border-radius: var(--radius); }
+.plan-summary { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); }
+.plan-summary strong { color: var(--text); }
+.plan-table-wrap { overflow-x: auto; }
+.plan-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+.plan-table th { background: var(--bg); padding: 7px 8px; text-align: left; font-weight: 500; color: var(--text-secondary); border-bottom: 2px solid var(--border); white-space: nowrap; }
+.plan-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.plan-table tbody tr:hover { background: rgba(59,130,246,0.03); }
+.plan-table tbody tr.plan-expire-warn { background: #FFFBEB; }
+.plan-tag { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 500; }
+.plan-tag.online { background: #DBEAFE; color: #1E40AF; }
+.plan-tag.offline { background: #FEF3C7; color: #92400E; }
+.plan-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 500; }
+.plan-badge.green { background: #D1FAE5; color: #065F46; }
+.plan-badge.gray { background: #F1F5F9; color: #64748B; }
+.plan-badge.red { background: #FEE2E2; color: #991B1B; }
+.plan-badge.orange { background: #FFEDD5; color: #9A3412; }
+.plan-expired-tip { display: inline-block; padding: 2px 8px; background: #FEE2E2; color: #991B1B; border-radius: 4px; font-size: 11px; margin-left: 6px; }
+.plan-btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.plan-expired-row { background: #FEF2F2; opacity: 0.75; }
+.plan-new-row { background: #FFFBEB !important; }
+.plan-expired-toggle:hover { background: #E2E8F0 !important; }
+.plan-expiry-alert { padding: 10px 14px; border-radius: var(--radius); margin-bottom: 14px; font-size: 12px; line-height: 1.6; }
+.plan-expiry-alert.warn { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; }
+.plan-expiry-alert.expired { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell" title="消息通知"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg><span class="badge">5</span></div>
+    <div class="topnav-user" onclick="document.getElementById('userDropdown').classList.toggle('show')">
+      <div class="avatar" id="userAvatar">管</div>
+      <span id="userName">管理员</span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="personal-center.html">个人中心</a>
+        <div class="divider"></div>
+        <a class="logout" onclick="logout()">退出登录</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn active" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span></button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg><span class="menu-label">收起菜单</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> / <a href="org-management.html">机构管理</a> / <span id="breadcrumbSchool">机构详情</span>
+  </div>
+  <div id="detailContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Return Reason Modal -->
+<div class="modal-overlay" id="returnModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>退回修改</h3>
+      <button class="modal-close" onclick="closeReturnModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>退回原因 <span style="color:var(--danger);">*</span></label>
+        <textarea id="returnReasonInput" rows="3" placeholder="请填写退回原因，学校将看到此说明"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeReturnModal()">取消</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmReturn()">确认退回</button>
+    </div>
+  </div>
+</div>
+
+<!-- Approve Confirmation Modal -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>审核通过</h3>
+      <button class="modal-close" onclick="closeApproveModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;margin-bottom:12px;">确认审核通过 <b id="approveSchoolName"></b> 的编制岗位台账？</p>
+      <p style="font-size:12px;color:var(--text-light);">审核通过后台账将变为"已生效"状态，学校无法再修改已审核数据。</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeApproveModal()">取消</button>
+      <button class="btn btn-success btn-sm" onclick="closeApproveModal();approveLedger()">确认通过</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Save Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>保存修改</h3>
+      <button class="modal-close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>修改原因 <span style="color:var(--danger);">*</span></label>
+        <textarea id="editReasonInput" rows="3" placeholder="请填写本次修改的原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeEditModal()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmSaveEdit()">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="src/ledger-plan-utils.js"></script>
+<script src="src/ledger-migrate.js"></script>
+<script src="src/menu-config.js"></script>
+<script>
+var LPU = window.LedgerPlanUtils;
+var LDM = window.LedgerMigrate;
+// ===== PARSE URL =====
+var urlParams = new URLSearchParams(window.location.search);
+var schoolName = urlParams.get('school') || '';
+var orgId = urlParams.get('orgId') || '';
+var pageMode = urlParams.get('mode') || 'view'; // 'review', 'view', or 'edit' (for ledger)
+var pageAction = urlParams.get('action') || ''; // 'edit' (school) or 'review' (admin) for org info
+
+// ===== GLOBALS =====
+var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"role":"city","name":"市管理员","id":"C001"}');
+var orgInfo = null;
+var orgEditSnapshot = null;  // Snapshot for change comparison on submit
+if (currentUser.role === 'district' && !currentUser.district) { currentUser.district = '鱼峰区'; }
+var ledger = null;
+
+// ===== ICONS & ROLES =====
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+};
+var MENU_ICONS = { workbench:'home', ledger:'chart', entry:'userp', staffing:'monitor', exit:'userx', promote:'arrowup', postset:'shield', recruit:'search', employ:'file', retire:'clock', ethics:'warn', account:'users', org:'building', perm:'key', log:'list' };
+var ROLES = {
+  city: { name:'张建国', short:'市', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:3},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:5},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'},{id:'perm',label:'角色权限'},{id:'log',label:'操作日志'}]}]}},
+  district: { name:'李振华', short:'区', district:'鱼峰区', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:1},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:3},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  school: { name:'王玉兰', short:'校', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  teacher: { name:'陈明辉', short:'师', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'}]}]}}
+};
+
+// ===== SIDEBAR =====
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', currentUser.role || 'city', 'org');
+  var role = currentUser.role || 'city';
+  var cfg = ROLES[role];
+  if (!cfg) cfg = ROLES.city;
+  document.getElementById('userName').textContent = cfg.name;
+  document.getElementById('userAvatar').textContent = cfg.short;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.role === role); });
+}
+
+function sidebarClick(el, id) {
+  if (arguments.length === 1) { id = el; el = null; }
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'ledger') { window.location.href = 'org-ledger-admin.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'entry') { window.location.href = '教师入编管理（主管单位视角）.html'; return; }
+  if (id === 'exit') { window.location.href = '教师出编管理（主管单位视角）.html'; return; }
+  if (id === 'postset') { window.location.href = 'post-list-admin.html'; return; }
+  if (id === 'promote') { window.location.href = 'promote-list-admin.html'; return; }
+  if (id === 'recruit') { window.location.href = 'recruit-list-admin.html'; return; }
+  if (id === 'employ') { window.location.href = 'employ-list-admin.html'; return; }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
+  else if (id === 'retire') { showToast('退休呈报 — 页面开发中'); }
+  else if (id === 'ethics') { showToast('师德师风举报 — 页面开发中'); }
+  else if (id === 'account') { window.location.href = 'account-management.html'; }
+  else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+  showToast(el.textContent.trim());
+}
+
+function switchRole(role) {
+  var cfg = ROLES[role];
+  currentUser = { role: role, name: cfg.name, id: role==='city'?'C001':role==='district'?'D001':role==='school'?'S001':'T001', district: cfg.district || '', schoolName: role==='school'?'柳州市第八中学':'' };
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  if (role === 'school') { window.location.href = 'org-ledger-school.html'; return; }
+  if (role === 'teacher') { window.location.href = 'workbench.html'; return; }
+  window.location.href = 'org-ledger-admin.html';
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+// ===== COMPUTED =====
+function getComputed(d) {
+  var careerAgg = (typeof LPU !== 'undefined' && LPU) ? LPU.computeAggregates(d.careerPlans || []) : { expiredOccupiedPlan: 0 };
+  var controlAgg = (typeof LPU !== 'undefined' && LPU) ? LPU.computeAggregates(d.controlPlans || []) : { expiredOccupiedPlan: 0 };
+  var careerUnusedPlan = d.careerApprovedPlan - d.careerUsedPlan;
+  var careerAvailable = d.careerQuota - d.careerActual - d.careerApprovedPlan - (careerAgg.expiredOccupiedPlan || 0);
+  var controlUnusedPlan = d.controlApprovedPlan - d.controlUsedPlan;
+  var controlAvailable = d.controlQuota - d.controlActual - d.controlApprovedPlan - (controlAgg.expiredOccupiedPlan || 0);
+  var totalControlQuota = d.careerQuota + d.controlQuota;
+  var totalPosts = totalControlQuota - (d.highlandPosts || 0);
+  return { careerUnusedPlan:careerUnusedPlan, careerAvailable:careerAvailable, controlUnusedPlan:controlUnusedPlan, controlAvailable:controlAvailable, totalControlQuota:totalControlQuota, totalPosts:totalPosts };
+}
+
+function migrateLedgerActualData(ledger) {
+  var cats = ['senior','vice','middle','junior'];
+  var levelsMap = { senior: ['3','4'], vice: ['5','6','7'], middle: ['8','9','10'], junior: ['11','12','13'] };
+  var changed = false;
+  if (!ledger.profLevels) { ledger.profLevels = {}; changed = true; }
+  for (var ci = 0; ci < cats.length; ci++) {
+    var cat = cats[ci];
+    if (!ledger.profLevels[cat]) { ledger.profLevels[cat] = { total: 0, levels: {} }; changed = true; }
+    var pl = ledger.profLevels[cat];
+    if (!pl.levels) { pl.levels = {}; changed = true; }
+    if (!pl.actual) {
+      var total = pl.total || 0;
+      var career = Math.round(total * 0.65);
+      var control = Math.round(total * 0.25);
+      var over = Math.max(0, total - career - control);
+      pl.actual = { total: total, career: career, control: control, overQuota: over, highland: 0 };
+      changed = true;
+    }
+    if (!pl.actualLevels) {
+      pl.actualLevels = {};
+      var lvls = levelsMap[cat] || [];
+      for (var li = 0; li < lvls.length; li++) {
+        var lv = lvls[li];
+        var lvTotal = pl.levels[lv] || 0;
+        var lvCareer = Math.round(lvTotal * 0.65);
+        var lvControl = Math.round(lvTotal * 0.25);
+        var lvOver = Math.max(0, lvTotal - lvCareer - lvControl);
+        pl.actualLevels[lv] = { career: lvCareer, control: lvControl, overQuota: lvOver, highland: 0 };
+      }
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function renderPostLevelTable(label, levelKeys, levelData, showHighland, labelMap, readOnly) {
+  function tierSep(k) { return (showHighland && (k==='5'||k==='8'||k==='11')) ? 'border-left:2px solid #CBD5E1;' : ''; }
+  var CH_NUM = { '1':'一','2':'二','3':'三','4':'四','5':'五','6':'六','7':'七','8':'八','9':'九','10':'十','11':'十一','12':'十二','13':'十三' };
+  function toChNum(k) { return CH_NUM[k] || k; }
+  var fieldMap = label==='专业技术岗位'?'techLevels':label==='管理岗位'?'mgmtLevels':'laborLevels';
+  var h = '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;white-space:nowrap;">';
+  // Tier row for tech levels
+  if (showHighland) {
+    h += '<tr style="background:#DBEAFE;">';
+    h += '<th colspan="2" style="padding:4px 8px;text-align:left;font-weight:500;white-space:nowrap;">' + label + '</th>';
+    h += '<th colspan="2" style="padding:4px;text-align:center;font-weight:500;font-size:11px;white-space:nowrap;">正高级</th>';
+    h += '<th colspan="3" style="padding:4px;text-align:center;font-weight:500;font-size:11px;border-left:2px solid #CBD5E1;white-space:nowrap;">副高级</th>';
+    h += '<th colspan="3" style="padding:4px;text-align:center;font-weight:500;font-size:11px;border-left:2px solid #CBD5E1;white-space:nowrap;">中级</th>';
+    h += '<th colspan="3" style="padding:4px;text-align:center;font-weight:500;font-size:11px;border-left:2px solid #CBD5E1;white-space:nowrap;">初级</th>';
+    h += '</tr>';
+  }
+  // Level header row
+  h += '<tr style="background:#EFF6FF;"><th style="padding:6px 8px;text-align:left;font-weight:500;width:80px;white-space:nowrap;">' + (showHighland ? '' : label) + '</th>';
+  h += '<th style="padding:6px 4px;text-align:center;font-weight:500;width:30px;white-space:nowrap;">等级</th>';
+  for (var ki = 0; ki < levelKeys.length; ki++) {
+    h += '<th style="padding:4px 2px;text-align:center;font-weight:500;white-space:nowrap;' + tierSep(levelKeys[ki]) + '">' + (labelMap ? (labelMap[levelKeys[ki]] || toChNum(levelKeys[ki])) : toChNum(levelKeys[ki])) + '</th>';
+  }
+  h += '</tr>';
+  // Auth row
+  h += '<tr><td></td><td style="text-align:center;font-size:11px;color:var(--text-secondary);white-space:nowrap;">核准岗位数</td>';
+  for (var ai = 0; ai < levelKeys.length; ai++) {
+    var ad = levelData[levelKeys[ai]] || {};
+    var ts = tierSep(levelKeys[ai]);
+    if (readOnly) {
+      h += '<td style="text-align:center;font-size:12px;' + ts + '">' + (ad.auth||0) + '</td>';
+    } else {
+      h += '<td style="text-align:center;padding:3px 2px;' + ts + '"><input type="number" min="0" value="' + (ad.auth||0) + '" style="width:42px;text-align:center;font-size:12px;padding:2px;" onchange="ledger.' + fieldMap + '[\'' + levelKeys[ai] + '\'].auth=parseInt(this.value)||0;refreshPostDisplay()"></td>';
+    }
+  }
+  h += '</tr>';
+  // Separator
+  h += '<tr style="border-top:1px solid var(--border);"><td colspan="' + (levelKeys.length+2) + '" style="padding:0;"></td></tr>';
+  // Actual total row
+  h += '<tr><td style="font-weight:500;">实聘数 <span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'' + (showHighland ? 'actualTotalTech' : 'actualTotal') + '\')" style="cursor:pointer">ⓘ</span></td><td style="text-align:center;font-size:11px;color:var(--text-secondary);">合计</td>';
+  for (var ti = 0; ti < levelKeys.length; ti++) {
+    var td = levelData[levelKeys[ti]] || {};
+    var total = (td.careerActual||0)+(td.controlActual||0)+(showHighland?(td.highland||0):0);
+    var tCellId = 'ps_total_' + label.replace(/[^a-zA-Z]/g,'') + '_' + levelKeys[ti];
+    var tCellStyle = 'text-align:center;font-weight:600;font-size:12px;' + tierSep(levelKeys[ti]);
+    var tCellContent = '<span class="post-level-link" onclick="showPostLevelPersonnel(\'' + fieldMap + '\',\'' + levelKeys[ti] + '\',\'' + label + '\')">' + total + '</span>';
+    h += '<td id="' + tCellId + '" style="' + tCellStyle + '">' + tCellContent + '</td>';
+  }
+  h += '</tr>';
+  // Sub-rows (indented)
+  function subRow(rowLabel, field, isComputed) {
+    var r = '<tr><td></td><td style="text-align:right;font-size:11px;color:var(--text-secondary);padding-right:8px;">' + rowLabel + '</td>';
+    for (var i = 0; i < levelKeys.length; i++) {
+      var d = levelData[levelKeys[i]] || {};
+      var ts = tierSep(levelKeys[i]);
+      var val = isComputed ? Math.max(0, (d.careerActual||0)+(d.controlActual||0)-(d.auth||0)) : (d[field]||0);
+      if (readOnly || isComputed) {
+        r += '<td style="text-align:center;font-size:11px;color:' + (isComputed?'var(--text-light)':'var(--text-secondary)') + ';' + ts + '">' + val + '</td>';
+      } else {
+        r += '<td style="text-align:center;padding:3px 2px;' + ts + '"><input type="number" min="0" value="' + val + '" style="width:42px;text-align:center;font-size:12px;padding:2px;" onchange="ledger.' + fieldMap + '[\'' + levelKeys[i] + '\'].' + field + '=parseInt(this.value)||0;refreshPostDisplay()"></td>';
+      }
+    }
+    r += '</tr>';
+    return r;
+  }
+  h += subRow('实名编', 'careerActual', false);
+  h += subRow('控制数', 'controlActual', false);
+  h += subRow('<span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'overQuotaPost\')" style="cursor:pointer">ⓘ</span> 超岗聘用数', 'overQuota', true);
+  if (showHighland) {
+    h += subRow('小高地岗位', 'highland', false);
+  }
+  h += '</table>';
+  return h;
+}
+
+function refreshPostDisplay() {
+  // Refresh mgmt table
+  refreshOnePostTable('管理岗位', ['4','5','6','7','8','9','10'], 'mgmtLevels', false);
+  // Refresh tech table
+  refreshOnePostTable('专业技术岗位', ['3','4','5','6','7','8','9','10','11','12','13'], 'techLevels', true);
+  // Refresh labor table
+  refreshOnePostTable('工勤技能岗位', ['1','2','3','4','5','common'], 'laborLevels', false);
+  // Recompute postBreakdown
+  recomputePostBreakdown();
+}
+
+function refreshOnePostTable(label, keys, ledgerField, showHighland) {
+  var prefix = label.replace(/[^a-zA-Z]/g,'');
+  var data = ledger[ledgerField] || {};
+  for (var i = 0; i < keys.length; i++) {
+    var d = data[keys[i]] || {};
+    // Compute overQuota
+    d.overQuota = Math.max(0, (d.careerActual||0)+(d.controlActual||0)-(d.auth||0));
+    var total = (d.careerActual||0)+(d.controlActual||0)+(showHighland?(d.highland||0):0);
+    var el = document.getElementById('ps_total_' + prefix + '_' + keys[i]);
+    if (el) el.textContent = total;
+  }
+  // Refresh summary row
+  var sumAuth = 0, sumCareer = 0, sumControl = 0, sumOver = 0, sumHigh = 0;
+  for (var j = 0; j < keys.length; j++) {
+    var dd = data[keys[j]] || {};
+    sumAuth += dd.auth||0;
+    sumCareer += dd.careerActual||0;
+    sumControl += dd.controlActual||0;
+    sumOver += dd.overQuota||0;
+    if (showHighland) sumHigh += dd.highland||0;
+  }
+  var elSA = document.getElementById('ps_sumauth_' + prefix); if (elSA) elSA.textContent = sumAuth;
+  var elST = document.getElementById('ps_sumtotal_' + prefix); if (elST) elST.textContent = sumCareer+sumControl+sumOver+sumHigh;
+}
+
+function recomputePostBreakdown() {
+  var pb = ledger.postBreakdown || { admin:{}, tech:{}, logistics:{} };
+  pb.admin.auth = sumLevelField('mgmtLevels', ['4','5','6','7','8','9','10'], 'auth');
+  pb.admin.actual = sumLevelField('mgmtLevels', ['4','5','6','7','8','9','10'], 'careerActual') + sumLevelField('mgmtLevels', ['4','5','6','7','8','9','10'], 'controlActual') + sumLevelField('mgmtLevels', ['4','5','6','7','8','9','10'], 'overQuota');
+  pb.tech.auth = sumLevelField('techLevels', ['3','4','5','6','7','8','9','10','11','12','13'], 'auth');
+  pb.tech.actual = sumLevelField('techLevels', ['3','4','5','6','7','8','9','10','11','12','13'], 'careerActual') + sumLevelField('techLevels', ['3','4','5','6','7','8','9','10','11','12','13'], 'controlActual') + sumLevelField('techLevels', ['3','4','5','6','7','8','9','10','11','12','13'], 'overQuota') + sumLevelField('techLevels', ['3','4','5','6','7','8','9','10','11','12','13'], 'highland');
+  pb.logistics.auth = sumLevelField('laborLevels', ['1','2','3','4','5','common'], 'auth');
+  pb.logistics.actual = sumLevelField('laborLevels', ['1','2','3','4','5','common'], 'careerActual') + sumLevelField('laborLevels', ['1','2','3','4','5','common'], 'controlActual') + sumLevelField('laborLevels', ['1','2','3','4','5','common'], 'overQuota');
+  // Refresh summary display
+  var elAA = document.getElementById('ps_pb_admin_auth'); if (elAA) elAA.textContent = pb.admin.auth;
+  var elAB = document.getElementById('ps_pb_admin_actual'); if (elAB) elAB.textContent = pb.admin.actual;
+  var elTA = document.getElementById('ps_pb_tech_auth'); if (elTA) elTA.textContent = pb.tech.auth;
+  var elTB = document.getElementById('ps_pb_tech_actual'); if (elTB) elTB.textContent = pb.tech.actual;
+  var elLA = document.getElementById('ps_pb_logi_auth'); if (elLA) elLA.textContent = pb.logistics.auth;
+  var elLB = document.getElementById('ps_pb_logi_actual'); if (elLB) elLB.textContent = pb.logistics.actual;
+}
+
+function sumLevelField(field, keys, subfield) {
+  var data = ledger[field] || {};
+  var sum = 0;
+  for (var i = 0; i < keys.length; i++) {
+    var d = data[keys[i]] || {};
+    sum += d[subfield] || 0;
+  }
+  return sum;
+}
+
+function renderProfActualDetailTable(pl) {
+  var cats = [
+    { key: 'senior', label: '正高级', levels: ['3','4'] },
+    { key: 'vice', label: '副高级', levels: ['5','6','7'] },
+    { key: 'middle', label: '中级', levels: ['8','9','10'] },
+    { key: 'junior', label: '初级', levels: ['11','12','13'] }
+  ];
+  var h = '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;">';
+  h += '<thead><tr style="background:var(--bg);">';
+  h += '<th style="padding:6px 8px;text-align:left;font-weight:500;">岗位类别</th>';
+  h += '<th style="padding:6px 8px;text-align:center;font-weight:500;">等级</th>';
+  h += '<th style="padding:6px 8px;text-align:center;font-weight:500;">合计</th>';
+  h += '<th style="padding:6px 8px;text-align:center;font-weight:500;">实名编</th>';
+  h += '<th style="padding:6px 8px;text-align:center;font-weight:500;">控制数</th>';
+  h += '<th style="padding:6px 8px;text-align:center;font-weight:500;">超岗聘用数</th>';
+  h += '<th style="padding:6px 8px;text-align:center;font-weight:500;">小高地岗位</th>';
+  h += '</tr></thead><tbody>';
+  var hasAny = false;
+  for (var ci = 0; ci < cats.length; ci++) {
+    var cat = cats[ci];
+    var catData = pl[cat.key];
+    if (!catData || !catData.actual) continue;
+    hasAny = true;
+    var lvls = cat.levels;
+    for (var li = 0; li < lvls.length; li++) {
+      var lv = lvls[li];
+      var al = (catData.actualLevels && catData.actualLevels[lv]) ? catData.actualLevels[lv] : { career: 0, control: 0, overQuota: 0, highland: 0 };
+      var total = al.career + al.control + al.overQuota + al.highland;
+      h += '<tr>';
+      if (li === 0) h += '<td style="padding:4px 8px;font-weight:500;" rowspan="' + lvls.length + '">' + cat.label + '</td>';
+      h += '<td style="padding:4px 8px;text-align:center;">' + lv + ' 级</td>';
+      h += '<td style="padding:4px 8px;text-align:center;">' + total + '</td>';
+      h += '<td style="padding:4px 8px;text-align:center;">' + al.career + '</td>';
+      h += '<td style="padding:4px 8px;text-align:center;">' + al.control + '</td>';
+      h += '<td style="padding:4px 8px;text-align:center;' + (al.overQuota > 0 ? 'color:var(--danger);font-weight:500;' : '') + '">' + al.overQuota + '</td>';
+      h += '<td style="padding:4px 8px;text-align:center;">' + al.highland + '</td>';
+      h += '</tr>';
+    }
+  }
+  if (!hasAny) {
+    h += '<tr><td colspan="7" style="padding:12px;text-align:center;color:var(--text-light);">暂无实聘数据</td></tr>';
+  }
+  h += '</tbody></table>';
+  return h;
+}
+
+function migratePostLevels(d) {
+  var changed = false;
+  // mgmtLevels: old {5: 1} → new {5: {auth:1, careerActual:1, controlActual:0, overQuota:0}}
+  var mgmt = d.mgmtLevels || {};
+  var mgmtKeys = ['4','5','6','7','8','9','10'];
+  for (var mi = 0; mi < mgmtKeys.length; mi++) {
+    var mk = mgmtKeys[mi];
+    if (typeof mgmt[mk] === 'number') {
+      var v = mgmt[mk];
+      mgmt[mk] = { auth: v, careerActual: Math.round(v*0.7), controlActual: Math.round(v*0.2), overQuota: Math.max(0, v - Math.round(v*0.7) - Math.round(v*0.2)) };
+      changed = true;
+    }
+    if (!mgmt[mk]) mgmt[mk] = { auth: 0, careerActual: 0, controlActual: 0, overQuota: 0 };
+    else {
+      if (mgmt[mk].auth === undefined) mgmt[mk].auth = 0;
+      if (mgmt[mk].careerActual === undefined) mgmt[mk].careerActual = 0;
+      if (mgmt[mk].controlActual === undefined) mgmt[mk].controlActual = 0;
+      if (mgmt[mk].overQuota === undefined) mgmt[mk].overQuota = 0;
+    }
+  }
+  d.mgmtLevels = mgmt;
+
+  // profLevels: old {senior:{levels:{3:1}}} → new flat techLevels
+  if (!d.techLevels) {
+    d.techLevels = {};
+    if (d.profLevels) {
+      var cats = ['senior','vice','middle','junior'];
+      var catLevels = { senior:['3','4'], vice:['5','6','7'], middle:['8','9','10'], junior:['11','12','13'] };
+      for (var ci = 0; ci < cats.length; ci++) {
+        var catData = d.profLevels[cats[ci]];
+        var lvls = catLevels[cats[ci]];
+        for (var li = 0; li < lvls.length; li++) {
+          var lv = lvls[li];
+          var lvAuth = (catData && catData.levels && catData.levels[lv]) ? catData.levels[lv] : 0;
+          d.techLevels[lv] = { auth: lvAuth, careerActual: Math.round(lvAuth*0.65), controlActual: Math.round(lvAuth*0.25), overQuota: Math.max(0,lvAuth-Math.round(lvAuth*0.65)-Math.round(lvAuth*0.25)), highland: 0 };
+        }
+      }
+    }
+    changed = true;
+  }
+  // Ensure all tech levels exist
+  var allTechKeys = ['3','4','5','6','7','8','9','10','11','12','13'];
+  for (var ti = 0; ti < allTechKeys.length; ti++) {
+    var tk = allTechKeys[ti];
+    if (!d.techLevels[tk]) d.techLevels[tk] = { auth: 0, careerActual: 0, controlActual: 0, overQuota: 0, highland: 0 };
+    else {
+      if (d.techLevels[tk].auth === undefined) d.techLevels[tk].auth = 0;
+      if (d.techLevels[tk].careerActual === undefined) d.techLevels[tk].careerActual = 0;
+      if (d.techLevels[tk].controlActual === undefined) d.techLevels[tk].controlActual = 0;
+      if (d.techLevels[tk].overQuota === undefined) d.techLevels[tk].overQuota = 0;
+      if (d.techLevels[tk].highland === undefined) d.techLevels[tk].highland = 0;
+    }
+  }
+
+  // laborLevels: old {1: 1} → new {1: {auth:1, careerActual:1, controlActual:0, overQuota:0}}
+  var labor = d.laborLevels || {};
+  var laborKeys = ['1','2','3','4','5','common'];
+  for (var lbi = 0; lbi < laborKeys.length; lbi++) {
+    var lbk = laborKeys[lbi];
+    if (typeof labor[lbk] === 'number') {
+      var lv = labor[lbk];
+      labor[lbk] = { auth: lv, careerActual: Math.round(lv*0.7), controlActual: Math.round(lv*0.2), overQuota: Math.max(0, lv - Math.round(lv*0.7) - Math.round(lv*0.2)) };
+      changed = true;
+    }
+    if (!labor[lbk]) labor[lbk] = { auth: 0, careerActual: 0, controlActual: 0, overQuota: 0 };
+    else {
+      if (labor[lbk].auth === undefined) labor[lbk].auth = 0;
+      if (labor[lbk].careerActual === undefined) labor[lbk].careerActual = 0;
+      if (labor[lbk].controlActual === undefined) labor[lbk].controlActual = 0;
+      if (labor[lbk].overQuota === undefined) labor[lbk].overQuota = 0;
+    }
+  }
+  d.laborLevels = labor;
+
+  // Recompute postBreakdown from level data
+  var adminAuth = 0, adminActual = 0, techAuth = 0, techActual = 0, logiAuth = 0, logiActual = 0;
+  for (var ami = 0; ami < mgmtKeys.length; ami++) { var am = mgmt[mgmtKeys[ami]]; adminAuth += am.auth||0; adminActual += (am.careerActual||0)+(am.controlActual||0)+(am.overQuota||0); }
+  for (var ati = 0; ati < allTechKeys.length; ati++) { var at = d.techLevels[allTechKeys[ati]]; techAuth += at.auth||0; techActual += (at.careerActual||0)+(at.controlActual||0)+(at.overQuota||0)+(at.highland||0); }
+  for (var ali = 0; ali < laborKeys.length; ali++) { var al = labor[laborKeys[ali]]; logiAuth += al.auth||0; logiActual += (al.careerActual||0)+(al.controlActual||0)+(al.overQuota||0); }
+  if (!d.postBreakdown) d.postBreakdown = {};
+  d.postBreakdown.admin = { auth: adminAuth, actual: adminActual };
+  d.postBreakdown.tech = { auth: techAuth, actual: techActual };
+  d.postBreakdown.logistics = { auth: logiAuth, actual: logiActual };
+
+  return changed;
+}
+
+function renderDetailLevelGrid(levels, keys) {
+  var LABEL_MAP = { 'common': '普通工' };
+  var h = '<div style="display:grid;grid-template-columns:repeat(' + keys.length + ', 1fr);gap:6px;font-size:12px;">';
+  keys.forEach(function(k) {
+    var label = LABEL_MAP[k] || (k + '级');
+    var val = levels[k] || 0;
+    h += '<div style="text-align:center;padding:6px 4px;border-radius:4px;background:var(--bg);"><div style="font-size:10px;color:var(--text-light);">' + label + '</div><div style="font-weight:600;color:var(--text);">' + val + '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function selOptions(current, list) {
+  var h = '<option value="">—</option>';
+  list.forEach(function(v) { h += '<option value="' + v + '"' + (current===v?' selected':'') + '>' + v + '</option>'; });
+  return h;
+}
+
+// ===== INIT =====
+function init() {
+  // This page only handles org detail (orgId parameter)
+  if (!orgId) {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:40px;color:var(--text-light);">未指定机构，请从机构管理列表页进入</div></div>';
+    renderSidebar();
+    return;
+  }
+  initOrgInfoView();
+  return;
+
+  // ── 以下为台账模式代码，org-detail.html 不再使用 ──
+  if (!schoolName) {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:40px;color:var(--text-light);">未指定学校，请从列表页进入</div></div>';
+    renderSidebar();
+    return;
+  }
+  var allLedgers = JSON.parse(localStorage.getItem('org_ledger') || '{}');
+  try {
+    var migA = migrateLedgerActualData(allLedgers[schoolName] || {});
+    var migB = migratePostLevels(allLedgers[schoolName] || {});
+    if (migA || migB) { localStorage.setItem('org_ledger', JSON.stringify(allLedgers)); }
+  } catch(e) { console.error('migration error:', e); }
+  // Plan record migration
+  try {
+    if (LDM && LDM.needsMigration(allLedgers[schoolName] || {})) {
+      var subs = [];
+      try { var sr = localStorage.getItem('staffing_submissions'); if (sr) subs = JSON.parse(sr); } catch(e2) {}
+      var pr = LDM.migrateLedger(allLedgers[schoolName], subs);
+      if (pr.migrated) { localStorage.setItem('org_ledger', JSON.stringify(allLedgers)); }
+    }
+  } catch(e) { console.error('plan migration error:', e); }
+  ledger = allLedgers[schoolName];
+  if (!ledger) {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:40px;color:var(--text-light);">未找到「' + escapeHtml(schoolName) + '」的台账数据</div></div>';
+    renderSidebar();
+    return;
+  }
+  // District admin permission check
+  var userDistrict = currentUser.district || '';
+  if (currentUser.role === 'district' && userDistrict && ledger.district !== userDistrict) {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:60px 20px;"><div style="font-size:36px;margin-bottom:8px;">🔒</div><div style="font-size:14px;color:var(--text-secondary);">您无权查看该校的台账数据</div><div style="font-size:12px;color:var(--text-light);margin-top:4px;">所属区域：' + escapeHtml(ledger.district) + ' ｜ 您的辖区：' + escapeHtml(userDistrict) + '</div><div style="margin-top:16px;"><a class="btn btn-outline btn-sm" href="org-ledger-admin.html">← 返回列表</a></div></div></div>';
+    renderSidebar();
+    return;
+  }
+
+  // City admin review scope: only 市直属 (但可查看全部)
+  if (currentUser.role === 'city' && (pageMode === 'review' || pageMode === 'edit') && ledger.district !== '市直属') {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:60px 20px;"><div style="font-size:36px;margin-bottom:8px;">🔒</div><div style="font-size:14px;color:var(--text-secondary);">市管理员仅可审核/编辑市直属学校台账</div><div style="font-size:12px;color:var(--text-light);margin-top:4px;">该校所属区域：' + escapeHtml(ledger.district) + ' ｜ 不在您的管辖范围内</div><div style="margin-top:16px;"><a class="btn btn-outline btn-sm" href="org-ledger-admin.html">← 返回列表</a></div></div></div>';
+    renderSidebar();
+    return;
+  }
+
+  document.getElementById('breadcrumbSchool').textContent = schoolName;
+  backfillChangeLog();
+  renderSidebar();
+  renderDetail();
+}
+
+function backfillChangeLog() {
+  if (!ledger) return;
+  if (!ledger.changeLog) ledger.changeLog = [];
+  // Migrate old operator names (role titles → real names)
+  var needSave = false;
+  for (var cli = 0; cli < ledger.changeLog.length; cli++) {
+    var e = ledger.changeLog[cli];
+    if (e.type === 'submit' && (!e.operator || e.operator === ledger.schoolName || e.operator === '校管理员')) { e.operator = '王玉兰'; needSave = true; }
+    // Normalize legacy submit action label seeded by school/admin backfills (学校提交申报 → 提交申报);
+    // the resubmission relabel below then upgrades it to 再次提交申报 when appropriate.
+    if (e.type === 'submit' && e.action === '学校提交申报') { e.action = '提交申报'; needSave = true; }
+    if (e.operator === '市管理员') { e.operator = '张建国'; needSave = true; }
+    if (e.operator === '鱼峰区管理员') { e.operator = '李振华'; needSave = true; }
+  }
+  // Fix missing approval entries in existing change logs (old logic only added when status==='active')
+  var hasApproval = false;
+  for (var clj = 0; clj < ledger.changeLog.length; clj++) {
+    if (ledger.changeLog[clj].type === 'approve') { hasApproval = true; break; }
+  }
+  if (!hasApproval && ledger.reviewedAt) {
+    ledger.changeLog.push({
+      type: 'approve',
+      time: ledger.reviewedAt + ' 00:00:00',
+      operator: ledger.reviewedBy || '管理员',
+      action: '审核通过'
+    });
+    needSave = true;
+  }
+  // Detect resubmission: a submission made AFTER the approval is a 再次提交申报.
+  // Submissions dated before the approval are the original 提交申报 and stay as-is
+  // (keying off each entry's own time, not the ledger-level submittedAt which now
+  // holds the latest resubmission date).
+  for (var clk = 0; clk < ledger.changeLog.length; clk++) {
+    var ee = ledger.changeLog[clk];
+    if (ee.type === 'submit' && ledger.reviewedAt && ee.time && ee.time > ledger.reviewedAt + ' 00:00:00' && ee.action === '提交申报') {
+      ee.action = '再次提交申报'; needSave = true;
+    }
+  }
+  if (needSave) {
+    var allLedgers3 = JSON.parse(localStorage.getItem('org_ledger') || '{}');
+    allLedgers3[schoolName] = ledger;
+    localStorage.setItem('org_ledger', JSON.stringify(allLedgers3));
+  }
+  // Migrate old single-submission data to submissionLog
+  if (!ledger.submissionLog && ledger.submittedAt) {
+    ledger.submissionLog = [{
+      time: ledger.submittedAt + ' 00:00:00',
+      operator: '王玉兰',
+      changes: [],
+      planChanges: { added: [], removed: [] },
+      reason: '',
+      _legacy: true
+    }];
+    needSave = true;
+  }
+
+  // Reconstruct any MISSING entry types from status fields (self-healing).
+  // NOTE: we intentionally do NOT bail out just because changeLog already has
+  // entries. The migration block above can add an 'approve' entry first, and a
+  // blanket "length > 0 → return" guard then suppressed reconstruction of the
+  // school's first 提交申报 record (and persisted that broken log). Instead we
+  // reconstruct each entry type only when it is genuinely absent.
+  var hasReturn = false, hasSubmit = false;
+  for (var clm = 0; clm < ledger.changeLog.length; clm++) {
+    if (ledger.changeLog[clm].type === 'return') hasReturn = true;
+    if (ledger.changeLog[clm].type === 'submit') hasSubmit = true;
+  }
+  // 1. Previous approval is already reconstructed by the migration block above.
+  // 2. Return (if any, and not already recorded)
+  if (!hasReturn && ledger.returnReason) {
+    ledger.changeLog.push({
+      type: 'return',
+      time: (ledger.updatedAt || ledger.submittedAt || '') + ' 00:00:00',
+      operator: ledger.updatedBy || ledger.reviewedBy || '管理员',
+      action: '退回修改',
+      reason: ledger.returnReason
+    });
+  }
+  // 3. School submissions from submissionLog — includes the first 提交申报
+  if (!hasSubmit && ledger.submissionLog && ledger.submissionLog.length > 0) {
+    for (var sli = 0; sli < ledger.submissionLog.length; sli++) {
+      var sl = ledger.submissionLog[sli];
+      var isResub = (ledger.reviewedAt && sl.time > ledger.reviewedAt + ' 00:00:00');
+      ledger.changeLog.push({
+        type: 'submit',
+        time: sl.time,
+        operator: sl.operator || '王玉兰',
+        action: isResub ? '再次提交申报' : '提交申报',
+        changes: sl.changes || [],
+        planChanges: sl.planChanges || { added: [], removed: [] },
+        reason: sl.reason || '',
+        attachment: sl.attachment || null,
+        _legacy: sl._legacy
+      });
+    }
+  }
+  // 4. Recover a missing original 提交申报: if an approval predates every known
+  //    submission, the ledger was approved and later modified & resubmitted, but
+  //    the initial submission record is gone (submittedAt now holds the resubmit
+  //    date). Synthesize it so the timeline reads 提交申报 → 审核通过 → 再次提交申报.
+  if (ledger.reviewedAt) {
+    var earliestApprove = null, earliestSubmit = null;
+    for (var cls = 0; cls < ledger.changeLog.length; cls++) {
+      var es = ledger.changeLog[cls];
+      if (es.type === 'approve' && (!earliestApprove || es.time < earliestApprove)) earliestApprove = es.time;
+      if (es.type === 'submit' && (!earliestSubmit || es.time < earliestSubmit)) earliestSubmit = es.time;
+    }
+    if (earliestApprove && (!earliestSubmit || earliestApprove < earliestSubmit)) {
+      var firstD = new Date(ledger.reviewedAt + 'T00:00:00');
+      firstD.setDate(firstD.getDate() - 4);
+      var firstTime = firstD.getFullYear() + '-' + String(firstD.getMonth()+1).padStart(2,'0') + '-' + String(firstD.getDate()).padStart(2,'0') + ' 00:00:00';
+      ledger.changeLog.push({
+        type: 'submit',
+        time: firstTime,
+        operator: '王玉兰',
+        action: '提交申报',
+        changes: [],
+        planChanges: { added: [], removed: [] },
+        reason: '',
+        _legacy: true
+      });
+    }
+  }
+
+  // Save backfilled data
+  if (ledger.changeLog.length > 0) {
+    var allLedgers = JSON.parse(localStorage.getItem('org_ledger') || '{}');
+    allLedgers[schoolName] = ledger;
+    localStorage.setItem('org_ledger', JSON.stringify(allLedgers));
+  }
+}
+
+// ===== RENDER DETAIL =====
+function getHighlightFields() {
+  // Collect changed field keys from the latest submissionLog entry
+  var hl = {};
+  if (!ledger.submissionLog) return hl;
+  var latest = null;
+  for (var sli3 = 0; sli3 < ledger.submissionLog.length; sli3++) {
+    var sl2 = ledger.submissionLog[sli3];
+    if (!latest || sl2.time > latest.time) latest = sl2;
+  }
+  if (!latest || latest._legacy) return hl;
+  (latest.changes || []).forEach(function(c) {
+    var map = {
+      '事业编核定数':'careerQuota','控制数核定数':'controlQuota',
+      '实有在编人数':'careerActual','实有控制数人数':'controlActual',
+      '已批复计划数（事业编）':'careerApprovedPlan','已批复控制数':'controlApprovedPlan',
+      '厅级·核定职数':'lb_dept_auth','厅级·实配领导':'lb_dept_ldr','厅级·实配其他':'lb_dept_oth',
+      '处级·核定职数':'lb_div_auth','处级·实配领导':'lb_div_ldr','处级·实配其他':'lb_div_oth',
+      '科级·核定职数':'lb_sec_auth','科级·实配领导':'lb_sec_ldr','科级·实配其他':'lb_sec_oth'
+    };
+    var key = map[c.label] || c.label;
+    hl[key] = true;
+  });
+  // Collect newly added plan docNos
+  hl._addedPlans = {};
+  if (latest.planChanges && latest.planChanges.added) {
+    latest.planChanges.added.forEach(function(p) { hl._addedPlans[p.docNo] = true; });
+  }
+  return hl;
+}
+
+function renderDetail() {
+  var d = ledger;
+  var comp = getComputed(d);
+  var highlights = getHighlightFields();
+  var isDraft = !d.submittedAt;
+  var isEditing = pageMode === 'edit';
+  var isReviewing = pageMode === 'review' && !isDraft;
+  var canEdit = false; // 查看页面始终只读
+
+  var h = '';
+
+  // Header
+  var statusLabel = isDraft ? '待提交' : (isReviewing ? '待审核' : (isEditing ? '编辑中' : '已生效'));
+  var statusCls = isDraft ? 'none' : (isReviewing ? 'pending' : 'active');
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left"><h1>' + escapeHtml(d.schoolName) + ' — 编制岗位台账</h1>';
+  h += '<div class="subtitle">更新日期：' + (d.updatedAt||'—') + ' ｜ <span class="status-badge ' + statusCls + '">' + statusLabel + '</span></div></div>';
+  h += '<div class="page-header-right">';
+  if (isDraft) {
+    h += '<span style="font-size:12px;color:var(--text-light);padding:8px 0;">学校尚未提交，无法审核</span>';
+  } else if (isReviewing) {
+    // Review buttons moved to bottom bar
+  } else if (isEditing) {
+    // Edit mode: no top buttons, moved to bottom bar
+  } else {
+    // view mode: no action buttons
+  }
+  h += '</div></div>';
+
+  // Two-column layout: main + change log sidebar
+  h += '<div class="detail-layout">';
+  h += '<div class="detail-main">';
+
+  // ===== 基础信息（只读，来源于机构管理） =====
+  var oi = getOrgInfo(d.schoolName);
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">🏛️</span>机构基础信息</h2>';
+  h += '<div style="font-size:12px;color:var(--accent);margin-bottom:12px;">💡 机构基础信息如需修改，请前往 <a href="org-management.html" style="color:var(--primary);text-decoration:underline;">机构管理</a> 模块编辑。</div>';
+  // 标识信息
+  h += '<div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:10px;">';
+  h += '<div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">标识信息</div>';
+  h += '<div class="form-row"><div class="form-group"><label>单位名称</label><input value="' + escapeHtml(oi ? oi.orgName : d.schoolName) + '" readonly></div><div class="form-group"><label>单位编号</label><input value="' + escapeHtml(oi ? oi.orgId : '—') + '" readonly></div></div>';
+  h += '<div class="form-group" style="margin-bottom:0;"><label>统一社会信用代码</label><input value="' + escapeHtml(oi ? oi.creditCode : (d.creditCode||'')) + '" readonly></div>';
+  h += '</div>';
+  // 分类属性
+  h += '<div style="border:1px solid var(--border);border-radius:6px;padding:12px;">';
+  h += '<div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">分类属性</div>';
+  h += '<div class="form-row"><div class="form-group"><label>所属区域</label><input value="' + escapeHtml(d.district) + '" readonly></div><div class="form-group"><label>学校类型</label><input value="' + escapeHtml(oi ? oi.schoolType : d.schoolType) + '" readonly></div></div>';
+  h += '<div class="form-row"><div class="form-group"><label>单位级别</label><input value="' + escapeHtml(oi ? oi.orgLevel : d.orgLevel) + '" readonly></div><div class="form-group"><label>单位性质</label><input value="' + escapeHtml(oi ? oi.orgNature : d.orgNature) + '" readonly></div></div>';
+  h += '<div class="form-row" style="margin-bottom:0;"><div class="form-group"><label>经费类型</label><input value="' + escapeHtml(oi ? oi.fundType : d.fundType) + '" readonly></div><div class="form-group"><label>岗位设置分类</label><input value="' + escapeHtml(getSchoolCategoryMap()[d.schoolName] || d.schoolCategory || '—') + '" readonly></div></div>';
+  h += '</div>';
+  h += '</div>';
+
+
+  // ===== 编制信息 =====
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">📊</span>编制信息</h2>';
+  h += '<div style="display:flex;gap:20px;">';
+  h += renderQuotaCardDetail('career', '事业编', d, comp, highlights);
+  h += renderQuotaCardDetail('control', '控制数', d, comp, highlights);
+  h += '</div>';
+  h += '</div>';
+
+  // ===== 岗位结构 =====
+  // Migrate post level data
+  migratePostLevels(d);
+  var pb = d.postBreakdown || { admin:{auth:0,actual:0}, tech:{auth:0,actual:0}, logistics:{auth:0,actual:0} };
+
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">📌</span>岗位结构</h2>';
+  // Summary row
+  h += '<div style="display:flex;gap:24px;margin-bottom:12px;font-size:13px;flex-wrap:wrap;">';
+  h += '<div><span style="color:var(--text-light);">定编人数：</span><b>' + (d.careerQuota+d.controlQuota) + '</b><span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'authorizedTotal\')" style="cursor:pointer">ⓘ</span></div>';
+  h += '<div><span style="color:var(--text-light);">实有人数：</span><b>' + (d.careerActual+d.controlActual) + '</b><span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'staffActual\')" style="cursor:pointer">ⓘ</span></div>';
+  h += '<div><span style="color:var(--text-light);">小高地岗位：</span><b>' + (d.highlandPosts||0) + '</b></div>';
+  h += '<div><span style="color:var(--text-light);">岗位总量：</span><b>' + ((d.careerQuota+d.controlQuota)-(d.highlandPosts||0)) + '</b><span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'totalPosts\')" style="cursor:pointer">ⓘ</span></div>';
+  h += '</div>';
+
+  // Category summary
+  var LABEL_MAP_L = { common:'普通工' };
+  h += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px;">';
+  h += '<tr style="background:var(--bg);"><th style="padding:8px 12px;text-align:left;font-weight:500;">类别</th><th style="padding:8px 12px;text-align:center;font-weight:500;">核定岗位数</th><th style="padding:8px 12px;text-align:center;font-weight:500;">实有人数</th></tr>';
+  h += '<tr><td style="padding:6px 12px;">管理岗位</td><td id="ps_pb_admin_auth" style="text-align:center;">' + pb.admin.auth + '</td><td id="ps_pb_admin_actual" style="text-align:center;">' + pb.admin.actual + '</td></tr>';
+  h += '<tr><td style="padding:6px 12px;">专业技术岗位</td><td id="ps_pb_tech_auth" style="text-align:center;">' + pb.tech.auth + '</td><td id="ps_pb_tech_actual" style="text-align:center;">' + pb.tech.actual + '</td></tr>';
+  h += '<tr><td style="padding:6px 12px;">工勤技能岗位</td><td id="ps_pb_logi_auth" style="text-align:center;">' + pb.logistics.auth + '</td><td id="ps_pb_logi_actual" style="text-align:center;">' + pb.logistics.actual + '</td></tr>';
+  h += '</table>';
+
+  // Management levels table
+  h += '<fieldset style="margin-top:8px;"><legend>管理岗位等级分布</legend>';
+  h += renderPostLevelTable('管理岗位', ['4','5','6','7','8','9','10'], d.mgmtLevels||{}, false, null, !canEdit);
+  h += '</fieldset>';
+
+  // Tech levels table
+  h += '<fieldset style="margin-top:12px;"><legend>专业技术岗位等级分布</legend>';
+  h += renderPostLevelTable('专业技术岗位', ['3','4','5','6','7','8','9','10','11','12','13'], d.techLevels||{}, true, null, !canEdit);
+  h += '</fieldset>';
+
+  // Labor levels table
+  h += '<fieldset style="margin-top:12px;"><legend>工勤技能岗位等级分布</legend>';
+  h += renderPostLevelTable('工勤技能岗位', ['1','2','3','4','5','common'], d.laborLevels||{}, false, LABEL_MAP_L, !canEdit);
+  h += '</fieldset>';
+
+  h += '</div>';
+
+  // ===== 领导职数 =====
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">👤</span>领导职数</h2>';
+  var lb = d.leaderBreakdown || { deptLevel:{auth:0,actualLeader:0,actualOtherLeader:0}, divisionLevel:{auth:0,actualLeader:0,actualOtherLeader:0}, sectionLevel:{auth:0,actualLeader:0,actualOtherLeader:0} };
+  // Migration of old leaderBreakdown
+  var lbLevels2 = ['deptLevel','divisionLevel','sectionLevel'];
+  for (var lbi2 = 0; lbi2 < lbLevels2.length; lbi2++) {
+    var lk3 = lbLevels2[lbi2];
+    if (lb[lk3].actual !== undefined && lb[lk3].actualLeader === undefined) {
+      lb[lk3].actualLeader = Math.round(lb[lk3].actual * 0.6);
+      lb[lk3].actualOtherLeader = lb[lk3].actual - lb[lk3].actualLeader;
+      delete lb[lk3].actual;
+    }
+    if (!lb[lk3].actualLeader) lb[lk3].actualLeader = lb[lk3].actualLeader || 0;
+    if (!lb[lk3].actualOtherLeader) lb[lk3].actualOtherLeader = lb[lk3].actualOtherLeader || 0;
+  }
+  var summaryAuth = (lb.deptLevel.auth||0) + (lb.divisionLevel.auth||0) + (lb.sectionLevel.auth||0);
+  var summaryLdr = (lb.deptLevel.actualLeader||0) + (lb.divisionLevel.actualLeader||0) + (lb.sectionLevel.actualLeader||0);
+  var summaryOth = (lb.deptLevel.actualOtherLeader||0) + (lb.divisionLevel.actualOtherLeader||0) + (lb.sectionLevel.actualOtherLeader||0);
+  // Sync school-level fields
+  d.authLeader = summaryAuth; d.actualLeader = summaryLdr; d.actualOtherLeader = summaryOth;
+  h += '<div class="form-row">';
+  h += '<div class="form-group"><label>核定领导职数（合计）</label><input type="number" id="lb_top_auth" value="' + summaryAuth + '" readonly style="background:#F8FAFC;color:var(--text-secondary);"></div>';
+  h += '<div class="form-group"><label>实配领导人数（合计）</label><input type="number" id="lb_top_leader" value="' + summaryLdr + '" readonly style="background:#F8FAFC;color:var(--text-secondary);"></div>';
+  h += '<div class="form-group"><label>实配其他领导人数（合计）</label><input type="number" id="lb_top_other" value="' + summaryOth + '" readonly style="background:#F8FAFC;color:var(--text-secondary);"></div>';
+  h += '</div>';
+  var canEditLeader = canEdit;
+  h += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  h += '<tr style="background:var(--bg);"><th style="padding:10px 12px;text-align:left;font-weight:600;font-size:11px;color:var(--text-secondary);border-bottom:1px solid var(--border);">级别</th><th style="padding:10px 12px;text-align:center;font-weight:600;font-size:11px;color:var(--text-secondary);border-bottom:1px solid var(--border);">核定职数</th><th style="padding:10px 12px;text-align:center;font-weight:600;font-size:11px;color:var(--text-secondary);border-bottom:1px solid var(--border);">实配领导人数</th><th style="padding:10px 12px;text-align:center;font-weight:600;font-size:11px;color:var(--text-secondary);border-bottom:1px solid var(--border);">实配其他领导人数</th><th style="padding:10px 12px;text-align:center;font-weight:600;font-size:11px;color:var(--text-secondary);border-bottom:1px solid var(--border);">实配人数</th></tr>';
+  var lbSumAuth = 0, lbSumLeader = 0, lbSumOther = 0;
+  var rowIds = ['dept','div','sec'];
+  var rowIdx = 0;
+  function renderLeaderRow(label, key) {
+    var l = lb[key];
+    var total = (l.actualLeader||0) + (l.actualOtherLeader||0);
+    lbSumAuth += l.auth||0; lbSumLeader += l.actualLeader||0; lbSumOther += l.actualOtherLeader||0;
+    var rid = rowIds[rowIdx++];
+    var pre = 'lb_' + key.split('Level')[0].substring(0,3) + '_';
+    var hlAuth = highlights[pre + 'auth'] ? 'background:#FFF3CD;' : 'background:#F8FAFC;color:var(--text-secondary);';
+    var hlLdr = highlights[pre + 'ldr'] ? 'background:#FFF3CD;' : 'background:#F8FAFC;color:var(--text-secondary);';
+    var hlOth = highlights[pre + 'oth'] ? 'background:#FFF3CD;' : 'background:#F8FAFC;color:var(--text-secondary);';
+    var r = '<tr><td style="padding:10px 12px;border-bottom:1px solid var(--border);">' + label + '</td>';
+    r += '<td style="padding:8px 12px;text-align:center;border-bottom:1px solid var(--border);"><input type="number" min="0" value="' + (l.auth||0) + '" readonly class="table-input-num" style="' + hlAuth + '"></td>';
+    r += '<td style="padding:8px 12px;text-align:center;border-bottom:1px solid var(--border);"><input type="number" min="0" value="' + (l.actualLeader||0) + '" readonly class="table-input-num" style="' + hlLdr + '"></td>';
+    r += '<td style="padding:8px 12px;text-align:center;border-bottom:1px solid var(--border);"><input type="number" min="0" value="' + (l.actualOtherLeader||0) + '" readonly class="table-input-num" style="' + hlOth + '"></td>';
+    r += '<td id="lb_total_' + rid + '" style="padding:8px 12px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">' + total + '</td></tr>';
+    return r;
+  }
+  h += renderLeaderRow('厅级', 'deptLevel');
+  h += renderLeaderRow('处级', 'divisionLevel');
+  h += renderLeaderRow('科级', 'sectionLevel');
+  h += '<tr style="background:var(--primary-light);font-weight:600;"><td style="padding:8px 12px;">合计</td><td id="lb_sum_auth" style="padding:8px 12px;text-align:center;">' + lbSumAuth + '</td><td id="lb_sum_leader" style="padding:8px 12px;text-align:center;">' + lbSumLeader + '</td><td id="lb_sum_other" style="padding:8px 12px;text-align:center;">' + lbSumOther + '</td><td id="lb_sum_total" style="padding:8px 12px;text-align:center;">' + (lbSumLeader + lbSumOther) + '</td></tr>';
+  h += '</table>';
+  h += '</div>';
+
+  // Close main column
+  h += '</div>'; // close detail-main
+
+  // Change log sidebar
+  h += '<div class="detail-side">';
+  h += renderChangeLog();
+  h += '</div>';
+
+  h += '</div>'; // close detail-layout
+
+  // Bottom action bar
+  if (isReviewing) {
+    h += '<div class="submit-bar">';
+    h += '<span></span>';
+    h += '<div style="display:flex;gap:8px;">';
+    h += '<button class="btn btn-danger" onclick="openReturnModal()">退回修改</button>';
+    h += '<button class="btn btn-success" onclick="confirmApprove()">审核通过</button>';
+    h += '</div>';
+    h += '</div>';
+  } else if (isEditing) {
+    h += '<div class="submit-bar">';
+    h += '<a class="btn btn-outline" href="org-detail.html?orgId=' + encodeURIComponent(orgId) + '">取消编辑</a>';
+    h += '<button class="btn btn-primary" onclick="openEditModal()">保存修改</button>';
+    h += '</div>';
+  }
+
+  document.getElementById('detailContent').innerHTML = h;
+}
+
+// ===== ACTIONS =====
+function refreshLeaderDisplay() {
+  var lb = ledger.leaderBreakdown || { deptLevel:{}, divisionLevel:{}, sectionLevel:{} };
+  // Update per-row totals
+  var ids = ['dept','div','sec'];
+  var keys = ['deptLevel','divisionLevel','sectionLevel'];
+  for (var ri = 0; ri < ids.length; ri++) {
+    var l = lb[keys[ri]] || {};
+    var total = (l.actualLeader||0) + (l.actualOtherLeader||0);
+    var el = document.getElementById('lb_total_' + ids[ri]);
+    if (el) el.textContent = total;
+  }
+  // Update summary row
+  var sumAuth = (lb.deptLevel.auth||0)+(lb.divisionLevel.auth||0)+(lb.sectionLevel.auth||0);
+  var sumLdr = (lb.deptLevel.actualLeader||0)+(lb.divisionLevel.actualLeader||0)+(lb.sectionLevel.actualLeader||0);
+  var sumOth = (lb.deptLevel.actualOtherLeader||0)+(lb.divisionLevel.actualOtherLeader||0)+(lb.sectionLevel.actualOtherLeader||0);
+  var elAuth = document.getElementById('lb_sum_auth'); if (elAuth) elAuth.textContent = sumAuth;
+  var elLdr = document.getElementById('lb_sum_leader'); if (elLdr) elLdr.textContent = sumLdr;
+  var elOth = document.getElementById('lb_sum_other'); if (elOth) elOth.textContent = sumOth;
+  var elTot = document.getElementById('lb_sum_total'); if (elTot) elTot.textContent = sumLdr + sumOth;
+  // Update top summary inputs
+  var elTopAuth = document.getElementById('lb_top_auth'); if (elTopAuth) elTopAuth.value = sumAuth;
+  var elTopLdr = document.getElementById('lb_top_leader'); if (elTopLdr) elTopLdr.value = sumLdr;
+  var elTopOth = document.getElementById('lb_top_other'); if (elTopOth) elTopOth.value = sumOth;
+  // Sync to ledger
+  ledger.authLeader = sumAuth;
+  ledger.actualLeader = sumLdr;
+  ledger.actualOtherLeader = sumOth;
+}
+
+function saveLedger() {
+  // Sync computed leader summary from leaderBreakdown
+  var lb2 = ledger.leaderBreakdown || { deptLevel:{}, divisionLevel:{}, sectionLevel:{} };
+  ledger.authLeader = (lb2.deptLevel.auth||0)+(lb2.divisionLevel.auth||0)+(lb2.sectionLevel.auth||0);
+  ledger.actualLeader = (lb2.deptLevel.actualLeader||0)+(lb2.divisionLevel.actualLeader||0)+(lb2.sectionLevel.actualLeader||0);
+  ledger.actualOtherLeader = (lb2.deptLevel.actualOtherLeader||0)+(lb2.divisionLevel.actualOtherLeader||0)+(lb2.sectionLevel.actualOtherLeader||0);
+  var allLedgers = JSON.parse(localStorage.getItem('org_ledger') || '{}');
+  allLedgers[schoolName] = JSON.parse(JSON.stringify(ledger));
+  localStorage.setItem('org_ledger', JSON.stringify(allLedgers));
+}
+
+function confirmApprove() {
+  document.getElementById('approveSchoolName').textContent = schoolName;
+  document.getElementById('approveModal').classList.add('show');
+}
+
+function closeApproveModal() {
+  document.getElementById('approveModal').classList.remove('show');
+}
+
+function approveLedger() {
+  ledger.status = 'active';
+  ledger.reviewedAt = new Date().toISOString().split('T')[0];
+  ledger.reviewedBy = currentUser.name || '管理员';
+  ledger.returnReason = '';
+  ledger.updatedAt = new Date().toISOString().split('T')[0];
+  ledger.updatedBy = currentUser.name || '管理员';
+  addChangeLogEntry({
+    type: 'approve',
+    operator: currentUser.name || '管理员',
+    action: '审核通过'
+  });
+  saveLedger();
+  pageMode = 'view';
+  renderDetail();
+  showToast(schoolName + ' 台账审核已通过', 'success');
+}
+
+function updateComputedFields() {
+  var comp = getComputed(ledger);
+  var elT = document.getElementById('fldTotalControlQuota');
+  var elP = document.getElementById('fldTotalPosts');
+  if (elT) elT.value = comp.totalControlQuota;
+  if (elP) elP.value = comp.totalPosts;
+}
+
+// ===== CHANGE LOG =====
+function initChangeLog() {
+  if (!ledger.changeLog) ledger.changeLog = [];
+}
+
+function addChangeLogEntry(entry) {
+  initChangeLog();
+  var now = new Date();
+  var ts = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' +
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+  entry.time = ts;
+  ledger.changeLog.push(entry);
+}
+
+function buildChanges(original, updated) {
+  var numericFields = ['careerQuota','careerActual','careerApprovedPlan','careerUsedPlan',
+    'controlQuota','controlActual','controlApprovedPlan','controlUsedPlan',
+    'authLeader','actualLeader','actualOtherLeader','highlandPosts'];
+  var changes = {};
+  numericFields.forEach(function(key) {
+    if (original[key] !== updated[key]) {
+      changes[key] = { old: original[key], new: updated[key] };
+    }
+  });
+  return changes;
+}
+
+function fieldLabelMap(key) {
+  var map = {
+    careerQuota:'事业编核定数', careerActual:'实有在编人数', careerApprovedPlan:'已批复计划数（事业编）', careerUsedPlan:'已使用计划数',
+    controlQuota:'控制数核定数', controlActual:'实有控制数人数', controlApprovedPlan:'已批复控制数', controlUsedPlan:'已使用控制数',
+    authLeader:'核定领导职数', actualLeader:'实配领导人数', actualOtherLeader:'实配其他领导人数', highlandPosts:'小高地岗位'
+  };
+  return map[key] || key;
+}
+
+function renderChangeLog() {
+  initChangeLog();
+  // Sort by time ascending
+  ledger.changeLog.sort(function(a, b) { return (a.time||'').localeCompare(b.time||''); });
+  var h = '<div class="side-history">';
+  h += '<h4>变更记录</h4>';
+  if (ledger.changeLog.length === 0) {
+    h += '<div style="font-size:12px;color:var(--text-light);text-align:center;padding:20px 0;">暂无变更记录</div>';
+  } else {
+    h += '<div class="timeline">';
+    ledger.changeLog.forEach(function(entry) {
+      var cls = entry.type || 'edit';
+      h += '<div class="timeline-item ' + cls + '">';
+      h += '<div class="tl-time">' + (entry.time||'') + '</div>';
+      h += '<div class="tl-action">' + (entry.action||'编辑台账') + '</div>';
+      if (entry.operator) {
+        h += '<div class="tl-operator">操作人：' + escapeHtml(entry.operator) + '</div>';
+      }
+      if (entry.reason) {
+        h += '<div class="tl-reason">' + (entry.type === 'return' ? '驳回意见' : '修改原因') + '：' + escapeHtml(entry.reason) + '</div>';
+      }
+      // Attachment
+      if (entry.attachment && entry.attachment.name) {
+        h += '<div class="tl-attachment"><a href="javascript:void(0)" onclick="downloadMockAttachment(\'' + escapeHtml(entry.attachment.name) + '\')" style="color:var(--accent);font-size:11px;">📎 ' + escapeHtml(entry.attachment.name) + ' (' + formatFileSize2(entry.attachment.size) + ')</a></div>';
+      }
+      // Expandable changes for submit entries — look up submissionLog for full diff
+      if (entry.type === 'submit') {
+        var ch = entry.changes || [];
+        var pc = entry.planChanges || { added: [], removed: [] };
+        // If entry has no changes, try to find matching submissionLog entry
+        if (ch.length === 0 && pc.added.length === 0 && pc.removed.length === 0 && ledger.submissionLog) {
+          for (var sli2 = 0; sli2 < ledger.submissionLog.length; sli2++) {
+            if (ledger.submissionLog[sli2].time === entry.time) {
+              ch = ledger.submissionLog[sli2].changes || [];
+              pc = ledger.submissionLog[sli2].planChanges || { added: [], removed: [] };
+              if (ledger.submissionLog[sli2].reason && !entry.reason) entry.reason = ledger.submissionLog[sli2].reason;
+              if (ledger.submissionLog[sli2].attachment && !entry.attachment) entry.attachment = ledger.submissionLog[sli2].attachment;
+              break;
+            }
+          }
+        }
+        if (!entry._legacy && (ch.length > 0 || pc.added.length > 0 || pc.removed.length > 0)) {
+          var chId = 'chg-' + Math.random().toString(36).slice(2,8);
+          h += '<div class="tl-changes" style="cursor:pointer;color:var(--accent);font-size:11px;" onclick="var el=document.getElementById(\'' + chId + '\');el.style.display=el.style.display===\'none\'?\'\':\'none\';this.textContent=el.style.display===\'none\'?\'▸ 变更明细 (' + (ch.length + pc.added.length + pc.removed.length) + ' 项)\':\'▾ 收起明细\';">▸ 变更明细 (' + (ch.length + pc.added.length + pc.removed.length) + ' 项)</div>';
+          h += '<div id="' + chId + '" style="display:none;background:#F8FAFC;border-radius:4px;padding:8px 12px;font-size:11px;line-height:1.8;margin-top:4px;">';
+          ch.forEach(function(c) {
+            h += '<div>▪ ' + escapeHtml(c.label) + '：' + c.old + ' → <b>' + c.new + '</b>' + (c.old === 0 ? ' <span style="font-size:10px;color:var(--text-light);">（新增）</span>' : '') + '</div>';
+          });
+          pc.added.forEach(function(p) { h += '<div>▪ 新增线下补录：' + escapeHtml(p.docNo) + ' <b>' + p.count + '</b> 人</div>'; });
+          pc.removed.forEach(function(p) { h += '<div style="color:var(--danger);">▪ 删除线下补录：' + escapeHtml(p.docNo) + ' ' + p.count + ' 人</div>'; });
+          h += '</div>';
+        }
+      }
+      if (entry.changes && !Array.isArray(entry.changes) && Object.keys(entry.changes).length > 0) {
+        var changeItems = [];
+        Object.keys(entry.changes).forEach(function(k) {
+          var c = entry.changes[k];
+          if (c.old !== c.new) {
+            changeItems.push(fieldLabelMap(k) + '：' + c.old + ' → ' + c.new);
+          }
+        });
+        if (changeItems.length > 0) {
+          h += '<div class="tl-changes">' + changeItems.join('<br>') + '</div>';
+        }
+      }
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+// ===== EDIT SAVE FLOW =====
+var originalLedger = null;
+
+function openEditModal() {
+  originalLedger = JSON.parse(JSON.stringify(ledger));
+  document.getElementById('editReasonInput').value = '';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('show');
+  originalLedger = null;
+}
+
+function confirmSaveEdit() {
+  var reason = document.getElementById('editReasonInput').value.trim();
+  if (!reason) { showToast('请填写修改原因', 'warning'); return; }
+
+  var changes = originalLedger ? buildChanges(originalLedger, ledger) : {};
+
+  addChangeLogEntry({
+    type: 'edit',
+    operator: currentUser.name || '管理员',
+    action: '编辑台账',
+    reason: reason,
+    changes: changes
+  });
+
+  ledger.updatedAt = new Date().toISOString().split('T')[0];
+  ledger.updatedBy = currentUser.name || '管理员';
+  saveLedger();
+  closeEditModal();
+  pageMode = 'view';
+  renderDetail();
+  showToast('台账修改已保存', 'success');
+}
+
+function openReturnModal() {
+  document.getElementById('returnReasonInput').value = '';
+  document.getElementById('returnModal').classList.add('show');
+}
+function closeReturnModal() {
+  document.getElementById('returnModal').classList.remove('show');
+}
+function confirmReturn() {
+  var reason = document.getElementById('returnReasonInput').value.trim();
+  if (!reason) { showToast('请填写退回原因', 'warning'); return; }
+  ledger.returnReason = reason;
+  ledger.updatedAt = new Date().toISOString().split('T')[0];
+  ledger.updatedBy = currentUser.name || '管理员';
+  addChangeLogEntry({
+    type: 'return',
+    operator: currentUser.name || '管理员',
+    action: '退回修改',
+    reason: reason
+  });
+  saveLedger();
+  closeReturnModal();
+  renderDetail();
+  showToast('台账已退回至学校修改', 'success');
+}
+
+
+// ===== ORG INFO VIEW (from org-management.html) =====
+function initOrgInfoView() {
+  // Read org_directory from localStorage
+  var stored = localStorage.getItem('org_directory');
+  var dir = [];
+  if (stored) { try { dir = JSON.parse(stored); } catch(e) { dir = []; } }
+
+  // Find the org
+  for (var i = 0; i < dir.length; i++) {
+    if (dir[i].orgId === orgId) { orgInfo = JSON.parse(JSON.stringify(dir[i])); break; }
+  }
+
+  if (!orgInfo) {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:40px;color:var(--text-light);">未找到机构「' + escapeHtml(orgId) + '」的数据</div></div>';
+    renderSidebar();
+    return;
+  }
+
+  // District admin permission check
+  var userDistrict = currentUser.district || '';
+  if (currentUser.role === 'district' && userDistrict && orgInfo.district !== userDistrict) {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:60px 20px;"><div style="font-size:36px;margin-bottom:8px;">🔒</div><div style="font-size:14px;color:var(--text-secondary);">您无权查看该机构的数据</div><div style="font-size:12px;color:var(--text-light);margin-top:4px;">所属区域：' + escapeHtml(orgInfo.district) + ' ｜ 您的辖区：' + escapeHtml(userDistrict) + '</div><div style="margin-top:16px;"><a class="btn btn-outline btn-sm" href="org-management.html">← 返回列表</a></div></div></div>';
+    renderSidebar();
+    return;
+  }
+
+  // City admin review scope: only 市直属
+  if (currentUser.role === 'city' && pageAction === 'review' && orgInfo.district !== '市直属') {
+    document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:60px 20px;"><div style="font-size:36px;margin-bottom:8px;">🔒</div><div style="font-size:14px;color:var(--text-secondary);">市管理员仅可审核市直属学校</div><div style="font-size:12px;color:var(--text-light);margin-top:4px;">该校所属区域：' + escapeHtml(orgInfo.district) + ' ｜ 不在您的审核范围内</div><div style="margin-top:16px;"><a class="btn btn-outline btn-sm" href="org-management.html">← 返回列表</a></div></div></div>';
+    renderSidebar();
+    return;
+  }
+
+  // Backfill change log if missing
+  if (!orgInfo.changeLog || !orgInfo.changeLog.length) {
+    orgInfo.changeLog = [{
+      type: 'create',
+      time: (orgInfo.createdAt || '2025-01-01') + ' 10:00:00',
+      operator: orgInfo.districtAdminName || orgInfo.schoolAdminName || '管理员',
+      operatorRole: '市管理员'
+    }];
+  }
+
+  document.getElementById('breadcrumbSchool').textContent = orgInfo.orgName || orgId;
+  renderSidebar();
+
+  if (pageAction === 'edit') {
+    // Take snapshot for change comparison on submit
+    orgEditSnapshot = JSON.parse(JSON.stringify(orgInfo));
+    renderOrgEditForm();
+  } else if (pageAction === 'review') {
+    renderOrgReviewForm();
+  } else {
+    renderOrgInfo();
+  }
+}
+
+function renderOrgInfo() {
+  var o = orgInfo;
+  if (!o) return;
+
+  var isPending = o.reviewStatus === 'pending';
+  var statusCls = isPending ? 'pending' : (o.status === 'active' ? 'active' : 'inactive');
+  var statusText = isPending ? '🟡 待审核' : (o.status === 'active' ? '🟢 正常' : '已停用');
+  var isSchool = currentUser.role === 'school';
+
+  var h = '';
+
+  // Pending notice for school admin
+  if (isSchool && isPending) {
+    h += '<div class="alert alert-info" style="margin-bottom:16px;">🟡 信息修改已提交审核，请耐心等待主管单位审核。</div>';
+  }
+
+  // Header
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left"><h1>' + escapeHtml(o.orgName) + ' — 机构详情</h1>';
+  h += '<div class="subtitle">单位编号：' + escapeHtml(o.orgId) + ' ｜ <span class="status-badge ' + statusCls + '">' + statusText + '</span></div></div>';
+  h += '<div class="page-header-right">';
+  if (isSchool) {
+    h += '<a class="btn btn-outline btn-sm" href="workbench.html">← 返回工作台</a>';
+    if (!isPending) {
+      h += ' <a class="btn btn-primary btn-sm" href="org-ledger-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&action=edit">编辑</a>';
+    }
+  } else {
+    h += '<a class="btn btn-outline btn-sm" href="org-management.html">← 返回列表</a>';
+  }
+  h += '</div></div>';
+
+  // Two-column layout
+  h += '<div class="detail-layout">';
+  h += '<div class="detail-main">';
+
+  // ===== 基本信息 =====
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">🏛️</span>基本信息</h2>';
+  h += '<div class="form-grid">';
+  h += '<div class="form-group"><label>单位名称</label><div class="field-value">' + escapeHtml(o.orgName || '-') + '</div></div>';
+  h += '<div class="form-group"><label>单位简称</label><div class="field-value' + (o.orgShortName ? '' : ' empty') + '">' + escapeHtml(o.orgShortName || '—') + '</div></div>';
+  h += '<div class="form-group"><label>所属区域</label><div class="field-value">' + escapeHtml(o.district || '-') + '</div></div>';
+  h += '<div class="form-group"><label>单位级别</label><div class="field-value">' + escapeHtml(o.orgLevel || '-') + '</div></div>';
+  h += '</div>';
+  h += '</div>';
+
+  // ===== 编制属性 =====
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">📊</span>编制属性</h2>';
+  h += '<div class="form-grid">';
+  h += '<div class="form-group span-full"><label>组织类型</label><div class="field-value">' + escapeHtml(o.orgType || '-') + '</div></div>';
+  if (o.orgType === '学校') {
+    h += '<div class="form-group"><label>学校类型</label><div class="field-value">' + escapeHtml(o.schoolType || '-') + '</div></div>';
+    h += '<div class="form-group"><label>岗位设置分类</label><div class="field-value">' + escapeHtml(o.schoolCategory || '-') + '</div></div>';
+  }
+  h += '<div class="form-group span-full"><label>单位性质</label><div class="field-value">' + escapeHtml(o.orgNature || '-') + '</div></div>';
+  if (o.orgType !== '行政管理部门') {
+    h += '<div class="form-group"><label>单位类型</label><div class="field-value">' + escapeHtml(o.unitType || '-') + '</div></div>';
+  }
+  h += '<div class="form-group"><label>经费类型</label><div class="field-value">' + escapeHtml(o.fundType || '-') + '</div></div>';
+  h += '<div class="form-group span-full"><label>统一社会信用代码</label><div class="field-value' + (o.creditCode ? '' : ' empty') + '">' + escapeHtml(o.creditCode || '—') + '</div></div>';
+  h += '</div>';
+  h += '</div>';
+
+  // ===== 管理信息 =====
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">👤</span>管理信息</h2>';
+  h += '<div class="form-grid">';
+  h += '<div class="form-group"><label>单位管理员</label><div class="field-value' + (o.schoolAdminName ? '' : ' empty') + '">' + escapeHtml(o.schoolAdminName || '未配置') + '</div></div>';
+  h += '<div class="form-group"><label>单位地址</label><div class="field-value' + (o.address ? '' : ' empty') + '">' + escapeHtml(o.address || '—') + '</div></div>';
+  h += '<div class="form-group"><label>联系电话</label><div class="field-value' + (o.phone ? '' : ' empty') + '">' + escapeHtml(o.phone || '—') + '</div></div>';
+  h += '<div class="form-group"><label>邮编</label><div class="field-value' + (o.postcode ? '' : ' empty') + '">' + escapeHtml(o.postcode || '—') + '</div></div>';
+  h += '</div>';
+  h += '</div>';
+
+  h += '</div>'; // close detail-main
+
+  // Change log sidebar
+  h += '<div class="detail-side">';
+  h += renderOrgChangeLog();
+  h += '</div>';
+
+  h += '</div>'; // close detail-layout
+
+  document.getElementById('detailContent').innerHTML = h;
+}
+
+function renderOrgChangeLog() {
+  var log = (orgInfo && orgInfo.changeLog) ? orgInfo.changeLog : [];
+  var h = '<div class="side-history">';
+  h += '<h4>📋 更改记录</h4>';
+  if (log.length === 0) {
+    h += '<div style="font-size:12px;color:var(--text-light);padding:12px 0;">暂无记录</div>';
+  } else {
+    h += '<div class="timeline">';
+    for (var i = 0; i < log.length; i++) {
+      var entry = log[i];
+      var cssClass = entry.type === 'create' ? 'submit' : (entry.type === 'disable' ? 'return' : (entry.type === 'enable' ? 'approve' : 'edit'));
+      h += '<div class="timeline-item ' + cssClass + '">';
+      h += '<div class="tl-time">' + escapeHtml(entry.time || '') + '</div>';
+      var actionMap = { create: '创建机构', edit: '编辑机构', disable: '停用机构', enable: '启用机构' };
+      h += '<div class="tl-action">' + (actionMap[entry.type] || entry.type) + '</div>';
+      h += '<div class="tl-operator">操作人：' + escapeHtml(entry.operator || '') + '（' + escapeHtml(entry.operatorRole || '') + '）</div>';
+      if (entry.changes && entry.changes.length > 0) {
+        h += '<div class="tl-reason">';
+        for (var c = 0; c < entry.changes.length; c++) {
+          var ch = entry.changes[c];
+          h += '▪ ' + escapeHtml(ch.field) + '：' + escapeHtml(ch.from) + ' → ' + escapeHtml(ch.to);
+          if (c < entry.changes.length - 1) h += '<br>';
+        }
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+// ===== SCHOOL EDIT FORM =====
+function renderOrgEditForm() {
+  var o = orgInfo;
+  if (!o) return;
+
+  var h = '';
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left"><h1>' + escapeHtml(o.orgName) + ' — 编辑机构信息</h1>';
+  h += '<div class="subtitle">单位编号：' + escapeHtml(o.orgId) + '</div></div>';
+  h += '</div></div>';
+
+  // Warning notice
+  h += '<div class="alert alert-info" style="margin-bottom:16px;">💡 提交前请仔细核对，<strong>提交后不可撤回</strong>。</div>';
+
+  // Show rejection reason if rejected
+  if (o.reviewStatus === 'rejected' && o.reviewReason) {
+    h += '<div class="alert" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;margin-bottom:16px;">⚠️ 上次驳回原因：' + escapeHtml(o.reviewReason) + '</div>';
+  }
+
+  h += '<div class="detail-layout"><div class="detail-main">';
+
+  // Basic info
+  h += '<div class="form-card"><h2><span class="card-icon">🏛️</span>基本信息</h2><div class="form-grid">';
+  h += formField('单位名称', 'fOrgName', o.orgName, 'text', false);
+  h += formField('单位简称', 'fOrgShortName', o.orgShortName, 'text', false);
+  h += formFieldLocked('所属区域', o.district);
+  h += formField('单位级别', 'fOrgLevel', o.orgLevel, 'select', false, ['副厅级','正处级','副处级','正科级','副科级','其他未定级']);
+  h += '</div></div>';
+
+  // Org attributes
+  h += '<div class="form-card"><h2><span class="card-icon">📊</span>编制属性</h2><div class="form-grid">';
+  h += formField('组织类型', 'fOrgType', o.orgType, 'select', false, ['学校','行政管理部门','局属二层机构'], 'onchange="onOrgTypeChangeEdit()"');
+  var showSchool = o.orgType === '学校';
+  if (showSchool) {
+    h += formField('学校类型', 'fSchoolType', o.schoolType, 'select', false, ['小学','初中','高中','完中','九年一贯制','十二年一贯制','中职','幼儿园','特殊教育','专门学校']);
+    h += formField('岗位设置分类', 'fSchoolCategory', o.schoolCategory, 'select', false, ['自治区示范高中','自治区特色高中','普通高中','初中','小学','幼儿园']);
+  }
+  h += formField('单位性质', 'fOrgNature', o.orgNature, 'select', false, ['事业单位','参公事业单位','机关单位','其他']);
+  if (o.orgType !== '行政管理部门') {
+    h += formField('单位类型', 'fUnitType', o.unitType, 'select', false, ['公益一类','公益二类','行政部门']);
+  }
+  h += formField('经费类型', 'fFundType', o.fundType, 'select', false, ['全额拨款','差额拨款','自收自支']);
+  h += formField('统一社会信用代码', 'fCreditCode', o.creditCode, 'text', false);
+  h += '</div></div>';
+
+  // Admin info
+  h += '<div class="form-card"><h2><span class="card-icon">👤</span>管理信息</h2><div class="form-grid">';
+  h += formFieldLocked('单位管理员', o.schoolAdminName || '未配置');
+  h += formField('单位地址', 'fAddress', o.address, 'text', false);
+  h += formField('联系电话', 'fPhone', o.phone, 'text', false);
+  h += formField('邮编', 'fPostcode', o.postcode, 'text', false);
+  h += '</div></div>';
+
+  h += '</div>'; // close detail-main
+
+  // Change log sidebar
+  h += '<div class="detail-side">';
+  h += renderOrgChangeLog();
+  h += '</div>';
+
+  h += '</div>'; // close detail-layout
+
+  // Submit bar
+  h += '<div class="submit-bar" style="justify-content:flex-end;">';
+  h += '<a class="btn btn-outline" href="org-ledger-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&mode=view">取消</a>';
+  h += '<button class="btn btn-primary" onclick="submitReview()">提交审核</button>';
+  h += '</div>';
+
+  document.getElementById('detailContent').innerHTML = h;
+}
+
+function onOrgTypeChangeEdit() {
+  // Reload the edit form when org type changes to update conditional fields
+  var t = document.getElementById('fOrgType').value;
+  orgInfo.orgType = t;
+  renderOrgEditForm();
+}
+
+// ===== ADMIN REVIEW FORM =====
+function renderOrgReviewForm() {
+  var o = orgInfo;
+  if (!o) return;
+
+  // Get latest submit_review change for summary
+  var submitLog = null;
+  var log = o.changeLog || [];
+  for (var i = log.length - 1; i >= 0; i--) {
+    if (log[i].type === 'submit_review') { submitLog = log[i]; break; }
+  }
+
+  var h = '';
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left"><h1>' + escapeHtml(o.orgName) + ' — 审核</h1>';
+  h += '<div class="subtitle">审核状态：<span class="status-badge pending">🟡 待审核</span></div></div>';
+  h += '<div class="page-header-right">';
+  h += '<a class="btn btn-outline btn-sm" href="org-management.html">← 返回列表</a>';
+  h += '</div></div>';
+
+  h += '<div class="detail-layout"><div class="detail-main">';
+
+  // Change summary card
+  if (submitLog) {
+    h += '<div class="form-card" style="background:#FFFBEB;border-color:#FDE68A;">';
+    h += '<h2><span class="card-icon">📝</span>本次提交变更</h2>';
+    if (submitLog.changes && submitLog.changes.length > 0) {
+      for (var c = 0; c < submitLog.changes.length; c++) {
+        var ch = submitLog.changes[c];
+        h += '<div style="font-size:12px;padding:4px 0;">▪ ' + escapeHtml(ch.field) + '：' + escapeHtml(ch.from) + ' → <strong>' + escapeHtml(ch.to) + '</strong></div>';
+      }
+    } else {
+      h += '<div style="font-size:12px;color:var(--text-light);">（无字段变更记录）</div>';
+    }
+    h += '<div style="font-size:11px;color:var(--text-light);margin-top:6px;">提交人：' + escapeHtml(submitLog.operator || '') + ' ｜ 提交时间：' + escapeHtml(submitLog.time || '') + '</div>';
+    h += '</div>';
+  }
+
+  // Basic info
+  h += '<div class="form-card"><h2><span class="card-icon">🏛️</span>基本信息</h2><div class="form-grid">';
+  h += formField('单位名称', 'fOrgName', o.orgName, 'text', false);
+  h += formField('单位简称', 'fOrgShortName', o.orgShortName, 'text', false);
+  h += formField('所属区域', 'fDistrict', o.district, 'select', false, ['市直属','城中区','鱼峰区','柳南区','柳北区','柳江区','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县']);
+  h += formField('单位级别', 'fOrgLevel', o.orgLevel, 'select', false, ['副厅级','正处级','副处级','正科级','副科级','其他未定级']);
+  h += '</div></div>';
+
+  // Org attributes
+  h += '<div class="form-card"><h2><span class="card-icon">📊</span>编制属性</h2><div class="form-grid">';
+  h += formField('组织类型', 'fOrgType', o.orgType, 'select', false, ['学校','行政管理部门','局属二层机构'], 'onchange="onOrgTypeChangeEdit()"');
+  var showSchool = o.orgType === '学校';
+  if (showSchool) {
+    h += formField('学校类型', 'fSchoolType', o.schoolType, 'select', false, ['小学','初中','高中','完中','九年一贯制','十二年一贯制','中职','幼儿园','特殊教育','专门学校']);
+    h += formField('岗位设置分类', 'fSchoolCategory', o.schoolCategory, 'select', false, ['自治区示范高中','自治区特色高中','普通高中','初中','小学','幼儿园']);
+  }
+  h += formField('单位性质', 'fOrgNature', o.orgNature, 'select', false, ['事业单位','参公事业单位','机关单位','其他']);
+  if (o.orgType !== '行政管理部门') {
+    h += formField('单位类型', 'fUnitType', o.unitType, 'select', false, ['公益一类','公益二类','行政部门']);
+  }
+  h += formField('经费类型', 'fFundType', o.fundType, 'select', false, ['全额拨款','差额拨款','自收自支']);
+  h += formField('统一社会信用代码', 'fCreditCode', o.creditCode, 'text', false);
+  h += '</div></div>';
+
+  // Admin info
+  h += '<div class="form-card"><h2><span class="card-icon">👤</span>管理信息</h2><div class="form-grid">';
+  h += formField('单位管理员', 'fSchoolAdminName', o.schoolAdminName || '', 'text', false);
+  h += formField('单位地址', 'fAddress', o.address, 'text', false);
+  h += formField('联系电话', 'fPhone', o.phone, 'text', false);
+  h += formField('邮编', 'fPostcode', o.postcode, 'text', false);
+  h += '</div></div>';
+
+  h += '</div>'; // close detail-main
+
+  // Change log sidebar
+  h += '<div class="detail-side">';
+  h += renderOrgChangeLog();
+  h += '</div>';
+
+  h += '</div>'; // close detail-layout
+
+  // Approve bar
+  h += '<div class="submit-bar" style="justify-content:flex-end;">';
+  h += '<a class="btn btn-outline" href="org-management.html">返回列表</a>';
+  h += '<button class="btn btn-success" onclick="approveReview()">审核通过</button>';
+  h += '</div>';
+
+  document.getElementById('detailContent').innerHTML = h;
+}
+
+// ===== FORM HELPERS =====
+function formField(label, id, value, type, locked, options, extraAttrs) {
+  var h = '<div class="form-group">';
+  h += '<label>' + escapeHtml(label) + '</label>';
+  if (type === 'select') {
+    h += '<select id="' + id + '"' + (extraAttrs ? ' ' + extraAttrs : '') + (locked ? ' disabled' : '') + '>';
+    if (options) {
+      for (var i = 0; i < options.length; i++) {
+        h += '<option value="' + escapeHtml(options[i]) + '"' + (value === options[i] ? ' selected' : '') + '>' + escapeHtml(options[i]) + '</option>';
+      }
+    }
+    h += '</select>';
+  } else {
+    h += '<input type="' + type + '" id="' + id + '" value="' + escapeHtml(value || '') + '"' + (locked ? ' readonly' : '') + '>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function formFieldLocked(label, value) {
+  return '<div class="form-group"><label>' + escapeHtml(label) + ' 🔒</label><div class="field-value">' + escapeHtml(value || '—') + '</div></div>';
+}
+
+// ===== SUBMIT / APPROVE ACTIONS =====
+function submitReview() {
+  var oldSnapshot = orgEditSnapshot;
+  if (!oldSnapshot) { showToast('提交失败，请刷新页面重试', 'warning'); return; }
+
+  // Read form values and update orgInfo
+  readFormToOrgInfo();
+  orgInfo.reviewStatus = 'pending';
+  orgInfo.updatedAt = new Date().toISOString().split('T')[0];
+
+  // Compute changes
+  var changes = buildChangeLogForOrg(oldSnapshot, orgInfo);
+  if (!orgInfo.changeLog) orgInfo.changeLog = [];
+  var now = new Date();
+  var ts = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' +
+           String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+  orgInfo.changeLog.push({
+    type: 'submit_review',
+    time: ts,
+    operator: currentUser.name || '校管理员',
+    operatorRole: '校管理员',
+    changes: changes
+  });
+
+  // Save to org_directory
+  saveOrgInfoToDirectory();
+  showToast('已提交审核', 'success');
+  setTimeout(function() { window.location.href = 'org-ledger-detail.html?orgId=' + encodeURIComponent(orgInfo.orgId) + '&mode=view'; }, 800);
+}
+
+function approveReview() {
+  // Read form values
+  readFormToOrgInfo();
+
+  // Compare with submit_review to get admin changes
+  var submitLog = null;
+  var log = orgInfo.changeLog || [];
+  for (var i = log.length - 1; i >= 0; i--) {
+    if (log[i].type === 'submit_review') { submitLog = log[i]; break; }
+  }
+
+  // Reconstruct what the data was BEFORE the submit_review (original data)
+  // by reversing the changes from submit_review
+  var originalData = JSON.parse(JSON.stringify(orgInfo));
+  if (submitLog && submitLog.changes) {
+    for (var c = 0; c < submitLog.changes.length; c++) {
+      var ch = submitLog.changes[c];
+      var key = getKeyForField(ch.field);
+      if (key) originalData[key] = ch.from === '(空)' ? '' : ch.from;
+    }
+  }
+
+  // Now compare original to current to get total changes
+  var adminChanges = buildChangeLogForOrg(originalData, orgInfo);
+
+  orgInfo.reviewStatus = null;
+  orgInfo.reviewedBy = currentUser.name || '管理员';
+  orgInfo.reviewedAt = new Date().toISOString().split('T')[0];
+  orgInfo.updatedAt = new Date().toISOString().split('T')[0];
+
+  var now = new Date();
+  var ts = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' +
+           String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+  orgInfo.changeLog.push({
+    type: 'approve',
+    time: ts,
+    operator: currentUser.name || '管理员',
+    operatorRole: getRoleLabel(currentUser.role),
+    changes: adminChanges.length > 0 ? adminChanges : null
+  });
+
+  saveOrgInfoToDirectory();
+  showToast('审核通过，信息已生效', 'success');
+  setTimeout(function() { window.location.href = 'org-management.html'; }, 800);
+}
+
+function readFormToOrgInfo() {
+  var fields = {
+    'fOrgName': 'orgName', 'fOrgShortName': 'orgShortName', 'fDistrict': 'district',
+    'fOrgLevel': 'orgLevel', 'fOrgType': 'orgType', 'fSchoolType': 'schoolType',
+    'fSchoolCategory': 'schoolCategory', 'fOrgNature': 'orgNature',
+    'fUnitType': 'unitType', 'fFundType': 'fundType', 'fCreditCode': 'creditCode',
+    'fSchoolAdminName': 'schoolAdminName', 'fAddress': 'address', 'fPhone': 'phone', 'fPostcode': 'postcode'
+  };
+  for (var id in fields) {
+    var el = document.getElementById(id);
+    if (el) orgInfo[fields[id]] = el.value;
+  }
+}
+
+function saveOrgInfoToDirectory() {
+  var stored = localStorage.getItem('org_directory');
+  var dir = [];
+  if (stored) { try { dir = JSON.parse(stored); } catch(e) { dir = []; } }
+  for (var i = 0; i < dir.length; i++) {
+    if (dir[i].orgId === orgInfo.orgId) { dir[i] = JSON.parse(JSON.stringify(orgInfo)); break; }
+  }
+  localStorage.setItem('org_directory', JSON.stringify(dir));
+}
+
+function buildChangeLogForOrg(oldOrg, newOrg) {
+  var changes = [];
+  var fields = [
+    { key: 'orgName', label: '单位名称' },
+    { key: 'orgShortName', label: '单位简称' },
+    { key: 'district', label: '所属区域' },
+    { key: 'orgLevel', label: '单位级别' },
+    { key: 'orgType', label: '组织类型' },
+    { key: 'schoolType', label: '学校类型' },
+    { key: 'schoolCategory', label: '岗位设置分类' },
+    { key: 'orgNature', label: '单位性质' },
+    { key: 'unitType', label: '单位类型' },
+    { key: 'fundType', label: '经费类型' },
+    { key: 'creditCode', label: '统一社会信用代码' },
+    { key: 'schoolAdminName', label: '单位管理员' },
+    { key: 'address', label: '单位地址' },
+    { key: 'phone', label: '联系电话' },
+    { key: 'postcode', label: '邮编' }
+  ];
+  fields.forEach(function(f) {
+    var oldVal = (oldOrg[f.key] !== undefined ? oldOrg[f.key] : '');
+    var newVal = (newOrg[f.key] !== undefined ? newOrg[f.key] : '');
+    if (String(oldVal) !== String(newVal)) {
+      changes.push({ field: f.label, from: String(oldVal) || '(空)', to: String(newVal) || '(空)' });
+    }
+  });
+  return changes;
+}
+
+function getKeyForField(fieldLabel) {
+  var map = {
+    '单位名称': 'orgName', '单位简称': 'orgShortName', '所属区域': 'district',
+    '单位级别': 'orgLevel', '组织类型': 'orgType', '学校类型': 'schoolType',
+    '岗位设置分类': 'schoolCategory', '单位性质': 'orgNature', '单位类型': 'unitType',
+    '经费类型': 'fundType', '统一社会信用代码': 'creditCode', '单位管理员': 'schoolAdminName',
+    '单位地址': 'address', '联系电话': 'phone', '邮编': 'postcode'
+  };
+  return map[fieldLabel] || '';
+}
+
+function getRoleLabel(role) {
+  switch (role) {
+    case 'city': return '市管理员';
+    case 'district': return '区管理员';
+    case 'school': return '校管理员';
+    default: return role || '';
+  }
+}
+
+// ===== PERSONNEL LIST MODAL =====
+var CATEGORY_LABEL = { mgmt: '管理岗位', tech: '专业技术岗位', labor: '工勤技能岗位' };
+var CATEGORY_MAP = { mgmtLevels: 'mgmt', techLevels: 'tech', laborLevels: 'labor' };
+var LEVEL_LABEL_CH = { '1':'一级','2':'二级','3':'三级','4':'四级','5':'五级','6':'六级','7':'七级','8':'八级','9':'九级','10':'十级','11':'十一级','12':'十二级','13':'十三级','common':'普通工' };
+var PER_PAGE = 10;
+
+function switchPersonnelTab(tabName) {
+  var tabs = document.querySelectorAll('#personnelModalDyn .personnel-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('active', tabs[i].dataset.tab === tabName);
+  }
+  var panels = document.querySelectorAll('#personnelModalDyn .personnel-tab-panel');
+  for (var j = 0; j < panels.length; j++) {
+    panels[j].classList.toggle('active', panels[j].dataset.tab === tabName);
+  }
+  if (window._pd) window._pd.activeTab = tabName;
+}
+
+function buildPagination(tab, page, totalPages, total) {
+  if (totalPages <= 1) return '';
+  var h = '';
+  h += '<button ' + (page <= 1 ? 'disabled' : '') + ' onclick="goPersonnelPage(\'' + tab + '\',' + (page - 1) + ')">‹</button>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (p <= 3 || p > totalPages - 3 || Math.abs(p - page) <= 1) {
+      h += '<button class="' + (p === page ? 'active' : '') + '" onclick="goPersonnelPage(\'' + tab + '\',' + p + ')">' + p + '</button>';
+    } else if (p === 4 || p === totalPages - 3) {
+      h += '<button disabled>…</button>';
+    }
+  }
+  h += '<button ' + (page >= totalPages ? 'disabled' : '') + ' onclick="goPersonnelPage(\'' + tab + '\',' + (page + 1) + ')">›</button>';
+  h += '<span class="page-info">共 ' + totalPages + ' 页 / ' + total + ' 条</span>';
+  return h;
+}
+
+function goPersonnelPage(tab, page) {
+  if (!window._pd) return;
+  if (tab === 'matched') window._pd.matchedPage = page;
+  else window._pd.incPage = page;
+  renderPersonnelPage(tab);
+}
+
+function renderPersonnelRows(list) {
+  var rows = '';
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i];
+    var stBadge = t.staffingType === '事业编'
+      ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#EFF6FF;color:var(--primary);">事业编</span>'
+      : '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#FEF3C7;color:#92400E;">控制数</span>';
+    rows += '<tr><td>' + escapeHtml(t.name) + '</td><td>' + stBadge + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.idCard || '—') + '</td><td style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(t.entryMethod || '—') + '</td><td>' + renderCrossSchoolCell(t) + '</td></tr>';
+  }
+  return rows;
+}
+
+function renderPersonnelPage(tab) {
+  var data = window._pd || {};
+  var list = tab === 'matched' ? (data.matched || []) : (data.incomplete || []);
+  var page = tab === 'matched' ? (data.matchedPage || 1) : (data.incPage || 1);
+  // Apply cross-school filter for matched tab
+  if (tab === 'matched' && data.crossSchoolFilter && data.crossSchoolFilter !== 'all') {
+    list = list.filter(function(t) { return (t.crossSchoolType || 'normal') === data.crossSchoolFilter; });
+  }
+  var total = list.length;
+  var totalPages = Math.ceil(total / PER_PAGE);
+  if (page > totalPages) page = totalPages;
+  if (page < 1) page = 1;
+  if (tab === 'matched') data.matchedPage = page; else data.incPage = page;
+  var start = (page - 1) * PER_PAGE;
+  var pageData = list.slice(start, start + PER_PAGE);
+
+  var tbodyId = tab === 'matched' ? 'pmMatchedTbody' : 'pmIncTbody';
+  var tbody = document.getElementById(tbodyId);
+  if (tbody) {
+    if (pageData.length === 0) {
+      var emptyColspan = 5;
+      tbody.innerHTML = '<tr><td colspan="' + emptyColspan + '"><div class="personnel-empty">暂无数据</div></td></tr>';
+    } else {
+      tbody.innerHTML = renderPersonnelRows(pageData);
+    }
+  }
+
+  var pagId = tab === 'matched' ? 'pmMatchedPag' : 'pmIncPag';
+  var pagEl = document.getElementById(pagId);
+  if (pagEl) {
+    pagEl.innerHTML = buildPagination(tab, page, totalPages, total);
+  }
+}
+
+function showPostLevelPersonnel(fieldMap, level, categoryLabel) {
+  if (!ledger) return;
+  try {
+  var category = CATEGORY_MAP[fieldMap] || '';
+  var schoolName = ledger.schoolName || '';
+  var teachers = [];
+  try { teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]'); } catch(e) {}
+
+  var schoolTeachers = teachers.filter(function(t) {
+    return t.school === schoolName
+      && (t.staffingType === '事业编' || t.staffingType === '控制数');
+  });
+
+  var matched = schoolTeachers.filter(function(t) {
+    return t.postCategory === category && t.postLevel === level;
+  });
+
+  var incomplete = schoolTeachers.filter(function(t) {
+    return (!t.postCategory || !t.postLevel);
+  });
+
+  var ledgerCount = 0;
+  var lvlData = ledger[fieldMap] || {};
+  var ld = lvlData[level] || {};
+  ledgerCount = (ld.careerActual||0) + (ld.controlActual||0);
+  if (fieldMap === 'techLevels') ledgerCount += (ld.highland||0);
+
+  var careerCount = 0, controlCount = 0;
+  matched.forEach(function(t) {
+    if (t.staffingType === '事业编') careerCount++;
+    else if (t.staffingType === '控制数') controlCount++;
+  });
+
+  var levelLabel = LEVEL_LABEL_CH[level] || level;
+  var catLabel = CATEGORY_LABEL[category] || categoryLabel || '';
+  var gap = ledgerCount - matched.length;
+
+  var csCounts = getCrossSchoolCounts(matched);
+  var crossSchoolCount = csCounts.secondment + csCounts.support + csCounts.rotation;
+  var summaryHtml = '📊 台账实聘 <b>' + ledgerCount + '</b> 人 ｜ 已匹配 <b>' + matched.length + '</b> 人';
+  if (gap > 0) summaryHtml += ' ｜ ⚠️ 差额 <b>' + gap + '</b> 人';
+  else if (gap < 0) summaryHtml += ' ｜ 🔴 超额 <b>' + Math.abs(gap) + '</b> 人';
+  if (crossSchoolCount > 0) summaryHtml += ' ｜ 🔄 跨校人员 <b>' + crossSchoolCount + '</b> 人';
+
+  var excessWarnHTML = '';
+  if (gap < 0) {
+    excessWarnHTML = '<div class="personnel-excess-warn">⚠️ 教师账号已匹配 <b>' + matched.length + '</b> 人超过台账记录 <b>' + ledgerCount + '</b> 人，可能原因：<br>· 台账实聘数未及时更新<br>· 部分教师岗位等级填写有误<br>· 同一教师被分配到多个等级<br>请核实数据后更新台账或修正教师岗位等级。</div>';
+  }
+
+  // Store data for pagination
+  window._pd = {
+    matched: matched,
+    incomplete: incomplete,
+    matchedPage: 1,
+    incPage: 1,
+    activeTab: 'matched',
+    crossSchoolFilter: 'all'
+  };
+  var incBadgeHTML = incomplete.length > 0 ? '<span class="badge warn">' + incomplete.length + '</span>' : '';
+
+  var gs = gap > 0 ? '#FFFBEB' : (gap < 0 ? '#FEF2F2' : '#ECFDF5');
+  var gc = gap > 0 ? '#92400E' : (gap < 0 ? '#991B1B' : '#065F46');
+  // Build complete modal HTML dynamically (tab layout)
+  var incPanelHTML = incomplete.length > 0
+    ? '<div class="personnel-tab-panel" data-tab="incomplete"><div class="personnel-warn">💡 以下 <b>' + incomplete.length + '</b> 人属于本校但缺少岗位类别/等级信息，无法自动匹配到本等级。请前往<a href="account-management.html" target="_blank">账号管理</a>补充。</div><table class="personnel-table"><thead><tr><th style="text-align:left;">姓名</th><th>编制类型</th><th>身份证号</th><th>入编方式</th><th>跨校状态</th></tr></thead><tbody id="pmIncTbody"></tbody></table><div class="pagination" id="pmIncPag"></div></div>'
+    : '';
+
+  var modalHTML = '<div id="personnelModalDyn" onclick="if(event.target===this)closePersonnelModal()" style="display:flex;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">'
+    + '<div style="width:880px;max-width:94vw;background:#fff;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,0.12);max-height:80vh;display:flex;flex-direction:column;">'
+    + '<div style="padding:18px 24px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;"><h3 style="font-size:16px;font-weight:600;margin:0;">' + catLabel + ' — ' + levelLabel + ' 实聘人员</h3><button onclick="closePersonnelModal()" style="cursor:pointer;color:#94A3B8;font-size:20px;padding:4px;border:none;background:none;">&times;</button></div>'
+    + '<div style="padding:20px 24px;overflow-y:auto;flex:1;">'
+    + '<div style="padding:10px 16px;border-radius:6px;margin-bottom:14px;font-size:13px;background:' + gs + ';color:' + gc + ';">' + summaryHtml + '</div>'
+    + excessWarnHTML
+    // Tabs
+    + '<div class="personnel-tabs">'
+    + '<div class="personnel-tab active" data-tab="matched" onclick="switchPersonnelTab(\'matched\')">已匹配（' + matched.length + '）</div>'
+    + (incomplete.length > 0 ? '<div class="personnel-tab" data-tab="incomplete" onclick="switchPersonnelTab(\'incomplete\')">待完善' + incBadgeHTML + '</div>' : '')
+    + '</div>'
+    // Matched panel
+    + '<div class="personnel-tab-panel active" data-tab="matched">'
+    + '<table class="personnel-table"><thead><tr><th style="text-align:left;">姓名</th><th>编制类型</th><th>身份证号</th><th>入编方式</th><th>跨校状态</th></tr></thead><tbody id="pmMatchedTbody"></tbody></table>'
+    + '<div class="pagination" id="pmMatchedPag"></div>'
+    + '</div>'
+    // Incomplete panel
+    + incPanelHTML
+    + '</div>'
+    + '<div style="padding:14px 24px;border-top:1px solid #E2E8F0;display:flex;justify-content:flex-end;"><button onclick="closePersonnelModal()" class="btn btn-outline btn-sm">关闭</button></div>'
+    + '</div></div>';
+
+  var old = document.getElementById('personnelModalDyn');
+  if (old) old.remove();
+
+  var div = document.createElement('div');
+  div.innerHTML = modalHTML;
+  document.body.appendChild(div.firstElementChild);
+  // Initial page render for both tabs
+  renderPersonnelPage('matched');
+  if (incomplete.length > 0) renderPersonnelPage('incomplete');
+  } catch(e) { console.error(e); }
+}
+
+function closePersonnelModal() {
+  var pm = document.getElementById('personnelModalDyn');
+  if (pm) { pm.remove(); return; }
+  var pm2 = document.getElementById('personnelModal');
+  if (pm2) pm2.style.display = 'none';
+}
+
+// ===== CROSS-SCHOOL HELPERS =====
+var CROSS_SCHOOL_LABELS = { secondment: '借调', support: '支教', rotation: '轮岗' };
+var CROSS_SCHOOL_CLASSES = { secondment: 'tag-secondment', support: 'tag-support', rotation: 'tag-rotation' };
+
+function renderCrossSchoolCell(a) {
+  var csType = a.crossSchoolType || 'normal';
+  if (csType === 'normal' || !csType) return '<span style="color:var(--text-light);font-size:11px;">在岗（非跨校）</span>';
+  var label = CROSS_SCHOOL_LABELS[csType] || csType;
+  var cls = CROSS_SCHOOL_CLASSES[csType] || '';
+  var html = '<span class="tag-cs ' + cls + '">' + label + '</span>';
+  if (a.crossSchool) html += ' <span style="font-size:10px;color:var(--text-secondary);">' + escapeHtml(a.crossSchool) + '</span>';
+  var dateRange = '';
+  if (a.crossStartDate) dateRange += a.crossStartDate;
+  if (a.crossEndDate) dateRange += (dateRange ? ' ~ ' : '') + a.crossEndDate;
+  if (dateRange) html += '<div style="font-size:9px;color:var(--text-light);">' + dateRange + '</div>';
+  return html;
+}
+
+function getCrossSchoolCounts(list) {
+  var counts = { all: list.length, normal: 0, secondment: 0, support: 0, rotation: 0 };
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i];
+    var csType = t.crossSchoolType || 'normal';
+    if (counts[csType] !== undefined) counts[csType]++;
+    else counts.normal++;
+  }
+  return counts;
+}
+
+function renderCrossSchoolFilterTabs(counts, activeFilter) {
+  var tabs = [
+    { key: 'all', label: '全部' },
+    { key: 'normal', label: '在岗' },
+    { key: 'secondment', label: '借调' },
+    { key: 'support', label: '支教' },
+    { key: 'rotation', label: '轮岗' }
+  ];
+  var h = '<div class="cs-filter-tabs" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">';
+  for (var i = 0; i < tabs.length; i++) {
+    var t = tabs[i];
+    var active = t.key === activeFilter;
+    var count = counts[t.key] || 0;
+    if (count === 0 && t.key !== 'all' && t.key !== 'normal') continue;
+    h += '<span class="cs-filter-tab' + (active ? ' active' : '') + '" onclick="filterCrossSchool(\'' + t.key + '\')" style="padding:3px 12px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid ' + (active ? '#1E40AF' : '#E2E8F0') + ';background:' + (active ? '#1E40AF' : '#fff') + ';color:' + (active ? '#fff' : '#64748B') + ';transition:0.2s;">' + t.label + ' <span style="font-weight:600;">' + count + '</span></span>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function filterCrossSchool(csType) {
+  if (!window._pd) return;
+  window._pd.crossSchoolFilter = csType;
+  window._pd.matchedPage = 1;
+  renderPersonnelPage('matched');
+}
+
+// ===== UTILS =====
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type||'success') + ' show';
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+function logout() {
+  localStorage.removeItem('currentUser');
+  window.location.href = 'index.html';
+}
+
+function getSchoolCategoryMap() {
+  var map = {};
+  var stored = localStorage.getItem('org_directory');
+  if (stored) { try { JSON.parse(stored).forEach(function(o) { if (o.orgName) map[o.orgName] = o.schoolCategory || ''; }); } catch(e) {} }
+  return map;
+}
+
+function getOrgInfo(schoolName) {
+  var stored = localStorage.getItem('org_directory');
+  if (stored) {
+    try {
+      var dir = JSON.parse(stored);
+      for (var i = 0; i < dir.length; i++) {
+        if (dir[i].orgName === schoolName) return dir[i];
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
+window.onerror = function(msg, url, line, col, err) {
+  var el = document.getElementById('detailContent');
+  if (el) el.innerHTML = '<div class="form-card"><div style="padding:20px;color:var(--danger);"><strong>页面错误</strong><p style="font-size:12px;margin-top:8px;word-break:break-all;">' + escapeHtml(String(msg)) + '<br>行: ' + line + ' 列: ' + col + '</p></div></div>';
+  return true;
+};
+
+// ===== PLAN RENDERING (NEW) =====
+function renderExpiryAlerts() {
+  if (!ledger || !LPU) return '';
+  var allPlans = (ledger.careerPlans || []).concat(ledger.controlPlans || []);
+  if (allPlans.length === 0) return '';
+
+  var expiringSoon = [];
+  var alreadyExpired = [];
+  var expiringOccupied = [];
+  for (var i = 0; i < allPlans.length; i++) {
+    var p = allPlans[i];
+    var st = LPU.computePlanStatus(p);
+    if (st === 'expired') {
+      alreadyExpired.push(p);
+    } else if (st === 'expiring_occupied') {
+      expiringOccupied.push(p);
+    } else if (LPU.isExpiringSoon(p) && LPU.remainingCount(p) > 0) {
+      expiringSoon.push(p);
+    }
+  }
+
+  var h = '';
+  if (expiringOccupied.length > 0) {
+    h += '<div class="plan-expiry-alert" style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;margin-bottom:8px;">';
+    h += '🟠 <b>' + expiringOccupied.length + ' 个计划已过期，仍有在途人员待入编</b>';
+    for (var oi = 0; oi < expiringOccupied.length; oi++) {
+      var op = expiringOccupied[oi];
+      h += '<br>· ' + escapeHtml(op.offlineDocNo || op.sourceBatchId || op.id) + '：占用 ' + (op.occupiedCount || 0) + ' 人，已于 ' + op.validEnd + ' 到期';
+    }
+    h += '<br><span style="font-size:10px">占用名额仍有效，请尽快为占用人员办理入编手续。</span>';
+    h += '</div>';
+  }
+  if (alreadyExpired.length > 0) {
+    h += '<div class="plan-expiry-alert expired">';
+    h += '🔒 <b>' + alreadyExpired.length + ' 个计划已到期，未使用名额已释放</b>';
+    for (var ei = 0; ei < alreadyExpired.length; ei++) {
+      var ep = alreadyExpired[ei];
+      var remain = LPU.remainingCount(ep);
+      h += '<br>· ' + escapeHtml(ep.offlineDocNo || ep.sourceBatchId || ep.id) + '：' + remain + ' 人，已于 ' + ep.validEnd + ' 到期';
+    }
+    h += '</div>';
+  }
+  if (expiringSoon.length > 0) {
+    h += '<div class="plan-expiry-alert warn">';
+    h += '⚠️ <b>' + expiringSoon.length + ' 个计划即将到期，请尽快安排招聘或入编</b>';
+    for (var wi = 0; wi < expiringSoon.length; wi++) {
+      var wp = expiringSoon[wi];
+      var days = LPU.daysUntilExpire(wp);
+      h += '<br>· ' + escapeHtml(wp.offlineDocNo || wp.sourceBatchId || wp.id) + '：剩余 ' + LPU.remainingCount(wp) + ' 人，' + days + ' 天后到期（' + wp.validEnd + '）';
+    }
+    h += '</div>';
+  }
+  return h;
+}
+
+function renderQuotaCardDetail(type, title, d, comp, highlights) {
+  var quota = type === 'career' ? d.careerQuota : d.controlQuota;
+  var actual = type === 'career' ? d.careerActual : d.controlActual;
+  var approvedPlan = type === 'career' ? d.careerApprovedPlan : d.controlApprovedPlan;
+  var usedPlan = type === 'career' ? d.careerUsedPlan : d.controlUsedPlan;
+  var unusedPlan = type === 'career' ? comp.careerUnusedPlan : comp.controlUnusedPlan;
+  var available = type === 'career' ? comp.careerAvailable : comp.controlAvailable;
+  var plans = type === 'career' ? (d.careerPlans || []) : (d.controlPlans || []);
+  var quotaLabel = type === 'career' ? '事业编核定数' : '控制数核定数';
+  var actualLabel = type === 'career' ? '实有在编人数' : '实有控制数人数';
+  var hl = highlights || {};
+  function hlStyle(key) { return hl[key] ? 'background:#FFF3CD;border-radius:3px;padding:2px 6px;' : ''; }
+  var vacancyLabel = type === 'career' ? '空缺编制' : '空缺控制数';
+  var applyLabel = type === 'career' ? '可申请编制数' : '可申请控制数';
+  var vacancy = Math.max(0, quota - actual);
+  var applyColor = available <= 0 ? 'var(--danger)' : 'var(--primary)';
+  var agg = LPU.computeAggregates(plans);
+
+  var h = '<div class="form-card" style="flex:1;">';
+  h += '<h2><span class="card-icon">' + (type === 'career' ? '📊' : '📋') + '</span>' + title + '</h2>';
+  h += '<div style="padding:4px 0;">';
+
+  // 编制容量
+  h += '<div style="background:var(--gray-bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:6px;">';
+  h += '<div style="font-size:11px;font-weight:500;color:var(--text-secondary);margin-bottom:4px;letter-spacing:0.5px;">编制容量</div>';
+  h += '<div style="display:flex;align-items:center;font-size:15px;font-weight:700;">';
+  h += '<span>' + quotaLabel + '</span><span style="margin-left:auto;' + hlStyle(type === 'career' ? 'careerQuota' : 'controlQuota') + '">' + quota + ' 人</span>';
+  h += '</div></div>';
+  h += '<div style="text-align:center;color:var(--text-light);font-size:10px;line-height:1;">│</div>';
+
+  // 编制占用
+  h += '<div style="background:var(--gray-bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:6px;">';
+  h += '<div style="font-size:11px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;letter-spacing:0.5px;">编制占用</div>';
+  h += '<div style="display:flex;align-items:center;font-size:13px;margin-bottom:4px;padding:6px 8px;background:#fff;border-radius:4px;">';
+  h += '<span>' + actualLabel + '</span><span style="margin-left:auto;font-weight:500;' + hlStyle(type === 'career' ? 'careerActual' : 'controlActual') + '">' + actual + ' 人</span></div>';
+  h += '<div style="font-size:11px;color:var(--text-light);margin-left:8px;margin-bottom:10px;">' + vacancyLabel + ' = ' + quota + ' - ' + actual + ' = <b>' + vacancy + ' 人</b></div>';
+  h += '<div style="display:flex;align-items:center;font-size:13px;padding:6px 8px;background:#fff;border-radius:4px;margin-bottom:4px;">';
+  h += '<span>已批复计划数 <span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'approved\')" style="cursor:pointer">ⓘ</span>';
+  if (plans.length > 0) h += ' <a onclick="openPlanDetailModal(\'' + type + '\')" style="font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none;" onmouseover="this.style.color=\'var(--primary)\';this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'var(--text-light)\';this.style.textDecoration=\'none\'">查看明细 ›</a>';
+  h += '</span><span style="margin-left:auto;font-weight:500;' + hlStyle(type === 'career' ? 'careerApprovedPlan' : 'controlApprovedPlan') + '">' + approvedPlan + ' 人</span></div>';
+  h += '<div style="margin-left:16px;padding:8px;border-left:2px solid var(--border);background:#fff;border-radius:0 4px 4px 0;">';
+  h += '<div style="display:flex;align-items:center;font-size:12px;margin-bottom:4px;">';
+  h += '<span style="color:var(--text-secondary);">已使用计划数 <span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'used\')" style="cursor:pointer">ⓘ</span></span><span style="margin-left:auto;font-weight:500;">' + usedPlan + ' 人</span></div>';
+  h += '<div style="display:flex;align-items:center;font-size:11px;color:var(--text-light);">';
+  h += '<span>未使用计划数 <span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'unused\')" style="cursor:pointer">ⓘ</span></span>';
+  h += '<span style="margin-left:auto;font-weight:500;">' + unusedPlan + ' 人</span></div>';
+  h += '</div>';
+  // 到期占用中 — 与已批复计划数同级，非其子集
+  if ((agg.expiredOccupiedPlan || 0) > 0) h += '<div style="display:flex;align-items:center;font-size:13px;padding:6px 8px;background:#fff;border-radius:4px;margin-top:4px;color:#C2410C;"><span>到期占用中 <span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'expiredOccupied\')" style="cursor:pointer">ⓘ</span></span><span style="margin-left:auto;font-weight:500;">' + agg.expiredOccupiedPlan + ' 人</span></div>';
+  h += '</div>';
+  h += '<div style="text-align:center;color:var(--text-light);font-size:10px;line-height:1;">│</div>';
+
+  // 编制余量
+  h += '<div style="background:var(--primary-light);border:1px solid #DBEAFE;border-radius:var(--radius);padding:12px;">';
+  h += '<div style="font-size:11px;font-weight:500;color:var(--text-secondary);margin-bottom:4px;">编制余量</div>';
+  h += '<div style="display:flex;align-items:center;font-size:14px;font-weight:600;color:' + applyColor + ';"><span>' + applyLabel + ' <span class="bf-tip-icon" onclick="event.stopPropagation();showAggTooltip(event,\'available\')" style="cursor:pointer">ⓘ</span></span><span style="margin-left:auto;">' + available + ' 人</span></div>';
+  h += '</div>';
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderDetailPlanSection(track, d, editable) {
+  var plans = track === 'career' ? (d.careerPlans || []) : (d.controlPlans || []);
+  if (!LPU) return '';
+  var agg = LPU.computeAggregates(plans);
+  if (plans.length === 0) return '';
+
+  // Split active vs expired
+  var activePlans = [], expiredPlans = [];
+  for (var i = 0; i < plans.length; i++) {
+    if (LPU.computePlanStatus(plans[i]) === 'expired') {
+      expiredPlans.push(plans[i]);
+    } else {
+      activePlans.push(plans[i]);
+    }
+  }
+
+  function renderRow(p) {
+    var st = LPU.computePlanStatus(p);
+    var stLabel = (LPU.STATUS_LABEL || { active:'有效', exhausted:'已用完', expired:'已到期', adjusted:'已调整' })[st] || st;
+    var stClass = (LPU.STATUS_CLASS || { active:'green', exhausted:'gray', expired:'red', adjusted:'orange' })[st] || 'gray';
+    var remain = LPU.remainingCount(p);
+    var isWarn = LPU.isExpiringSoon(p);
+    var isExpired = st === 'expired';
+    var sourceLabel = p.source === 'online' ? '线上' : '线下';
+    var sourceTagClass = p.source === 'online' ? 'online' : 'offline';
+    var docLabel = p.source === 'online' ? escapeHtml(p.sourceBatchId || p.sourceSubmissionId) : escapeHtml(p.offlineDocNo);
+    var hl2 = getHighlightFields();
+    var isNewPlan2 = hl2._addedPlans && hl2._addedPlans[p.offlineDocNo];
+    var trClass = isWarn && !isExpired ? 'plan-expire-warn' : (isExpired ? 'plan-expired-row' : '');
+    var r = '<tr class="' + trClass + (isNewPlan2 ? ' plan-new-row' : '') + '">';
+    r += '<td><span class="plan-tag ' + sourceTagClass + '">' + sourceLabel + '</span>' + (isNewPlan2 ? ' <span style="font-size:9px;background:#FFF3CD;color:#92400E;padding:1px 4px;border-radius:2px;">新增</span>' : '') + '</td>';
+    r += '<td>' + docLabel + '</td>';
+    r += '<td>' + (p.adjustedApprovedCount || p.approvedCount || 0) + '</td>';
+    r += '<td>' + ((p.occupiedCount || 0) > 0 ? '<span style="color:var(--warning);font-weight:500">' + (p.occupiedCount || 0) + '</span>' : '0') + '</td>';
+    r += '<td>' + (p.usedCount || 0) + '</td>';
+    r += '<td><strong>' + remain + '</strong></td>';
+    r += '<td>' + (p.validEnd || '—') + (isWarn && !isExpired ? ' ⚠️' : '') + '</td>';
+    r += '<td><span class="plan-badge ' + stClass + '">' + stLabel + '</span></td>';
+    r += '</tr>';
+    return r;
+  }
+
+  var h = '<div class="plan-section">';
+  h += '<div class="plan-summary">';
+  h += '<span>计划明细 <strong>' + agg.approvedPlan + '</strong> 人</span>';
+  h += '<span>占用 <strong>' + (agg.occupiedPlan || 0) + '</strong> 人</span>';
+  h += '<span>已入编 <strong>' + (agg.usedPlan - agg.occupiedPlan) + '</strong> 人</span>';
+  h += '<span>未用 <strong>' + agg.unusedPlan + '</strong> 人</span>';
+  if ((agg.expiredOccupiedPlan || 0) > 0) h += '<span class="plan-expired-tip" style="color:#C2410C;">到期占用中 ' + agg.expiredOccupiedPlan + ' 人</span>';
+  h += '</div>';
+  h += '<div class="plan-table-wrap" style="margin-top:8px;">';
+  h += '<table class="plan-table"><thead><tr>';
+  h += '<th>来源</th><th>批复文号/批次</th><th>批复</th><th>已占用</th><th>已入编</th><th>未使用</th><th>有效期</th><th>状态</th>';
+  h += '</tr></thead><tbody>';
+
+  for (var ai = 0; ai < activePlans.length; ai++) {
+    h += renderRow(activePlans[ai]);
+  }
+
+  if (expiredPlans.length > 0) {
+    var toggleId = 'expired-toggle-detail-' + track;
+    h += '<tr class="plan-expired-toggle" onclick="toggleExpiredPlans(\'' + toggleId + '\',this)" style="cursor:pointer;background:var(--gray-bg)">';
+    h += '<td colspan="8" style="text-align:center;padding:8px;font-size:11px;color:var(--text-secondary)">';
+    h += '🔒 <span id="' + toggleId + '-label">含已到期 ' + expiredPlans.length + ' 条 ▸</span>';
+    h += '</td></tr>';
+    h += '<tbody id="' + toggleId + '" style="display:none">';
+    h += '<tr><td colspan="8" style="padding:4px 8px;font-size:10px;color:var(--text-light);background:#FEF2F2">🔒 已到期计划，未使用名额不计入上方统计</td></tr>';
+    for (var ei = 0; ei < expiredPlans.length; ei++) {
+      h += renderRow(expiredPlans[ei]);
+    }
+    h += '</tbody>';
+  }
+
+  h += '</tbody></table></div>';
+  h += '</div>';
+  return h;
+}
+
+function toggleExpiredPlans(toggleId, row) {
+  var tbody = document.getElementById(toggleId);
+  var label = document.getElementById(toggleId + '-label');
+  if (!tbody || !label) return;
+  if (tbody.style.display === 'none') {
+    tbody.style.display = '';
+    label.textContent = label.textContent.replace('▸', '▾');
+  } else {
+    tbody.style.display = 'none';
+    label.textContent = label.textContent.replace('▾', '▸');
+  }
+}
+
+// ===== PLAN DETAIL MODAL =====
+var planDetailFilter2 = {};
+var planDetailPage2 = {};
+var PLAN_PAGE_SIZE = 5;
+
+function openPlanDetailModal(track) {
+  var plans = track === 'career' ? (ledger.careerPlans || []) : (ledger.controlPlans || []);
+  var label = track === 'career' ? '事业编' : '控制数';
+  planDetailFilter2[track] = { source: '', status: '', keyword: '' };
+  planDetailPage2[track] = 1;
+  document.getElementById('planDetailTitle2').textContent = label + ' — 已批复计划明细';
+  renderPlanDetailBody2(track);
+  document.getElementById('planDetailModal2').classList.add('show');
+}
+
+function renderPlanDetailBody2(track) {
+  var plans = track === 'career' ? (ledger.careerPlans || []) : (ledger.controlPlans || []);
+  var f = planDetailFilter2[track] || { source: '', status: '', keyword: '' };
+  var filtered = plans.filter(function(p) {
+    if (f.source && p.source !== f.source) return false;
+    if (f.status && LPU.computePlanStatus(p) !== f.status) return false;
+    if (f.keyword && (p.offlineDocNo || p.sourceBatchId || '').toLowerCase().indexOf(f.keyword.toLowerCase()) === -1) return false;
+    return true;
+  });
+  var activePlans = [], expiredPlans = [];
+  for (var i = 0; i < filtered.length; i++) {
+    if (LPU.computePlanStatus(filtered[i]) === 'expired') expiredPlans.push(filtered[i]);
+    else activePlans.push(filtered[i]);
+  }
+  var page = planDetailPage2[track] || 1;
+  var totalPages = Math.max(1, Math.ceil(activePlans.length / PLAN_PAGE_SIZE));
+  if (page > totalPages) { page = totalPages; planDetailPage2[track] = page; }
+  var start = (page - 1) * PLAN_PAGE_SIZE;
+  var pagePlans = activePlans.slice(start, start + PLAN_PAGE_SIZE);
+
+  function renderRow(p, idx) {
+    var st = LPU.computePlanStatus(p);
+    var stLabel = LPU.STATUS_LABEL[st] || st;
+    var stClass = LPU.STATUS_CLASS[st] || 'gray';
+    var remain = LPU.remainingCount(p);
+    var isExpired = st === 'expired';
+    var sourceLabel = p.source === 'online' ? '线上' : '线下';
+    var sourceTagClass = p.source === 'online' ? 'online' : 'offline';
+    var docLabel = p.source === 'online' ? escapeHtml(p.sourceBatchId || p.sourceSubmissionId) : escapeHtml(p.offlineDocNo);
+    var hl = getHighlightFields();
+    var isNewPlan = hl._addedPlans && hl._addedPlans[p.offlineDocNo];
+    var r = '<tr class="' + (isExpired ? 'plan-expired-row' : '') + (isNewPlan ? ' plan-new-row' : '') + '">';
+    r += '<td style="text-align:center;font-size:11px;color:var(--text-light);">' + idx + (isNewPlan ? ' <span style="color:#D97706;font-weight:600;">🆕</span>' : '') + '</td>';
+    r += '<td><span class="plan-tag ' + sourceTagClass + '">' + sourceLabel + '</span>' + (isNewPlan ? ' <span style="font-size:9px;background:#FFF3CD;color:#92400E;padding:1px 4px;border-radius:2px;">新增</span>' : '') + '</td>';
+    r += '<td>' + docLabel + '</td>';
+    r += '<td>' + (p.approvedCount || 0) + '</td>';
+    r += '<td>' + ((p.occupiedCount || 0) > 0 ? '<span style="color:var(--warning);font-weight:500">' + (p.occupiedCount || 0) + '</span>' : '0') + '</td>';
+    r += '<td>' + (p.usedCount || 0) + '</td>';
+    r += '<td><strong>' + remain + '</strong></td>';
+    r += '<td>' + (p.validEnd || '—') + '</td>';
+    r += '<td><span class="plan-badge ' + stClass + '">' + stLabel + '</span></td>';
+    r += '</tr>';
+    return r;
+  }
+
+  var h = '';
+  h += '<div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">';
+  h += '<select onchange="planDetailFilter2[\'' + track + '\'].source=this.value;planDetailPage2[\'' + track + '\']=1;renderPlanDetailBody2(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;"><option value="">全部来源</option><option value="online">线上</option><option value="offline">线下</option></select>';
+  h += '<select onchange="planDetailFilter2[\'' + track + '\'].status=this.value;planDetailPage2[\'' + track + '\']=1;renderPlanDetailBody2(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;"><option value="">全部状态</option><option value="active">有效</option><option value="exhausted">已用完</option><option value="expiring_occupied">过期·有占用</option><option value="expired">已到期</option></select>';
+  h += '<input type="text" placeholder="搜索批复文号/批次..." oninput="planDetailFilter2[\'' + track + '\'].keyword=this.value;planDetailPage2[\'' + track + '\']=1;renderPlanDetailBody2(\'' + track + '\')" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;width:160px;">';
+  h += '</div>';
+
+  if (filtered.length === 0) {
+    h += '<div class="plan-empty">无匹配记录</div>';
+  } else {
+    var colSpan = 9;
+    h += '<table class="plan-table"><thead><tr>';
+    h += '<th style="width:36px">序号</th><th>来源</th><th>批复文号/批次</th><th>批复</th><th>已占用</th><th>已入编</th><th>未使用</th><th>有效期</th><th>状态</th>';
+    h += '</tr></thead><tbody>';
+    for (var ai = 0; ai < pagePlans.length; ai++) h += renderRow(pagePlans[ai], start + ai + 1);
+    if (expiredPlans.length > 0) {
+      var toggleId = 'expired-toggle-d2-' + track;
+      h += '<tr class="plan-expired-toggle" onclick="toggleExpiredPlans2(\'' + toggleId + '\',this)" style="cursor:pointer;background:var(--gray-bg)">';
+      h += '<td colspan="' + colSpan + '" style="text-align:center;padding:8px;font-size:11px;color:var(--text-secondary)">🔒 <span id="' + toggleId + '-label">含已到期 ' + expiredPlans.length + ' 条 ▸</span></td></tr>';
+      h += '<tbody id="' + toggleId + '" style="display:none">';
+      h += '<tr><td colspan="' + colSpan + '" style="padding:4px 8px;font-size:10px;color:var(--text-light);background:#FEF2F2">已到期计划，未使用名额不计入上方统计</td></tr>';
+      for (var ei = 0; ei < expiredPlans.length; ei++) h += renderRow(expiredPlans[ei], activePlans.length + ei + 1);
+      h += '</tbody>';
+    }
+    h += '</tbody></table>';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-size:11px;color:var(--text-secondary);">';
+    h += '<span>共 ' + filtered.length + ' 条</span>';
+    h += '<div style="display:flex;align-items:center;gap:4px;">';
+    h += '<button class="btn btn-sm btn-outline" onclick="planDetailPage2[\'' + track + '\']=1;renderPlanDetailBody2(\'' + track + '\')" ' + (page <= 1 ? 'disabled' : '') + ' style="padding:2px 8px;">«</button>';
+    h += '<button class="btn btn-sm btn-outline" onclick="planDetailPage2[\'' + track + '\']=Math.max(1,' + (page - 1) + ');renderPlanDetailBody2(\'' + track + '\')" ' + (page <= 1 ? 'disabled' : '') + ' style="padding:2px 8px;">‹</button>';
+    h += '<span style="padding:0 8px;">第 ' + page + ' / ' + totalPages + ' 页</span>';
+    h += '<button class="btn btn-sm btn-outline" onclick="planDetailPage2[\'' + track + '\']=' + (page + 1) + ';renderPlanDetailBody2(\'' + track + '\')" ' + (page >= totalPages ? 'disabled' : '') + ' style="padding:2px 8px;">›</button>';
+    h += '<button class="btn btn-sm btn-outline" onclick="planDetailPage2[\'' + track + '\']=' + totalPages + ';renderPlanDetailBody2(\'' + track + '\')" ' + (page >= totalPages ? 'disabled' : '') + ' style="padding:2px 8px;">»</button>';
+    h += '</div></div>';
+  }
+  document.getElementById('planDetailBody2').innerHTML = h;
+}
+
+function closePlanDetailModal2() {
+  document.getElementById('planDetailModal2').classList.remove('show');
+}
+
+function toggleExpiredPlans2(toggleId, row) {
+  var tbody = document.getElementById(toggleId);
+  var label = document.getElementById(toggleId + '-label');
+  if (!tbody || !label) return;
+  if (tbody.style.display === 'none') { tbody.style.display = ''; label.textContent = label.textContent.replace('▸', '▾'); }
+  else { tbody.style.display = 'none'; label.textContent = label.textContent.replace('▾', '▸'); }
+}
+
+function formatFileSize2(bytes) {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function downloadMockAttachment(fileName) {
+  showToast('📎 模拟下载：' + fileName + '（纯前端 Demo，未存储实际文件）', 'info');
+}
+
+// ===== INIT =====
+var AGG_TOOLTIPS = {
+  totalPosts:{ title:'岗位总量', body:'<strong>= 事业编核定数 + 控制数核定数 − 小高地岗位数</strong><br><br>学校的总岗位数量上限。该数值由编制部门核定的两类编制之和减去小高地岗位数得出。' },
+  authorizedTotal:{ title:'定编人数', body:'<strong>= 事业编核定数 + 控制数核定数</strong><br><br>编制部门为本校核定的事业编制数与聘用控制数之和，即学校的编制总额。' },
+  // 顶层卡片 — 实有人数
+  staffActual:{ title:'实有人数', body:'<strong>= 实有在编人数 + 实有控制数人数</strong><br><br>当前实际在岗的实名编制人数与控制数人数之和。' },
+  approved:{ title:'已批复计划数', body:'仅统计<strong>有效期内</strong>的编制批复计划。<br>已到期的批复名额不计入此数字。<br><br>数据来源：计划明细自动汇总，不可手动修改。<br><br>📋 示例：有 3 条计划记录，其中 1 条已到期<br>→ 已批复计划数 = 仅 2 条有效计划之和' },
+  used:{ title:'已使用计划数', body:'<strong>= 已占用 + 已入编</strong><br><br>有效期内计划中已占用（招聘途中）和已入编（正式落编）的人数之和。<br>已到期计划中的使用数不计入。<br><br>数据来源：计划明细自动汇总，不可手动修改。' },
+  unused:{ title:'未使用计划数', body:'<strong>= 已批复 − 已使用</strong><br><br>已到期的剩余名额不计入此数字。' },
+  available:{ title:'可申请数', body:'<strong>= 核定数 − 实有数 − 已批复计划数 − 到期占用中人数</strong><br><br>编制余额。还可向编办申请的编制名额数量。<br>结果 ≤ 0 表示编制已满或超额。<br><br>⚠️ 已过期但仍有占用的计划，其占用人数会扣减可申请数。' },
+  expiredOccupied:{ title:'到期占用中', body:'<strong>已过期但仍有人员占用的计划中，尚未入编的人数。</strong><br><br>占用名额仍有效，应尽快为占用人员办理入编手续。<br>入编完成后相关计划将自动标记为"已用完"。' },
+  // 管理岗/工勤岗 等级表 — 实聘数（无小高地）
+  actualTotal:{ title:'实聘数', body:'<strong>= 实名编 + 控制数</strong><br><br>本岗位类别当前实际在岗人数之和。含事业编实名制人员和聘用控制数人员。<br><br>不含超岗聘用数（超岗聘用是计算结果，不参与自身求和）。<br><br>本类别不包含小高地岗位。' },
+  // 专技岗 等级表 — 实聘数（含小高地）
+  actualTotalTech:{ title:'实聘数（专技）', body:'<strong>= 实名编 + 控制数 + 小高地岗位</strong><br><br>专业技术岗位的实聘人数。含事业编实名制人员、聘用控制数人员和小高地岗位人员。<br><br>不含超岗聘用数（超岗聘用是计算结果，不参与自身求和）。' },
+  overQuotaPost:{ title:'超岗聘用数', body:'<strong>= max(0, 实名编 + 控制数 − 核定岗位数)</strong><br><br>实际在岗人数超出核定岗位数的部分。系统根据核定岗位数和实聘数自动计算，不可手动修改。<br><br>超岗聘用不计入核定岗位数，但计入实聘数合计。' }
+};
+
+function showAggTooltip(event, field) {
+  var existing = document.getElementById('bf-tooltip-popup');
+  if (existing) existing.remove();
+  var info = AGG_TOOLTIPS[field];
+  if (!info) return;
+  var popup = document.createElement('div');
+  popup.id = 'bf-tooltip-popup';
+  popup.className = 'bf-tooltip-popup';
+  popup.innerHTML = '<div class="bf-tooltip-title">' + info.title + ' ⓘ</div><div class="bf-tooltip-body">' + info.body + '</div><button class="btn btn-sm btn-primary" onclick="document.getElementById(\'bf-tooltip-popup\').remove()" style="margin-top:8px">知道了</button>';
+  popup.style.position = 'fixed';
+  popup.style.top = Math.min(event.clientY, window.innerHeight - 280) + 'px';
+  popup.style.left = Math.min(event.clientX, window.innerWidth - 320) + 'px';
+  popup.style.zIndex = '9999';
+  document.body.appendChild(popup);
+  setTimeout(function() {
+    document.addEventListener('click', function closeAgg(e) {
+      if (!popup.contains(e.target) && e.target.className.indexOf('bf-tip-icon') === -1) {
+        popup.remove();
+        document.removeEventListener('click', closeAgg);
+      }
+    });
+  }, 100);
+}
+
+init();
+
+</script>
+
+<div class="modal-overlay" id="planDetailModal2">
+  <div class="modal" style="width:800px;max-height:80vh">
+    <div class="modal-header">
+      <h3 id="planDetailTitle2">计划明细</h3>
+      <button class="modal-close" onclick="closePlanDetailModal2()">&times;</button>
+    </div>
+    <div class="modal-body" id="planDetailBody2" style="max-height:55vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Personnel List Modal -->
+<div class="modal-overlay" id="personnelModal" onclick="if(event.target===this)closePersonnelModal()">
+  <div class="modal" style="width:760px;max-width:92vw;">
+    <div class="modal-header">
+      <h3 id="personnelModalTitle">实聘人员列表</h3>
+      <button class="modal-close" onclick="closePersonnelModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height:55vh;overflow-y:auto;">
+      <div class="personnel-summary" id="personnelSummary"></div>
+      <div id="personnelMatchedSection">
+        <div class="personnel-section-title" id="personnelMatchedTitle">已匹配人员</div>
+        <table class="personnel-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">姓名</th>
+              <th>编制类型</th>
+              <th>身份证号</th>
+              <th>入编方式</th>
+            </tr>
+          </thead>
+          <tbody id="personnelTableBody"></tbody>
+        </table>
+      </div>
+      <div id="personnelIncompleteSection" style="display:none;">
+        <div class="personnel-section-title">待完善人员</div>
+        <div class="personnel-warn">💡 以下 <b id="personnelIncompleteCount"></b> 人属于本校但缺少岗位类别/等级信息，无法自动匹配到本等级。请前往<a href="account-management.html" target="_blank">账号管理</a>补充。</div>
+        <table class="personnel-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">姓名</th>
+              <th>编制类型</th>
+              <th>身份证号</th>
+              <th>入编方式</th>
+            </tr>
+          </thead>
+          <tbody id="personnelIncompleteBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closePersonnelModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

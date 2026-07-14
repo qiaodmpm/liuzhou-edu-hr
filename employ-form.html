@@ -300,6 +300,7 @@ legend { font-size: 13px; font-weight: 600; color: var(--primary); padding: 0 8p
 </main>
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 window.onerror = function(msg, url, line, col, err) { var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d); };
 
@@ -468,23 +469,27 @@ function getCompletedRecruitBatches() {
 
 // ===== SIDEBAR =====
 function renderSidebar() {
-  var roleData = ROLES[currentRole];
-  if (!roleData) return;
-  var h = '';
-  (roleData.sidebar.top || []).forEach(function(item) {
-    h += '<a class="menu-item" onclick="sidebarClick(this,\''+item.id+'\')">'+(ICONS[item.icon]||'')+'<span class="menu-label">'+item.label+'</span></a>';
-  });
-  (roleData.sidebar.groups || []).forEach(function(group) {
-    h += '<div class="menu-group">'+group.name+'</div>';
-    group.items.forEach(function(item) {
-      h += '<a class="menu-item'+(item.id==='employ'?' active':'')+'" onclick="sidebarClick(this,\''+item.id+'\')">'+(ICONS[MENU_ICONS[item.id]||'file'])+'<span class="menu-label">'+item.label+'</span>'+(item.badge?'<span class="menu-badge">'+item.badge+'</span>':'')+'</a>';
+  if (currentRole === 'teacher') {
+    var roleData = ROLES.teacher;
+    if (!roleData || !roleData.sidebar) { document.getElementById('sidebarMenu').innerHTML = ''; return; }
+    var h = '';
+    (roleData.sidebar.top || []).forEach(function(item) {
+      h += '<a class="menu-item" onclick="sidebarClick(this,\''+item.id+'\')">'+(ICONS[item.icon]||'')+'<span class="menu-label">'+item.label+'</span></a>';
     });
-  });
-  document.getElementById('sidebarMenu').innerHTML = h;
+    (roleData.sidebar.groups || []).forEach(function(group) {
+      h += '<div class="menu-group">'+group.name+'</div>';
+      group.items.forEach(function(item) {
+        h += '<a class="menu-item'+(item.id==='employ'?' active':'')+'" onclick="sidebarClick(this,\''+item.id+'\')">'+(ICONS[MENU_ICONS[item.id]||'file'])+'<span class="menu-label">'+item.label+'</span>'+(item.badge?'<span class="menu-badge">'+item.badge+'</span>':'')+'</a>';
+      });
+    });
+    document.getElementById('sidebarMenu').innerHTML = h;
+  } else {
+    renderSidebarMenu('sidebarMenu', currentRole, 'employ');
+  }
 }
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i){i.classList.remove('active');}); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
   if (id === 'entry') { window.location.href = currentRole === 'school' ? '教师入编管理（学校管理员视角）.html' : '教师入编管理（学校管理员视角）.html'; return; }
@@ -502,6 +507,11 @@ function sidebarClick(el, id) {
 
   if (id === 'dashboard') { showToast('编制岗位台账页面开发中'); return; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+  if (id === 'menuMgr') { window.location.href = 'menu-management.html'; return; }
+  if (id === 'perm') { window.location.href = 'perm-management.html'; return; }
+  if (id === 'log') { window.location.href = 'log-management.html'; return; }
+
   showToast('跳转至：' + (el.textContent || id));
 }
 function switchRole(role) {

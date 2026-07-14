@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD_系统管理模块 — 柳州教育人事管理平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC',sans-serif; color:var(--text); background:var(--bg); line-height:1.7; }
+
+.cover { background:linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #6366F1 100%); color:#fff; padding:80px 60px; text-align:center; }
+.cover .tag { display:inline-block; border:1px solid rgba(255,255,255,0.4); border-radius:20px; padding:6px 20px; font-size:13px; margin-bottom:24px; letter-spacing:2px; }
+.cover h1 { font-size:38px; font-weight:700; margin-bottom:12px; }
+.cover .sub { font-size:18px; opacity:0.85; margin-bottom:32px; }
+.cover .meta { font-size:13px; opacity:0.6; }
+.cover .meta span { margin:0 16px; }
+
+.container { max-width:1100px; margin:0 auto; padding:60px 40px; }
+.section { margin-bottom:64px; }
+.section-title { font-size:28px; font-weight:700; color:var(--primary); margin-bottom:8px; padding-bottom:12px; border-bottom:3px solid var(--primary); }
+.section-desc { color:var(--text-secondary); font-size:15px; margin-bottom:32px; }
+.sub-title { font-size:20px; font-weight:600; color:var(--text); margin:32px 0 16px; padding-left:12px; border-left:4px solid var(--accent); }
+.sub-sub-title { font-size:16px; font-weight:600; color:var(--primary); margin:24px 0 12px; }
+
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:20px; }
+.card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; box-shadow:var(--shadow); transition:0.2s; }
+.card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.12); }
+.card h4 { font-size:17px; font-weight:600; margin-bottom:8px; }
+.card p { font-size:14px; color:var(--text-secondary); }
+
+.table-wrap { overflow-x:auto; background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); margin-bottom:20px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:var(--primary); color:#fff; padding:10px 14px; text-align:left; font-weight:500; white-space:nowrap; }
+td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--primary-light); }
+td.center { text-align:center; }
+
+.flow-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:20px; }
+
+.rule-item { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; margin-bottom:12px; border-left:4px solid var(--accent); }
+.rule-item.danger { border-left-color:var(--danger); }
+.rule-item.warning { border-left-color:var(--warning); }
+.rule-item.success { border-left-color:var(--success); }
+.rule-item strong { color:var(--primary); }
+
+pre { background:#1E293B; color:#E2E8F0; padding:20px 24px; border-radius:var(--radius); overflow-x:auto; font-size:13px; line-height:1.6; margin:16px 0; }
+pre code { font-family:'Courier New',monospace; }
+
+.toc { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; box-shadow:var(--shadow); }
+.toc ol { padding-left:24px; }
+.toc li { padding:4px 0; }
+.toc a { color:var(--accent); text-decoration:none; }
+.toc a:hover { text-decoration:underline; }
+
+.badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:500; margin-left:8px; }
+.badge-done { background:#D1FAE5; color:#065F46; }
+
+.page-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:16px; box-shadow:var(--shadow); }
+.page-card h4 { font-size:16px; font-weight:600; margin-bottom:6px; }
+
+.feat-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:16px; box-shadow:var(--shadow); }
+.feat-card .feat-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.feat-card .feat-id { background:var(--primary); color:#fff; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+.feat-card .feat-name { font-size:16px; font-weight:600; }
+.feat-card .feat-priority { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600; }
+.feat-card .feat-priority.p0 { background:#FEE2E2; color:#991B1B; }
+.feat-card .feat-priority.p1 { background:#FEF3C7; color:#92400E; }
+.feat-card .feat-priority.p2 { background:#DBEAFE; color:#1E40AF; }
+.feat-dl { display:grid; grid-template-columns:100px 1fr; gap:6px 16px; font-size:13px; }
+.feat-dl dt { font-weight:600; color:var(--text-secondary); }
+.feat-dl dd { color:var(--text); }
+
+.matrix-yes { color:var(--success); font-weight:700; }
+.matrix-no { color:var(--danger); }
+.matrix-cond { color:var(--warning); }
+
+.summary-box { background:var(--primary-light); border:1px solid var(--accent); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:20px; }
+
+.footer { text-align:center; padding:40px; color:var(--text-secondary); font-size:13px; border-top:1px solid var(--border); }
+
+@media print {
+  .cover { padding:40px; }
+  .container { padding:20px; }
+  .card, .flow-box, .rule-item, .feat-card { break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="tag">MODULE PRODUCT REQUIREMENTS DOCUMENT</div>
+  <h1>系统管理模块</h1>
+  <div class="sub">产品需求文档 · 账号管理 / 机构管理 / 菜单管理 / 角色权限 / 操作日志 / 公告管理</div>
+  <div class="meta">
+    <span>📅 2026-07-13</span>
+    <span>📌 Version 1.1（正式版）</span>
+    <span>📎 父文档：PRD_总纲_柳州教育人事管理平台.md</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ============= 目录 ============= -->
+<div class="section">
+  <div class="section-title">📑 目录</div>
+  <div class="toc">
+    <ol>
+      <li><a href="#s1">模块概述</a> — 定位、业务背景、核心价值、适用角色</li>
+      <li><a href="#s2">业务流程</a> — 账号全生命周期、权限配置、菜单配置、机构管理、公告管理（Mermaid 流程图）</li>
+      <li><a href="#s3">功能清单</a> — F06.01~F06.17 完整功能点（含前置条件/角色/业务规则/交互规则）</li>
+      <li><a href="#s4">页面字段清单</a> — 各页面字段定义 + 校验规则表</li>
+      <li><a href="#s5">操作级权限矩阵</a></li>
+      <li><a href="#s6">数据模型</a> — 本模块数据存储结构</li>
+      <li><a href="#s7">页面清单</a></li>
+      <li><a href="#s8">异常处理</a> — 边界情况 + 错误场景</li>
+      <li><a href="#s9">通知触发点</a></li>
+      <li><a href="#s10">操作日志埋点</a></li>
+      <li><a href="#s11">验收标准</a> — 功能判定 + 关键测试场景</li>
+      <li><a href="#s12">迭代记录</a></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============= 1. 模块概述 ============= -->
+<div class="section" id="s1">
+  <div class="section-title">一、模块概述</div>
+
+  <div class="sub-title">1.1 模块定位</div>
+  <p>系统管理模块是柳州教育人事管理平台的<strong>运维管理基础设施</strong>，承载账号全生命周期管理、机构统一目录管理、菜单配置、角色权限分配、操作日志审计、系统公告管理等核心运维能力。写操作权限按功能域分级：账号管理由系统/市/区管理员执行，机构管理由系统/市/区管理员执行，公告管理由全部管理员执行，角色权限和菜单管理仅系统管理员执行。为平台提供统一的身份治理、机构数据底座和权限管控能力。</p>
+  <p>本模块在总纲排期中为 <strong>P3 配套能力层</strong>，与业务模块可并行建设。</p>
+
+  <div class="sub-title">1.2 业务背景</div>
+  <ul style="margin-left:20px; line-height:2;">
+    <li><strong>新旧平台共用账号体系</strong>：旧平台（lzjs.eduyunx.com）存量账号保留。新增账号统一在新平台创建后同步至旧平台，管理员权限各自独立维护</li>
+    <li><strong>多角色账号治理</strong>：一个账号可拥有多个角色，账号与角色的关联关系独立管理。角色权限粒度为"模块 + 操作按钮"级</li>
+    <li><strong>菜单可配置化</strong>：侧边栏菜单支持动态分组、排序、启用/停用，管理员可在菜单管理页面对菜单项进行统一配置</li>
+    <li><strong>操作全留痕</strong>：所有关键操作（账号启停、权限变更、菜单变更、角色变更、机构变更、公告发布）均记录至操作日志，日志不可篡改，支持按模块/操作类型/操作人/时间范围多维检索</li>
+    <li><strong>统一机构目录</strong>：全市教育系统所有学校/单位的统一管理入口，作为编制台账、岗位设置等业务模块的机构数据底座。支持区域树形导航和完整字段 CRUD</li>
+    <li><strong>系统公告发布</strong>：支持富文本公告的创建、编辑、定时发布和置顶，可见范围按全平台/全市/本区/本校四级控制，工作台自动按权限展示</li>
+  </ul>
+
+  <div class="sub-title">1.3 核心价值</div>
+  <div class="card-grid">
+    <div class="card"><h4>🔐 统一身份治理</h4><p>账号创建、编辑、启停、密码重置一站式管理，支持教师账号和行政账号两种类型</p></div>
+    <div class="card"><h4>🔑 细粒度权限</h4><p>模块级 + 操作按钮级权限控制，支持数据范围（全平台/全市/本区/本校/本人）五级隔离</p></div>
+    <div class="card"><h4>📋 动态菜单</h4><p>侧边栏菜单分组、排序、启用/停用可在线配置，无需修改代码，刷新即生效</p></div>
+    <div class="card"><h4>📊 操作审计</h4><p>全模块操作日志统一归集，支持多维检索和详情查看，日志不可篡改不可删除</p></div>
+    <div class="card"><h4>🏫 统一机构目录</h4><p>全市学校统一管理，区域树形导航，21字段完整信息，支持停用/启用和台账关联</p></div>
+    <div class="card"><h4>📢 系统公告</h4><p>富文本公告发布与管理，支持定时发布、置顶、附件、可见范围四级控制，工作台自动展示</p></div>
+  </div>
+
+  <div class="sub-title">1.4 适用角色</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:120px;">角色</th><th style="width:100px;">标识</th><th>访问权限</th></tr>
+      <tr><td>系统管理员</td><td class="center"><code>system</code></td><td>全部功能。可创建/编辑/启停账号、管理机构和区域目录、配置菜单、分配角色权限、查看操作日志、发布和管理公告</td></tr>
+      <tr><td>市管理员</td><td class="center"><code>city</code></td><td>可创建区/校/教师账号；可编辑/停用/恢复全市账号；可新增/编辑/停用全市机构（审核仅限市直属）；可发布和查看全市公告</td></tr>
+      <tr><td>区管理员</td><td class="center"><code>district</code></td><td>可创建校管理员和教师账号；可编辑/停用/恢复本区范围内账号；可查看本区机构和公告</td></tr>
+      <tr><td>校管理员</td><td class="center"><code>school</code></td><td>可编辑/停用/恢复本校账号（不可创建）；可发布和查看本校公告；进入机构管理时重定向到本校机构详情页</td></tr>
+      <tr><td>教师</td><td class="center"><code>teacher</code></td><td>无系统管理模块访问权限</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">1.5 模块范围</div>
+  <p>侧边栏「系统设置」分组下的 <strong>6 个菜单项</strong> 全部纳入本 PRD：</p>
+  <div class="summary-box">
+    <table style="background:transparent;">
+      <tr><th style="background:transparent;color:var(--primary);padding:4px 12px;">功能域</th><th style="background:transparent;color:var(--primary);padding:4px 12px;">核心页面</th><th style="background:transparent;color:var(--primary);padding:4px 12px;">功能点</th><th style="background:transparent;color:var(--primary);padding:4px 12px;">说明</th></tr>
+      <tr><td>账号管理</td><td><code>account-management.html</code></td><td>F06.01-F06.03</td><td>教师/行政账号的创建、编辑、启停、密码重置</td></tr>
+      <tr><td>机构管理</td><td><code>org-management.html</code></td><td>F06.14-F06.17</td><td>统一学校目录、区域树形导航、21字段 CRUD、管理员映射、停用/启用</td></tr>
+      <tr><td>菜单管理</td><td><code>menu-management.html</code></td><td>F06.07</td><td>侧边栏菜单的分组、排序、新增、编辑、启用/停用</td></tr>
+      <tr><td>角色权限</td><td><code>perm-management.html</code></td><td>F06.04-F06.06</td><td>角色创建、权限树配置、数据范围设置</td></tr>
+      <tr><td>操作日志</td><td><code>log-management.html</code></td><td>F06.08</td><td>全模块操作日志的检索与查看</td></tr>
+      <tr><td>公告管理</td><td><code>announcement-management.html</code></td><td>F06.09-F06.13</td><td>公告发布/编辑/定时/置顶/删除、可见范围配置、附件管理</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 2. 业务流程 ============= -->
+<div class="section" id="s2">
+  <div class="section-title">二、业务流程</div>
+
+  <div class="sub-title">2.1 账号全生命周期</div>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[账号创建] --> A1{创建方式}
+    A1 -->|手动创建| B[系统管理员点击 新增账号]
+    A1 -->|入编自动创建| B2{入编类型}
+    A1 -->|编外入职自动创建| B3[编外教师入职审批通过]
+    B --> C[填写账号信息/岗位信息/跨校信息]
+    B2 -->|公开招聘/中高级/引进人才| C2[系统自动生成新账号]
+    B2 -->|调动入编| C4[查询历史账号]
+    C4 --> C4a{历史账号是否存在}
+    C4a -->|存在且已停用| C4b[启用历史账号 - status 变为 active]
+    C4b --> C4c[更新单位信息为调入单位]
+    C4c --> D2
+    C4a -->|不存在| C2
+    B3 --> C3[系统自动生成账号 - 编制类型=合同制]
+    C --> D[选择编制类型]
+    C2 --> D2[编制类型/角色/单位从入编记录继承]
+    C3 --> D3[编制类型=合同制 角色=教师 单位从入职记录继承]
+    D --> E{编制类型}
+    D2 --> E
+    D3 --> E
+    E -->|事业编/控制数| F[填写入编方式与岗位信息]
+    E -->|合同制| F1[填写合同日期]
+    F --> G[分配角色]
+    F1 --> G
+    G --> H[保存 - 账号创建成功]
+    H --> I[新账号首次登录须强制改密]
+    I --> J[账号正常使用中]
+    J --> K{状态变更}
+    K -->|手动编辑| L[系统管理员编辑账号信息]
+    L --> M[保存修改 - 记录操作日志]
+    M --> J
+    K -->|手动停用| N[系统管理员点击 停用]
+    N --> O[选择停用类型: 出编冻结/违规禁用/其他]
+    O --> P[填写停用原因]
+    P --> Q[确认停用 - status 变为 disabled]
+    Q --> R[该账号无法登录]
+    K -->|出编自动停用| N2[教师出编审批通过]
+    N2 --> O2[系统自动停用: 停用类型=出编冻结]
+    O2 --> Q
+    K -->|编外离职自动停用| N3[编外教师离职审批通过]
+    N3 --> O3[系统自动停用: 停用类型=合同到期]
+    O3 --> Q
+    K -->|手动恢复| S[系统管理员点击 恢复]
+    S --> T[确认恢复 - status 变为 active]
+    T --> J
+    K -->|重置密码| U[系统管理员点击 重置密码]
+    U --> V[输入新密码 - 8到20位含大小写字母数字]
+    V --> W[确认重置 - 用户下次登录须改密]
+    W --> J
+    </div>
+  </div>
+
+  <div class="sub-title">2.2 角色权限配置流程</div>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[系统管理员] --> B[进入角色权限管理]
+    B --> C[角色列表展示]
+    C --> D{操作}
+    D -->|新增角色| E[点击 新增角色]
+    E --> F[输入角色名称/标识/描述]
+    F --> G[展开模块权限树]
+    G --> G1[勾选模块级权限]
+    G1 --> G2{子按钮状态}
+    G2 -->|全选| G3[模块显示全选图标]
+    G2 -->|部分勾选| G4[模块显示半选图标 三角]
+    G2 -->|全不选| G5[模块显示未选图标]
+    G3 --> H[选择数据范围: 全平台/全市/本区/本校/本人]
+    G4 --> H
+    G5 --> H
+    H --> I[保存 - 角色创建成功]
+    I --> I2[权限即时生效]
+    I2 --> I3[对应角色侧边栏菜单实时过滤]
+    D -->|编辑| J[点击 编辑 按钮]
+    J --> K[修改角色名称/描述]
+    K --> L[保存修改]
+    D -->|权限| M[点击 权限 按钮]
+    M --> N[打开权限树弹框]
+    N --> N1[调整模块与操作按钮勾选]
+    N1 --> N2[支持全选/全不选快捷操作]
+    N2 --> O[保存权限 - 即时生效]
+    O --> I3
+    D -->|删除| P[点击 删除 按钮]
+    P --> Q{角色是否为系统内置}
+    Q -->|是 system| R[不显示删除按钮 - 禁止删除]
+    Q -->|否| S{检查关联用户数}
+    S -->|用户数大于0| T[Toast 提示 该角色下还有N个用户 请先移除]
+    S -->|用户数为0| U[二次确认弹框]
+    U --> V[确认删除 - 角色移除]
+    D -->|停用/启用| W[点击 停用 或 启用]
+    W --> X{角色是否为系统内置}
+    X -->|是 system| Y[不显示停用按钮 - 禁止停用]
+    X -->|否| Z[确认操作]
+    Z --> AA[角色状态变更]
+    AA --> AB[停用角色用户无法登录]
+    D -->|关联用户| AC[点击 关联用户 按钮]
+    AC --> AD[跳转角色用户页面]
+    AD --> AE[添加/移除用户]
+    </div>
+  </div>
+
+  <div class="sub-title">2.3 菜单配置流程</div>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[系统管理员] --> B[进入菜单管理]
+    B --> C{操作}
+    C -->|新增分组| D[点击 新增分组]
+    D --> E[输入分组名称]
+    E --> F[保存 - 分组出现在侧边栏]
+    C -->|新增菜单| G[点击 新增菜单]
+    G --> H[填写菜单名称/标识/图标/路由/分组/排序]
+    H --> I[保存 - 菜单项即时生效]
+    C -->|编辑菜单| J[点击「编辑」按钮]
+    J --> K[修改菜单属性]
+    K --> L[保存修改]
+    C -->|移动排序| M[拖拽调整顺序]
+    M --> N[保存 - 侧边栏顺序更新]
+    C -->|启用/停用| O[点击「启用」或「停用」]
+    O --> P[确认操作]
+    P --> Q[菜单在侧边栏显示或隐藏]
+    C -->|编辑分组| R[点击「编辑」按钮]
+    R --> S[修改分组名称]
+    S --> T[保存]
+    C -->|删除分组| U[点击「删除」按钮]
+    U --> V[确认删除 - 组内菜单一并删除]
+    </div>
+  </div>
+
+  <div class="sub-title">2.4 机构管理流程</div>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[管理员登录] --> B[进入机构管理]
+    B --> B1{操作者角色}
+    B1 -->|校管理员| B2[直接重定向到本校机构详情页 org-detail.html]
+    B1 -->|市/区/系统管理员| C[左侧区域树导航]
+    C --> D[选择区域节点]
+    D --> E[右侧列表展示该区机构]
+    E --> F{操作类型}
+    F -->|新增| G[点击 新增机构]
+    G --> G1{操作者角色}
+    G1 -->|市/区管理员| H[填写基本信息/编制属性/管理信息]
+    G1 -->|校管理员| G2[不显示新增按钮 - 无新增权限]
+    H --> I[保存 - 自动生成机构编号]
+    I --> J[机构列表刷新]
+    F -->|编辑| K[点击 编辑 按钮]
+    K --> K1{操作者角色和状态检查}
+    K1 -->|已停用机构| N[Toast 提示不可编辑 请先启用]
+    K1 -->|市/区管理员 正常机构| M[弹出编辑弹框预填数据]
+    K1 -->|校管理员| M2[跳转机构详情编辑页 org-detail.html?action=edit]
+    M --> O[修改字段并保存 - 直接生效]
+    M2 --> O2[在完整编辑页面修改字段并保存 - 进入待审核]
+    O2 --> O5[待审核标签页中出现该机构]
+    O --> P[记录变更日志]
+    F -->|审核| P2[主管单位管理员进入 待审核 标签页]
+    P2 --> P3[点击 审核 按钮]
+    P3 --> P4{审核结果}
+    P4 -->|通过| P5[reviewStatus=null - 机构修改生效]
+    P4 -->|驳回| P6[reviewStatus 重置 - 校管理员可重新编辑提交]
+    P5 --> P
+    P6 --> P
+    P --> J[机构列表刷新]
+    F -->|停用| Q[点击 停用 按钮]
+    Q --> Q1{检查关联账号}
+    Q1 -->|有正常状态账号关联| Q2[Toast 提示 该机构下还有N个正常账号 请先处理]
+    Q1 -->|无关联账号| R[确认停用弹框]
+    R --> S[status 变为 inactive]
+    S --> T[数据保留但列表隐藏]
+    F -->|启用| U[点击 启用 按钮]
+    U --> V[status 恢复 active]
+    F -->|查看| W1[跳转机构详情页 org-detail.html]
+    F -->|台账| W2[跳转台账详情页 org-ledger-detail.html?school=xxx]
+    </div>
+  </div>
+
+  <div class="sub-title">2.5 公告管理流程</div>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[管理员] --> B[进入公告管理]
+    B --> C[标签页切换筛选]
+    C --> D{操作}
+    D -->|发布公告| E[点击 发布公告]
+    E --> F[填写标题/正文/附件]
+    F --> G[可见范围和来源自动填充]
+    G --> H{生效时间}
+    H -->|立即生效| I[状态 = active]
+    H -->|定时发布| J[选择日期时间]
+    J --> K[状态 = scheduled]
+    I --> L[工作台按可见范围展示]
+    K --> M[到达设定时间后状态变为 active]
+    M --> L
+    D -->|编辑| N[点击 编辑 按钮]
+    N --> O[修改公告内容]
+    O --> P[保存修改]
+    D -->|删除| Q[点击 删除 按钮]
+    Q --> R[二次确认弹框]
+    R --> S[从系统中移除]
+    S --> T[工作台同步消失]
+    D -->|查看| U[列表行点击]
+    U --> V[弹出详情弹框只读展示]
+    </div>
+  </div>
+</div>
+
+<!-- ============= 3. 功能清单 ============= -->
+<div class="section" id="s3">
+  <div class="section-title">三、功能清单</div>
+
+  <div class="summary-box">
+    <p><strong>功能点总览：</strong>本模块共 <strong>17</strong> 个功能点，覆盖账号管理（3）、角色权限（3）、菜单管理（1）、操作日志（1）、公告管理（5）、机构管理（4）六大功能域。</p>
+  </div>
+
+  <!-- F06.01 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.01</span>
+      <span class="feat-name">账号管理列表</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>account-management.html</code></dd>
+      <dt>适用角色</dt><dd>系统管理员、市管理员（全市）；区管理员（本区）；校管理员（本校，不可创建）</dd>
+      <dt>前置条件</dt><dd>当前用户已登录，且拥有账号管理模块权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 列表展示所有教师账号和行政账号，默认按更新时间倒序排列<br>
+        2. 列表顶部显示统计卡片：总账号数、正常、停用、未首次登录<br>
+        3. 支持按角色（全部/系统管理员/市管理员/区管理员/校管理员/教师）筛选<br>
+        4. 支持按账号状态（全部/正常/已停用）筛选<br>
+        5. 支持按编制类型筛选（多选：事业编/控制数/合同制）<br>
+        6. 支持按跨校状态筛选（全部/在岗（非跨校）/借调/支教/轮岗）<br>
+        7. 支持按所属区域筛选<br>
+        8. 支持按所属单位筛选（可搜索下拉）<br>
+        9. 支持按姓名、身份证号、手机号模糊搜索<br>
+        10. 列表字段（13 列）：序号、姓名、身份证号、手机号、编制类型、所属区域、所属角色、所属单位、跨校状态、账号状态、首次登录、更新时间、操作<br>
+        11. 列表分页显示，每页 10 条<br>
+        12. 角色列显示用户拥有的所有角色，多角色以顿号分隔<br>
+        13. 数据范围：展示全平台所有教师账号和行政账号，按角色权限过滤可见范围
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 筛选条件变更时自动刷新列表，回到第 1 页<br>
+        · 列表为空时显示"暂无数据"空状态提示<br>
+        · 操作列按钮（始终显示）：<strong>查看密码/重置密码</strong>（未首次登录且有入编记录或为合同制教师 → 查看密码；否则 → 重置密码）+ <strong>查看</strong>（打开只读详情弹框）+ <strong>个人详情</strong>（跳转个人中心页）<br>
+        · 操作列按钮（正常账号 + 有编辑权限）：<strong>编辑</strong> + <strong>停用</strong><br>
+        · 操作列按钮（已停用账号 + 有编辑权限）：<strong>恢复</strong>（不显示编辑按钮）<br><br>
+        <strong>「查看」按钮 — 账号详情弹框（只读）</strong>：<br>
+        &emsp;· 弹出模态弹框展示账号完整信息，分 7 个区域：<br>
+        &emsp;&emsp;① 账号信息：姓名、身份证号、手机号、所属角色<br>
+        &emsp;&emsp;② 归属信息：所属单位、编制类型、入编方式（事业编/控制数）、所属区域<br>
+        &emsp;&emsp;③ 个人档案：性别、民族、出生日期、政治面貌、学历、毕业院校<br>
+        &emsp;&emsp;④ 岗位信息：岗位类别、岗位等级、岗位名称、任职时间、合同期限（合同制）<br>
+        &emsp;&emsp;⑤ 跨校信息：跨校类型、任职学校、开始日期、结束日期（事业编/控制数/合同制显示）<br>
+        &emsp;&emsp;⑥ 编制与聘用信息（补录，事业编/控制数/合同制显示）：入编时间、编制本人员名册序号、依据文号、近三年考核（事业编/控制数）；现任职务（全部）；入职时间（合同制）<br>
+        &emsp;&emsp;⑦ 停用信息（仅已停用账号）：出编信息/离职信息/停用信息卡片<br>
+        &emsp;&emsp;⑧ 底部状态条：账号状态、首次登录、更新时间<br>
+        &emsp;· 底部仅"关闭"按钮，全部字段只读<br>
+        <br>
+        <strong>「个人详情」按钮 — 跳转个人中心</strong>：<br>
+        &emsp;· 跳转到个人中心页面，以该账号身份查看完整个人信息<br>
+        &emsp;· 可查看该教师的完整个人信息、教育教学信息、证书信息等
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.02 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.02</span>
+      <span class="feat-name">创建/编辑账号</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>account-management.html</code>（新增/编辑弹框）</dd>
+      <dt>适用角色</dt><dd><strong>创建</strong>：系统管理员、市管理员、区管理员。校管理员不可创建账号<br><strong>编辑</strong>：系统管理员、市管理员、区管理员（全部账号）；校管理员（仅本校账号）</dd>
+      <dt>前置条件</dt><dd>当前用户拥有对应角色的创建/编辑权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        <strong>创建权限分级</strong>：不同角色管理员创建账号时可分配的角色范围不同：<br>
+        &emsp;· 系统管理员 → 可创建：系统管理员、市管理员、区管理员、校管理员、教师<br>
+        &emsp;· 市管理员 → 可创建：区管理员、校管理员、教师<br>
+        &emsp;· 区管理员 → 可创建：校管理员、教师（所属单位仅限本区）<br>
+        &emsp;· 校管理员 → 不可创建账号<br>
+        <br>
+        <strong>编辑权限分级</strong>：<br>
+        &emsp;· 系统/市管理员 → 可编辑全市账号<br>
+        &emsp;· 区管理员 → 仅可编辑本区账号<br>
+        &emsp;· 校管理员 → 仅可编辑本校账号<br>
+        <br>
+        <strong>新增账号表单（3 组 section）：</strong><br>
+        &emsp;① <strong>账号信息</strong>：姓名、身份证号、手机号、所属角色（多选，可选范围受创建者角色限制）、所属单位（可搜索下拉）、编制类型、入编方式<br>
+        &emsp;② <strong>岗位信息</strong>：岗位类别（专业技术岗位/管理岗位/工勤技能岗位）、岗位等级（级联下拉）、岗位名称、任职时间（月份）、合同开始日期（合同制）、合同结束日期（合同制）<br>
+        &emsp;③ <strong>跨校信息</strong>：跨校类型（无/借调/支教/轮岗）、任职学校（可搜索下拉）、开始日期、结束日期<br>
+        <br>
+        <strong>编辑账号表单（6 组 section）：</strong><br>
+        &emsp;① 账号信息：姓名、身份证号（不可修改）、手机号、所属角色<br>
+        &emsp;② 归属信息：所属单位、编制类型、入编方式、所属区域（只读）<br>
+        &emsp;③ 个人档案：性别、民族、出生日期、政治面貌、学历、毕业院校<br>
+        &emsp;④ 岗位信息：岗位类别、岗位等级、岗位名称、任职时间、合同期限（合同制只读）<br>
+        &emsp;⑤ 编制与聘用信息（补录）：入编时间、编制本人员名册序号、依据文号、近三年考核、现任职务；合同制显示入职时间、合同起始/结束日期<br>
+        &emsp;⑥ 跨校信息：跨校类型、任职学校、开始日期、结束日期<br>
+        <br>
+        2. 身份证号须为 18 位，系统自动校验格式<br>
+        3. 手机号须为 11 位数字<br>
+        4. 编制类型选择"合同制"时，显示合同起止日期字段；选择"事业编"或"控制数"时，显示入编方式、岗位类别/等级（必填）<br>
+        5. 跨校类型选择非"无"时，须填写任职学校、开始日期、结束日期<br>
+        6. 编辑账号时，身份证号不可修改；合同制教师合同期限只读（变更需走续聘审批）<br>
+        7. 保存时校验所有必填字段，未通过校验则阻止提交并高亮缺失字段<br>
+        8. 新增账号状态默认为"正常"（active），系统随机生成强密码（8 位以上，含大小写字母+数字），创建成功后弹窗展示并支持一键复制
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 系统/市/区管理员可见"+ 新增账号"按钮，校管理员不可见<br>
+        · 点击"新增账号"按钮弹出新增弹框，标题为"新增账号"，角色复选框根据创建者权限自动过滤可选项<br>
+        · 点击"编辑"按钮弹出编辑弹框，预填已有数据，标题为"编辑账号"<br>
+        · 点击列表行可打开"查看账号"只读详情弹框（8 个 section：账号信息/归属信息/个人档案/岗位信息/跨校信息/编制补录/停用信息/底部状态条）<br>
+        · 角色选择为教师或校管理员时，显示编制类型、岗位信息、跨校信息 section<br>
+        · 编制类型切换时动态显示/隐藏入编方式、合同日期、岗位必填标记<br>
+        · 岗位类别改变时，岗位等级选项级联更新<br>
+        · 创建成功后弹窗展示随机密码，支持一键复制，提示"教师首次登录需改密"<br>
+        · 编辑保存成功后关闭弹框，刷新列表，显示 Toast"账号已更新"
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.03 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.03</span>
+      <span class="feat-name">账号启停与密码重置</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>account-management.html</code>（确认弹框 / 密码重置弹框）</dd>
+      <dt>适用角色</dt><dd>系统管理员、市管理员（全市账号）；区管理员（仅本区账号）；校管理员（仅本校账号）</dd>
+      <dt>前置条件</dt><dd>当前用户拥有对应角色的操作权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>账号停用</strong>：<br>
+        &emsp;① 点击"停用"按钮弹出停用确认弹框<br>
+        &emsp;② 选择停用类型（下拉选择，必选）：出编冻结 / 违规禁用 / 其他<br>
+        &emsp;③ 填写停用原因（文本输入，必填）<br>
+        &emsp;④ 确认后账号状态变更为"已停用"（disabled），记录停用类型、原因、时间、操作人，该账号无法登录<br>
+        2. <strong>账号恢复</strong>：<br>
+        &emsp;① 点击"恢复"按钮弹出确认弹框<br>
+        &emsp;② 确认后账号状态变更为"正常"（active），清除停用信息，恢复登录权限<br>
+        3. <strong>密码重置</strong>：<br>
+        &emsp;① 点击"重置密码"按钮弹出密码重置弹框<br>
+        &emsp;② 输入新密码并确认，密码规则：8-20 位，须含大小写字母和数字<br>
+        &emsp;③ 实时显示密码强度（弱/中/强）和规则逐条校验（长度/大写字母/小写字母/数字/特殊字符）<br>
+        &emsp;④ 重置成功后，用户下次登录须强制修改密码<br>
+        4. 以上操作均记录操作日志<br>
+        5. 账号详情弹框中根据停用类型显示不同的信息卡片：<br>
+        &emsp;· 出编冻结（exit）→ 显示"🔒 出编信息"卡片：出编形式（出编冻结）、出编日期、操作人、出编原因<br>
+        &emsp;· 合同到期（contract_end）→ 显示"📋 离职信息"卡片：离职类型（合同到期）、离职日期、操作人、离职原因<br>
+        &emsp;· 违规禁用/手动停用/其他 → 显示"⏸ 停用信息"卡片：停用方式（类型标签）、停用时间、操作人、停用原因
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 停用/恢复操作使用二次确认弹框，防止误操作<br>
+        · 停用弹框中停用类型为下拉选择，停用原因为文本输入<br>
+        · 密码重置弹框包含新密码和确认密码两个字段，前端校验两次输入一致<br>
+        · 操作成功后 Toast 提示并刷新列表
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.04 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.04</span>
+      <span class="feat-name">角色列表与状态管理</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>perm-management.html</code></dd>
+      <dt>适用角色</dt><dd>系统管理员</dd>
+      <dt>前置条件</dt><dd>当前用户为系统管理员角色</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 列表展示所有角色：系统管理员、市管理员、区管理员、校管理员、教师，以及自定义角色<br>
+        2. 列表字段：序号、角色名称、描述、用户数、状态（正常/已停用）、操作<br>
+        3. 系统内置角色（system）不可停用、不可删除<br>
+        4. 角色状态管理：<br>
+        &emsp;① 停用角色：停用后该角色下所有用户无法使用该角色登录<br>
+        &emsp;② 启用角色：恢复角色使用权限<br>
+        &emsp;③ 删除角色：仅当该角色下无关联用户时可删除<br>
+        5. 自定义角色可创建、编辑、停用、删除<br>
+        6. 每个角色可配置数据范围：全平台 / 全市 / 本区 / 本校 / 本人
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · "权限"按钮 → 打开权限配置弹框（角色名称只读展示 + 权限树 + 数据范围），确保管理员在操作前确认当前操作的角色身份<br>
+        · "关联用户"按钮 → 跳转到角色用户管理页面<br>
+        · "编辑"按钮 → 打开轻量弹框，仅含角色名称和描述两个字段，快速修改角色基本信息<br>
+        · "新增角色"按钮 → 打开完整弹框，含角色名称/标识/描述 + 权限树 + 数据范围<br>
+        · "停用"/"启用"/"删除"使用二次确认弹框<br>
+        · 删除前校验用户数，大于 0 则阻止并提示"请先移除用户"
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.05 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.05</span>
+      <span class="feat-name">模块权限配置</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>perm-management.html</code>（权限编辑弹框）</dd>
+      <dt>适用角色</dt><dd>系统管理员</dd>
+      <dt>前置条件</dt><dd>当前用户为系统管理员角色，已打开角色编辑弹框</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 权限树分为两级：<strong>模块级</strong>（菜单入口）+ <strong>操作按钮级</strong>（具体操作权限）<br>
+        2. 模块权限来源：系统预置的模块清单和操作按钮清单，为权限树的唯一权威数据源<br>
+        3. 模块级勾选 = 该模块所有操作按钮自动勾选；取消模块勾选 = 所有子按钮自动取消<br>
+        4. 部分勾选子按钮时，模块级显示半选状态（▣）<br>
+        5. 权限树按模块分组显示（通用 / 编制管理 / 岗位管理 / 聘用管理 / 编外教师管理 / 人事管理 / 系统设置）。通用组包含工作台、编制岗位台账<br>
+        6. 支持"全选"和"全不选"快捷操作<br>
+        7. 权限变更即时生效，无需刷新页面<br>
+        8. 数据范围选择：全平台 / 全市 / 本区 / 本校 / 本人，控制角色可查看的数据范围
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 点击分组箭头（▶/▼）展开/折叠模块下的操作按钮列表<br>
+        · 点击 ☑/☐ 勾选/取消模块或操作按钮<br>
+        · 半选状态显示 ▣ 图标<br>
+        · 点击"全选"→ 所有模块+按钮全部勾选；点击"全不选"→ 全部取消<br>
+        · 保存权限时，已全选的模块仅保留模块级权限（自动去重子按钮）
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.06 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.06</span>
+      <span class="feat-name">角色用户关联管理</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>role-users.html</code></dd>
+      <dt>适用角色</dt><dd>系统管理员</dd>
+      <dt>前置条件</dt><dd>从角色权限页点击"关联用户"跳转，页面自动识别当前操作的角色</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 页面顶部显示当前角色名称（如"市管理员"）<br>
+        2. 列表展示所有拥有该角色的用户，字段（5 列）：序号、姓名、所属单位、所属角色、操作<br>
+        3. 支持"添加用户"：从全部用户列表中勾选并添加到当前角色<br>
+        4. 支持"移除用户"：从当前角色中移除用户（不删除账号，仅解除角色关联）<br>
+        5. 用户可同时拥有多个角色<br>
+        6. 移除和添加操作即时生效
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 面包屑导航：首页 / 系统设置 / 角色权限 / 关联用户<br>
+        · 当前角色下无用户时显示空状态<br>
+        · "添加用户"弹框中以复选框列表形式展示所有用户<br>
+        · "移除"使用二次确认弹框
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.07 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.07</span>
+      <span class="feat-name">菜单配置管理</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>menu-management.html</code></dd>
+      <dt>适用角色</dt><dd>系统管理员</dd>
+      <dt>前置条件</dt><dd>当前用户为系统管理员角色</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>菜单分组管理</strong>：<br>
+        &emsp;① 支持新增分组（输入分组名称）<br>
+        &emsp;② 支持编辑分组名称<br>
+        &emsp;③ 支持删除分组（删除时组内所有菜单一并删除）<br>
+        &emsp;④ 分组按配置的显示顺序（排序号从小到大）在侧边栏中自上而下排列<br>
+        2. <strong>菜单项管理</strong>：<br>
+        &emsp;① 新增菜单：填写菜单名称、菜单标识（英文 ID）、图标类型、路由地址、所属分组、排序号<br>
+        &emsp;② 编辑菜单：修改以上字段<br>
+        &emsp;③ 启用/停用：停用后菜单在所有角色侧边栏中隐藏<br>
+        &emsp;④ 排序：通过排序号调整同一分组内菜单的显示顺序<br>
+        3. 菜单配置数据持久化存储，所有页面共享同一份菜单配置<br>
+        4. 配置变更后即时生效，各页面刷新侧边栏时自动拉取最新菜单配置并渲染<br>
+        5. 系统预置一套默认菜单配置（含分组结构和菜单项），首次部署或配置被清空时自动恢复默认值<br>
+        6. 新增菜单须填写路由地址，点击菜单时跳转到对应页面
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 分组以卡片形式展示，每个卡片内显示该分组下的菜单项列表<br>
+        · 菜单项以表格行形式展示：菜单名称、标识、图标、路由、排序号、状态、操作<br>
+        · 新增/编辑菜单和分组均为弹框操作<br>
+        · 启用/停用使用二次确认弹框<br>
+        · 删除分组弹框明确提示"组内所有菜单将一并删除"
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.08 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.08</span>
+      <span class="feat-name">操作日志查看</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>log-management.html</code></dd>
+      <dt>适用角色</dt><dd>系统管理员</dd>
+      <dt>前置条件</dt><dd>当前用户为系统管理员角色</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 操作日志统一归集全平台所有模块的操作记录，集中存储和管理<br>
+        2. 各业务模块在关键操作节点自动写入日志，无需手动干预<br>
+        3. 列表字段（10 列）：操作时间、操作人、所属单位、功能模块、操作类型、日志类型、操作对象、操作结果、操作 IP、详情<br>
+        4. 日志支持多维筛选：<br>
+        &emsp;① 按模块筛选（全部 / 机构管理 / 账号管理 / 角色权限 / 菜单管理 / 操作日志 / 系统设置 / 编制使用申请 / 教师入编 / 教师出编 / 岗位晋升 / 岗位设置 / 招聘 / 聘用手续 / 退休呈报 / 工资核定 / 师德师风举报 / 荣誉申请），支持多选<br>
+        &emsp;② 按操作类型筛选（全部 / 登录 / 登出 / 新增 / 修改 / 删除 / 提交 / 审核通过 / 审核驳回 / 撤回 / 停用 / 启用 / 重置密码 / 导出）<br>
+        &emsp;③ 按时间范围筛选（起始日期 ~ 结束日期）<br>
+        &emsp;④ 按操作人搜索（姓名模糊匹配）<br>
+        5. 列表分页显示，每页 10 条<br>
+        6. 点击"查看详情"弹出详情弹框，展示该条日志的完整信息：<br>
+        &emsp;· 操作人：姓名 + 角色<br>
+        &emsp;· 所属单位 + 所属区域<br>
+        &emsp;· 操作时间 + 操作 IP<br>
+        &emsp;· 功能模块（标签形式展示）<br>
+        &emsp;· 操作类型（标签形式展示，如新增/修改/审核通过等）<br>
+        &emsp;· 日志类型（操作日志 / 安全日志 / 审计日志）<br>
+        &emsp;· 操作对象：名称 + 类型（如"陈明辉（教师账号）"）<br>
+        &emsp;· 操作结果：成功 ✅ / 失败 ❌（失败时附带失败原因）<br>
+        &emsp;· 操作详情：描述文字摘要<br>
+        7. 日志数据只读，不可编辑、不可删除<br>
+        8. 每条日志记录包含以下完整字段：日志 ID、操作时间、操作人（姓名+账号 ID+角色）、所属单位、所属区域、操作 IP、功能模块、操作类型、日志类型（操作日志/安全日志/审计日志）、操作对象（名称+类型）、操作结果（成功/失败+失败原因）、操作详情描述、变更前后内容（可选）
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 筛选条件变更时自动刷新列表，回到第 1 页<br>
+        · 日志为空时显示"暂无操作记录"空状态<br>
+        · 点击某条日志行展开详情面板，再次点击收起<br>
+        · 支持日志导出（后续版本实现）
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.09 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.09</span>
+      <span class="feat-name">公告列表管理</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>announcement-management.html</code></dd>
+      <dt>适用角色</dt><dd>全部管理员角色（系统/市/区/校管理员均可发布公告，各角色发布的公告可见范围不同）</dd>
+      <dt>前置条件</dt><dd>当前用户已登录，且拥有公告管理模块权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 列表展示所有公告，默认按发布时间倒序排列<br>
+        2. 状态标签页切换：全部 / 生效中 / 定时待发 / 已过期<br>
+        3. 列表字段（6 列）：可见范围、标题、发布来源、状态、发布时间、操作<br>
+        4. 可见范围标签：全平台（蓝色）/ 全市（蓝色）/ 本区（黄色）/ 本校（绿色）<br>
+        5. 状态标签：生效中（绿色）、定时待发（黄色）、已过期（灰色）<br>
+        6. 列表分页显示，每页 10 条<br>
+        7. "定时待发"标签页全部管理员角色可见<br>
+        8. 支持按可见范围筛选（全部 / 全平台 / 全市 / 本区 / 本校）<br>
+        9. 数据范围：展示全平台公告，按发布者角色和可见范围过滤
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 标签页切换筛选 + 统计数显示<br>
+        · 列表为空时显示"暂无公告"空状态<br>
+        · 全部管理员角色均可见"发布公告"按钮和"定时待发"标签页<br>
+        · 操作列按钮根据发布者判断：系统管理员可编辑/删除全部公告；其他管理员仅可编辑/删除自己发布的公告；已过期公告不显示编辑按钮仅可删除<br>
+        · 教师角色仅可查看可见范围内的公告，无发布和操作权限
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.10 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.10</span>
+      <span class="feat-name">发布/编辑公告</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>announcement-management.html</code>（发布/编辑弹框）</dd>
+      <dt>适用角色</dt><dd>全部管理员角色（系统/市/区/校管理员）</dd>
+      <dt>前置条件</dt><dd>当前用户为管理员角色</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>公告表单字段</strong>：<br>
+        &emsp;① 标题（text，限 100 字，必填）<br>
+        &emsp;② 正文（富文本编辑器，必填）：支持段落/标题、加粗/斜体/下划线、有序/无序列表、链接、字体颜色/背景色<br>
+        &emsp;③ 附件（file，可选）：支持 PDF/Word/Excel/图片（JPG/PNG/GIF/BMP）/压缩包（ZIP/RAR/7Z），单文件 ≤ 20MB，最多 5 个<br>
+        &emsp;④ 可见范围（只读，自动填充）：根据发布者角色自动设置为 全平台/全市/本区/本校<br>
+        &emsp;⑤ 发布来源（只读，自动填充）：发布者所属单位名称<br>
+        &emsp;⑥ 生效时间：立即生效 / 定时发布。定时发布需选择日期+时间<br>
+        &emsp;⑦ 置顶：是 / 否<br>
+        2. 截止时间默认为发布时间 + 30 天，到期自动标记为"已过期"<br>
+        3. 定时发布：到达设定时间后状态自动从"定时待发"变为"生效中"<br>
+        4. 编辑公告时预填所有已有数据，包括富文本内容和附件列表<br>
+        5. 编辑公告时，已上传的附件可单独删除
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 点击"发布公告"按钮弹出新增弹框<br>
+        · 点击列表行跳转到公告详情独立页面（<code>announcement-detail.html</code>），仅查看公告内容<br>
+        · 编辑和删除操作仅在列表页操作列进行，详情页不提供操作按钮<br>
+        · 富文本编辑器提供工具栏，支持常用排版操作<br>
+        · 选择"定时发布"时展开日期时间选择器，提示"公告将于 X 年 X 月 X 日 XX:XX 自动发布"<br>
+        · 发布成功后 Toast 提示并刷新列表
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.11 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.11</span>
+      <span class="feat-name">公告可见范围与状态管理</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>announcement-management.html</code></dd>
+      <dt>适用角色</dt><dd>全部管理员角色</dd>
+      <dt>前置条件</dt><dd>当前用户为管理员角色</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>可见范围规则</strong>（发布时根据发布者角色自动确定，不可手动修改）：<br>
+        &emsp;· 系统管理员发布 → 全平台（所有人可见）<br>
+        &emsp;· 市管理员发布 → 全市（全市所有用户可见）<br>
+        &emsp;· 区管理员发布 → 本区（本区所有用户可见）<br>
+        &emsp;· 校管理员发布 → 本校（本校所有用户可见）<br>
+        2. <strong>公告状态流转</strong>：<br>
+        &emsp;· 立即发布 → 状态为"生效中"（active）<br>
+        &emsp;· 定时发布 → 状态为"定时待发"（scheduled），到达发布时间后自动变为"生效中"<br>
+        &emsp;· 发布时间 + 30 天后 → 状态自动变为"已过期"（expired）<br>
+        3. 定时待发公告在工作台所有角色不可见。列表页中，发布人和系统管理员可见定时待发公告，其他管理员不可见<br>
+        4. 已过期公告不在工作台展示，在列表页可查看但不可编辑（仅可删除）
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 可见范围和发布来源在表单中为只读灰色输入框，明确告知发布者不可修改<br>
+        · 定时待发公告在列表中显示黄色"定时待发"标签<br>
+        · 列表页和详情弹框均显示公告的完整状态信息
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.12 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.12</span>
+      <span class="feat-name">公告操作（置顶/删除）</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>announcement-management.html</code></dd>
+      <dt>适用角色</dt><dd>全部管理员角色。系统管理员可操作全部公告；其他管理员仅可操作自己发布的公告</dd>
+      <dt>前置条件</dt><dd>当前用户为管理员角色</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>置顶</strong>：发布或编辑时可设置"置顶 = 是"。工作台中置顶公告排在最前。同一公告取消置顶需编辑并设为"否"<br>
+        2. <strong>删除公告</strong>：<br>
+        &emsp;① 已过期公告仅显示"删除"按钮，不显示"编辑"按钮<br>
+        &emsp;② 点击"删除"弹出二次确认弹框<br>
+        &emsp;③ 确认后从系统中移除，工作台同步不再展示<br>
+        &emsp;④ 删除操作不可恢复<br>
+        3. <strong>操作权限</strong>：系统管理员可编辑/删除全部公告；其他管理员仅可编辑/删除自己发布的公告<br>
+        4. 删除操作记录操作日志
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 删除使用二次确认弹框，提示"删除后不可恢复"<br>
+        · 编辑和删除按钮仅在列表页操作列展示，公告详情页为纯查看模式
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.13 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.13</span>
+      <span class="feat-name">工作台公告展示（消费端）</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>workbench.html</code></dd>
+      <dt>适用角色</dt><dd>市/区/校管理员、教师。系统管理员无工作台</dd>
+      <dt>前置条件</dt><dd>公告管理中存在状态为"生效中"的公告，且可见范围覆盖当前用户</dd>
+      <dt>跨模块说明</dt><dd>本功能点属于公告管理的<strong>消费端</strong>，落地在系统基础模块的 <code>workbench.html</code>。公告的<strong>生产端</strong>（发布/编辑/删除）见本模块 F06.10-F06.12。工作台展示详细规则另见系统基础模块 PRD F02.10</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 数据来源：公告管理（本模块 F06.10）发布的公告数据<br>
+        2. 可见范围过滤：按公告可见范围 + 用户所属组织匹配<br>
+        3. 定时待发公告：工作台不可见，仅在公告管理列表页可见<br>
+        4. 已过期公告：不在工作台展示<br>
+        5. 置顶优先排列，同组内按发布时间倒序<br>
+        6. 最多展示 5 条，超出部分点击"查看全部 →"跳转公告管理列表页<br>
+        7. 公告和消息通知为两条独立通道，发布公告不在消息铃铛中产生通知
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 单行均匀布局：蓝色圆点（3 天内发布）+ 标题（自适应宽度，超出省略号）+ 可见范围标签 + 新/已过期标签 + 发布时间 + 来源<br>
+        · 置顶公告标题旁显示"置顶"标识<br>
+        · 3 天内发布的公告标题旁显示绿色"新"标签<br>
+        · 点击公告行 → 跳转公告详情页<br>
+        · 暂无公告时显示"暂无公告"空状态
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.14 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.14</span>
+      <span class="feat-name">机构列表与区域导航</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>org-management.html</code></dd>
+      <dt>适用角色</dt><dd>系统管理员、市管理员（查看全市）、区管理员（仅查看本区）、校管理员（重定向到本校台账）</dd>
+      <dt>前置条件</dt><dd>当前用户已登录且拥有机构管理模块权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 左侧区域目录树：展示柳州市 + 11 个区县节点，每节点显示机构数量。点击节点筛选右侧列表<br>
+        2. 右侧列表（10 列）：序号、单位编号、统一社会信用代码、单位名称、所属区域、组织类型、单位管理员、更新时间、状态、操作<br>
+        3. 标签页筛选：全部 / 待审核 / 正常 / 已停用（含统计数）。待审核标签页用于校管理员提交机构修改后的主管单位审核流程<br>
+        4. 支持按单位名称或编号模糊搜索<br>
+        5. 支持按组织类型筛选（学校/行政管理部门/局属二层机构）<br>
+        6. 列表分页显示，每页 10 条<br>
+        7. 待审核状态：校管理员提交机构修改后进入待审核，列表"待审核"标签页中出现该机构。主管单位管理员可进行"审核"操作（通过或驳回）：<br>
+        &emsp;· 系统管理员 → 可审核全平台所有待审核机构<br>
+        &emsp;· 市管理员 → 可审核"市直属"的待审核机构，可查看全市数据<br>
+        &emsp;· 区管理员 → 仅可审核本区的待审核机构<br>
+        8. 区管理员仅可查看本区机构，点击其他区节点时显示"无权查看"提示<br>
+        9. 校管理员自动重定向到本校机构详情页（<code>org-detail.html?orgId=xxx</code>）<br>
+        10. 数据范围：展示机构目录中全部机构，按角色管辖范围过滤
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 区域树节点点击后高亮选中，列表实时过滤<br>
+        · 标签页切换时列表和统计数同步更新<br>
+        · 列表为空时显示"暂无匹配的机构数据"空状态<br>
+        · 页面副标题动态显示当前筛选项的机构数量
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.15 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.15</span>
+      <span class="feat-name">新增/编辑机构</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>org-management.html</code>（新增/编辑弹框）</dd>
+      <dt>适用角色</dt><dd>系统管理员、市管理员、区管理员（仅本区）</dd>
+      <dt>前置条件</dt><dd>当前用户为系统/市/区管理员角色。已停用机构不允许编辑</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>新增/编辑弹框包含 3 个信息分组</strong>：<br>
+        &emsp;① <strong>基本信息</strong>：单位名称、单位简称、所属区域、单位级别（副厅级/正处级/副处级/正科级/副科级/其他未定级）<br>
+        &emsp;② <strong>编制属性</strong>：组织类型（学校/行政管理部门/局属二层机构）、学校类型（小学/初中/高中/完中/九年一贯制/十二年一贯制/中职/幼儿园/特殊教育/专门学校）、岗位设置分类（自治区示范高中/自治区特色高中/普通高中/初中/小学/幼儿园）、单位性质（事业单位/参公事业单位/机关单位/其他）、单位类型（公益一类/公益二类/行政部门）、经费类型（全额拨款/差额拨款/自收自支）、统一社会信用代码（18位）<br>
+        &emsp;③ <strong>管理信息</strong>：单位管理员（从管理员列表中选择）、单位地址、联系电话、邮编<br>
+        2. 组织类型选"行政管理部门"时：隐藏学校类型、岗位设置分类、单位类型字段组，经费类型自动锁定"全额拨款"<br>
+        3. 单位类型选"公益一类"时经费锁定"全额拨款"，"公益二类"锁定"差额拨款"<br>
+        4. 编辑时所属区域（区管理员锁定）、身份证号不可修改<br>
+        5. 区管理员不可操作其他区的机构（跨区操作弹 Toast 警告）<br>
+        6. 新增时自动生成机构编号（gxlzh-{区域编码}-{序号}）<br>
+        7. 编辑保存时自动记录变更日志，校管理员提交后进入待审核状态
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 市/区管理员新增/编辑均为模态弹框<br>
+        · 校管理员点击"编辑"→ 跳转到 <code>org-detail.html?orgId=xxx&action=edit</code> 完整编辑页面，而非弹框<br>
+        · 组织类型切换时动态显隐学校类型字段<br>
+        · 单位类型切换时自动联动经费类型<br>
+        · 编辑弹框（或编辑页面）预填所有已有数据<br>
+        · 市/区管理员保存后直接生效；校管理员保存后进入待审核<br>
+        · 保存成功后关闭弹框/返回查看模式，刷新列表和树，Toast 提示
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.16 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.16</span>
+      <span class="feat-name">机构状态管理（停用/启用）</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>org-management.html</code>（确认弹框）</dd>
+      <dt>适用角色</dt><dd>系统管理员、市管理员、区管理员（仅本区）</dd>
+      <dt>前置条件</dt><dd>当前用户为管理员角色，且拥有管辖权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>停用机构</strong>：<br>
+        &emsp;① 点击"停用"弹出二次确认弹框："确定要停用机构 XXX 吗？停用后该机构将从活动列表中隐藏，但数据保留"<br>
+        &emsp;② <strong>前置校验</strong>：检查该机构下是否有关联的正常状态账号（teacher_accounts + admin_accounts），若有则 Toast 提示"该机构下还有 N 个正常账号，请先处理后再停用"并阻止操作<br>
+        &emsp;③ 确认后状态设为已停用，记录停用时间和操作人<br>
+        &emsp;④ 已停用机构不允许编辑，仅显示"查看""台账""启用"按钮<br>
+        2. <strong>启用机构</strong>：<br>
+        &emsp;① 点击"启用"弹出二次确认弹框<br>
+        &emsp;② 确认后状态恢复为正常<br>
+        3. 区管理员不可操作其他区的机构<br>
+        4. 停用/启用操作记录操作日志和机构变更日志
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 正常机构操作列：查看 / 台账 / 编辑 / 停用<br>
+        · 已停用机构操作列：查看 / 台账 / 启用（不显示编辑）<br>
+        · 停用和启用均使用二次确认弹框，防止误操作
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F06.17 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F06.17</span>
+      <span class="feat-name">机构详情与台账关联</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd><code>org-detail.html</code>（独立的机构详情页，与编制岗位台账的 <code>org-ledger-detail.html</code> 分离）</dd>
+      <dt>适用角色</dt><dd>全部管理员角色</dd>
+      <dt>前置条件</dt><dd>从机构列表点击"查看"，或校管理员进入机构管理时自动重定向</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 机构详情页展示机构的完整信息（查看/编辑两种模式，通过 <code>?action=edit</code> 切换）<br>
+        2. <strong>查看模式</strong>（默认）：只读展示机构全部字段（基本信息 + 编制属性 + 管理信息）<br>
+        3. <strong>编辑模式</strong>（<code>?action=edit</code>）：允许修改机构信息，与机构管理弹框字段一致<br>
+        4. 机构详情与机构管理共享同一份机构目录数据<br>
+        5. 机构变更历史按时间倒序展示，每次编辑保存时自动记录变更内容和操作人<br>
+        6. 列表"台账"按钮跳转编制岗位台账详情页（<code>org-ledger-detail.html?school=xxx&mode=view</code>），为独立页面<br>
+        7. 列表"查看"按钮跳转本页查看模式（只读）<br>
+        8. 校管理员"编辑"按钮跳转本页编辑模式（<code>?action=edit</code>）
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 页面顶部展示机构名称作为标题<br>
+        · 变更日志区域在页面右侧边栏，左侧为主体信息区，右侧按时间线展示更改记录<br>
+        · 编辑模式保存后自动返回查看模式并刷新数据
+      </dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ============= 4. 页面字段清单 ============= -->
+<div class="section" id="s4">
+  <div class="section-title">四、页面字段清单</div>
+
+  <div class="sub-title">4.1 账号管理 — 列表页字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>姓名</td><td><code>name</code></td><td>text</td><td>用户真实姓名</td></tr>
+      <tr><td class="center">2</td><td>身份证号</td><td><code>idCard</code></td><td>text</td><td>18 位</td></tr>
+      <tr><td class="center">3</td><td>手机号</td><td><code>phone</code></td><td>text</td><td>11 位手机号</td></tr>
+      <tr><td class="center">4</td><td>编制类型</td><td><code>staffingType</code></td><td>enum</td><td>事业编 / 控制数 / 合同制</td></tr>
+      <tr><td class="center">5</td><td>所属区域</td><td><code>district</code></td><td>text</td><td>从机构目录中关联得到的所属区域</td></tr>
+      <tr><td class="center">6</td><td>所属角色</td><td><code>roles</code></td><td>array</td><td>用户拥有的角色列表，多角色以顿号分隔显示</td></tr>
+      <tr><td class="center">7</td><td>所属单位</td><td><code>school</code></td><td>text</td><td>用户所属学校或单位名称</td></tr>
+      <tr><td class="center">8</td><td>跨校状态</td><td><code>crossSchoolType</code></td><td>enum</td><td>在岗（非跨校）/ 借调 / 支教 / 轮岗</td></tr>
+      <tr><td class="center">9</td><td>账号状态</td><td><code>status</code></td><td>enum</td><td>正常（active）/ 已停用（disabled）</td></tr>
+      <tr><td class="center">10</td><td>首次登录</td><td><code>firstLogin</code></td><td>bool</td><td>是否已完成首次登录（false 表示未登录过）</td></tr>
+      <tr><td class="center">11</td><td>更新时间</td><td><code>updatedAt</code></td><td>datetime</td><td>最后操作时间</td></tr>
+      <tr><td class="center">12</td><td>操作</td><td>—</td><td>actions</td><td>查看密码/重置密码、查看、个人详情；正常账号：编辑/停用；已停用账号：恢复</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.2 账号管理 — 新增表单字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段分组</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>必填</th><th>校验规则</th></tr>
+      <tr><td class="center">1</td><td>账号信息</td><td>姓名</td><td><code>name</code></td><td>text</td><td class="center">是</td><td>—</td></tr>
+      <tr><td class="center">2</td><td>账号信息</td><td>身份证号</td><td><code>idCard</code></td><td>text</td><td class="center">是</td><td>18 位，编辑时不可修改</td></tr>
+      <tr><td class="center">3</td><td>账号信息</td><td>手机号</td><td><code>phone</code></td><td>text</td><td class="center">是</td><td>11 位数字</td></tr>
+      <tr><td class="center">4</td><td>账号信息</td><td>所属角色</td><td><code>roles</code></td><td>checkbox</td><td class="center">是</td><td>市管理员/区管理员/校管理员/教师，至少选一个</td></tr>
+      <tr><td class="center">5</td><td>账号信息</td><td>所属单位</td><td><code>school</code></td><td>searchable-select</td><td class="center">是</td><td>可搜索下拉，从机构目录中选择</td></tr>
+      <tr><td class="center">6</td><td>账号信息</td><td>编制类型</td><td><code>staffingType</code></td><td>select</td><td class="center">条件</td><td>事业编/控制数/合同制；角色含教师或校管理员时显示</td></tr>
+      <tr><td class="center">7</td><td>账号信息</td><td>入编方式</td><td><code>entryMethod</code></td><td>select</td><td class="center">条件</td><td>统一公开招聘/单位自主实施招聘/中高级人才招聘/引进高层次人才/调动/其他；事业编/控制数时必填</td></tr>
+      <tr><td class="center">8</td><td>岗位信息</td><td>岗位类别</td><td><code>categoryName</code></td><td>select</td><td class="center">条件</td><td>专业技术岗位/管理岗位/工勤技能岗位；事业编/控制数时必填</td></tr>
+      <tr><td class="center">9</td><td>岗位信息</td><td>岗位等级</td><td><code>postLevel</code></td><td>select</td><td class="center">条件</td><td>随岗位类别级联变化；事业编/控制数时必填</td></tr>
+      <tr><td class="center">10</td><td>岗位信息</td><td>岗位名称</td><td><code>assignPosition</code></td><td>text</td><td class="center">条件</td><td>如"语文教师"；角色含教师或校管理员时必填</td></tr>
+      <tr><td class="center">11</td><td>岗位信息</td><td>任职时间</td><td><code>appointTime</code></td><td>month</td><td class="center">条件</td><td>月份选择器；角色含教师或校管理员时必填</td></tr>
+      <tr><td class="center">12</td><td>岗位信息</td><td>合同开始日期</td><td><code>contractStart</code></td><td>date</td><td class="center">条件</td><td>合同制时必填，保存后只读</td></tr>
+      <tr><td class="center">13</td><td>岗位信息</td><td>合同结束日期</td><td><code>contractEnd</code></td><td>date</td><td class="center">条件</td><td>合同制时必填，须晚于开始日期</td></tr>
+      <tr><td class="center">14</td><td>跨校信息</td><td>跨校类型</td><td><code>crossSchoolType</code></td><td>select</td><td class="center">否</td><td>无（在岗）/借调/支教/轮岗</td></tr>
+      <tr><td class="center">15</td><td>跨校信息</td><td>任职学校</td><td><code>crossSchool</code></td><td>searchable-select</td><td class="center">条件</td><td>跨校类型非"无"时必填</td></tr>
+      <tr><td class="center">16</td><td>跨校信息</td><td>开始日期</td><td><code>crossStartDate</code></td><td>date</td><td class="center">条件</td><td>跨校类型非"无"时必填</td></tr>
+      <tr><td class="center">17</td><td>跨校信息</td><td>结束日期</td><td><code>crossEndDate</code></td><td>date</td><td class="center">条件</td><td>跨校类型非"无"时必填</td></tr>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">注：编辑表单另含 ③ 个人档案（性别/民族/出生日期/政治面貌/学历/毕业院校）和 ⑤ 编制与聘用信息补录（入编时间/编制本名册序号/依据文号/近三年考核/现任职务等），详见功能点规则。</p>
+
+  <div class="sub-title">4.3 角色权限 — 角色表单字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>角色名称</td><td><code>label</code></td><td>text</td><td class="center">是</td><td>如"市管理员"</td></tr>
+      <tr><td class="center">2</td><td>角色标识</td><td><code>roleId</code></td><td>text</td><td class="center">是</td><td>英文标识，如"city"，新增时自动生成，编辑时不可修改</td></tr>
+      <tr><td class="center">3</td><td>描述</td><td><code>description</code></td><td>text</td><td class="center">否</td><td>角色职责描述</td></tr>
+      <tr><td class="center">4</td><td>模块权限</td><td><code>permissions</code></td><td>tree</td><td class="center">是</td><td>权限树：模块级 + 操作按钮级</td></tr>
+      <tr><td class="center">5</td><td>数据范围</td><td><code>dataScope</code></td><td>select</td><td class="center">是</td><td>全平台 / 全市 / 本区 / 本校 / 本人</td></tr>
+      <tr><td class="center">6</td><td>状态</td><td><code>status</code></td><td>enum</td><td class="center">—</td><td>正常（active）/ 已停用（inactive）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.4 菜单管理 — 菜单项字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>菜单名称</td><td><code>label</code></td><td>text</td><td class="center">是</td><td>侧边栏显示的文字</td></tr>
+      <tr><td class="center">2</td><td>菜单标识</td><td><code>id</code></td><td>text</td><td class="center">是</td><td>英文 ID，如"workbench"，用于路由匹配和权限控制</td></tr>
+      <tr><td class="center">3</td><td>图标类型</td><td><code>icon</code></td><td>select</td><td class="center">是</td><td>从预设 SVG 图标库中选择</td></tr>
+      <tr><td class="center">4</td><td>路由地址</td><td><code>route</code></td><td>text</td><td class="center">否</td><td>如"workbench.html"，空值表示仅作分组展示</td></tr>
+      <tr><td class="center">5</td><td>所属分组</td><td><code>group</code></td><td>select</td><td class="center">是</td><td>从已有分组中选择</td></tr>
+      <tr><td class="center">6</td><td>排序号</td><td><code>order</code></td><td>number</td><td class="center">是</td><td>同分组内按此值升序排列</td></tr>
+      <tr><td class="center">7</td><td>状态</td><td><code>status</code></td><td>enum</td><td class="center">—</td><td>正常（active）/ 已停用（inactive）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.5 公告管理 — 列表页字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>可见范围</td><td><code>scope</code></td><td>enum</td><td>全平台（system）/ 全市（city）/ 本区（district）/ 本校（school），自动根据发布者角色确定</td></tr>
+      <tr><td class="center">2</td><td>标题</td><td><code>title</code></td><td>text</td><td>限 100 字</td></tr>
+      <tr><td class="center">3</td><td>发布来源</td><td><code>source</code></td><td>text</td><td>发布者所属单位名称</td></tr>
+      <tr><td class="center">4</td><td>状态</td><td><code>status</code></td><td>enum</td><td>生效中（active）/ 定时待发（scheduled）/ 已过期（expired）</td></tr>
+      <tr><td class="center">5</td><td>发布时间</td><td><code>publishTime</code></td><td>datetime</td><td>立即发布时为创建时间，定时发布时为设定的时间</td></tr>
+      <tr><td class="center">6</td><td>操作</td><td>—</td><td>actions</td><td>公告发布者：查看 / 编辑 / 删除；非发布者：仅查看</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.6 公告管理 — 发布/编辑表单字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>标题</td><td><code>title</code></td><td>text</td><td class="center">是</td><td>限 100 字</td></tr>
+      <tr><td class="center">2</td><td>正文</td><td><code>content</code></td><td>richtext</td><td class="center">是</td><td>富文本编辑器，支持加粗/斜体/下划线/列表/链接/字体颜色/背景色</td></tr>
+      <tr><td class="center">3</td><td>附件</td><td><code>attachments</code></td><td>file[]</td><td class="center">否</td><td>PDF/Word/Excel/JPG/PNG/GIF/BMP/ZIP/RAR/7Z，单文件 ≤ 20MB，最多 5 个</td></tr>
+      <tr><td class="center">4</td><td>可见范围</td><td><code>scope</code></td><td>text</td><td class="center">只读</td><td>根据发布者角色自动填充，不可修改</td></tr>
+      <tr><td class="center">5</td><td>发布来源</td><td><code>source</code></td><td>text</td><td class="center">只读</td><td>发布者所属单位名称，自动填充</td></tr>
+      <tr><td class="center">6</td><td>生效时间</td><td><code>publishType</code></td><td>select</td><td class="center">是</td><td>立即生效 / 定时发布。选"定时发布"时需补充日期+时间</td></tr>
+      <tr><td class="center">7</td><td>置顶</td><td><code>isPinned</code></td><td>select</td><td class="center">是</td><td>是 / 否</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.7 机构管理 — 列表页字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>单位编号</td><td><code>orgId</code></td><td>text</td><td>格式 gxlzh-{区域编码}-{序号}</td></tr>
+      <tr><td class="center">2</td><td>统一社会信用代码</td><td><code>creditCode</code></td><td>text</td><td>18 位</td></tr>
+      <tr><td class="center">3</td><td>单位名称</td><td><code>orgName</code></td><td>text</td><td>全站统一的单位标识</td></tr>
+      <tr><td class="center">4</td><td>所属区域</td><td><code>district</code></td><td>text</td><td>市直属/各区县名</td></tr>
+      <tr><td class="center">5</td><td>组织类型</td><td><code>orgType</code></td><td>enum</td><td>学校/行政管理部门/局属二层机构</td></tr>
+      <tr><td class="center">6</td><td>单位管理员</td><td><code>schoolAdminName</code></td><td>text</td><td>已配置/未配置</td></tr>
+      <tr><td class="center">7</td><td>更新时间</td><td><code>updatedAt</code></td><td>datetime</td><td>最后操作时间</td></tr>
+      <tr><td class="center">8</td><td>状态</td><td><code>status</code></td><td>enum</td><td>正常（active）/ 已停用（inactive）/ 待审核（pending）</td></tr>
+      <tr><td class="center">9</td><td>操作</td><td>—</td><td>actions</td><td>查看/台账/编辑/停用（启用）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.8 机构管理 — 新增/编辑表单字段</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">机构完整字段清单（21 字段）详见 <code>docs/产品方案_机构管理.md</code> §3.2。以下为本 PRD 覆盖的核心字段：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段分组</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>基本信息</td><td>单位名称</td><td><code>orgName</code></td><td>text</td><td class="center">是</td><td>全站统一的单位标识</td></tr>
+      <tr><td class="center">2</td><td>基本信息</td><td>单位简称</td><td><code>orgShortName</code></td><td>text</td><td class="center">否</td><td>列表辅助显示</td></tr>
+      <tr><td class="center">3</td><td>基本信息</td><td>所属区域</td><td><code>district</code></td><td>select</td><td class="center">是</td><td>市直属/城中区/鱼峰区/柳南区/柳北区/柳江区/柳城县/鹿寨县/融安县/融水县/三江县</td></tr>
+      <tr><td class="center">4</td><td>基本信息</td><td>单位级别</td><td><code>orgLevel</code></td><td>select</td><td class="center">是</td><td>副厅级/正处级/副处级/正科级/副科级/其他未定级</td></tr>
+      <tr><td class="center">5</td><td>编制属性</td><td>组织类型</td><td><code>orgType</code></td><td>select</td><td class="center">是</td><td>学校/行政管理部门/局属二层机构</td></tr>
+      <tr><td class="center">6</td><td>编制属性</td><td>学校类型</td><td><code>schoolType</code></td><td>select</td><td class="center">条件</td><td>组织类型=学校时必填</td></tr>
+      <tr><td class="center">7</td><td>编制属性</td><td>岗位设置分类</td><td><code>schoolCategory</code></td><td>select</td><td class="center">是</td><td>自治区示范高中/自治区特色高中/普通高中/初中/小学/幼儿园</td></tr>
+      <tr><td class="center">8</td><td>编制属性</td><td>单位性质</td><td><code>orgNature</code></td><td>select</td><td class="center">是</td><td>事业单位/参公事业单位/机关单位/其他</td></tr>
+      <tr><td class="center">9</td><td>编制属性</td><td>单位类型</td><td><code>unitType</code></td><td>select</td><td class="center">是</td><td>公益一类/公益二类/行政部门；联动经费类型</td></tr>
+      <tr><td class="center">10</td><td>编制属性</td><td>经费类型</td><td><code>fundType</code></td><td>select</td><td class="center">是</td><td>全额拨款/差额拨款/自收自支</td></tr>
+      <tr><td class="center">11</td><td>编制属性</td><td>统一社会信用代码</td><td><code>creditCode</code></td><td>text</td><td class="center">是</td><td>18 位</td></tr>
+      <tr><td class="center">12</td><td>管理信息</td><td>单位管理员</td><td><code>schoolAdminId</code></td><td>select</td><td class="center">是</td><td>从管理员列表选择</td></tr>
+      <tr><td class="center">13</td><td>管理信息</td><td>单位地址</td><td><code>address</code></td><td>text</td><td class="center">是</td><td>详细地址</td></tr>
+      <tr><td class="center">14</td><td>管理信息</td><td>联系电话</td><td><code>phone</code></td><td>text</td><td class="center">是</td><td>—</td></tr>
+      <tr><td class="center">15</td><td>管理信息</td><td>邮编</td><td><code>postcode</code></td><td>text</td><td class="center">是</td><td>—</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.9 机构管理 — 机构详情页（查看模式）</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">机构详情页查看模式（<code>org-detail.html?orgId=xxx</code>）展示以下只读字段，分为基本信息/编制属性/管理信息三个区域：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段分组</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>基本信息</td><td>单位名称</td><td><code>orgName</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">2</td><td>基本信息</td><td>单位简称</td><td><code>orgShortName</code></td><td>text</td><td>只读展示，无数据时显示"—"</td></tr>
+      <tr><td class="center">3</td><td>基本信息</td><td>所属区域</td><td><code>district</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">4</td><td>基本信息</td><td>单位级别</td><td><code>orgLevel</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">5</td><td>编制属性</td><td>组织类型</td><td><code>orgType</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">6</td><td>编制属性</td><td>学校类型</td><td><code>schoolType</code></td><td>text</td><td>组织类型=学校时显示</td></tr>
+      <tr><td class="center">7</td><td>编制属性</td><td>岗位设置分类</td><td><code>schoolCategory</code></td><td>text</td><td>组织类型=学校时显示</td></tr>
+      <tr><td class="center">8</td><td>编制属性</td><td>单位性质</td><td><code>orgNature</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">9</td><td>编制属性</td><td>单位类型</td><td><code>unitType</code></td><td>text</td><td>组织类型≠行政管理部门时显示</td></tr>
+      <tr><td class="center">10</td><td>编制属性</td><td>经费类型</td><td><code>fundType</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">11</td><td>编制属性</td><td>统一社会信用代码</td><td><code>creditCode</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">12</td><td>管理信息</td><td>单位管理员</td><td><code>schoolAdminName</code></td><td>text</td><td>未配置时显示"未配置"</td></tr>
+      <tr><td class="center">13</td><td>管理信息</td><td>单位地址</td><td><code>address</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">14</td><td>管理信息</td><td>联系电话</td><td><code>phone</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">15</td><td>管理信息</td><td>邮编</td><td><code>postcode</code></td><td>text</td><td>只读展示</td></tr>
+      <tr><td class="center">16</td><td>状态</td><td>机构状态</td><td><code>status</code></td><td>enum</td><td>正常 / 已停用 / 待审核</td></tr>
+      <tr><td class="center">17</td><td>状态</td><td>单位编号</td><td><code>orgId</code></td><td>text</td><td>标题区展示</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.9a 机构管理 — 审核页面</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">审核页面（<code>org-detail.html?orgId=xxx&action=review</code>）与查看模式字段相同，额外包含以下审核专属元素：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>审核专属元素</th><th>说明</th></tr>
+      <tr><td><strong>本次提交变更卡片</strong></td><td>黄色背景卡片，展示校管理员本次提交的所有字段变更（字段名 + 旧值 → 新值），含提交人和提交时间</td></tr>
+      <tr><td><strong>审核操作按钮</strong></td><td>页面底部显示「审核通过」和「审核驳回」两个按钮。通过后机构修改立即生效；驳回后校管理员可重新编辑提交</td></tr>
+      <tr><td><strong>状态标识</strong></td><td>页面标题显示"审核"字样 + 黄色「🟡 待审核」状态标签</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.11 角色权限 — 列表页字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>角色名称</td><td><code>label</code></td><td>text</td><td>如"系统管理员""市管理员"</td></tr>
+      <tr><td class="center">2</td><td>描述</td><td><code>description</code></td><td>text</td><td>角色职责描述</td></tr>
+      <tr><td class="center">3</td><td>用户数</td><td>—</td><td>number</td><td>该角色下关联的用户数量</td></tr>
+      <tr><td class="center">4</td><td>状态</td><td><code>status</code></td><td>enum</td><td>正常（active）/ 已停用（inactive）</td></tr>
+      <tr><td class="center">5</td><td>操作</td><td>—</td><td>actions</td><td>权限 / 关联用户 / 编辑 / 停用（启用）/ 删除</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.12 角色用户 — 列表页字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>姓名</td><td><code>name</code></td><td>text</td><td>用户姓名</td></tr>
+      <tr><td class="center">2</td><td>所属单位</td><td><code>school</code></td><td>text</td><td>用户所属学校或单位名称</td></tr>
+      <tr><td class="center">3</td><td>所属角色</td><td><code>roles</code></td><td>array</td><td>用户拥有的所有角色，多角色以顿号分隔</td></tr>
+      <tr><td class="center">4</td><td>操作</td><td>—</td><td>actions</td><td>移除（从当前角色中移除该用户）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.13 公告详情 — 详情页字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>标题</td><td><code>title</code></td><td>text</td><td>公告标题</td></tr>
+      <tr><td class="center">2</td><td>正文</td><td><code>content</code></td><td>richtext</td><td>HTML 富文本内容</td></tr>
+      <tr><td class="center">3</td><td>发布来源</td><td><code>source</code></td><td>text</td><td>发布者所属单位</td></tr>
+      <tr><td class="center">4</td><td>可见范围</td><td><code>scope</code></td><td>enum</td><td>全平台 / 全市 / 本区 / 本校</td></tr>
+      <tr><td class="center">5</td><td>发布时间</td><td><code>publishTime</code></td><td>datetime</td><td>发布日期和时间</td></tr>
+      <tr><td class="center">6</td><td>截止时间</td><td><code>expireTime</code></td><td>datetime</td><td>发布时间 + 30 天</td></tr>
+      <tr><td class="center">7</td><td>状态</td><td><code>status</code></td><td>enum</td><td>生效中 / 定时待发 / 已过期</td></tr>
+      <tr><td class="center">8</td><td>置顶</td><td><code>isPinned</code></td><td>bool</td><td>是否置顶</td></tr>
+      <tr><td class="center">9</td><td>附件</td><td><code>attachments</code></td><td>file[]</td><td>附件列表（文件名、大小、类型）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.10 操作日志 — 列表页字段</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段 Label</th><th>字段 Key</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>操作时间</td><td><code>createdAt</code></td><td>datetime</td><td>精确到秒</td></tr>
+      <tr><td class="center">2</td><td>操作人</td><td><code>operatorName</code></td><td>text</td><td>操作人姓名</td></tr>
+      <tr><td class="center">3</td><td>所属单位</td><td><code>orgName</code></td><td>text</td><td>操作人所属单位</td></tr>
+      <tr><td class="center">4</td><td>功能模块</td><td><code>module</code></td><td>enum</td><td>标签形式展示</td></tr>
+      <tr><td class="center">5</td><td>操作类型</td><td><code>actionType</code></td><td>enum</td><td>标签形式展示（新增/修改/审核通过等）</td></tr>
+      <tr><td class="center">6</td><td>日志类型</td><td><code>logType</code></td><td>enum</td><td>操作日志 / 安全日志 / 审计日志</td></tr>
+      <tr><td class="center">7</td><td>操作对象</td><td><code>targetName</code></td><td>text</td><td>被操作的对象名称</td></tr>
+      <tr><td class="center">8</td><td>操作结果</td><td><code>result</code></td><td>enum</td><td>成功 ✅ / 失败 ❌</td></tr>
+      <tr><td class="center">9</td><td>操作 IP</td><td><code>ip</code></td><td>text</td><td>客户端 IP 地址</td></tr>
+      <tr><td class="center">10</td><td>详情</td><td>—</td><td>button</td><td>"查看"按钮，点击弹出详情弹框</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 5. 操作级权限矩阵 ============= -->
+<div class="section" id="s5">
+  <div class="section-title">五、操作级权限矩阵</div>
+  <p class="section-desc">账号管理：系统/市/区管理员可创建和编辑，校管理员仅可编辑本校账号。角色权限/菜单管理：仅系统管理员可写。公告管理：全部管理员均可发布，可见范围按发布者角色自动确定。机构管理：系统/市/区管理员可写。查看权限按角色分级。</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>操作</th><th style="width:80px;">系统管理员</th><th style="width:80px;">市管理员</th><th style="width:80px;">区管理员</th><th style="width:80px;">校管理员</th><th style="width:80px;">教师</th></tr>
+      <tr><td>查看账号列表</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅ 全市</td><td class="center matrix-yes">✅ 本区</td><td class="center matrix-yes">✅ 本校</td><td class="center matrix-no">—</td></tr>
+      <tr><td>创建账号</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td></tr>
+      <tr><td>编辑账号</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-cond">🔸 仅本区</td><td class="center matrix-cond">🔸 仅本校</td><td class="center matrix-no">—</td></tr>
+      <tr><td>停用/恢复账号</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-cond">🔸 仅本区</td><td class="center matrix-cond">🔸 仅本校</td><td class="center matrix-no">—</td></tr>
+      <tr><td>重置密码</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅ 全市</td><td class="center matrix-cond">🔸 仅本区</td><td class="center matrix-cond">🔸 仅本校</td><td class="center matrix-no">—</td></tr>
+      <tr><td>角色权限配置</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td></tr>
+      <tr><td>菜单配置</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td></tr>
+      <tr><td>查看操作日志</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td></tr>
+      <tr><td>发布公告</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td></tr>
+      <tr><td>编辑/删除公告</td><td class="center matrix-yes">✅ 全部</td><td class="center matrix-cond">🔸 仅自己发布的</td><td class="center matrix-cond">🔸 仅自己发布的</td><td class="center matrix-cond">🔸 仅自己发布的</td><td class="center matrix-no">—</td></tr>
+      <tr><td>查看公告列表</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td></tr>
+      <tr><td>新增/编辑/停用机构</td><td class="center matrix-yes">✅ 全平台</td><td class="center matrix-yes">✅ 全市</td><td class="center matrix-yes">✅ 本区</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td></tr>
+      <tr><td>查看机构列表</td><td class="center matrix-yes">✅</td><td class="center matrix-yes">✅ 全市</td><td class="center matrix-yes">✅ 本区</td><td class="center matrix-cond">🔸 仅本校机构详情</td><td class="center matrix-no">—</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 6. 数据模型 ============= -->
+<div class="section" id="s6">
+  <div class="section-title">六、数据模型</div>
+
+  <div class="sub-title">6.0 存储阶段说明</div>
+  <div class="rule-item">
+    <strong>当前阶段（Demo）</strong>：数据以 <code>localStorage</code> key-value 形式存储于浏览器端，无后端、无数据库。本文档中所有 <code>localStorage</code> 引用均指 Demo 阶段实现。<br><br>
+    <strong>正式阶段（规划）</strong>：将迁移至 Vue 3 + Spring Boot + PostgreSQL，对应关系如下：
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Demo（localStorage Key）</th><th>正式版（数据库表 / API）</th><th>说明</th></tr>
+      <tr><td><code>teacher_accounts</code></td><td><code>t_account</code> 表 / <code>/api/accounts</code></td><td>教师账号</td></tr>
+      <tr><td><code>admin_accounts</code></td><td><code>t_account</code> 表（role=admin） / <code>/api/accounts</code></td><td>行政账号（与教师账号合并为统一账号表）</td></tr>
+      <tr><td><code>role_permissions</code></td><td><code>t_role</code> + <code>t_role_permission</code> 表 / <code>/api/roles</code></td><td>角色权限配置</td></tr>
+      <tr><td><code>menu_config</code></td><td><code>t_menu</code> 表 / <code>/api/menus</code></td><td>菜单配置</td></tr>
+      <tr><td><code>operation_logs</code></td><td><code>t_operation_log</code> 表 / <code>/api/logs</code></td><td>操作日志</td></tr>
+      <tr><td><code>org_directory</code></td><td><code>t_org</code> 表 / <code>/api/orgs</code></td><td>机构目录</td></tr>
+      <tr><td><code>announcements</code></td><td><code>t_announcement</code> 表 / <code>/api/announcements</code></td><td>系统公告</td></tr>
+      <tr><td><code>currentUser</code></td><td>JWT Token / Session</td><td>当前登录用户信息</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">6.1 数据存储（Demo 阶段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Key</th><th>用途</th><th>数据结构</th><th>读写模块</th></tr>
+      <tr><td><code>teacher_accounts</code></td><td>教师账号列表</td><td>Array&lt;Object&gt;</td><td>账号管理</td></tr>
+      <tr><td><code>admin_accounts</code></td><td>行政账号列表</td><td>Array&lt;Object&gt;</td><td>账号管理</td></tr>
+      <tr><td><code>role_permissions</code></td><td>角色权限配置</td><td>Object&lt;roleId, RoleConfig&gt;</td><td>角色权限</td></tr>
+      <tr><td><code>menu_config</code></td><td>菜单配置</td><td>{ groupOrder: string[], menus: MenuItem[] }</td><td>菜单管理</td></tr>
+      <tr><td><code>operation_logs</code></td><td>操作日志列表</td><td>Array&lt;LogEntry&gt;</td><td>各业务模块（写入）+ 操作日志页（查看）</td></tr>
+      <tr><td><code>currentUser</code></td><td>当前登录用户</td><td>{ role, name, id, district, schoolName }</td><td>系统基础模块（登录）</td></tr>
+      <tr><td><code>org_directory</code></td><td>机构目录</td><td>Array&lt;OrgObject&gt;</td><td>机构管理模块</td></tr>
+      <tr><td><code>announcements</code></td><td>公告列表</td><td>Array&lt;Announcement&gt;</td><td>公告管理</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">6.2 教师账号数据结构（teacher_accounts[i]）</div>
+  <pre><code>{
+  "accountId": "450201199001011234",       // 账号 ID（身份证号）
+  "name": "陈明辉",                          // 姓名
+  "idCard": "450201199001011234",          // 身份证号
+  "phone": "13807720004",                  // 手机号
+  "gender": "男",                           // 性别（新增时根据身份证号自动解析，编辑时可在个人档案中修改）
+  "birthDate": "1990-01-01",               // 出生日期（新增时根据身份证号自动解析，编辑时可在个人档案中修改）
+  "school": "柳州市第八中学",                // 所属学校/单位
+  "district": "鱼峰区",                      // 所属区域（从机构目录关联）
+  "staffingType": "事业编",                  // 编制类型：事业编 | 控制数 | 合同制
+  "entryMethod": "统一公开招聘",             // 入编方式（事业编/控制数）
+  "categoryName": "专业技术岗位",            // 岗位类别
+  "postLevel": "专技十二级",                 // 岗位等级
+  "assignPosition": "语文教师",              // 岗位名称
+  "appointTime": "2025-09",                // 任职时间（YYYY-MM）
+  "entryDate": "2025-01-01",               // 入编时间（补录字段，YYYY-MM）
+  "contractStart": "",                      // 合同开始日期（合同制）
+  "contractEnd": "",                        // 合同结束日期（合同制）
+  "crossSchoolType": "normal",             // 跨校类型：normal | secondment | rotation | support
+  "crossSchool": "",                        // 跨校目标学校
+  "crossStartDate": "",                     // 跨校开始日期
+  "crossEndDate": "",                       // 跨校结束日期
+  "roles": ["teacher"],                     // 角色列表
+  "status": "active",                       // 账号状态：active | disabled
+  "firstLogin": false,                     // 是否已首次登录
+  "disableType": "",                        // 停用类型：exit | violation | other
+  "disableReason": "",                      // 停用原因
+  "disableDate": "",                        // 停用日期
+  "disableOperator": "",                    // 停用操作人
+  "initialPassword": "Edu@20250101",       // 初始密码（随机生成）
+  "password": "Edu@20250101",              // 当前密码
+  "forcePwdChange": true,                  // 下次登录是否强制修改密码
+  "createdAt": "2025-01-01 10:00:00",     // 创建时间
+  "updatedAt": "2026-06-15 14:30:00"      // 更新时间
+}</code></pre>
+
+  <div class="sub-title">6.3 角色权限数据结构（role_permissions）</div>
+  <pre><code>{
+  "city": {
+    "label": "市管理员",
+    "description": "全市教育人事业务管理",
+    "status": "active",
+    "dataScope": "city",
+    "permissions": [
+      "workbench",
+      "ledger.查看", "ledger.审核",
+      "staffing.查看列表", "staffing.查看详情", "staffing.审核",
+      "entry.查看列表", "entry.查看详情",
+      "exit.查看列表", "exit.查看详情", "exit.审批通过", "exit.审批驳回",
+      ...
+    ]
+  },
+  "system": { ... },
+  "district": { ... },
+  "school": { ... },
+  "teacher": { ... }
+}</code></pre>
+
+  <div class="sub-title">6.4 菜单配置数据结构（menu_config）</div>
+  <pre><code>{
+  "groupOrder": ["", "编制管理", "岗位管理", "聘用管理", "编外教师管理", "人事管理", "系统设置"],
+  "menus": [
+    {
+      "id": "workbench",
+      "label": "工作台",
+      "icon": "home",
+      "group": "",
+      "order": 1,
+      "route": "workbench.html",
+      "status": "active"
+    },
+    { "id": "account", "label": "账号管理", "icon": "user", "group": "系统设置", "order": 1, "route": "account-management.html", "status": "active" },
+    ...
+  ]
+}</code></pre>
+
+  <div class="sub-title">6.5 操作日志数据结构（operation_logs[i]）</div>
+  <pre><code>{
+  "id": "log_20260713_001",                // 日志唯一 ID
+  "createdAt": "2026-07-13 14:30:00",      // 操作时间
+  "operatorName": "赵建国",                  // 操作人姓名
+  "operatorId": "13807720000",              // 操作人账号 ID
+  "operatorRole": "系统管理员",              // 操作人角色
+  "orgName": "柳州市教育局",                 // 操作人所属单位
+  "orgDistrict": "市直属",                   // 操作人所属区域
+  "ip": "192.168.1.100",                   // 操作 IP 地址
+  "module": "account",                      // 所属功能模块
+  "actionType": "disable",                  // 操作类型
+  "actionName": "停用",                      // 操作类型中文名
+  "logType": "操作日志",                     // 日志类型：操作日志 | 安全日志 | 审计日志
+  "targetType": "account",                  // 操作对象类型
+  "targetId": "450201199001011234",        // 操作对象 ID
+  "targetName": "陈明辉",                    // 操作对象名称
+  "detail": "停用账号",                      // 操作描述
+  "changes": [                              // 变更详情（可选）
+    { "field": "状态", "from": "正常", "to": "已停用" }
+  ],
+  "result": "success",                      // 操作结果：success | failure
+  "failReason": ""                          // 失败原因（result=failure 时）
+}</code></pre>
+
+  <div class="sub-title">6.6 公告数据结构（announcements[i]）</div>
+  <pre><code>{
+  "id": "ann_001",                          // 公告唯一 ID
+  "title": "平台系统升级维护通知",            // 公告标题（≤100 字）
+  "content": "&lt;p&gt;各位老师：……&lt;/p&gt;",     // 正文（HTML 富文本）
+  "source": "柳州市教育局",                   // 发布来源（发布者所属单位）
+  "publisherId": "13807720000",             // 发布者账号 ID
+  "publisherName": "赵建国",                  // 发布者姓名
+  "publisherRole": "system",                // 发布者角色
+  "scope": "system",                        // 可见范围：system | city | district | school
+  "scopeOrgId": "",                         // 可见范围关联的组织 ID
+  "isPinned": false,                        // 是否置顶
+  "publishTime": "2026-07-01 09:00",        // 发布时间
+  "expireTime": "2026-07-31 09:00",         // 截止时间（发布时间 + 30 天）
+  "status": "active",                       // 状态：active | scheduled | expired
+  "attachments": [                          // 附件列表
+    { "name": "通知附件.pdf", "size": 1048576, "type": "application/pdf" }
+  ]
+}</code></pre>
+
+  <div class="sub-title">6.7 机构目录数据结构（org_directory[i]）</div>
+  <pre><code>{
+  "orgId": "gxlzh-08-001",                  // 机构唯一编号（gxlzh-{区域编码}-{序号}）
+  "orgName": "柳州市第八中学",                // 单位名称（全站统一标识）
+  "orgShortName": "柳州八中",                 // 单位简称
+  "district": "鱼峰区",                       // 所属区域
+  "orgType": "学校",                          // 组织类型：学校 | 行政管理部门 | 局属二层机构
+  "schoolType": "初中",                       // 学校类型（orgType=学校时使用）
+  "schoolCategory": "初中",                   // 岗位设置分类
+  "orgLevel": "正科级",                       // 单位级别
+  "orgNature": "事业单位",                    // 单位性质
+  "unitType": "公益一类",                     // 单位类型
+  "fundType": "全额拨款",                     // 经费类型
+  "creditCode": "12450200MB01234574",        // 统一社会信用代码（18位）
+  "status": "active",                        // 状态：active | inactive
+  "reviewStatus": null,                      // 审核状态：pending | null（非pending即正常）
+  "schoolAdminId": "13807720003",            // 单位管理员账号 ID
+  "schoolAdminName": "王玉兰",                // 单位管理员姓名
+  "districtAdminId": "D001",                 // 区管理员账号 ID
+  "districtAdminName": "李振华",             // 区管理员姓名
+  "address": "柳州市鱼峰区东环大道120号",     // 单位地址
+  "phone": "0772-3830001",                   // 联系电话
+  "postcode": "545005",                      // 邮编
+  "createdAt": "2025-01-01",                 // 创建日期
+  "updatedAt": "2026-06-12",                 // 更新日期
+  "changeLog": [ ... ]                       // 变更日志数组
+}</code></pre>
+</div>
+
+<!-- ============= 7. 页面清单 ============= -->
+<div class="section" id="s7">
+  <div class="section-title">七、页面清单</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>页面名称</th><th>页面文件</th><th>页面类型</th><th>功能说明</th><th>权限控制</th></tr>
+      <tr><td class="center">1</td><td>账号管理</td><td><code>account-management.html</code></td><td>列表 + 弹框</td><td>账号列表查看、搜索筛选、新增/编辑账号弹框、停用/恢复、密码重置</td><td>系统/市/区：全部操作；校管理员：仅本校操作</td></tr>
+      <tr><td class="center">2</td><td>角色权限</td><td><code>perm-management.html</code></td><td>列表 + 弹框</td><td>角色列表、新增/编辑角色、权限树配置、数据范围设置、角色停用/启用/删除</td><td>仅系统管理员</td></tr>
+      <tr><td class="center">3</td><td>角色用户</td><td><code>role-users.html</code></td><td>列表 + 弹框</td><td>角色关联用户列表、添加用户、移除用户</td><td>仅系统管理员</td></tr>
+      <tr><td class="center">4</td><td>菜单管理</td><td><code>menu-management.html</code></td><td>列表 + 弹框</td><td>菜单分组管理、菜单项 CRUD、排序、启用/停用</td><td>仅系统管理员</td></tr>
+      <tr><td class="center">5</td><td>操作日志</td><td><code>log-management.html</code></td><td>列表</td><td>操作日志检索、筛选、详情查看</td><td>仅系统管理员</td></tr>
+      <tr><td class="center">6</td><td>公告管理</td><td><code>announcement-management.html</code></td><td>列表 + 弹框</td><td>公告列表（含标签页筛选/可见范围筛选）、发布/编辑/删除公告弹框（含富文本编辑器+附件上传）</td><td>全部管理员：发布；仅可编辑/删除自己的公告</td></tr>
+      <tr><td class="center">7</td><td>公告详情</td><td><code>announcement-detail.html</code></td><td>详情</td><td>公告内容完整展示（含附件下载），发布者可编辑/删除</td><td>全部管理员（按可见范围过滤）</td></tr>
+      <tr><td class="center">8</td><td>机构管理</td><td><code>org-management.html</code></td><td>左侧树 + 右侧列表 + 弹框</td><td>区域目录树导航、机构列表（含标签页筛选/搜索/类型过滤）、新增/编辑机构弹框、停用/启用</td><td>系统/市管理员：全部操作；区管理员：仅本区；校管理员：重定向到本校机构详情页</td></tr>
+      <tr><td class="center">9</td><td>机构详情</td><td><code>org-detail.html</code></td><td>详情 + 编辑</td><td>机构详情查看/编辑、变更日志展示。通过 <code>?orgId=xxx</code> 指定机构，<code>?action=edit</code> 进入编辑模式</td><td>全部管理员角色</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 8. 异常处理 ============= -->
+<div class="section" id="s8">
+  <div class="section-title">八、异常处理</div>
+
+  <div class="sub-title">8.1 边界情况</div>
+  <div class="rule-item"><strong>账号列表为空：</strong>显示"暂无账号数据"空状态，引导管理员点击"新增账号"创建第一个账号</div>
+  <div class="rule-item"><strong>角色权限为空：</strong>首次加载时自动恢复系统预置的默认角色权限配置</div>
+  <div class="rule-item"><strong>菜单配置为空：</strong>首次加载时自动恢复系统预置的默认菜单配置（含分组和菜单项）</div>
+  <div class="rule-item"><strong>操作日志为空：</strong>显示"暂无操作记录"空状态。当没有业务模块写入日志时，列表自然为空</div>
+  <div class="rule-item"><strong>删除有用户的角色：</strong>校验角色关联用户数 &gt; 0，弹出 Toast "该角色下还有 N 个用户，请先移除用户后再删除"，阻止删除</div>
+  <div class="rule-item"><strong>删除有菜单的分组：</strong>弹出确认弹框，明确告知"组内所有菜单将一并删除"，确认后执行级联删除</div>
+  <div class="rule-item"><strong>身份证号重复：</strong>新增账号时校验身份证号是否已存在于 teacher_accounts 或 admin_accounts，重复则提示"该身份证号已注册"</div>
+
+  <div class="sub-title">8.2 错误场景</div>
+  <div class="rule-item danger"><strong>存储不可用：</strong>浏览器隐私模式或存储空间满时，页面显示"存储不可用，请联系管理员"错误提示</div>
+  <div class="rule-item danger"><strong>权限配置损坏：</strong>如果角色权限数据损坏或无法解析，自动回退至系统预置的默认角色权限配置</div>
+  <div class="rule-item danger"><strong>非系统管理员访问：</strong>账号管理页允许市/区管理员创建和编辑账号、校管理员编辑本校账号。角色权限、菜单管理、操作日志页面对非系统管理员显示"无权访问"提示。公告管理全部管理员均可发布</div>
+  <div class="rule-item warning"><strong>菜单配置错误导致路由失效：</strong>如果菜单项的 route 为空或配置错误，点击菜单时 sidebarClick 会 fallback 到 Toast"页面开发中"提示，不会导致页面崩溃</div>
+  <div class="rule-item warning"><strong>并发编辑冲突：</strong>同一配置被多个管理员同时编辑时，后保存者覆盖前者。需引入乐观锁版本号机制确保数据一致性</div>
+  <div class="rule-item warning"><strong>定时公告未触发：</strong>页面加载时遍历 announcements 中 scheduled 状态的公告，检查是否到达发布时间，到达则自动切换为 active。若页面未刷新，公告保持 scheduled 直到下次页面加载</div>
+  <div class="rule-item warning"><strong>公告附件上传失败：</strong>单文件超过 20MB 或总数超过 5 个时，弹出 Toast 提示并阻止上传。不支持的文件格式在文件选择对话框中过滤</div>
+  <div class="rule-item warning"><strong>区管理员跨区操作机构：</strong>区管理员试图编辑/停用非本区机构时，弹 Toast"无权操作其他区的学校"并阻止操作</div>
+  <div class="rule-item warning"><strong>已停用机构编辑：</strong>已停用机构不显示编辑按钮，openEditModal() 内加状态校验，弹 Toast"已停用的机构不可编辑，请先启用"</div>
+</div>
+
+<!-- ============= 9. 通知触发点 ============= -->
+<div class="section" id="s9">
+  <div class="section-title">九、通知触发点</div>
+  <p class="section-desc">本模块作为运维管理模块，不直接触发面向教师的通知。以下为系统级通知场景：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>触发操作</th><th>通知对象</th><th>通知内容</th><th>渠道</th></tr>
+      <tr><td>账号被停用</td><td>被停用账号用户</td><td>"您的账号已被停用，原因：{原因}。如有疑问请联系管理员"</td><td>站内消息</td></tr>
+      <tr><td>密码被管理员重置</td><td>被重置账号用户</td><td>"您的账号密码已被管理员重置，下次登录须修改密码"</td><td>站内消息</td></tr>
+      <tr><td>账号被恢复</td><td>被恢复账号用户</td><td>"您的账号已恢复使用，可正常登录"</td><td>站内消息</td></tr>
+      <tr><td>角色被停用</td><td>该角色下所有用户</td><td>"您所属的角色「{角色名}」已被停用，该角色权限暂时不可用"</td><td>站内消息</td></tr>
+    </table>
+  </div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-top:8px;">注：公告发布不产生消息铃铛通知——公告和消息为两条独立通道（详见 F06.13），用户在工作台公告卡片区查看公告。通知需对接消息推送服务实现实时触达。</p>
+</div>
+
+<!-- ============= 10. 操作日志埋点 ============= -->
+<div class="section" id="s10">
+  <div class="section-title">十、操作日志埋点</div>
+  <p class="section-desc">遵循总纲 4.7 操作日志规范，本模块以下操作须自动记录日志：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>功能域</th><th>操作类型</th><th>记录内容</th></tr>
+      <tr><td>账号管理</td><td>创建账号（create）</td><td>操作人、被创建账号姓名+身份证号、角色、所属学校</td></tr>
+      <tr><td>账号管理</td><td>编辑账号（update）</td><td>操作人、被编辑账号姓名+身份证号、变更字段及新旧值</td></tr>
+      <tr><td>账号管理</td><td>停用账号（disable）</td><td>操作人、被停用账号姓名+身份证号、停用类型+原因</td></tr>
+      <tr><td>账号管理</td><td>恢复账号（restore）</td><td>操作人、被恢复账号姓名+身份证号</td></tr>
+      <tr><td>账号管理</td><td>重置密码（reset_pwd）</td><td>操作人、被重置账号姓名+身份证号</td></tr>
+      <tr><td>角色权限</td><td>创建角色（create）</td><td>操作人、新角色名称+标识</td></tr>
+      <tr><td>角色权限</td><td>编辑角色（update）</td><td>操作人、角色名称、变更的权限项</td></tr>
+      <tr><td>角色权限</td><td>停用/启用角色（disable/enable）</td><td>操作人、角色名称、操作类型</td></tr>
+      <tr><td>角色权限</td><td>删除角色（delete）</td><td>操作人、被删除角色名称+标识</td></tr>
+      <tr><td>菜单管理</td><td>创建/编辑/删除菜单（create/update/delete）</td><td>操作人、菜单名称+标识、变更内容</td></tr>
+      <tr><td>菜单管理</td><td>启用/停用菜单（enable/disable）</td><td>操作人、菜单名称+标识、操作类型</td></tr>
+      <tr><td>菜单管理</td><td>分组操作（create/update/delete）</td><td>操作人、分组名称、操作类型</td></tr>
+      <tr><td>公告管理</td><td>发布公告（create）</td><td>操作人、公告标题、可见范围、是否置顶</td></tr>
+      <tr><td>公告管理</td><td>编辑公告（update）</td><td>操作人、公告标题、变更内容</td></tr>
+      <tr><td>公告管理</td><td>删除公告（delete）</td><td>操作人、被删除公告标题</td></tr>
+      <tr><td>机构管理</td><td>创建机构（create）</td><td>操作人、机构名称+编号</td></tr>
+      <tr><td>机构管理</td><td>编辑机构（update）</td><td>操作人、机构名称、变更字段及新旧值</td></tr>
+      <tr><td>机构管理</td><td>停用/启用机构（disable/enable）</td><td>操作人、机构名称、操作类型</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 11. 验收标准 ============= -->
+<div class="section" id="s11">
+  <div class="section-title">十一、验收标准</div>
+
+  <div class="sub-title">11.1 功能判定标准</div>
+  <ol style="margin-left:20px; line-height:2;">
+    <li>系统管理员可正常访问账号管理、机构管理、机构详情、角色权限、角色用户、菜单管理、操作日志、公告管理、公告详情 9 个页面</li>
+    <li>非系统管理员访问角色权限/菜单管理/操作日志页面时，显示"无权访问"提示</li>
+    <li>市/区/校管理员在账号管理页面仅可查看各自管辖范围内的账号</li>
+    <li>新增账号时，身份证号自动解析性别和出生日期</li>
+    <li>编制类型切换时，关联字段组正确显示/隐藏</li>
+    <li>停用账号后，该账号无法登录系统</li>
+    <li>密码重置后，用户下次登录须强制修改密码</li>
+    <li>角色权限配置保存后，权限即时生效</li>
+    <li>菜单启用/停用后，刷新页面侧边栏可见性正确更新</li>
+    <li>操作日志记录不可编辑、不可删除</li>
+    <li>系统管理员可发布/编辑/删除公告，非系统管理员仅可查看</li>
+    <li>公告发布后工作台按可见范围正确展示（系统基础模块 F02.10）</li>
+    <li>定时公告到达发布时间后自动变为"生效中"</li>
+    <li>公告到期（发布 + 30 天）后自动标记为"已过期"</li>
+    <li>区域树导航可正常筛选机构列表</li>
+    <li>已停用机构不允许编辑，仅可查看和启用</li>
+    <li>区管理员不可操作非本区机构</li>
+  </ol>
+
+  <div class="sub-title">11.2 关键测试场景</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>测试场景</th><th>预期结果</th></tr>
+      <tr><td class="center">1</td><td>系统管理员创建新教师账号（事业编）</td><td>账号创建成功，状态为"正常"，出现在列表中。操作日志记录创建操作</td></tr>
+      <tr><td class="center">2</td><td>系统管理员停用某账号（违规禁用）</td><td>账号状态变为"已停用"，该账号无法登录。操作日志记录停用操作</td></tr>
+      <tr><td class="center">3</td><td>系统管理员重置某账号密码</td><td>密码重置成功。该账号下次登录时弹出强制改密页面</td></tr>
+      <tr><td class="center">4</td><td>系统管理员编辑"校管理员"角色权限，取消其"入编申请"模块</td><td>保存后，校管理员侧边栏不再显示"入编申请"菜单项</td></tr>
+      <tr><td class="center">5</td><td>系统管理员停用"编外教师管理"分组下某菜单</td><td>菜单状态变为"已停用"，所有角色侧边栏中该菜单隐藏</td></tr>
+      <tr><td class="center">6</td><td>系统管理员删除有 3 个关联用户的角色</td><td>弹出错误提示"该角色下还有 3 个用户，请先移除用户后再删除"，删除被阻止</td></tr>
+      <tr><td class="center">7</td><td>校管理员访问账号管理页面</td><td>仅显示本校教师账号列表，不显示"新增账号"按钮和操作按钮</td></tr>
+      <tr><td class="center">8</td><td>教师访问角色权限页面</td><td>显示"无权访问"提示</td></tr>
+      <tr><td class="center">9</td><td>系统管理员在操作日志页面按模块/操作类型/时间筛选</td><td>列表正确过滤，分页正常</td></tr>
+      <tr><td class="center">10</td><td>系统管理员新增菜单分组并添加菜单项</td><td>分组创建成功，菜单项显示在对应分组下。刷新其他页面侧边栏可见</td></tr>
+      <tr><td class="center">11</td><td>系统管理员发布立即生效公告（全市可见）</td><td>公告创建成功，状态为"生效中"。工作台中全市用户可见该公告</td></tr>
+      <tr><td class="center">12</td><td>系统管理员发布定时公告（3 天后发布）</td><td>公告状态为"定时待发"，工作台中所有角色不可见。3 天后刷新变为"生效中"</td></tr>
+      <tr><td class="center">13</td><td>系统管理员编辑公告并设为置顶</td><td>公告保存成功。工作台中该公告排在最前</td></tr>
+      <tr><td class="center">14</td><td>系统管理员删除公告</td><td>弹框确认后公告移除，工作台对应公告消失。操作日志记录删除操作</td></tr>
+      <tr><td class="center">15</td><td>校管理员查看公告列表</td><td>仅显示本校和上级可见公告，无发布/编辑/删除按钮</td></tr>
+      <tr><td class="center">16</td><td>市管理员在机构管理中新增一所学校</td><td>填写完整信息，保存后出现在列表中。操作日志记录创建操作</td></tr>
+      <tr><td class="center">17</td><td>区管理员尝试编辑其他区的机构</td><td>操作列无编辑按钮（或被 Toast 阻止）。access 校验通过</td></tr>
+      <tr><td class="center">18</td><td>系统管理员停用某机构后尝试编辑</td><td>操作列不显示编辑按钮，仅显示"启用"按钮。openEditModal 校验阻止</td></tr>
+      <tr><td class="center">19</td><td>校管理员访问机构管理页面</td><td>自动重定向到本校机构详情页（org-detail.html?orgId=xxx）</td></tr>
+      <tr><td class="center">20</td><td>系统管理员点击区域树中"鱼峰区"节点</td><td>右侧列表仅显示鱼峰区的机构，副标题显示"鱼峰区 · 共 N 所机构"</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 12. 迭代记录 ============= -->
+<div class="section" id="s12">
+  <div class="section-title">十二、迭代记录</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:80px;">版本</th><th style="width:100px;">日期</th><th>变更内容</th><th style="width:80px;">变更人</th></tr>
+      <tr>
+        <td class="center">v1.1</td>
+        <td class="center">2026-07-13</td>
+        <td>
+          新增公告管理（F06.09-F06.13）5 个功能点：公告列表管理、发布/编辑公告、可见范围与状态管理、公告操作（置顶/删除）、工作台公告展示（消费端）。<br>
+          功能点总数 8→13。新增公告数据结构（announcements）、页面清单 +1（announcement-management.html）、权限矩阵 +2 行、异常处理 +2 条、操作日志埋点 +3 条、验收标准 +5 条、测试场景 +5 条。<br>
+          新增机构管理（F06.14-F06.17）4 个功能点：机构列表与区域导航（F06.14）、新增/编辑机构（F06.15）、机构状态管理（F06.16）、机构详情与台账关联（F06.17）。功能点总数 13→17。<br>修正模块范围表：机构管理、公告管理均纳入本 PRD，侧边栏「系统设置」6 个菜单项全部覆盖。
+        </td>
+        <td class="center">产品</td>
+      </tr>
+      <tr>
+        <td class="center">v1.0</td>
+        <td class="center">2026-07-13</td>
+        <td>
+          初始版本，创建系统管理模块 PRD。<br>
+          覆盖 8 个功能点：账号管理列表（F06.01）、创建/编辑账号（F06.02）、账号启停与密码重置（F06.03）、角色列表与状态管理（F06.04）、模块权限配置（F06.05）、角色用户关联管理（F06.06）、菜单配置管理（F06.07）、操作日志查看（F06.08）。<br>
+          包含 5 个页面、完整数据模型（teacher_accounts / role_permissions / menu_config / operation_logs）、Mermaid 流程图、异常处理规范。
+        </td>
+        <td class="center">产品</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- .container -->
+
+<div class="footer">
+  <p>柳州教育人事管理平台 · 系统管理模块 PRD · Version 1.1（正式版） · 2026-07-13</p>
+  <p>父文档：PRD_总纲_柳州教育人事管理平台.md · 内部文档</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+</body>
+</html>

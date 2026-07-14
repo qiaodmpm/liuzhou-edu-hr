@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跨校人员标记 — 页面改动示意图 v3.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Noto Sans SC', sans-serif; background:#F1F5F9; color:#1E293B; padding:30px; }
+  h1 { font-size:24px; margin-bottom:6px; }
+  .subtitle { color:#64748B; font-size:14px; margin-bottom:10px; }
+  .legend { display:flex; gap:20px; margin-bottom:28px; font-size:12px; color:#64748B; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend .dot { width:10px; height:10px; border-radius:3px; }
+  .legend .dot.edit { background:#F59E0B; } .legend .dot.view { background:#3B82F6; }
+  .page-section { margin-bottom:44px; }
+  .page-section h2 { font-size:18px; font-weight:700; margin-bottom:4px; padding-bottom:8px; border-bottom:2px solid #1E40AF; display:flex; align-items:center; gap:10px; }
+  .page-section h2 .role-tag { font-size:10px; padding:2px 8px; border-radius:3px; font-weight:400; color:#fff; }
+  .role-tag.maintain { background:#F59E0B; } .role-tag.display { background:#3B82F6; }
+  .page-section h2 .page-tag { font-size:11px; background:#1E40AF; color:#fff; padding:2px 10px; border-radius:4px; font-weight:400; }
+
+  .mockup { background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden; margin-top:14px; }
+  .mockup-topbar { background:linear-gradient(135deg,#1E3A8A,#1E40AF); height:36px; display:flex; align-items:center; padding:0 14px; gap:8px; }
+  .mockup-topbar .dot { width:10px; height:10px; border-radius:50%; }
+  .mockup-topbar .dot.r { background:#EF4444; } .mockup-topbar .dot.y { background:#F59E0B; } .mockup-topbar .dot.g { background:#10B981; }
+  .mockup-topbar .title-bar { color:rgba(255,255,255,0.55); font-size:11px; margin-left:6px; }
+  .mockup-body { padding:18px; }
+
+  .badge { display:inline-block; padding:2px 8px; border-radius:3px; font-size:11px; font-weight:500; }
+  .badge-editing { background:#DBEAFE; color:#1E40AF; }
+
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { background:#F8FAFC; padding:8px 10px; text-align:left; font-weight:600; font-size:11px; color:#64748B; border-bottom:1px solid #E2E8F0; white-space:nowrap; }
+  td { padding:8px 10px; border-bottom:1px solid #F1F5F9; }
+  tr:hover td { background:#FAFBFC; }
+
+  .tag-cs { display:inline-flex; align-items:center; gap:3px; font-size:10px; padding:1px 7px; border-radius:3px; white-space:nowrap; }
+  .tag-secondment { background:#FEF3C7; color:#92400E; }
+  .tag-support { background:#DBEAFE; color:#1E40AF; }
+  .tag-rotation { background:#D1FAE5; color:#065F46; }
+
+  .filter-tabs { display:flex; gap:6px; margin-bottom:12px; }
+  .filter-tab { padding:3px 12px; border-radius:14px; font-size:11px; cursor:pointer; border:1px solid #E2E8F0; background:#fff; color:#64748B; }
+  .filter-tab.active { background:#1E40AF; color:#fff; border-color:#1E40AF; }
+  .filter-tab .count { font-weight:600; }
+
+  .hl-box { border:2px dashed #F59E0B; border-radius:8px; padding:10px; position:relative; margin:8px 0; }
+  .hl-box::before { content:'★ 新增'; position:absolute; top:-10px; left:10px; background:#F59E0B; color:#fff; font-size:10px; padding:1px 8px; border-radius:3px; font-weight:600; }
+
+  .modal-mock { border:1px solid #E2E8F0; border-radius:8px; }
+  .modal-mock-header { padding:10px 14px; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; }
+  .modal-mock-header h3 { font-size:13px; font-weight:600; }
+  .modal-mock-body { padding:14px; }
+  .modal-mock-footer { padding:8px 14px; border-top:1px solid #E2E8F0; text-align:right; }
+
+  .searchable-select { display:inline-block; position:relative; }
+  .searchable-select input { padding:5px 10px; border:1px solid #E2E8F0; border-radius:4px; font-size:12px; font-family:inherit; width:150px; }
+
+  .anno { font-size:11px; color:#64748B; background:#F8FAFC; padding:8px 12px; border-radius:6px; margin-top:8px; border-left:3px solid #3B82F6; line-height:1.6; }
+  .anno strong { color:#1E40AF; }
+
+  .card { border:1px solid #E2E8F0; border-radius:8px; padding:12px; flex:1; }
+  .card-title { font-size:10px; color:#64748B; font-weight:500; margin-bottom:4px; }
+  .summary-row { display:flex; gap:8px; align-items:center; font-size:12px; padding:6px 10px; background:#FAFBFC; border-radius:6px; border:1px solid #F1F5F9; }
+  .summary-row .stat { font-weight:600; }
+  .summary-row .sep { color:#CBD5E1; }
+
+  /* Profile card */
+  .profile-card { border:1px solid #E2E8F0; border-radius:10px; padding:20px; }
+  .profile-top { display:flex; gap:14px; }
+  .profile-avatar { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#1E40AF,#3B82F6); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#fff; }
+  .profile-name { font-size:17px; font-weight:700; }
+  .profile-meta { font-size:12px; color:#64748B; line-height:1.7; }
+
+  .form-row { display:flex; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+  .form-group { display:flex; flex-direction:column; gap:3px; }
+  .form-group label { font-size:10px; color:#64748B; font-weight:500; }
+  .form-group select, .form-group input { padding:5px 8px; border:1px solid #E2E8F0; border-radius:4px; font-size:11px; font-family:inherit; }
+
+  .readonly-field { display:flex; align-items:center; gap:6px; font-size:12px; }
+  .readonly-field .fl { color:#94A3B8; }
+  .readonly-field .fv { font-weight:500; }
+
+  h3 { font-size:14px; margin:20px 0 10px; }
+</style>
+</head>
+<body>
+
+<h1>跨校人员标记 — 页面改动示意图</h1>
+<p class="subtitle">v3.0 精简方案 | 涉及 3 个页面 | 账号管理（维护）+ 台账（展示）+ 个人中心（展示）</p>
+<div class="legend">
+  <span><span class="dot edit"></span> 黄色虚线 = 新增/改动区域</span>
+  <span><span class="dot view"></span> 蓝色说明 = 改动说明</span>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 1: 账号管理 — 维护入口 -->
+<!-- ============================================================ -->
+<div class="page-section">
+  <h2><span class="page-tag">页面 1</span> account-management.html <span class="role-tag maintain">维护</span></h2>
+  <p style="font-size:12px;color:#64748B;">跨校信息在此维护。系统管理员 / 区管理员 / 校管理员均可操作。</p>
+
+  <!-- 1a: 列表表格 -->
+  <h3>改动区域 A：账号列表表格 + 筛选</h3>
+  <div class="mockup">
+    <div class="mockup-topbar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="title-bar">account-management.html — 账号列表</span>
+    </div>
+    <div class="mockup-body">
+
+      <!-- Filter bar -->
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:#F8FAFC;border-radius:6px;border:1px solid #E2E8F0;">
+        <span style="font-size:11px;color:#64748B;">状态</span>
+        <select style="padding:4px 10px;border:1px solid #E2E8F0;border-radius:4px;font-size:11px;"><option>全部</option></select>
+        <span style="font-size:11px;color:#64748B;">角色</span>
+        <select style="padding:4px 10px;border:1px solid #E2E8F0;border-radius:4px;font-size:11px;"><option>全部</option></select>
+        <span style="font-size:11px;color:#64748B;">编制类型</span>
+        <select style="padding:4px 10px;border:1px solid #E2E8F0;border-radius:4px;font-size:11px;"><option>全部</option></select>
+        <!-- ===== NEW: 跨校状态筛选 ===== -->
+        <span class="hl-box" style="display:inline-flex;align-items:center;gap:8px;padding:4px 8px;margin:0;">
+          <span style="font-size:11px;color:#64748B;">跨校状态</span>
+          <select style="padding:4px 10px;border:1px solid #F59E0B;border-radius:4px;font-size:11px;background:#FFFBEB;">
+            <option selected>全部</option>
+            <option>在岗（非跨校）</option>
+            <option>借调</option>
+            <option>支教</option>
+            <option>轮岗</option>
+          </select>
+        </span>
+        <!-- ===== END NEW ===== -->
+        <span style="font-size:11px;color:#64748B;">所属单位</span>
+        <span class="searchable-select"><input placeholder="搜索单位..." style="padding:4px 10px;font-size:11px;width:130px;"></span>
+      </div>
+
+      <!-- Table -->
+      <table>
+        <thead>
+          <tr>
+            <th>序号</th><th>姓名</th><th>身份证号</th><th>手机号</th><th>编制类型</th><th>所属区域</th><th>所属角色</th><th>所属单位</th>
+            <!-- ===== NEW COLUMN ===== -->
+            <th style="background:#FFFBEB;">跨校状态</th>
+            <!-- ===== END NEW ===== -->
+            <th>账号状态</th><th>首次登录</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td><td>赵刚</td><td style="font-size:11px;">450201199001011234</td><td>13912345678</td><td>事业编</td><td>鱼峰区</td><td>教师</td><td>柳州铁一中学</td>
+            <td>
+              <!-- ===== NEW ===== -->
+              <span class="tag-cs tag-support">支教</span>
+              <span style="font-size:10px;color:#64748B;">三江县民族中学</span>
+              <div style="font-size:9px;color:#94A3B8;">2025.09-2027.07</div>
+              <!-- ===== END NEW ===== -->
+            </td>
+            <td><span style="color:#059669;font-size:11px;">正常</span></td><td><span style="color:#92400E;font-size:11px;">未登录</span></td>
+            <td><a style="font-size:11px;color:#1E40AF;">编辑</a></td>
+          </tr>
+          <tr>
+            <td>2</td><td>陈丽华</td><td style="font-size:11px;">450201198805150678</td><td>—</td><td>控制数</td><td>鱼峰区</td><td>教师</td><td>柳州铁一中学</td>
+            <td style="color:#94A3B8;font-size:11px;">—</td>
+            <td><span style="color:#059669;font-size:11px;">正常</span></td><td><span style="color:#059669;font-size:11px;">已登录</span></td>
+            <td><a style="font-size:11px;color:#1E40AF;">编辑</a></td>
+          </tr>
+          <tr>
+            <td>3</td><td>李思思</td><td style="font-size:11px;">450201199105156788</td><td>—</td><td>事业编</td><td>鱼峰区</td><td>教师</td><td>柳州市第八中学</td>
+            <td>
+              <span class="tag-cs tag-secondment">借调</span>
+              <span style="font-size:10px;color:#64748B;">柳州市第十五中学</span>
+              <div style="font-size:9px;color:#94A3B8;">2026.03-2027.02</div>
+            </td>
+            <td><span style="color:#059669;font-size:11px;">正常</span></td><td><span style="color:#059669;font-size:11px;">已登录</span></td>
+            <td><a style="font-size:11px;color:#1E40AF;">编辑</a></td>
+          </tr>
+          <tr>
+            <td>4</td><td>王明</td><td style="font-size:11px;">450201198912014567</td><td>—</td><td>事业编</td><td>城中区</td><td>教师</td><td>柳州市第一中学</td>
+            <td>
+              <span class="tag-cs tag-rotation">轮岗</span>
+              <span style="font-size:10px;color:#64748B;">柳州市第二中学</span>
+              <div style="font-size:9px;color:#94A3B8;">2026.02-2029.02</div>
+            </td>
+            <td><span style="color:#059669;font-size:11px;">正常</span></td><td><span style="color:#059669;font-size:11px;">已登录</span></td>
+            <td><a style="font-size:11px;color:#1E40AF;">编辑</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno">
+        <strong>改动：</strong>表格新增<strong>"跨校状态"</strong>列。非跨校人员显示 "—"。跨校人员显示类型标签 + 任职学校 + 起止时间。筛选栏新增<strong>"跨校状态"</strong>下拉框。
+      </div>
+    </div>
+  </div>
+
+  <!-- 1b: 编辑弹框 -->
+  <h3>改动区域 B：编辑账号弹框 — 跨校信息区域</h3>
+  <div class="mockup">
+    <div class="mockup-topbar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="title-bar">账号管理 — 编辑教师账号弹框</span>
+    </div>
+    <div class="mockup-body">
+
+      <div class="modal-mock">
+        <div class="modal-mock-header"><h3>编辑教师账号 — 李思思</h3><span style="color:#94A3B8;cursor:pointer;">✕</span></div>
+        <div class="modal-mock-body">
+
+          <!-- 基础信息（现有） -->
+          <fieldset style="border:1px solid #E2E8F0;border-radius:6px;padding:12px;margin-bottom:12px;">
+            <legend style="font-size:11px;font-weight:600;color:#1E40AF;">基础信息</legend>
+            <div class="form-row">
+              <div class="form-group"><label>姓名</label><input value="李思思" style="width:100px;"></div>
+              <div class="form-group"><label>身份证号</label><input value="450201199105156788" style="width:170px;"></div>
+              <div class="form-group"><label>手机号</label><input placeholder="选填" style="width:120px;"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>编制类型</label><select style="width:100px;"><option>事业编</option><option>控制数</option></select></div>
+              <div class="form-group"><label>所属角色</label><select style="width:100px;"><option selected>教师</option></select></div>
+              <div class="form-group"><label>所属单位</label><span class="searchable-select"><input value="柳州市第八中学" style="width:150px;"></span></div>
+            </div>
+          </fieldset>
+
+          <!-- ===== NEW: 跨校信息区域 ===== -->
+          <div class="hl-box">
+            <fieldset style="border:1px solid #F59E0B;border-radius:6px;padding:12px;">
+              <legend style="font-size:11px;font-weight:600;color:#92400E;">跨校信息（借调 / 支教 / 轮岗）</legend>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>跨校类型</label>
+                  <select style="width:110px;border-color:#F59E0B;">
+                    <option>— 无（在岗）</option>
+                    <option selected>借调</option>
+                    <option>支教</option>
+                    <option>轮岗</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>任职学校</label>
+                  <span class="searchable-select"><input value="柳州市第十五中学" style="width:160px;border-color:#F59E0B;" placeholder="搜索学校..."></span>
+                </div>
+                <div class="form-group">
+                  <label>开始日期</label>
+                  <input type="date" value="2026-03-01" style="width:130px;border-color:#F59E0B;">
+                </div>
+                <div class="form-group">
+                  <label>结束日期</label>
+                  <input type="date" value="2027-02-28" style="width:130px;border-color:#F59E0B;">
+                </div>
+              </div>
+              <div style="font-size:10px;color:#94A3B8;margin-top:6px;">※ 选择"无（在岗）"后，任职学校与日期自动清空。跨校信息仅作标记，不影响编制归属和业务办理。</div>
+            </fieldset>
+          </div>
+          <!-- ===== END NEW ===== -->
+
+          <div style="text-align:right;margin-top:12px;">
+            <button style="padding:6px 18px;border:1px solid #E2E8F0;border-radius:4px;background:#fff;font-size:12px;cursor:pointer;">取消</button>
+            <button style="padding:6px 18px;background:#1E40AF;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;margin-left:8px;">保存</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="anno">
+        <strong>改动：</strong>在现有编辑弹框中新增<strong>"跨校信息"</strong>区域（黄色虚线框），包含：跨校类型（下拉）、任职学校（可搜索下拉）、开始日期、结束日期。选择"无（在岗）"时自动清空任职学校和日期。该区域也可在新建账号弹框中出现。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 2: 编制岗位台账（学校） — 仅展示 -->
+<!-- ============================================================ -->
+<div class="page-section">
+  <h2><span class="page-tag">页面 2</span> org-ledger-school.html + org-ledger-detail.html <span class="role-tag display">展示</span></h2>
+  <p style="font-size:12px;color:#64748B;">台账不维护跨校信息，仅展示统计和标签。数据从 teacher_accounts 读取。</p>
+
+  <!-- 2a: 概览卡片 -->
+  <h3>改动区域 A：编制概览卡片 — 跨校人员统计</h3>
+  <div class="mockup">
+    <div class="mockup-topbar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="title-bar">org-ledger-school.html — 编制概览</span>
+    </div>
+    <div class="mockup-body">
+      <div style="display:flex;gap:14px;">
+        <div class="card">
+          <div class="card-title">📊 事业编</div>
+          <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:5px;padding:8px;">
+            <span style="font-size:10px;color:#94A3B8;">编制容量</span>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span>核定数</span><strong>88 人</strong></div>
+          </div>
+          <div style="text-align:center;color:#CBD5E1;">│</div>
+          <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:5px;padding:8px;">
+            <span style="font-size:10px;color:#94A3B8;">编制占用</span>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span>实有在编</span><strong>80 人</strong></div>
+            <!-- ===== NEW ===== -->
+            <div class="hl-box" style="padding:8px;margin:6px 0 0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+                <span style="color:#92400E;">└ 其中跨校人员</span>
+                <strong style="color:#D97706;">3 人</strong>
+              </div>
+              <div style="font-size:10px;color:#94A3B8;margin-top:1px;display:flex;gap:8px;">
+                <span>借调 1</span><span>支教 1</span><span>轮岗 1</span>
+              </div>
+            </div>
+            <!-- ===== END NEW ===== -->
+          </div>
+          <div style="text-align:center;color:#CBD5E1;">│</div>
+          <div style="background:#EFF6FF;border:1px solid #DBEAFE;border-radius:5px;padding:8px;">
+            <span style="font-size:10px;color:#94A3B8;">编制余量</span>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span>可申请</span><strong style="color:#1E40AF;">8 人</strong></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 控制数</div>
+          <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:5px;padding:8px;">
+            <span style="font-size:10px;color:#94A3B8;">编制容量</span>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span>核定数</span><strong>16 人</strong></div>
+          </div>
+          <div style="text-align:center;color:#CBD5E1;">│</div>
+          <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:5px;padding:8px;">
+            <span style="font-size:10px;color:#94A3B8;">编制占用</span>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span>实有控制数</span><strong>14 人</strong></div>
+          </div>
+          <div style="text-align:center;color:#CBD5E1;">│</div>
+          <div style="background:#EFF6FF;border:1px solid #DBEAFE;border-radius:5px;padding:8px;">
+            <span style="font-size:10px;color:#94A3B8;">编制余量</span>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span>可申请</span><strong style="color:#1E40AF;">2 人</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="anno">
+        <strong>改动：</strong>"实有在编人数"下方新增"└ 其中跨校人员 N 人"行，含类型分布。仅当 > 0 时显示。控制数同理。数据从 <code>teacher_accounts</code> 聚合（school = 本校 AND crossSchoolType ≠ 'normal'）。
+      </div>
+    </div>
+  </div>
+
+  <!-- 2b: 人员列表弹框 -->
+  <h3>改动区域 B：人员列表弹框 — 标签 + 筛选</h3>
+  <div class="mockup">
+    <div class="mockup-topbar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="title-bar">点击"实聘数"→ 弹出人员列表</span>
+    </div>
+    <div class="mockup-body">
+      <div class="modal-mock">
+        <div class="modal-mock-header"><h3>实聘人员列表 — 专业技术岗位 八级</h3><span style="color:#94A3B8;cursor:pointer;">✕</span></div>
+        <div class="modal-mock-body">
+
+          <!-- ===== NEW: 筛选 ===== -->
+          <div class="hl-box" style="margin-bottom:10px;">
+            <div class="filter-tabs" style="margin-bottom:0;">
+              <span class="filter-tab active">全部 <span class="count">12</span></span>
+              <span class="filter-tab">在岗 <span class="count">10</span></span>
+              <span class="filter-tab">借调 <span class="count">1</span></span>
+              <span class="filter-tab">支教 <span class="count">1</span></span>
+              <span class="filter-tab">轮岗 <span class="count">0</span></span>
+            </div>
+          </div>
+          <!-- ===== END NEW ===== -->
+
+          <div class="summary-row" style="margin-bottom:10px;">
+            <span>已匹配 <span class="stat">12</span> 人</span>
+            <span class="sep">|</span>
+            <span style="color:#D97706;">跨校人员 <span class="stat">2</span></span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>姓名</th><th>编制类型</th><th>身份证号</th><th>入编方式</th>
+                <th style="background:#FFFBEB;">跨校状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>李思思</strong></td><td>事业编</td><td style="font-size:11px;">450201199105156788</td><td>统一公开招聘</td>
+                <td><span class="tag-cs tag-secondment">借调</span> <span style="font-size:10px;color:#64748B;">柳州市第十五中学</span><div style="font-size:9px;color:#94A3B8;">2026.03 — 2027.02</div></td>
+              </tr>
+              <tr>
+                <td><strong>赵刚</strong></td><td>事业编</td><td style="font-size:11px;">450201199001011234</td><td>调动</td>
+                <td><span class="tag-cs tag-support">支教</span> <span style="font-size:10px;color:#64748B;">三江县民族中学</span><div style="font-size:9px;color:#94A3B8;">2025.09 — 2027.07</div></td>
+              </tr>
+              <tr>
+                <td><strong>陈丽华</strong></td><td>控制数</td><td style="font-size:11px;">450201198805150678</td><td>统一公开招聘</td>
+                <td style="color:#94A3B8;font-size:11px;">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-mock-footer"><button style="padding:4px 14px;border:1px solid #E2E8F0;border-radius:4px;background:#fff;font-size:11px;">关闭</button></div>
+      </div>
+      <div class="anno">
+        <strong>改动：</strong>与 v2.0 相同。弹框顶部增加<strong>类型筛选标签</strong>，表格新增<strong>"跨校状态"列</strong>。数据从 <code>teacher_accounts</code> 读取。台账编辑表单<strong>不做任何改动</strong>。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 3: 个人中心 — 展示 -->
+<!-- ============================================================ -->
+<div class="page-section">
+  <h2><span class="page-tag">页面 3</span> personal-center.html <span class="role-tag display">展示</span></h2>
+  <p style="font-size:12px;color:#64748B;">教师登录后查看个人信息时，若为跨校人员则显示任职信息。</p>
+
+  <h3>改动区域：个人信息卡片 — 跨校任职信息行</h3>
+  <div class="mockup">
+    <div class="mockup-topbar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="title-bar">personal-center.html — 李思思（借调至柳州市第十五中学）</span>
+    </div>
+    <div class="mockup-body">
+
+      <div class="profile-card">
+        <div class="profile-top">
+          <div class="profile-avatar">李</div>
+          <div class="profile-info">
+            <div class="profile-name">李思思 <span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:1px 8px;border-radius:10px;font-weight:500;">演示</span></div>
+            <div class="profile-meta">
+              女 | 汉族 | 1991-05-15<br>
+              中共党员 | 硕士研究生 | 广西师范大学 汉语言文学<br>
+              柳州市第八中学 | 专业技术岗位 八级 | 一级教师<br>
+              <span style="font-size:11px;color:#94A3B8;">身份证号：</span>450201199105156788
+            </div>
+
+            <!-- ===== NEW: 跨校信息行 ===== -->
+            <div class="hl-box" style="padding:10px;margin-top:10px;background:#FFFBEB;border-radius:6px;border:2px dashed #F59E0B;">
+              <div style="font-size:10px;color:#92400E;font-weight:600;margin-bottom:4px;">📌 跨校任职信息</div>
+              <div style="display:flex;gap:16px;font-size:12px;color:#64748B;">
+                <span>类型：<strong style="color:#92400E;"><span class="tag-cs tag-secondment">借调</span></strong></span>
+                <span>任职学校：<strong>柳州市第十五中学</strong></span>
+                <span>起止时间：<strong>2026-03-01 ~ 2027-02-28</strong></span>
+              </div>
+              <div style="font-size:10px;color:#94A3B8;margin-top:4px;">※ 您的编制仍在柳州市第八中学，所有人事业务在编制所在学校办理。</div>
+            </div>
+            <!-- ===== END NEW ===== -->
+
+          </div>
+        </div>
+      </div>
+
+      <div class="anno">
+        <strong>改动：</strong>在个人信息卡片中，若 <code>crossSchoolType !== 'normal'</code>，则在所属学校信息下方展示<strong>"跨校任职信息"</strong>区域（黄色虚线框），显示类型 + 任职学校 + 起止时间 + 提示文字。<br>
+        <strong>注意：</strong>编辑个人信息弹框中，跨校信息为<strong>只读展示</strong>，教师不可自行修改（修改需由管理员在账号管理中操作）。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SUMMARY -->
+<!-- ============================================================ -->
+<div class="page-section">
+  <h2>改动汇总</h2>
+  <table style="margin-top:12px;">
+    <thead>
+      <tr><th>#</th><th>页面</th><th>改动区域</th><th>内容</th><th style="width:100px;">职责</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1a</td><td><strong>account-management.html</strong></td>
+        <td>账号列表</td>
+        <td>表格新增"跨校状态"列 + 筛选栏新增"跨校状态"下拉</td>
+        <td><span class="tag-cs tag-secondment">维护</span></td>
+      </tr>
+      <tr>
+        <td>1b</td><td><strong>account-management.html</strong></td>
+        <td>编辑/新建弹框</td>
+        <td>新增"跨校信息"区域（类型+学校+起止日期）</td>
+        <td><span class="tag-cs tag-secondment">维护</span></td>
+      </tr>
+      <tr>
+        <td>2a</td><td><strong>org-ledger-school.html</strong></td>
+        <td>编制概览卡片</td>
+        <td>"实有在编人数"下新增"其中跨校人员 N 人"</td>
+        <td><span class="tag-cs tag-support">展示</span></td>
+      </tr>
+      <tr>
+        <td>2b</td><td><strong>org-ledger-school.html<br>+ org-ledger-detail.html</strong></td>
+        <td>人员列表弹框</td>
+        <td>类型筛选标签 + "跨校状态"列</td>
+        <td><span class="tag-cs tag-support">展示</span></td>
+      </tr>
+      <tr>
+        <td>3</td><td><strong>personal-center.html</strong></td>
+        <td>个人信息卡片</td>
+        <td>跨校人员显示"跨校任职信息"区域（只读）</td>
+        <td><span class="tag-cs tag-support">展示</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

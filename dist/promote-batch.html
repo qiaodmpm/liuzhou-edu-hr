@@ -191,6 +191,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 // ========== ICONS & CONSTANTS ==========
 var ICONS = {
@@ -328,32 +329,16 @@ function generateBatchId() {
 
 // ========== SIDEBAR ==========
 function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', currentRole, 'promote');
   var roleData = ROLES[currentRole]; if (!roleData) return;
-  var s = roleData.sidebar, html = '';
-  (s.top || []).forEach(function(i) {
-    html += '<a class="menu-item' + (i.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[i.icon] || '') + '<span class="menu-label">' + i.label + '</span></a>';
-  });
-  (s.groups || []).forEach(function(g) {
-    html += '<div class="menu-group">' + g.name + '</div>';
-    g.items.forEach(function(i) {
-      html += '<a class="menu-item' + (i.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id] || 'file']) + '<span class="menu-label">' + i.label + '</span>' + (i.badge ? '<span class="menu-badge">' + i.badge + '</span>' : '') + '</a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = html;
-
-  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.role === currentRole);
-  });
-
-  var n = document.querySelector('.topnav-user span');
-  if (n) n.textContent = roleData.name;
-  var a = document.querySelector('.topnav-user .avatar');
-  if (a) a.textContent = roleData.short;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.role === currentRole); });
+  var n = document.querySelector('.topnav-user span'); if (n) n.textContent = roleData.name;
+  var a = document.querySelector('.topnav-user .avatar'); if (a) a.textContent = roleData.short;
 }
 
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); }); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'postset') { window.location.href = 'post-list-school.html?role=' + currentRole; return; }
   if (id === 'promote') return;
@@ -371,6 +356,7 @@ function sidebarClick(el, id) {
   else if (id === 'account') { window.location.href = 'account-management.html'; }
 
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

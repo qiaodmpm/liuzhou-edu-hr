@@ -214,6 +214,7 @@
   #todoArea .todo-module-list { flex: 1; }
   #quickArea { flex: 1; }
   #quickArea.quick-grid { grid-template-rows: 1fr 1fr; }
+  #quickArea.quick-grid-cols2 { grid-template-columns: repeat(2, 1fr); }
 
   /* Todo Module List */
   .todo-module-list {
@@ -246,8 +247,17 @@
   .count-pending .count-num { color: var(--primary); }
   .count-review .count-num { color: #D97706; }
   .count-reject .count-num { color: var(--danger); }
+
   .todo-module-arrow { color: var(--text-light); font-size: 12px; flex-shrink: 0; }
   .todo-module-item:hover .todo-module-arrow { color: var(--primary); }
+  .todo-view-all {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 16px; font-size: 12px; color: var(--primary); cursor: pointer;
+    transition: var(--transition); border-top: 1px solid var(--border);
+    background: #F8FAFC; font-weight: 500;
+  }
+  .todo-view-all:hover { background: var(--primary-light); }
+
 
   #todoArea .todo-empty {
     flex: 1; display: flex; align-items: center; justify-content: center;
@@ -255,15 +265,41 @@
     background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
   }
-  .lock-alert {
+  /* 台账全局锁定提醒条 */
+  .ledger-lock-banner {
     display: flex; align-items: center; gap: 10px;
-    margin-top: 10px; padding: 10px 14px;
-    background: #FEF2F2; border: 1px solid #FECACA;
+    margin-bottom: 8px; padding: 10px 14px;
+    background: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid var(--danger);
     border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: var(--transition);
   }
-  .lock-alert:hover { background: #FEE2E2; }
-  .lock-alert .lock-count { font-weight: 700; color: var(--danger); }
-  .lock-alert .lock-text { color: #991B1B; flex: 1; }
+  .ledger-lock-banner:hover { background: #FEE2E2; }
+  .ledger-lock-banner .lock-icon { font-size: 16px; flex-shrink: 0; }
+  .ledger-lock-banner .lock-text { color: #991B1B; flex: 1; font-weight: 500; }
+  .ledger-lock-banner .lock-arrow { color: var(--danger); font-size: 12px; white-space: nowrap; }
+
+  /* 学校信息审核中提示条 */
+  .school-audit-banner {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px; padding: 10px 14px;
+    background: #FFFBEB; border: 1px solid #FDE68A; border-left: 4px solid var(--warning);
+    border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: var(--transition);
+  }
+  .school-audit-banner:hover { background: #FEF3C7; }
+  .school-audit-banner .audit-icon { font-size: 16px; flex-shrink: 0; }
+  .school-audit-banner .audit-text { color: #92400E; flex: 1; font-weight: 500; }
+  .school-audit-banner .audit-arrow { color: #92400E; font-size: 12px; white-space: nowrap; }
+
+  /* 学校信息审核驳回提示条 */
+  .school-reject-banner {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px; padding: 10px 14px;
+    background: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid var(--danger);
+    border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: var(--transition);
+  }
+  .school-reject-banner:hover { background: #FEE2E2; }
+  .school-reject-banner .reject-icon { font-size: 16px; flex-shrink: 0; }
+  .school-reject-banner .reject-text { color: #991B1B; flex: 1; font-weight: 500; }
+  .school-reject-banner .reject-arrow { color: var(--danger); font-size: 12px; white-space: nowrap; }
 
   /* Quick Actions */
   .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -322,17 +358,23 @@
     border: 1px solid var(--border); box-shadow: var(--shadow-sm);
   }
   .announce-item {
-    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    display: flex; align-items: center; gap: 16px; padding: 13px 20px;
     cursor: pointer; transition: var(--transition);
     border-bottom: 1px solid #F1F5F9; text-decoration: none; color: inherit;
   }
   .announce-item:last-child { border-bottom: none; }
   .announce-item:hover { background: #F8FAFC; }
-  .announce-item .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-  .announce-item .read-dot { width: 8px; flex-shrink: 0; }
-  .announce-title { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); }
+  .announce-item .unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .announce-item .read-dot { width: 7px; flex-shrink: 0; }
+  .announce-title { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .announce-item:hover .announce-title { color: var(--primary); }
-  .announce-meta { font-size: 11px; color: var(--text-light); display: flex; gap: 12px; white-space: nowrap; }
+  .announce-time { font-size: 12px; color: var(--text-light); white-space: nowrap; flex-shrink: 0; }
+  .announce-source { font-size: 12px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+  .scope-tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 500; }
+  .scope-tag.all { background: #EFF6FF; color: #1E40AF; }
+  .scope-tag.city { background: #DBEAFE; color: #1E40AF; }
+  .scope-tag.district { background: #FEF3C7; color: #92400E; }
+  .scope-tag.school { background: #D1FAE5; color: #065F46; }
 
   /* Toast */
   .toast {
@@ -398,6 +440,37 @@
   .btn-primary:hover { box-shadow: 0 4px 12px rgba(30,64,175,0.3); transform: translateY(-1px); }
   .btn-cancel { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); padding: 8px 18px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 13px; }
   .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+
+	  /* ===== All Todos Modal ===== */
+	  .alltodos-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+	  .alltodos-modal-overlay.show { display: flex; }
+	  .alltodos-modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 560px; max-width: 90vw; max-height: 70vh; display: flex; flex-direction: column; }
+	  .alltodos-modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+	  .alltodos-modal-header h3 { font-size: 16px; font-weight: 600; }
+	  .alltodos-modal-close { cursor: pointer; color: var(--text-light); font-size: 20px; padding: 4px; border: none; background: none; line-height: 1; }
+	  .alltodos-modal-close:hover { color: var(--text); }
+	  .alltodos-modal-body { padding: 16px 24px; overflow-y: auto; flex: 1; }
+	  .alltodos-empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 14px; }
+	  .alltodos-empty .empty-icon { font-size: 40px; margin-bottom: 12px; }
+	  .alltodos-summary { display: flex; gap: 16px; margin-bottom: 16px; }
+	  .alltodos-summary-item { flex: 1; background: var(--bg); border-radius: var(--radius); padding: 12px; text-align: center; }
+	  .alltodos-summary-item .sum-num { font-size: 22px; font-weight: 700; }
+	  .alltodos-summary-item .sum-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+	  .alltodos-summary-item.pending .sum-num { color: var(--primary); }
+	  .alltodos-summary-item.review .sum-num { color: #D97706; }
+	  .alltodos-summary-item.reject .sum-num { color: var(--danger); }
+	  .alltodos-group-label { font-size: 11px; color: var(--text-light); letter-spacing: 1px; margin: 12px 0 6px; padding: 0 4px; }
+	  .alltodos-group-label:first-child { margin-top: 0; }
+	  .alltodos-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; transition: var(--transition); text-decoration: none; color: inherit; }
+	  .alltodos-item:hover { background: var(--primary-light); }
+	  .alltodos-item-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+	  .alltodos-item-name { flex: 1; font-size: 13px; font-weight: 500; }
+	  .alltodos-item:hover .alltodos-item-name { color: var(--primary); }
+	  .alltodos-item-counts { display: flex; gap: 12px; font-size: 12px; }
+	  .alltodos-item-counts .atc-pending { color: var(--primary); font-weight: 600; }
+	  .alltodos-item-counts .atc-review { color: #D97706; font-weight: 600; }
+	  .alltodos-item-counts .atc-reject { color: var(--danger); font-weight: 600; }
+	  .alltodos-item-arrow { color: var(--text-light); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -431,15 +504,14 @@
 
 <!-- ===== MESSAGE POPOVER ===== -->
 <div class="msg-popover" id="msgPopover">
-  <div class="msg-popover-header"><span>消息通知</span><span style="font-size:11px;color:var(--text-light);">共5条</span></div>
+  <div class="msg-popover-header"><span>消息通知</span><span style="font-size:11px;color:var(--text-light);">共4条</span></div>
   <div class="msg-list">
     <div class="msg-item unread"><span class="msg-dot"></span><div><div class="msg-item-title">入编申请（张三）待您审批</div><div class="msg-item-time">5分钟前</div></div></div>
     <div class="msg-item unread"><span class="msg-dot"></span><div><div class="msg-item-title">岗位晋升（李四）待您审批</div><div class="msg-item-time">1小时前</div></div></div>
     <div class="msg-item unread"><span class="msg-dot"></span><div><div class="msg-item-title">招聘计划审批已退回</div><div class="msg-item-time">3小时前</div></div></div>
     <div class="msg-item read"><span class="msg-dot"></span><div><div class="msg-item-title">退休呈报（王五）已通过</div><div class="msg-item-time">昨天</div></div></div>
-    <div class="msg-item read"><span class="msg-dot"></span><div><div class="msg-item-title">系统将于本周六升级维护</div><div class="msg-item-time">2天前</div></div></div>
   </div>
-  <div class="msg-popover-footer"><a href="#">查看全部消息 →</a></div>
+  <div class="msg-popover-footer"><a href="messages.html">查看全部消息 →</a></div>
 </div>
 
 <!-- ===== CHANGE PASSWORD MODAL ===== -->
@@ -491,6 +563,19 @@
   </div>
 </div>
 
+
+<!-- ===== ALL TODOS MODAL ===== -->
+<div class="alltodos-modal-overlay" id="allTodosModalOverlay">
+  <div class="alltodos-modal">
+    <div class="alltodos-modal-header">
+      <h3>📋 全部待办</h3>
+      <button class="alltodos-modal-close" onclick="closeAllTodosModal()">✕</button>
+    </div>
+    <div class="alltodos-modal-body" id="allTodosModalBody">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
 <!-- ===== SIDEBAR ===== -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-menu" id="sidebarMenu">
@@ -556,7 +641,7 @@
     <div class="section">
       <div class="section-header">
         <span class="section-title">待办提醒</span>
-        <a href="#" class="section-link" onclick="event.preventDefault();showToast('跳转至全部待办列表')">全部待办 →</a>
+        <a href="#" class="section-link" onclick="event.preventDefault();openAllTodosModal()">全部待办 →</a>
       </div>
       <div id="todoArea">
         <!-- Filled by JS -->
@@ -584,7 +669,7 @@
   <div class="section">
     <div class="section-header">
       <span class="section-title">系统公告</span>
-      <a href="#" class="section-link" onclick="event.preventDefault();showToast('查看全部公告')">查看全部 →</a>
+      <a href="announcement-management.html" class="section-link">查看全部 →</a>
     </div>
     <div class="announce-list" id="announceArea">
       <!-- Filled by JS -->
@@ -616,7 +701,7 @@ const ROLES = {
           { id: 'org', label: '机构管理' },
           { id: 'menuMgr', label: '菜单管理' },
           { id: 'perm', label: '角色权限' },
-          { id: 'log', label: '操作日志' }
+          { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }
         ]}
       ]
     }
@@ -629,14 +714,18 @@ const ROLES = {
       { mod: '入编申请', group: '编制管理', icon: '📝', iclass: 'green', pending: 1, review: 0, reject: 1 },
       { mod: '岗位晋升申请', group: '岗位管理', icon: '📈', iclass: 'amber', pending: 3, review: 2, reject: 0 },
       { mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple', pending: 2, review: 0, reject: 0 },
-      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 4, review: 0, reject: 1 }
+      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 4, review: 0, reject: 1 },
+      { mod: '教师入职管理', group: '编外教师管理', icon: '📥', iclass: 'purple', pending: 1, review: 0, reject: 0 },
+      { mod: '教师离职管理', group: '编外教师管理', icon: '📤', iclass: 'teal', pending: 0, review: 0, reject: 0 }
     ],
     lockCount: 1,
     quickActs: [
-      { label: '入编申请', desc: '教师入职登记', icon: '📝', clr: 'blue' },
-      { label: '岗位晋升', desc: '等级晋升申报', icon: '📈', clr: 'green' },
-      { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
+      { label: '编制使用申请', desc: '', icon: '📋', clr: 'blue' },
+      { label: '教师入编', desc: '', icon: '📝', clr: 'green' },
+      { label: '教师出编', desc: '', icon: '📤', clr: 'amber' },
+      { label: '岗位晋升', desc: '', icon: '📈', clr: 'purple' },
+      { label: '招聘岗位', desc: '', icon: '🔍', clr: 'teal' },
+      { label: '聘用手续', desc: '', icon: '✅', clr: 'rose' },
       ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看处理进度与结果' },
     announcements: [
@@ -678,7 +767,7 @@ const ROLES = {
           { id: 'account', label: '账号管理' },
           { id: 'org', label: '机构管理' },
           { id: 'perm', label: '角色权限' },
-          { id: 'log', label: '操作日志' }
+          { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }
         ]}
       ]
     }
@@ -691,14 +780,18 @@ const ROLES = {
       { mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue', pending: 1, review: 1, reject: 0 },
       { mod: '岗位晋升申请', group: '岗位管理', icon: '📈', iclass: 'amber', pending: 2, review: 1, reject: 0 },
       { mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple', pending: 1, review: 0, reject: 0 },
-      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 3, review: 0, reject: 1 }
+      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 3, review: 0, reject: 1 },
+      { mod: '教师入职管理', group: '编外教师管理', icon: '📥', iclass: 'purple', pending: 0, review: 0, reject: 0 },
+      { mod: '教师离职管理', group: '编外教师管理', icon: '📤', iclass: 'teal', pending: 0, review: 0, reject: 0 }
     ],
     lockCount: 0,
     quickActs: [
-      { label: '入编申请', desc: '教师入职登记', icon: '📝', clr: 'blue' },
-      { label: '岗位晋升', desc: '等级晋升申报', icon: '📈', clr: 'green' },
-      { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
+      { label: '编制使用申请', desc: '', icon: '📋', clr: 'blue' },
+      { label: '教师入编', desc: '', icon: '📝', clr: 'green' },
+      { label: '教师出编', desc: '', icon: '📤', clr: 'amber' },
+      { label: '岗位晋升', desc: '', icon: '📈', clr: 'purple' },
+      { label: '招聘岗位', desc: '', icon: '🔍', clr: 'teal' },
+      { label: '聘用手续', desc: '', icon: '✅', clr: 'rose' },
       ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看辖区举报处理进度' },
     announcements: [
@@ -750,14 +843,18 @@ const ROLES = {
     todos: [
       { mod: '入编申请', group: '编制管理', icon: '📝', iclass: 'green', pending: 1, review: 0, reject: 0 },
       { mod: '岗位晋升申请', group: '岗位管理', icon: '📈', iclass: 'amber', pending: 2, review: 0, reject: 0 },
-      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 1, review: 0, reject: 0 }
+      { mod: '退休呈报', group: '人事管理', icon: '🕐', iclass: 'teal', pending: 1, review: 0, reject: 0 },
+      { mod: '教师入职管理', group: '编外教师管理', icon: '📥', iclass: 'purple', pending: 0, review: 0, reject: 0 },
+      { mod: '教师离职管理', group: '编外教师管理', icon: '📤', iclass: 'teal', pending: 0, review: 0, reject: 0 }
     ],
     lockCount: 0,
     quickActs: [
-      { label: '入编申请', desc: '新教师入职', icon: '📝', clr: 'blue' },
-      { label: '岗位晋升', desc: '教师晋升申报', icon: '📈', clr: 'green' },
-      { label: '聘用手续', desc: '合同聘用办理', icon: '📋', clr: 'amber' },
-      { label: '退休呈报', desc: '到龄退休呈报', icon: '🕐', clr: 'teal' },
+      { label: '编制使用申请', desc: '', icon: '📋', clr: 'blue' },
+      { label: '教师入编', desc: '', icon: '📝', clr: 'green' },
+      { label: '教师出编', desc: '', icon: '📤', clr: 'amber' },
+      { label: '岗位晋升', desc: '', icon: '📈', clr: 'purple' },
+      { label: '招聘岗位', desc: '', icon: '🔍', clr: 'teal' },
+      { label: '聘用手续', desc: '', icon: '✅', clr: 'rose' },
       ],
     ethicsBtn: { primary: '我要举报', pdesc: '实名 / 匿名均可提交', secondary: '举报记录', sdesc: '查看本校举报处理进度' },
     announcements: [
@@ -865,6 +962,164 @@ const MENU_ICONS = {
 
 let currentRole = 'city';
 
+
+// ===== UNSUBMITTED SCHOOLS DATA (synced with staffing-application.html) =====
+var STAFFING_SCHOOLS = [
+  { name: '柳州市第一中学', district: '市直属' },
+  { name: '柳州市第二中学', district: '市直属' },
+  { name: '柳州高级中学', district: '市直属' },
+  { name: '柳州市民族高中', district: '市直属' },
+  { name: '柳州市第三中学', district: '市直属' },
+  { name: '柳州市第六中学', district: '市直属' },
+  { name: '柳州市第八中学', district: '鱼峰区' },
+  { name: '鱼峰区实验小学', district: '鱼峰区' },
+  { name: '柳州市第十三中学', district: '鱼峰区' },
+  { name: '柳州市第二十五中学', district: '鱼峰区' }
+];
+
+function getJurisdictionSchoolNames(role) {
+  var district = (role === 'city') ? '市直属' : (role === 'district') ? '鱼峰区' : null;
+  if (!district) return [];
+  return STAFFING_SCHOOLS.filter(function(s) { return s.district === district; }).map(function(s) { return s.name; });
+}
+
+function getUnsubmittedCount() {
+  // City/district admins don't need unsubmitted tracking (removed per requirement)
+  if (currentRole === 'city' || currentRole === 'district') return 0;
+  // School admin: count active batches the school hasn't submitted to
+  if (currentRole !== 'school') return 0;
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return 0;
+  var submissions = [];
+  try { submissions = JSON.parse(localStorage.getItem('staffing_submissions') || '[]'); } catch(e) {}
+  var submittedBatchIds = {};
+  submissions.forEach(function(s) {
+    if (s.orgName === schoolName && s.batchId) submittedBatchIds[s.batchId] = true;
+  });
+  var activeBatchIds = getActiveBatchIdsForSchool();
+  var unsubmitted = 0;
+  activeBatchIds.forEach(function(bid) {
+    if (!submittedBatchIds[bid]) unsubmitted++;
+  });
+  return unsubmitted;
+}
+
+function getCurrentSchoolName() {
+  var cu = null;
+  try { cu = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch(e) {}
+  if (cu && cu.org) return cu.org;
+  if (currentRole === 'school') {
+    var data = ROLES[currentRole];
+    if (data && data.org) return data.org;
+  }
+  return null;
+}
+
+function getActiveBatchIdsForSchool() {
+  return ['B2026-001', 'B2026-002', 'B2026-D01', 'B2026-D03', 'B2026-D04', 'AUTO-2026'];
+}
+
+function getActiveBatchNamesForSchool() {
+  return {
+    'B2026-001': '2026年度第一批',
+    'B2026-002': '2026年度第二批',
+    'B2026-D01': '2026年度鱼峰区第一批',
+    'B2026-D03': '2026年度鱼峰区第二批',
+    'B2026-D04': '2026年度鱼峰区第三批',
+    'AUTO-2026': '2026年度自主申报'
+  };
+}
+
+function getUnsubmittedSchoolNames() {
+  if (currentRole === 'city' || currentRole === 'district') return [];
+  if (currentRole !== 'school') return [];
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return [];
+  var submissions = [];
+  try { submissions = JSON.parse(localStorage.getItem('staffing_submissions') || '[]'); } catch(e) {}
+  var submittedBatchIds = {};
+  submissions.forEach(function(s) {
+    if (s.orgName === schoolName && s.batchId) submittedBatchIds[s.batchId] = true;
+  });
+  var activeBatchIds = getActiveBatchIdsForSchool();
+  var batchNames = getActiveBatchNamesForSchool();
+  return activeBatchIds.filter(function(bid) { return !submittedBatchIds[bid]; })
+    .map(function(bid) { return batchNames[bid] || bid; });
+}
+
+// ===== RECRUITMENT UNSUBMITTED TRACKING =====
+function getActiveRecruitBatchIds() {
+  // Active (open) recruitment batch IDs mirrored from recruit-list-school.html
+  return ['RCB20260701001', 'RCB20260501001', 'RCB20260415001', 'RCB20260515001', 'RCB20260401001'];
+}
+
+function getActiveRecruitBatchNames() {
+  return {
+    'RCB20260701001': '2026年自主招聘（第二批）',
+    'RCB20260501001': '2026年自主招聘（第一批）',
+    'RCB20260415001': '2026年中高级人才招聘',
+    'RCB20260515001': '2026年直属学校统一公招',
+    'RCB20260401001': '2026年鱼峰区统一公招'
+  };
+}
+
+function getRecruitUnsubmittedCount() {
+  if (currentRole !== 'school') return 0;
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return 0;
+  var records = [];
+  try { records = JSON.parse(localStorage.getItem('recruit_records') || '[]'); } catch(e) {}
+  var submittedBatchIds = {};
+  records.forEach(function(r) {
+    if (r.schoolName === schoolName && r.batchId) submittedBatchIds[r.batchId] = true;
+  });
+  var activeIds = getActiveRecruitBatchIds();
+  var unsubmitted = 0;
+  activeIds.forEach(function(bid) {
+    if (!submittedBatchIds[bid]) unsubmitted++;
+  });
+  return unsubmitted;
+}
+
+function getRecruitUnsubmittedNames() {
+  if (currentRole !== 'school') return [];
+  var schoolName = getCurrentSchoolName();
+  if (!schoolName) return [];
+  var records = [];
+  try { records = JSON.parse(localStorage.getItem('recruit_records') || '[]'); } catch(e) {}
+  var submittedBatchIds = {};
+  records.forEach(function(r) {
+    if (r.schoolName === schoolName && r.batchId) submittedBatchIds[r.batchId] = true;
+  });
+  var activeIds = getActiveRecruitBatchIds();
+  var batchNames = getActiveRecruitBatchNames();
+  return activeIds.filter(function(bid) { return !submittedBatchIds[bid]; })
+    .map(function(bid) { return batchNames[bid] || bid; });
+}
+
+
+// Merge todo items with the same mod name by summing their counts
+function mergeTodos(todos) {
+  var map = {};
+  var order = [];
+  todos.forEach(function(t) {
+    var key = t.mod;
+    if (map[key]) {
+      map[key].pending += (t.pending || 0);
+      map[key].review  += (t.review || 0);
+      map[key].reject  += (t.reject || 0);
+    } else {
+      map[key] = {
+        mod: t.mod, group: t.group, icon: t.icon, iclass: t.iclass,
+        pending: (t.pending || 0), review: (t.review || 0), reject: (t.reject || 0),
+        reminder: t.reminder
+      };
+      order.push(key);
+    }
+  });
+  return order.map(function(k) { return map[k]; });
+}
+
 // ===== RENDER =====
 function renderSidebar() {
   renderSidebarMenu('sidebarMenu', currentRole, 'workbench');
@@ -889,46 +1144,123 @@ function renderMain() {
     pcl.href = 'personal-center.html?accountId=' + encodeURIComponent(cu.accountId);
   }
 
-  // Todo area
   var todoHtml = '';
   var reminderTodo = getReminderTodo();
   var allTodos = reminderTodo ? [reminderTodo].concat(data.todos) : data.todos;
+
+  // For school admin: inject unsubmitted batch counts as regular todo items
+  if (currentRole === 'school') {
+    var unsubStaffingCount = getUnsubmittedCount();
+    if (unsubStaffingCount > 0) {
+      allTodos.push({
+        mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue',
+        pending: unsubStaffingCount, review: 0, reject: 0
+      });
+    }
+    var unsubRecruitCount = getRecruitUnsubmittedCount();
+    if (unsubRecruitCount > 0) {
+      allTodos.push({
+        mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple',
+        pending: unsubRecruitCount, review: 0, reject: 0
+      });
+    }
+  }
+
   if (allTodos.length === 0) {
     todoHtml = '<div class="todo-empty">暂无待办事项</div>';
   } else {
     todoHtml = '<div class="todo-module-list">';
+    // Deduplicate and sort by total pending (descending)
+    allTodos = mergeTodos(allTodos);
+    allTodos.sort(function(a, b) {
+      var totalA = (a.pending || 0) + (a.review || 0) + (a.reject || 0);
+      var totalB = (b.pending || 0) + (b.review || 0) + (b.reject || 0);
+      return totalB - totalA;
+    });
+
+    var topN = 5;
+    var displayed = 0, totalCount = 0;
     allTodos.forEach(function(t) {
+      var tp = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
+      if (tp > 0) totalCount++;
+    });
+
+    allTodos.forEach(function(t) {
+      var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
+      // Skip modules with zero pending items — must be first, before any HTML
+      if (totalPending === 0) return;
+      // Stop after top N items
+      if (displayed >= topN) return;
+      displayed++;
+
       var targetUrl = '#';
       if (t.reminder) { targetUrl = 'post-list-school.html'; }
       else if (t.mod === '编制使用申请') targetUrl = 'staffing-application.html';
+      else if (t.mod === '招聘岗位申请') targetUrl = getRecruitUrl() || 'recruit-list-school.html';
       else if (t.mod === '入编申请') targetUrl = getEntryUrl();
-      var nameHtml = t.reminder ? '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>' + t.group + ' · 主管单位提醒您尽快提交岗位设置申请</small></div>' : '<div class="todo-module-name">' + t.mod + '<small>' + t.group + '</small></div>';
+      var nameHtml;
+      if (t.reminder) {
+        nameHtml = '<div class="todo-module-name" style="color:var(--danger);">' + t.mod + '<small>主管单位提醒您尽快提交岗位设置申请</small></div>';
+      } else {
+        nameHtml = '<div class="todo-module-name">' + t.mod + '</div>';
+      }
       todoHtml += '<a class="todo-module-item" href="' + targetUrl + '" onclick="' + (targetUrl !== '#' ? '' : 'event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\')') + '">';
       todoHtml += '<div class="todo-module-icon ' + t.iclass + '">' + t.icon + '</div>';
       todoHtml += nameHtml;
-      var totalPending = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
       todoHtml += '<div class="todo-counts">';
       todoHtml += '<div class="todo-count-item count-pending"><div class="count-num">' + totalPending + '</div><div class="count-label">待处理</div></div>';
       todoHtml += '</div><span class="todo-module-arrow">→</span></a>';
     });
+
+    // View-all footer
+    if (totalCount > topN) {
+      todoHtml += '<div class="todo-view-all" onclick="openAllTodosModal()">查看全部 ' + totalCount + ' 项待办 →</div>';
+    }
     todoHtml += '</div>';
+    // If all items were filtered out (all zero), show empty state
+    if (todoHtml === '<div class="todo-module-list"></div>') {
+      todoHtml = '<div class="todo-empty">暂无待办事项</div>';
+    }
   }
-  if (data.lockCount > 0) {
-    todoHtml += '<div class="lock-alert" onclick="showToast(\'跳转至账号管理\')"><span>🔒</span><span class="lock-count">' + data.lockCount + '</span><span class="lock-text">个账号因异常被锁定，请及时处理</span><span style="color:var(--danger);font-size:12px;">立即处理 →</span></div>';
+  // 台账全局锁定 + 学校信息审核提醒条
+  var bannerHtml = '';
+  var ledgerLocked = checkLedgerLocked();
+  var schoolAudit = checkSchoolAuditStatus();
+  if (ledgerLocked) {
+    bannerHtml += '<div class="ledger-lock-banner" onclick="window.location.href=\'' + getLedgerUrl() + '\'">';
+    bannerHtml += '<span class="lock-icon">🔒</span>';
+    bannerHtml += '<span class="lock-text">编制岗位台账审核中，所有模块的新申请和进行中的审批已暂停</span>';
+    bannerHtml += '<span class="lock-arrow">查看详情 →</span></div>';
   }
+  if (schoolAudit.status === 'pending') {
+    bannerHtml += '<div class="school-audit-banner" onclick="window.location.href=\'org-management.html\'">';
+    bannerHtml += '<span class="audit-icon">🏫</span>';
+    bannerHtml += '<span class="audit-text">学校信息审核中 — 你的学校信息已提交，等待主管单位审批</span>';
+    bannerHtml += '<span class="audit-arrow">查看详情 →</span></div>';
+  } else if (schoolAudit.status === 'rejected') {
+    bannerHtml += '<div class="school-reject-banner" onclick="window.location.href=\'org-management.html\'">';
+    bannerHtml += '<span class="reject-icon">⚠️</span>';
+    bannerHtml += '<span class="reject-text">学校信息审核驳回 — ' + (schoolAudit.reason || '请修改后重新提交') + '</span>';
+    bannerHtml += '<span class="reject-arrow">去修改 →</span></div>';
+  }
+  todoHtml = bannerHtml + todoHtml;
   document.getElementById('todoArea').innerHTML = todoHtml;
 
-  // Quick actions
   var quickHtml = '';
   data.quickActs.forEach(function(q) {
     var qUrl = getQuickActionUrl(q.label);
     quickHtml += '<div class="quick-card" onclick="' + (qUrl ? "window.location.href='" + qUrl + "'" : "showToast('跳转至" + q.label + "')") + '">';
     quickHtml += '<div class="qc-icon ' + q.clr + '">' + q.icon + '</div>';
     quickHtml += '<div class="qc-title">' + q.label + '</div>';
-    quickHtml += '<div class="qc-desc">' + q.desc + '</div>';
     quickHtml += '</div>';
   });
-  document.getElementById('quickArea').innerHTML = quickHtml;
+  var quickArea = document.getElementById('quickArea');
+  quickArea.innerHTML = quickHtml;
+  if (currentRole === 'teacher') {
+    quickArea.classList.add('quick-grid-cols2');
+  } else {
+    quickArea.classList.remove('quick-grid-cols2');
+  }
 
   // Ethics
   var eb = data.ethicsBtn;
@@ -939,15 +1271,71 @@ function renderMain() {
     '<a class="ethics-btn secondary" href="#" onclick="event.preventDefault();showToast(\'跳转至举报记录列表\')"><span class="eb-icon">📋</span><span class="eb-title">' + eb.secondary + '</span><span class="eb-desc">' + eb.sdesc + '</span></a>' +
     '</div>';
 
-  // Announcements
+  // Announcements — from localStorage (seed demo data if empty)
   var annHtml = '';
-  data.announcements.forEach(function(a) {
-    annHtml += '<a class="announce-item" href="#" onclick="event.preventDefault();showToast(\'打开公告详情\')">';
-    annHtml += '<span class="' + (a.unread ? 'unread-dot' : 'read-dot') + '"></span>';
-    annHtml += '<span class="announce-title">' + a.title + '</span>';
-    annHtml += '<span class="announce-meta"><span>' + a.date + '</span><span>' + a.source + '</span></span>';
-    annHtml += '</a>';
-  });
+  var allAnns = [];
+  try { var raw = localStorage.getItem('announcements'); if (raw) allAnns = JSON.parse(raw); } catch(e) {}
+  if (allAnns.length === 0) {
+    var now = new Date();
+    var abd = function(daysAgo, hour) { var d = new Date(now); d.setDate(d.getDate() - daysAgo); d.setHours(hour || 9, 0, 0, 0); return d.toISOString().replace('T', ' ').substring(0, 16); };
+    var abx = function(daysLater) { var d = new Date(now); d.setDate(d.getDate() + daysLater); return d.toISOString().replace('T', ' ').substring(0, 16); };
+    allAnns = [
+      { id: 'ann_001', title: '平台系统升级维护通知', content: '<p><b>各用户：</b></p><p>平台计划于<b>2026年7月12日（周六）凌晨2:00-6:00</b>进行系统升级维护，届时暂停使用，请提前做好工作安排。</p>', source: '系统管理员', publisherId: '13807720000', publisherName: '赵建国', publisherRole: 'system', scope: 'system', scopeOrgId: '', publisherOrgId: '', isPinned: true, publishTime: abd(0, 8), expireTime: abx(30), status: 'active', attachments: [] },
+      { id: 'ann_002', title: '关于2026年度公开招聘岗位计划的通知', content: '<p><b>各区教育局、各市属学校：</b></p><ol><li>本次招聘计划共设岗位<b>1,200</b>个，其中事业编<b>800</b>个、控制数<b>400</b>个。</li><li>各校请于2026年7月31日前提交岗位需求申报表。</li></ol>', source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city', scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200', isPinned: true, publishTime: abd(1, 10), expireTime: abx(29), status: 'active', attachments: [{ name: '2026年度公开招聘岗位一览表.xlsx', size: '2.3 MB' }, { name: '岗位申报材料.zip', size: '18.5 MB' }] },
+      { id: 'ann_003', title: '城中区教师岗位调整申报通知', content: '<p>城中区各学校：</p><p>请于<b>7月15日前</b>提交教师岗位调整申报材料，逾期不再受理。</p>', source: '城中区教育局', publisherId: '13807720002', publisherName: '李振华', publisherRole: 'district', scope: 'district', scopeOrgId: '450202', publisherOrgId: '450202', isPinned: false, publishTime: abd(2, 9), expireTime: abx(28), status: 'active', attachments: [] },
+      { id: 'ann_004', title: '柳江中学暑假值班安排', content: '<p>各位教师：</p><p>2026年暑假值班安排如下，请各位教师按时到岗。</p>', source: '柳江中学', publisherId: '13807720003', publisherName: '王玉兰', publisherRole: 'school', scope: 'school', scopeOrgId: '450202001', publisherOrgId: '450202001', isPinned: false, publishTime: abd(3, 11), expireTime: abx(27), status: 'active', attachments: [{ name: '暑假值班表.xlsx', size: '0.5 MB' }] },
+      { id: 'ann_005', title: '关于调整岗位设置比例的通知', content: '<p>各区教育局：</p><p>根据自治区最新文件精神，对我市中小学岗位设置比例进行调整。</p>', source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city', scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200', isPinned: false, publishTime: abd(30, 8), expireTime: abd(-1, 0), status: 'expired', attachments: [] },
+      { id: 'ann_006', title: '关于2026年秋季学期开学工作的通知', content: '<p><b>各区教育局、各中小学：</b></p><p>现将2026年秋季学期开学工作安排通知如下：</p><ol><li>教师返校时间：2026年8月25日</li><li>学生报到时间：2026年8月30日-31日</li><li>正式上课时间：2026年9月1日</li></ol>', source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city', scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200', isPinned: false, publishTime: abd(-6, 9), expireTime: abx(38), status: 'scheduled', attachments: [{ name: '秋季学期校历.pdf', size: '3.2 MB' }] }
+    ];
+    try { localStorage.setItem('announcements', JSON.stringify(allAnns)); } catch(e) {}
+  }
+
+  // Filter by visibility scope for current role
+  var cu = null;
+  try { cu = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch(e) {}
+  var uid = cu ? (cu.id || cu.uid || '') : '';
+  var userOrgCtx = { cityId: currentRole === 'city' ? (uid === '13807720001' ? '450200' : '') : (currentRole === 'district' ? '450200' : (currentRole === 'school' || currentRole === 'teacher' ? '450200' : '')), districtId: currentRole === 'district' ? '450202' : (currentRole === 'school' || currentRole === 'teacher' ? '450202' : ''), orgId: currentRole === 'school' || currentRole === 'teacher' ? '450202001' : '' };
+  var visibleAnns = allAnns.filter(function(a) {
+    if (currentRole === 'system') return true;
+    if (a.scope === 'system') return true;
+    if (a.scope === 'city' && a.scopeOrgId === userOrgCtx.cityId) return true;
+    if (a.scope === 'district' && a.scopeOrgId === userOrgCtx.districtId) return true;
+    if (a.scope === 'school' && a.scopeOrgId === userOrgCtx.orgId) return true;
+    return false;
+  }).filter(function(a) {
+    // 定时待发公告：工作台所有角色不可见，仅在公告管理列表页可见
+    if (a.status === 'scheduled') return false;
+    return a.status === 'active';
+  })
+  .sort(function(a, b) {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(b.publishTime.replace(' ', 'T')) - new Date(a.publishTime.replace(' ', 'T'));
+  }).slice(0, 5);
+
+  if (visibleAnns.length === 0) {
+    annHtml = '<div style="text-align:center;padding:20px;color:var(--text-light);font-size:13px;">暂无公告</div>';
+  } else {
+    var SCOPE_TAGS = { system: '<span class="scope-tag all">全平台</span>', city: '<span class="scope-tag city">全市</span>', district: '<span class="scope-tag district">本区</span>', school: '<span class="scope-tag school">本校</span>' };
+    visibleAnns.forEach(function(a) {
+      var isNew = (new Date() - new Date(a.publishTime.replace(' ', 'T'))) < 3 * 86400000; // within 3 days
+      var newTag = isNew ? '<span style="background:#D1FAE5;color:#065F46;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:2px;">新</span>' : '';
+      var expTag = a.status === 'expired' ? '<span style="background:#F1F5F9;color:#94A3B8;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:2px;">已过期</span>' : '';
+      var scopeTag = SCOPE_TAGS[a.scope] || '';
+      annHtml += '<a class="announce-item" href="announcement-detail.html?id=' + a.id + '">';
+      annHtml += '<span class="' + (isNew ? 'unread-dot' : 'read-dot') + '"></span>';
+      annHtml += '<span class="announce-title">' + (newTag || expTag) + scopeTag + escapeHtml(a.title) + '</span>';
+      annHtml += '<span class="announce-time">' + (a.publishTime || '').substring(0, 10) + '</span>';
+      annHtml += '<span class="announce-source">' + escapeHtml(a.source) + '</span>';
+      annHtml += '</a>';
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   document.getElementById('announceArea').innerHTML = annHtml;
 }
 
@@ -1051,6 +1439,7 @@ function sidebarClick(elOrId, idOrUndefined) {
   else if (id === 'menuMgr') { window.location.href = 'menu-management.html'; }
   else if (id === 'perm') { window.location.href = 'perm-management.html'; }
   else if (id === 'log') { window.location.href = 'log-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
 
@@ -1116,6 +1505,10 @@ function closeChangePwdModal() {
 
 document.getElementById('pwdModalOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeChangePwdModal();
+});
+
+document.getElementById('allTodosModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAllTodosModal();
 });
 
 function togglePwdEye(inputId, btn) {
@@ -1243,6 +1636,148 @@ function submitChangePwd() {
     localStorage.removeItem('currentUser');
     window.location.href = 'index.html';
   }, 1500);
+}
+
+
+// ===== All Todos Modal =====
+function getTodoTargetUrl(mod) {
+  if (mod === '编制使用申请') return 'staffing-application.html';
+  if (mod === '入编申请') return getEntryUrl();
+  if (mod === '岗位晋升申请') {
+    var url = getPromoteUrl();
+    return url || 'promote-list-admin.html';
+  }
+  if (mod === '招聘岗位申请') {
+    var url = getRecruitUrl();
+    return url || 'recruit-list-admin.html';
+  }
+  if (mod === '招聘岗位申请') {
+    var url = getRecruitUrl();
+    return url || 'recruit-list-school.html';
+  }
+  if (mod === '退休呈报') return '#';
+  if (mod === '教师入职管理') {
+    var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:"");
+    return (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html';
+  }
+  if (mod === '教师离职管理') {
+    var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:"");
+    return (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html';
+  }
+  return '#';
+}
+
+function openAllTodosModal() {
+  var data = ROLES[currentRole];
+  var todos = data.todos.slice();
+  var body = document.getElementById('allTodosModalBody');
+
+  var reminderTodo = getReminderTodo();
+  if (reminderTodo) { todos.unshift(reminderTodo); }
+
+  // For school admin: add unsubmitted batch counts as regular todo items
+  if (currentRole === 'school') {
+    var staffUnsub = getUnsubmittedCount();
+    if (staffUnsub > 0) {
+      todos.push({ mod: '编制使用申请', group: '编制管理', icon: '📋', iclass: 'blue', pending: staffUnsub, review: 0, reject: 0 });
+    }
+    var recruitUnsub = getRecruitUnsubmittedCount();
+    if (recruitUnsub > 0) {
+      todos.push({ mod: '招聘岗位申请', group: '岗位管理', icon: '🔍', iclass: 'purple', pending: recruitUnsub, review: 0, reject: 0 });
+    }
+  }
+
+  // Deduplicate and sort by total pending (descending)
+  todos = mergeTodos(todos);
+  todos.sort(function(a, b) {
+    var totalA = (a.pending || 0) + (a.review || 0) + (a.reject || 0);
+    var totalB = (b.pending || 0) + (b.review || 0) + (b.reject || 0);
+    return totalB - totalA;
+  });
+  todos = mergeTodos(todos);
+
+  // Filter out zero-count modules
+  todos = todos.filter(function(t) {
+    return (t.pending || 0) + (t.review || 0) + (t.reject || 0) > 0;
+  });
+
+  if (!todos || todos.length === 0) {
+    body.innerHTML = '<div class="alltodos-empty"><div class="empty-icon">🎉</div><div>暂无待办事项</div></div>';
+  } else {
+    var grandTotal = 0;
+    todos.forEach(function(t) { grandTotal += (t.pending || 0) + (t.review || 0) + (t.reject || 0); });
+
+    var html = '';
+    // Single-line summary
+    html += '<div style="text-align:center;padding:4px 0 16px;font-size:14px;color:var(--text-secondary);">共 <strong style="color:var(--primary);font-size:18px;">' + grandTotal + '</strong> 项待处理</div>';
+
+    /* Group by module group */
+    var groups = {};
+    todos.forEach(function(t) {
+      var g = t.group || '其他';
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(t);
+    });
+
+    Object.keys(groups).forEach(function(g) {
+      html += '<div class="alltodos-group-label">' + g + '</div>';
+      groups[g].forEach(function(t) {
+        var total = (t.pending || 0) + (t.review || 0) + (t.reject || 0);
+        var url = getTodoTargetUrl(t.mod);
+        if (t.reminder) {
+          html += '<a class="alltodos-item" href="post-list-school.html">';
+          html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
+          html += '<div class="alltodos-item-name" style="color:var(--danger);">' + t.mod + '</div>';
+          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + total + '</span></div>';
+          html += '<span class="alltodos-item-arrow">→</span></a>';
+        } else if (url !== '#') {
+          html += '<a class="alltodos-item" href="' + url + '">';
+          html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
+          html += '<div class="alltodos-item-name">' + t.mod + '</div>';
+          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + total + '</span></div>';
+          html += '<span class="alltodos-item-arrow">→</span></a>';
+        } else {
+          html += '<div class="alltodos-item" style="cursor:pointer;" onclick="event.preventDefault();showToast(\'跳转至' + t.mod + ' — 待审批列表\');">';
+          html += '<div class="alltodos-item-icon ' + t.iclass + '">' + t.icon + '</div>';
+          html += '<div class="alltodos-item-name">' + t.mod + '</div>';
+          html += '<div class="alltodos-item-counts"><span class="atc-pending">待处理 ' + total + '</span></div>';
+          html += '<span class="alltodos-item-arrow">→</span></div>';
+        }
+      });
+    });
+
+    body.innerHTML = html;
+  }
+  document.getElementById('allTodosModalOverlay').classList.add('show');
+}
+
+function closeAllTodosModal() {
+  document.getElementById('allTodosModalOverlay').classList.remove('show');
+}
+
+// ===== 台账全局锁定检查 =====
+function checkLedgerLocked() {
+  // 仅校管理员可见（主管单位在台账管理页直接审批，工作台不重复提醒）
+  if (currentRole !== 'school') return false;
+  // 检查本校台账是否处于审核中
+  try {
+    var cu = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    var schoolName = cu ? (cu.org || cu.school || '') : '';
+    var ledgerData = JSON.parse(localStorage.getItem('org_ledger') || '{}');
+    if (ledgerData[schoolName] && (ledgerData[schoolName].status === 'pending' || ledgerData[schoolName].status === 'submitted')) {
+      return true;
+    }
+  } catch(e) {}
+  // Demo fallback：校管理员始终显示（模拟台账审核中）
+  return true;
+}
+
+// ===== 学校信息审核状态检查 =====
+function checkSchoolAuditStatus() {
+  // Demo：校管理员始终显示学校信息审核中（正式版改为从 org_directory 读取真实状态）
+  if (currentRole !== 'school') return { status: 'none', reason: '' };
+  // Demo 模拟：校管理员始终看到"待审核"状态
+  return { status: 'pending', reason: '' };
 }
 
 // ===== Init =====

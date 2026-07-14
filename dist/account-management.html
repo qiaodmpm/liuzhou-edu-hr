@@ -305,6 +305,7 @@ tbody tr:hover { background: #FAFBFC; }
     <label>所属角色</label>
     <select class="filter-select" id="roleFilter" onchange="renderAccounts()">
       <option value="all">全部角色</option>
+      <option value="system">系统管理员</option>
       <option value="city">市管理员</option>
       <option value="district">区管理员</option>
       <option value="school">校管理员</option>
@@ -478,7 +479,7 @@ var ROLES = {
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
         { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }] }
       ]
     }
   },
@@ -529,7 +530,7 @@ var ROLES = {
           { id: 'org', label: '机构管理' },
           { id: 'menuMgr', label: '菜单管理' },
           { id: 'perm', label: '角色权限' },
-          { id: 'log', label: '操作日志' }
+          { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }
         ]}
       ]
     }
@@ -572,6 +573,7 @@ function sidebarClick(elOrId, idOrUndefined) {
   else if (id === 'perm') { window.location.href = 'perm-management.html'; }
   else if (id === 'log') { window.location.href = 'log-management.html'; }
   else if (id === 'menuMgr') { window.location.href = 'menu-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('导航到: ' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 
@@ -732,13 +734,14 @@ function loadAccounts() {
   try { admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]'); } catch(e) {}
   if (!admins.length) {
     admins = [
+      { role: 'system',   name: '赵建国', id: '13807720000', school: '柳州教育人事管理平台' },
       { role: 'city',     name: '张建国', id: '13807720001', school: '柳州市教育局' },
       { role: 'district', name: '李振华', id: '13807720002', school: '鱼峰区教育局' },
       { role: 'school',   name: '王玉兰', id: '13807720003', school: '柳州市第八中学' }
     ];
   }
-  var DEFAULT_ADMIN_SCHOOLS = { city: '柳州市教育局', district: '鱼峰区教育局', school: '柳州市第八中学' };
-  var DEFAULT_ADMIN_DISTRICTS = { city: '市直属', district: '鱼峰区', school: '鱼峰区' };
+  var DEFAULT_ADMIN_SCHOOLS = { system: '柳州教育人事管理平台', city: '柳州市教育局', district: '鱼峰区教育局', school: '柳州市第八中学' };
+  var DEFAULT_ADMIN_DISTRICTS = { system: '市直属', city: '市直属', district: '鱼峰区', school: '鱼峰区' };
   for (var ai = 0; ai < admins.length; ai++) {
     var ad = admins[ai];
     if (!ad.school) ad.school = DEFAULT_ADMIN_SCHOOLS[ad.role] || '';
@@ -938,7 +941,7 @@ function renderAccounts() {
       '<td><span class="status-tag ' + (loginClass[a.firstLogin] || '') + '">' + (loginMap[a.firstLogin] || '—') + '</span></td>' +
       '<td style="font-size:12px;color:var(--text-secondary);">' + (a.updatedAt || '—') + '</td>' +
       '<td class="col-action"><div class="action-links">' +
-        ((a.entryRecords && a.entryRecords.length > 0 && !a.firstLogin) ? '<button class="btn-xs btn-xs-primary" onclick="showPassword(\'' + a.accountId + '\')">查看密码</button>' : '<button class="btn-xs btn-xs-outline" onclick="resetPassword(\'' + a.accountId + '\')">重置密码</button>') +
+        ((!a.firstLogin && ((a.entryRecords && a.entryRecords.length > 0) || a.staffingType === '合同制')) ? '<button class="btn-xs btn-xs-primary" onclick="showPassword(\'' + a.accountId + '\')">查看密码</button>' : '<button class="btn-xs btn-xs-outline" onclick="resetPassword(\'' + a.accountId + '\')">重置密码</button>') +
         '<button class="btn-xs btn-xs-outline" onclick="viewAccountModal(\'' + a.accountId + '\')">查看</button>' +
         '<button class="btn-xs btn-xs-outline" onclick="viewAccount(\'' + a.accountId + '\')">个人详情</button>' +
         (a.status !== 'disabled' ? '<button class="btn-xs btn-xs-outline" onclick="editAccount(\'' + a.accountId + '\')">编辑</button>' : '') +
@@ -1175,21 +1178,24 @@ function buildStatusCard(a) {
   var rows = '';
 
   if (type === 'exit') {
-    rows += '<div class="info-row"><span class="info-label">出编形式：</span><span class="info-value">' + escapeHtml(reason) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">出编形式：</span><span class="info-value">出编冻结</span></div>';
     rows += '<div class="info-row"><span class="info-label">出编日期：</span><span class="info-value">' + escapeHtml(date) + '</span></div>';
     rows += '<div class="info-row"><span class="info-label">操作人：</span><span class="info-value">' + escapeHtml(operator) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">出编原因：</span><span class="info-value">' + escapeHtml(reason) + '</span></div>';
     return '<div style="background:#FFF5F5;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin:8px 0;">' +
       '<div style="font-size:11px;font-weight:600;color:#991B1B;margin-bottom:6px;">🔒 出编信息</div>' + rows + '</div>';
   }
   if (type === 'contract_end') {
-    rows += '<div class="info-row"><span class="info-label">离职类型：</span><span class="info-value">' + escapeHtml(reason) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">离职类型：</span><span class="info-value">合同到期</span></div>';
     rows += '<div class="info-row"><span class="info-label">离职日期：</span><span class="info-value">' + escapeHtml(date) + '</span></div>';
     rows += '<div class="info-row"><span class="info-label">操作人：</span><span class="info-value">' + escapeHtml(operator) + '</span></div>';
+    rows += '<div class="info-row"><span class="info-label">离职原因：</span><span class="info-value">' + escapeHtml(reason) + '</span></div>';
     return '<div style="background:#FFF5F5;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin:8px 0;">' +
       '<div style="font-size:11px;font-weight:600;color:#991B1B;margin-bottom:6px;">📋 离职信息</div>' + rows + '</div>';
   }
   // manual / unknown fallback
-  var typeLabel = type === 'manual' ? '手动停用' : (type ? '自动停用' : '停用');
+  var typeMap = { exit: '出编冻结', violation: '违规禁用', manual: '手动停用', other: '其他' };
+  var typeLabel = typeMap[type] || (type ? '自动停用' : '停用');
   rows += '<div class="info-row"><span class="info-label">停用方式：</span><span class="info-value">' + typeLabel + '</span></div>';
   rows += '<div class="info-row"><span class="info-label">停用时间：</span><span class="info-value">' + escapeHtml(date) + '</span></div>';
   rows += '<div class="info-row"><span class="info-label">操作人：</span><span class="info-value">' + escapeHtml(operator) + '</span></div>';
@@ -1207,7 +1213,7 @@ function showCreateModal() {
   var ROLE_ICONS = { system:'🔧', city:'🏙', district:'🏛', school:'🏫', teacher:'👤' };
   // Which roles can this operator create?
   var allowedRoles = [];
-  if (currentRole === 'system') allowedRoles = ['city','district','school','teacher'];
+  if (currentRole === 'system') allowedRoles = ['system','city','district','school','teacher'];
   else if (currentRole === 'city') allowedRoles = ['district','school','teacher'];
   else if (currentRole === 'district') allowedRoles = ['school','teacher'];
   var rolesHTML = '';
@@ -1244,6 +1250,14 @@ function showCreateModal() {
     '<div class="form-group" id="fgCrContractStart" style="display:none;"><label>合同开始日期<span id="reqCrContractStart"></span></label><input type="date" id="crContractStart"></div>' +
     '<div class="form-group" id="fgCrContractEnd" style="display:none;"><label>合同结束日期<span id="reqCrContractEnd"></span></label><input type="date" id="crContractEnd"></div>' +
     '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;" id="crPostHint"></div></fieldset>' +
+
+    // 跨校信息
+    '<fieldset class="modal-fieldset" id="crCrossFieldset"><legend>跨校信息（借调 / 支教 / 轮岗）</legend><div class="form-grid">' +
+    '<div class="form-group"><label>跨校类型</label><select id="crCrossSchoolType" onchange="onCrCrossSchoolTypeChange()"><option value="normal">— 无（在岗）</option><option value="secondment">借调</option><option value="support">支教</option><option value="rotation">轮岗</option></select></div>' +
+    '<div class="form-group" id="fgCrCrossSchool" style="display:none;"><label>任职学校<span id="reqCrCrossSchool"></span></label><div class="searchable-select"><input id="crCrossSchoolInput" placeholder="搜索学校..." autocomplete="off" oninput="filterCrCrossSchoolOptions()" onfocus="toggleCrCrossSchoolDropdown(true)"><div class="school-dropdown" id="crCrossSchoolDropdown"></div><input type="hidden" id="crCrossSchool" value=""></div></div>' +
+    '<div class="form-group" id="fgCrCrossStart" style="display:none;"><label>开始日期<span id="reqCrCrossStart"></span></label><input type="date" id="crCrossStartDate" value=""></div>' +
+    '<div class="form-group" id="fgCrCrossEnd" style="display:none;"><label>结束日期<span id="reqCrCrossEnd"></span></label><input type="date" id="crCrossEndDate" value=""></div>' +
+    '</div></fieldset>' +
 
     '<div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">取消</button>' +
     '<button class="btn-confirm primary" onclick="createAccount()">创建账号</button></div>' +
@@ -1299,6 +1313,8 @@ function onCreateRoleChange() {
   document.getElementById('fgCrEntryMethod').style.display = needsPostInfo ? '' : 'none';
   // 岗位信息
   document.getElementById('crPostFieldset').style.display = needsPostInfo ? '' : 'none';
+  // 跨校信息
+  document.getElementById('crCrossFieldset').style.display = needsPostInfo ? '' : 'none';
 
   if (!needsPostInfo) {
     document.getElementById('crStaffingType').value = '';
@@ -1357,6 +1373,49 @@ function onCreateCategoryChange() {
     h += '<option value="' + options[i] + '">' + options[i] + '</option>';
   }
   lvlEl.innerHTML = h;
+}
+
+// Cross-school type change in create form
+function onCrCrossSchoolTypeChange() {
+  var csType = document.getElementById('crCrossSchoolType').value;
+  var showCross = csType !== 'normal' && csType !== '';
+  document.getElementById('fgCrCrossSchool').style.display = showCross ? '' : 'none';
+  document.getElementById('fgCrCrossStart').style.display = showCross ? '' : 'none';
+  document.getElementById('fgCrCrossEnd').style.display = showCross ? '' : 'none';
+  document.getElementById('reqCrCrossSchool').innerHTML = showCross ? ' <span style="color:var(--danger);">*</span>' : '';
+  document.getElementById('reqCrCrossStart').innerHTML = showCross ? ' <span style="color:var(--danger);">*</span>' : '';
+  document.getElementById('reqCrCrossEnd').innerHTML = showCross ? ' <span style="color:var(--danger);">*</span>' : '';
+  if (!showCross) {
+    document.getElementById('crCrossSchool').value = '';
+    document.getElementById('crCrossSchoolInput').value = '';
+    document.getElementById('crCrossStartDate').value = '';
+    document.getElementById('crCrossEndDate').value = '';
+  }
+}
+
+function filterCrCrossSchoolOptions() {
+  loadSchoolList();
+  var input = document.getElementById('crCrossSchoolInput');
+  var q = (input.value || '').toLowerCase();
+  var html = '';
+  for (var i = 0; i < ALL_SCHOOLS.length; i++) {
+    var s = ALL_SCHOOLS[i];
+    if (q && s.toLowerCase().indexOf(q) === -1) continue;
+    html += '<div class="school-option" onclick="selectCrCrossSchool(\'' + s.replace(/'/g,"\\'") + '\')">' + s + '</div>';
+  }
+  var dd = document.getElementById('crCrossSchoolDropdown');
+  if (dd) { dd.innerHTML = html; dd.classList.add('show'); }
+}
+function selectCrCrossSchool(name) {
+  document.getElementById('crCrossSchoolInput').value = name;
+  document.getElementById('crCrossSchool').value = name;
+  document.getElementById('crCrossSchoolDropdown').classList.remove('show');
+}
+function toggleCrCrossSchoolDropdown(show) {
+  var dd = document.getElementById('crCrossSchoolDropdown');
+  if (!dd) return;
+  if (show) { filterCrCrossSchoolOptions(); dd.classList.add('show'); }
+  else { setTimeout(function() { dd.classList.remove('show'); }, 200); }
 }
 
 function createAccount() {
@@ -1450,10 +1509,10 @@ function createAccount() {
     appointTime: appointTime,
     contractStart: contractStart,
     contractEnd: contractEnd,
-    crossSchoolType: 'normal',
-    crossSchool: '',
-    crossStartDate: '',
-    crossEndDate: '',
+    crossSchoolType: (document.getElementById('crCrossSchoolType') ? document.getElementById('crCrossSchoolType').value : 'normal') || 'normal',
+    crossSchool: (document.getElementById('crCrossSchool') ? document.getElementById('crCrossSchool').value : '') || '',
+    crossStartDate: (document.getElementById('crCrossStartDate') ? document.getElementById('crCrossStartDate').value : '') || '',
+    crossEndDate: (document.getElementById('crCrossEndDate') ? document.getElementById('crCrossEndDate').value : '') || '',
     disableType: '',
     disableReason: '',
     disableDate: '',
@@ -1578,6 +1637,22 @@ function viewAccountModal(accountId) {
     h += '</div></fieldset>';
   }
 
+  // 编制与聘用信息（补录）
+  if (isBianzhi || isContract) {
+    h += '<fieldset class="modal-fieldset"><legend>编制与聘用信息（补录）</legend><div class="form-grid">';
+    if (isBianzhi) {
+      h += fv('入编时间', up.entryDate || a.entryDate || '—');
+      h += fv('编制本人员名册序号', up.rosterBook || a.rosterBook || '—');
+      h += fv('依据文号', up.docNumber || a.docNumber || '—');
+      h += fv('近三年考核', up.assessments || a.assessments || '—');
+    }
+    h += fv('现任职务', up.currentTitle || a.currentTitle || '—');
+    if (isContract) {
+      h += fv('入职时间', up.contractEntryDate || a.contractEntryDate || '—');
+    }
+    h += '</div></fieldset>';
+  }
+
   // 停用信息
   h += buildStatusCard(a);
 
@@ -1660,7 +1735,22 @@ function editAccount(accountId) {
     (a.staffingType === '合同制' ? '<div class="form-group span-full"><label>合同期限</label><div style="font-size:12px;font-weight:500;padding:4px 0;color:var(--text-secondary);">' + (a.contractStart || '—') + ' ~ ' + (a.contractEnd || '—') + ' <span style="font-size:9px;color:var(--text-light);">（只读，变更请走续聘审批）</span></div></div>' : '') +
     '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;">联动：岗位类别改变时，岗位等级选项随之级联更新</div></fieldset>' +
 
-    // 5. 跨校信息
+    // 5. 编制与聘用信息（补录）
+    '<fieldset class="modal-fieldset" id="editModalFillFieldset"><legend>编制与聘用信息（补录）</legend><div class="form-grid">' +
+    // 事业编/控制数显示
+    '<div class="form-group" id="fgEntryDate"><label>入编时间<span id="reqEntryDate2"></span></label><input type="month" id="editEntryDate" value=""></div>' +
+    '<div class="form-group" id="fgRosterBook"><label>编制本人员名册序号</label><input id="editRosterBook" value="" placeholder="如：第5页第3行"></div>' +
+    '<div class="form-group" id="fgDocNumber"><label>依据文号</label><input id="editDocNumber" value="" placeholder="入编依据的文件编号"></div>' +
+    '<div class="form-group" id="fgAssessments"><label>近三年考核</label><input id="editAssessments" value="" placeholder="如：优秀/合格/合格"></div>' +
+    // 全部显示
+    '<div class="form-group span-full"><label>现任职务<span class="req-all"></span></label><select id="editCurrentTitle"><option value="">—</option></select></div>' +
+    // 合同制显示
+    '<div class="form-group" id="fgContractEntryDate"><label>入职时间<span id="reqContractEntry"></span></label><input type="date" id="editContractEntryDate" value=""></div>' +
+    '<div class="form-group" id="fgContractStart"><label>合同起始日期<span id="reqContractStart"></span></label><input type="date" id="editContractStart" value=""></div>' +
+    '<div class="form-group" id="fgContractEnd"><label>合同结束日期<span id="reqContractEnd"></span></label><input type="date" id="editContractEnd" value=""></div>' +
+    '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;">联动：编制类型=事业编/控制数时显示入编信息，编制类型=合同制时显示合同信息。现任职务全部显示。</div></fieldset>' +
+
+    // 6. 跨校信息（借调 / 支教 / 轮岗）
     '<fieldset class="modal-fieldset" id="editModalCrossFieldset"><legend>跨校信息（借调 / 支教 / 轮岗）</legend><div class="form-grid">' +
     '<div class="form-group"><label>跨校类型</label><select id="editCrossSchoolType" onchange="onCrossSchoolTypeChange()"><option value="normal">— 无（在岗）</option><option value="secondment">借调</option><option value="support">支教</option><option value="rotation">轮岗</option></select></div>' +
     '<div class="form-group"><label>任职学校</label><div class="searchable-select"><input id="editCrossSchoolInput" value="" placeholder="搜索学校..." autocomplete="off" oninput="filterCrossSchoolOptions()" onfocus="toggleCrossSchoolDropdown(true)"><div class="school-dropdown" id="editCrossSchoolDropdown"></div><input type="hidden" id="editCrossSchool" value=""></div></div>' +
@@ -1701,6 +1791,19 @@ function editAccount(accountId) {
     setVal('editAssignPosition', up.assignPosition || '');
     setVal('editStaffingType2', up.staffingType || a.staffingType || '');
     setVal('editEntryMethod2', up.entryMethod || a.entryMethod || '');
+    // 补录字段
+    setVal('editEntryDate', up.entryDate || a.entryDate || '');
+    setVal('editRosterBook', up.rosterBook || a.rosterBook || '');
+    setVal('editDocNumber', up.docNumber || a.docNumber || '');
+    setVal('editCurrentTitle', up.currentTitle || a.currentTitle || '');
+    setVal('editAssessments', (up.assessments || []).join(' / ') || (a.assessments || []).join(' / ') || '');
+    setVal('editContractEntryDate', up.contractEntryDate || a.contractEntryDate || '');
+    setVal('editContractStart', up.contractStart || a.contractStart || '');
+    setVal('editContractEnd', up.contractEnd || a.contractEnd || '');
+    // 填充现任职务下拉选项
+    populateTitleOptions(up.currentTitle || a.currentTitle || '');
+    // Trigger new field linkage
+    onStaffingTypeChange_fill();
     // Cross-school fields — set values then trigger linkage
     var csType = a.crossSchoolType || 'normal';
     var csTypeEl = document.getElementById('editCrossSchoolType');
@@ -1833,7 +1936,61 @@ function onStaffingTypeChange_cross() {
   if (reqEm) {
     reqEm.innerHTML = showEntryMethod ? ' <span style="color:var(--danger);">*</span>' : '';
   }
+  // Trigger fill fields linkage
+  onStaffingTypeChange_fill();
 }
+
+// 补录字段联动：编制类型切换时显示/隐藏对应字段
+function onStaffingTypeChange_fill() {
+  var stEl = document.getElementById('editStaffingType2');
+  var stVal = stEl ? stEl.value : '';
+  var isBianzhi = (stVal === '事业编' || stVal === '控制数');
+  var isContract = (stVal === '合同制');
+
+  // 事业编/控制数字段
+  var carreraFields = ['fgEntryDate','fgRosterBook','fgDocNumber','fgAssessments'];
+  for (var i = 0; i < carreraFields.length; i++) {
+    var el = document.getElementById(carreraFields[i]);
+    if (el) el.style.display = isBianzhi ? '' : 'none';
+  }
+
+  // 合同制字段
+  var contractFields = ['fgContractEntryDate','fgContractStart','fgContractEnd'];
+  for (var j = 0; j < contractFields.length; j++) {
+    var el2 = document.getElementById(contractFields[j]);
+    if (el2) el2.style.display = isContract ? '' : 'none';
+  }
+
+  // 入编时间必填标记
+  var reqEd = document.getElementById('reqEntryDate2');
+  if (reqEd) reqEd.innerHTML = isBianzhi ? ' <span style="color:var(--danger);">*</span>' : '';
+
+  // 合同制必填标记
+  var reqContractFields = ['reqContractEntry','reqContractStart','reqContractEnd'];
+  for (var k = 0; k < reqContractFields.length; k++) {
+    var el3 = document.getElementById(reqContractFields[k]);
+    if (el3) el3.innerHTML = isContract ? ' <span style="color:var(--danger);">*</span>' : '';
+  }
+
+  // 现任职务始终显示，必填标记
+  var fgTitle = document.getElementById('fgCurrentTitle');
+  if (fgTitle) fgTitle.style.display = '';
+}
+
+// 填充现任职务下拉选项（来自字典）
+var TITLE_OPTIONS = ['无职称','正高级教师','高级教师','一级教师','二级教师','三级教师','教授','副教授','高级讲师','讲师','助理讲师','教员','高级实习指导教师','一级实习指导教师','二级实习指导教师','三级实习指导教师','高级保育员','中级保育员','初级保育员','特级教师'];
+
+function populateTitleOptions(selectedVal) {
+  var sel = document.getElementById('editCurrentTitle');
+  if (!sel) return;
+  var h = '<option value="">—</option>';
+  for (var i = 0; i < TITLE_OPTIONS.length; i++) {
+    h += '<option value="' + TITLE_OPTIONS[i] + '"' + (TITLE_OPTIONS[i] === selectedVal ? ' selected' : '') + '>' + TITLE_OPTIONS[i] + '</option>';
+  }
+  sel.innerHTML = h;
+}
+// Pre-populate on page load (empty selection)
+setTimeout(function() { populateTitleOptions(''); }, 100);
 
 // Filter school dropdown functions
 function loadSchoolList() {
@@ -1967,6 +2124,29 @@ function saveAccount(accountId) {
   var assignPosition = getVal('editAssignPosition'); if (assignPosition) up.assignPosition = assignPosition; else delete up.assignPosition;
   var staffingType2 = getVal('editStaffingType2'); if (staffingType2) up.staffingType = staffingType2; else delete up.staffingType;
   var entryMethod2 = getVal('editEntryMethod2'); if (entryMethod2) up.entryMethod = entryMethod2; else delete up.entryMethod;
+  // 补录字段
+  var entryDate = getVal('editEntryDate'); if (entryDate) up.entryDate = entryDate; else delete up.entryDate;
+  var rosterBook = getVal('editRosterBook'); if (rosterBook) up.rosterBook = rosterBook; else delete up.rosterBook;
+  var docNumber = getVal('editDocNumber'); if (docNumber) up.docNumber = docNumber; else delete up.docNumber;
+  var currentTitle = getVal('editCurrentTitle'); if (currentTitle) up.currentTitle = currentTitle; else delete up.currentTitle;
+  var assessmentsStr = getVal('editAssessments'); if (assessmentsStr) up.assessments = assessmentsStr.split('/').map(function(s){return s.trim();}).filter(Boolean); else delete up.assessments;
+  var contractEntryDate = getVal('editContractEntryDate'); if (contractEntryDate) up.contractEntryDate = contractEntryDate; else delete up.contractEntryDate;
+  var contractStart = getVal('editContractStart'); if (contractStart) up.contractStart = contractStart; else delete up.contractStart;
+  var contractEnd = getVal('editContractEnd'); if (contractEnd) up.contractEnd = contractEnd; else delete up.contractEnd;
+  // Also save to account record for display in account list
+  for (var k = 0; k < accounts.length; k++) {
+    if (accounts[k].accountId === accountId) {
+      accounts[k].entryDate = entryDate || '';
+      accounts[k].rosterBook = rosterBook || '';
+      accounts[k].docNumber = docNumber || '';
+      accounts[k].currentTitle = currentTitle || '';
+      if (assessmentsStr) accounts[k].assessments = assessmentsStr.split('/').map(function(s){return s.trim();}).filter(Boolean);
+      accounts[k].contractEntryDate = contractEntryDate || '';
+      accounts[k].contractStart = contractStart || '';
+      accounts[k].contractEnd = contractEnd || '';
+      break;
+    }
+  }
   localStorage.setItem('user_profile_' + idCard, JSON.stringify(up));
   closeModal();
   showToast('账号信息已更新', 'success');
@@ -1982,7 +2162,8 @@ function showConfirmModal(title, msg, accountId, action) {
   pendingAction = action;
   var reasonInput = '';
   if (action === 'disable') {
-    reasonInput = '<div class="form-group" style="margin-top:12px;"><label>停用原因 <span style="color:var(--danger);">*</span></label><input id="disableReasonInput" placeholder="请输入停用原因" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;outline:none;"></div>';
+    reasonInput = '<div class="form-group" style="margin-top:12px;"><label>停用类型 <span style="color:var(--danger);">*</span></label><select id="disableTypeSelect" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;outline:none;background:#fff;"><option value="">请选择停用类型</option><option value="exit">出编冻结</option><option value="violation">违规禁用</option><option value="other">其他</option></select></div>' +
+    '<div class="form-group" style="margin-top:12px;"><label>停用原因 <span style="color:var(--danger);">*</span></label><input id="disableReasonInput" placeholder="请输入停用原因" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;outline:none;"></div>';
   }
   document.getElementById('modalContainer').innerHTML =
     '<div class="modal-overlay" onclick="if(event.target===this)closeConfirmModal()">' +
@@ -2021,6 +2202,9 @@ function executePendingAction() {
     showToast('账号已恢复', 'success');
     if (typeof writeLog === 'function') writeLog({ module: 'account', actionType: 'enable', targetType: 'account', targetId: pendingAccountId, detail: '恢复账号', result: 'success' });
   } else if (pendingAction === 'disable') {
+    var typeEl = document.getElementById('disableTypeSelect');
+    var disableType = typeEl ? typeEl.value : '';
+    if (!disableType) { showToast('请选择停用类型', 'warning'); return; }
     var reasonEl = document.getElementById('disableReasonInput');
     var reason = reasonEl ? reasonEl.value.trim() : '';
     if (!reason) { showToast('请输入停用原因', 'warning'); return; }
@@ -2030,7 +2214,7 @@ function executePendingAction() {
     for (var i = 0; i < accounts.length; i++) {
       if (accounts[i].accountId === pendingAccountId) {
         accounts[i].status = 'disabled';
-        accounts[i].disableType = 'manual';
+        accounts[i].disableType = disableType;
         accounts[i].disableReason = reason;
         accounts[i].disableDate = nowStr;
         accounts[i].disableOperator = currentUser.name || '管理员';

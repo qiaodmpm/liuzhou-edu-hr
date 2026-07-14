@@ -318,6 +318,18 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .fe-fields .fe-field input:focus, .fe-fields .fe-field select:focus { border-color: var(--primary); outline: none; }
 .fe-add-child { margin-top: 8px; }
 
+/* Checkbox dropdown multi-select */
+.cb-dropdown { position: relative; display: inline-block; width: 100%; }
+.cb-dropdown-toggle { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.cb-dropdown-toggle:hover { border-color: var(--primary); }
+.cb-dropdown-toggle .arrow { font-size: 10px; color: var(--text-light); transition: var(--transition); }
+.cb-dropdown.open .cb-dropdown-toggle .arrow { transform: rotate(180deg); }
+.cb-dropdown-panel { display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10; max-height: 200px; overflow-y: auto; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: var(--shadow); margin-top: 2px; }
+.cb-dropdown.open .cb-dropdown-panel { display: block; }
+.cb-dropdown-panel label { display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; margin: 0; }
+.cb-dropdown-panel label:hover { background: var(--primary-light); }
+.cb-dropdown-panel input[type="checkbox"] { margin: 0; }
+
 /* ===== Edit modal layout ===== */
 .edit-block { margin-bottom: 14px; }
 .edit-block:last-child { margin-bottom: 0; }
@@ -456,6 +468,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
   </div>
 </div>
 
+<script src="src/menu-config.js"></script>
 <script>
 window.onerror = function(msg, url, line, col, err) { var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d); };
 
@@ -1249,7 +1262,7 @@ function findTeacherRecords(records, teacherName) {
 }
 
 function buildProfile(data) {
-  var p = { name: targetTeacher.name, school: targetTeacher.school, role: currentRole, gender: '', ethnicity: '', birthDate: '', idCard: '', politicalStatus: '', education: '', graduateInfo: '', spouseName: '', spouseWorkUnit: '', currentPost: '', currentTitle: '', appointTime: '', categoryName: '', staffingType: '', entryMethod: '', assignPosition: '', phone: '', email: '' };
+  var p = { name: targetTeacher.name, school: targetTeacher.school, role: currentRole, gender: '', ethnicity: '', birthDate: '', idCard: '', politicalStatus: '', education: '', graduateInfo: '', spouseName: '', spouseWorkUnit: '', currentPost: '', currentTitle: '', appointTime: '', categoryName: '', staffingType: '', entryMethod: '', assignPosition: '', phone: '', email: '', household: '' };
   // ID card — from targetTeacher (accountId mode) first, then exit records
   if (targetTeacher.idCard) p.idCard = targetTeacher.idCard;
   // Staffing type — fallback from teacher_accounts (for contract teachers etc.)
@@ -1325,6 +1338,7 @@ function buildProfile(data) {
   if (up.assignPosition) p.assignPosition = up.assignPosition;
   if (up.phone) p.phone = up.phone;
   if (up.email) p.email = up.email;
+  if (up.household) p.household = up.household;
   if (up.spouseName !== undefined) p.spouseName = up.spouseName;
   if (up.spouseWorkUnit !== undefined) p.spouseWorkUnit = up.spouseWorkUnit;
   // New editable fields: job, title, degree, teachingInfo
@@ -1430,24 +1444,30 @@ function buildProfile(data) {
 
 // ===== RENDER =====
 function renderSidebar() {
-  var roleData = ROLES[currentRole] || ROLES.teacher;
-  // Check if contract teacher
-  var isContract = false;
-  if (currentRole === 'teacher' && targetTeacher) {
-    var upCheck = loadUserProfile();
-    var accounts = [];
-    try { accounts = JSON.parse(localStorage.getItem('teacher_accounts') || '[]'); } catch(e) {}
-    for (var ai = 0; ai < accounts.length; ai++) {
-      if (accounts[ai].name === targetTeacher.name) { isContract = accounts[ai].staffingType === '合同制'; break; }
+  // Teacher: keep hardcoded sidebar (custom menu not in standard config)
+  if (currentRole === 'teacher') {
+    var roleData = ROLES.teacher;
+    var isContract = false;
+    if (targetTeacher) {
+      var upCheck = loadUserProfile();
+      var accounts = [];
+      try { accounts = JSON.parse(localStorage.getItem('teacher_accounts') || '[]'); } catch(e) {}
+      for (var ai = 0; ai < accounts.length; ai++) {
+        if (accounts[ai].name === targetTeacher.name) { isContract = accounts[ai].staffingType === '合同制'; break; }
+      }
+      if (!isContract && upCheck.staffingType === '合同制') isContract = true;
     }
-    if (!isContract && upCheck.staffingType === '合同制') isContract = true;
+    var s = roleData.sidebar, html = '';
+    (s.top||[]).forEach(function(i) { html += '<a class="menu-item' + (i.id==='person'?' active':'') + '" onclick="sidebarClick(this,\'' + i.id + '\')"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="menu-label">' + i.label + '</span></a>'; });
+    (s.groups||[]).forEach(function(g) { html += '<div class="menu-group">' + g.name + '</div>'; g.items.forEach(function(i) { if (isContract && i.id === 'promote') return; html += '<a class="menu-item" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id]||'file']||'') + '<span class="menu-label">' + i.label + '</span>' + (i.badge?'<span class="menu-badge">'+i.badge+'</span>':'') + '</a>'; }); });
+    document.getElementById('sidebarMenu').innerHTML = html;
+  } else {
+    // Admin roles: use dynamic sidebar from menu-config
+    renderSidebarMenu('sidebarMenu', currentRole, 'workbench');
   }
-  var s = roleData.sidebar, html = '';
-  (s.top||[]).forEach(function(i) { html += '<a class="menu-item' + (i.id==='person'?' active':'') + '" onclick="sidebarClick(this,\'' + i.id + '\')"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="menu-label">' + i.label + '</span></a>'; });
-  (s.groups||[]).forEach(function(g) { html += '<div class="menu-group">' + g.name + '</div>'; g.items.forEach(function(i) { if (isContract && i.id === 'promote') return; html += '<a class="menu-item" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id]||'file']||'') + '<span class="menu-label">' + i.label + '</span>' + (i.badge?'<span class="menu-badge">'+i.badge+'</span>':'') + '</a>'; }); });
-  document.getElementById('sidebarMenu').innerHTML = html;
   document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
   // Use currentUser name for top nav, fallback to role default
+  var roleData = ROLES[currentRole] || ROLES.teacher;
   var cu = null;
   try { cu = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch(e) {}
   var displayName = (cu && cu.name) ? cu.name : roleData.name;
@@ -1456,19 +1476,33 @@ function renderSidebar() {
 }
 
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i){i.classList.remove('active');}); el.classList.add('active');
+  // Handle the case where sidebarClick is called from menu-config (single argument: id)
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) {
+    document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i){i.classList.remove('active');});
+    el.classList.add('active');
+  }
   if (id==='workbench') { window.location.href='workbench.html'; return; }
   if (id==='person') return;
   if (id==='promote') { window.location.href='promote-list-teacher.html'; return; }
   if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
   if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
   if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : (typeof currentRole!=='undefined'?currentRole:''); window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
-
-
-  else if (id === 'account') { window.location.href = 'account-management.html'; }
-
-  else if (id === 'org') { window.location.href = 'org-management.html'; }
-  showToast('跳转至：' + (el.querySelector('.menu-label')?el.querySelector('.menu-label').textContent:id));
+  if (id === 'account') { window.location.href = 'account-management.html'; return; }
+  if (id === 'org') { window.location.href = 'org-management.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'entry') { var urole = (typeof currentUser!=='undefined'&&currentUser)?currentUser.role:currentRole; window.location.href = (urole==='city'||urole==='district')?'entry-list-admin.html':'entry-list-school.html'; return; }
+  if (id === 'exit') { var urole2 = (typeof currentUser!=='undefined'&&currentUser)?currentUser.role:currentRole; window.location.href = (urole2==='city'||urole2==='district')?'exit-list-admin.html':'exit-list-school.html'; return; }
+  if (id === 'postset') { var urole3 = (typeof currentUser!=='undefined'&&currentUser)?currentUser.role:currentRole; window.location.href = (urole3==='city'||urole3==='district')?'post-list-admin.html':'post-list-school.html'; return; }
+  if (id === 'recruit') { var urole4 = (typeof currentUser!=='undefined'&&currentUser)?currentUser.role:currentRole; window.location.href = (urole4==='city'||urole4==='district')?'recruit-list-admin.html':'recruit-list-school.html'; return; }
+  if (id === 'employ') { var urole5 = (typeof currentUser!=='undefined'&&currentUser)?currentUser.role:currentRole; window.location.href = (urole5==='city'||urole5==='district')?'employ-list-admin.html':'employ-list-school.html'; return; }
+  if (id === 'retire') { var urole6 = (typeof currentUser!=='undefined'&&currentUser)?currentUser.role:currentRole; window.location.href = (urole6==='city'||urole6==='district')?'retire-list-admin.html':'retire-list-school.html'; return; }
+  if (id === 'ethics') { window.location.href = 'ethics-list.html'; return; }
+  if (id === 'perm') { window.location.href = 'perm-management.html'; return; }
+  if (id === 'log') { window.location.href = 'log-management.html'; return; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+  if (id === 'menuMgr') { window.location.href = 'menu-management.html'; return; }
+  if (el) showToast('跳转至：' + (el.querySelector('.menu-label')?el.querySelector('.menu-label').textContent:id));
 }
 
 function switchRole(role) {
@@ -1561,7 +1595,7 @@ function renderStaffingTab(data) {
       fields.push({label:'编制类型',value:'事业编'},{label:'籍贯',value:(e.nativeProvince||'')+' '+(e.nativeCity||'')+' '+(e.nativeDistrict||'')},{label:'原任职务',value:e.previousJob},{label:'单位性质',value:e.orgNature},{label:'经费来源',value:e.fundType},{label:'干部/工人',value:e.cadreOrWorker},{label:'职称',value:e.title},{label:'拟安排岗位',value:e.assignPosition},{label:'入编方式',value:e.entryMethod},{label:'文件编号',value:e.docNumber},{label:'用编理由',value:e.reason});
     } else {
       var mp = e._matchedPerson || {};
-      fields.push({label:'编制类型',value:'控制数'},{label:'控制数类型',value:e.controlType},{label:'身份证号',value:mp.idCard},{label:'入编方式',value:mp.entryMethod},{label:'文件编号',value:mp.docNumber});
+      fields.push({label:'编制类型',value:'控制数'},{label:'控制数类型',value:e.controlType},{label:'身份证号',value:mp.idCard},{label:'入编方式',value:mp.entryMethod},{label:'依据文号',value:mp.docNumber});
     }
     fields.push({label:'审批状态',value:getStatusLabel(e.status)});
     fields.push({label:'编制批次',value:e.batchName||'—'});
@@ -1588,10 +1622,10 @@ function renderStaffingTab(data) {
       h += '<span class="tl-title">' + (isIn ? '调入：' + (r.schoolName||'—') : '调出：' + (r.schoolName||'—')) + '</span>';
       h += '<span class="status-badge ' + getStatusClass(r.status) + '">' + getStatusLabel(r.status) + '</span></div>';
       if (isIn) {
-        h += '<div class="tl-detail">入编方式：' + (r.entryMethod||'—') + ' | 文件编号：' + (r.docNumber||'—') + '</div>';
+        h += '<div class="tl-detail">入编方式：' + (r.entryMethod||'—') + ' | 依据文号：' + (r.docNumber||'—') + '</div>';
       } else {
         var per = t.person || {};
-        h += '<div class="tl-detail">出编类型：调动 | 文件编号：' + (per.docNumber||'—') + '</div>';
+        h += '<div class="tl-detail">出编类型：调动 | 依据文号：' + (per.docNumber||'—') + '</div>';
       }
       h += '</div>';
     });
@@ -1606,7 +1640,7 @@ function renderStaffingTab(data) {
         if (per.name !== targetTeacher.name) return;
         h += '<div class="field-grid">';
         h += fv('出编类型', per.exitForm); h += fv('出编日期', r.submitTime?r.submitTime.substring(0,10):'—');
-        h += fv('文件编号', per.docNumber||'—'); h += fv('编制本名册序号', per.rosterBook||'—');
+        h += fv('依据文号', per.docNumber||'—'); h += fv('编制本人员名册序号', per.rosterBook||'—');
         h += fv('审批状态', getStatusLabel(r.status));
         h += '</div>';
         h += '<div style="margin-top:10px;font-size:12px;font-weight:600;color:var(--text-secondary);">附件资料</div>';
@@ -1616,13 +1650,51 @@ function renderStaffingTab(data) {
     h += '</div>';
   }
 
-  return h || '<div class="content-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无编制信息</div></div></div>';
+  // 若业务模块无数据，尝试读取补录数据展示
+  if (!h) {
+    var fillData = getFillData();
+    if (fillData.entryDate) {
+      h = '<div class="content-card"><h3><span class="card-icon">📋</span>编制信息</h3>';
+      h += '<div class="field-grid">';
+      h += fv('编制类型', fillData.staffingType || '—');
+      h += fv('入编时间', fillData.entryDate || '—');
+      h += fv('入编方式', fillData.entryMethod || '—');
+      h += fv('依据文号', fillData.docNumber || '—');
+      h += fv('编制本人员名册序号', fillData.rosterBook || '—');
+      h += '</div>';
+      h += '<div style="font-size:10px;color:var(--text-light);margin-top:8px;">※ 以上数据由校管理员补录</div></div>';
+      return h;
+    }
+  }
+  return h || '<div class="content-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无编制信息</div><div class="empty-hint">请联系校管理员在账号管理中补录</div></div></div>';
+}
+
+// 读取补录数据
+function getFillData() {
+  var idCard = (targetTeacher && targetTeacher.idCard) || '';
+  try { return JSON.parse(localStorage.getItem('user_profile_' + idCard) || '{}'); } catch(e) { return {}; }
 }
 
 // ===== TAB: POST INFO =====
 function renderPostTab(data) {
   var h = '';
   var promotes = data.promote;
+
+  // If no promotion records, try fill data
+  if (promotes.length === 0) {
+    var fd2 = getFillData();
+    if (fd2.categoryName || fd2.currentPost) {
+      h += '<div class="content-card"><h3><span class="card-icon">📊</span>当前岗位</h3>';
+      h += '<div class="field-grid">';
+      h += fv('岗位类别', fd2.categoryName || '—');
+      h += fv('当前等级', fd2.currentPost || '—');
+      h += fv('现任职务', fd2.currentTitle || '—');
+      h += fv('任职时间', fd2.appointTime || '—');
+      h += fv('近三年考核', (fd2.assessments || []).join(' / ') || '—');
+      h += '</div>';
+      h += '<div style="font-size:10px;color:var(--text-light);margin-top:8px;">※ 以上数据由校管理员补录</div></div>';
+    }
+  }
 
   // Current post
   if (promotes.length > 0) {
@@ -1640,7 +1712,7 @@ function renderPostTab(data) {
   // Promotion history
   h += '<div class="content-card"><h3><span class="card-icon">📈</span>晋升历程</h3>';
   if (promotes.length === 0) {
-    h += '<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">暂无晋升记录</div><div class="empty-hint"><a href="promote-list-teacher.html" style="color:var(--primary);">去申报 →</a></div></div>';
+    h += '<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">暂无晋升记录</div><div class="empty-hint">如需补录历史岗位信息，请联系校管理员在账号管理中补录 | <a href="promote-list-teacher.html" style="color:var(--primary);">去申报 →</a></div></div>';
   } else {
     h += '<div class="timeline">';
     promotes.forEach(function(pm, idx) {
@@ -1674,7 +1746,7 @@ function renderEmployTab(data) {
   var h = '';
   h += '<div class="content-card"><h3><span class="card-icon">📝</span>聘用记录</h3>';
   if (data.employ.length === 0) {
-    h += '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">暂无聘用记录</div></div>';
+    h += '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">暂无聘用记录</div><div class="empty-hint">如需补录历史聘用信息，请联系校管理员在账号管理中补录</div></div>';
   } else {
     data.employ.forEach(function(er, idx) {
       er.persons.forEach(function(per) {
@@ -1747,7 +1819,21 @@ function renderContractEmployTab(profile) {
     h += '</div></div>';
   }
 
-  return h || '<div class="content-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无合同与聘用记录</div></div></div>';
+  // 若业务模块无数据，尝试读取补录数据展示
+  if (!h) {
+    var fd3 = getFillData();
+    if (fd3.contractStart) {
+      h = '<div class="content-card"><h3><span class="card-icon">📋</span>合同与聘用</h3>';
+      h += '<div class="field-grid">';
+      h += fv('入职时间', fd3.contractEntryDate || '—');
+      h += fv('合同起止', (fd3.contractStart||'—') + ' 至 ' + (fd3.contractEnd||'—'));
+      h += fv('现任职务', fd3.currentTitle || '—');
+      h += '</div>';
+      h += '<div style="font-size:10px;color:var(--text-light);margin-top:8px;">※ 以上数据由校管理员补录</div></div>';
+      return h;
+    }
+  }
+  return h || '<div class="content-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无合同与聘用记录</div><div class="empty-hint">如需补录，请联系校管理员在账号管理中补录</div></div></div>';
 }
 
 // ===== TAB: PERSONNEL INFO =====
@@ -1846,6 +1932,7 @@ function renderProfileCard(profile) {
   var meta = [];
   if (profile.gender) meta.push(profile.gender);
   if (profile.ethnicity) meta.push(profile.ethnicity);
+  if (profile.household) meta.push('户籍地：' + profile.household);
   if (profile.birthDate) meta.push(profile.birthDate);
   h += meta.join('<span class="meta-sep">|</span>') + '<br>';
   var meta2 = [];
@@ -2040,21 +2127,17 @@ function renderTabs() {
   var profile = buildProfile(findTeacherRecords(loadData(), targetTeacher.name));
   var isContract = profile.staffingType === '合同制';
   var tabs = [];
+  // 基本信息 — 全部角色
+  tabs.push({ key:'profile', label:'基本信息' });
   if (isContract) {
-    tabs = [
-      { key:'contract', label:'合同与聘用' },
-      { key:'personnel', label:'人事信息' },
-      { key:'login', label:'登录历史' }
-    ];
+    tabs.push({ key:'contract', label:'合同与聘用' });
   } else {
-    tabs = [
-      { key:'staffing', label:'编制信息' },
-      { key:'post', label:'岗位信息' },
-      { key:'employ', label:'聘用信息' },
-      { key:'personnel', label:'人事信息' },
-      { key:'login', label:'登录历史' }
-    ];
+    tabs.push({ key:'staffing', label:'编制信息' });
+    tabs.push({ key:'post', label:'岗位信息' });
+    tabs.push({ key:'employ', label:'聘用信息' });
   }
+  tabs.push({ key:'personnel', label:'人事信息' });
+  tabs.push({ key:'login', label:'登录历史' });
   var h = '<div class="info-tabs">';
   tabs.forEach(function(t) {
     h += '<span class="info-tab' + (currentTab===t.key?' active':'') + '" onclick="switchTab(\'' + t.key + '\')">' + t.label + '</span>';
@@ -2081,6 +2164,56 @@ function loadUserProfile() {
 function saveUserProfile(up) {
   var key = getUserProfileKey();
   localStorage.setItem(key, JSON.stringify(up));
+}
+
+// ===== 户籍地级联数据 =====
+var REGION_DATA = {
+  '北京市': { cities: { '北京市': ['东城区','西城区','朝阳区','海淀区','丰台区','石景山区'] }},
+  '广西壮族自治区': { cities: {
+    '南宁市': ['青秀区','兴宁区','西乡塘区','良庆区','江南区','邕宁区'],
+    '柳州市': ['城中区','鱼峰区','柳南区','柳北区','柳江区','鹿寨县','融安县'],
+    '桂林市': ['秀峰区','叠彩区','象山区','七星区','雁山区','临桂区']
+  }},
+  '广东省': { cities: {
+    '广州市': ['越秀区','海珠区','荔湾区','天河区','白云区','黄埔区'],
+    '深圳市': ['福田区','罗湖区','南山区','宝安区','龙岗区','龙华区']
+  }}
+};
+var ALL_PROVINCES = Object.keys(REGION_DATA);
+
+function populateHhProvinceOptions(selectedVal) {
+  var sel = document.getElementById('editHhProvince');
+  if (!sel) return;
+  var h = '<option value="">请选择</option>';
+  for (var i = 0; i < ALL_PROVINCES.length; i++) {
+    h += '<option value="'+ALL_PROVINCES[i]+'"'+ (ALL_PROVINCES[i]===selectedVal?' selected':'') +'>'+ALL_PROVINCES[i]+'</option>';
+  }
+  sel.innerHTML = h;
+}
+
+function onHhProvinceChange() {
+  var prov = document.getElementById('editHhProvince').value;
+  var citySel = document.getElementById('editHhCity');
+  var distSel = document.getElementById('editHhDistrict');
+  citySel.innerHTML = '<option value="">请选择</option>';
+  distSel.innerHTML = '<option value="">请选择</option>';
+  if (!prov || !REGION_DATA[prov]) return;
+  var cities = Object.keys(REGION_DATA[prov].cities);
+  for (var i = 0; i < cities.length; i++) {
+    citySel.innerHTML += '<option value="'+cities[i]+'">'+cities[i]+'</option>';
+  }
+}
+
+function onHhCityChange() {
+  var prov = document.getElementById('editHhProvince').value;
+  var city = document.getElementById('editHhCity').value;
+  var distSel = document.getElementById('editHhDistrict');
+  distSel.innerHTML = '<option value="">请选择</option>';
+  if (!prov || !city || !REGION_DATA[prov] || !REGION_DATA[prov].cities[city]) return;
+  var districts = REGION_DATA[prov].cities[city];
+  for (var i = 0; i < districts.length; i++) {
+    distSel.innerHTML += '<option value="'+districts[i]+'">'+districts[i]+'</option>';
+  }
 }
 
 // ===== EDIT PROFILE HELPERS =====
@@ -2176,7 +2309,14 @@ function renderCertEditorHTML(cert, isRequired) {
 
   h += '<div class="cert-editor-row">';
   h += '<div class="cert-field"><label>证书名称</label><input type="text" id="cert_name_' + cert.id + '" value="' + escapeHtml(cert.certName||'') + '" placeholder="如：高级中学教师资格证"></div>';
-  h += '<div class="cert-field"><label>资格种类</label><input type="text" id="cert_category_' + cert.id + '" value="' + escapeHtml(cert.certCategory||'') + '" placeholder="如：高中数学"></div>';
+  h += '<div class="cert-field"><label>资格种类</label><select id="cert_category_' + cert.id + '" style="width:100%;padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;">';
+  h += '<option value="">请选择</option>';
+  var subjOpts = (ENUMS.subject || []);
+  for (var si = 0; si < subjOpts.length; si++) {
+    if (!subjOpts[si]) continue;
+    h += '<option value="' + subjOpts[si] + '"' + (cert.certCategory === subjOpts[si] ? ' selected' : '') + '>' + subjOpts[si] + '</option>';
+  }
+  h += '</select></div>';
   h += '</div>';
   h += '<div class="cert-editor-row">';
   h += '<div class="cert-field"><label>证书编号</label><input type="text" id="cert_no_' + cert.id + '" value="' + escapeHtml(cert.certNo||'') + '" placeholder="证书编号"></div>';
@@ -2190,7 +2330,7 @@ function renderCertEditorHTML(cert, isRequired) {
   h += '</div>';
 
   // Attachment
-  h += '<div style="margin-top:6px;"><label style="font-size:11px;color:var(--text-light);">证书附件' + (isRequired ? '（必传）' : '（选填）') + '</label>';
+  h += '<div style="margin-top:6px;"><label style="font-size:11px;color:var(--text-light);">证书附件（必传）</label>';
   if (cert.attachment) {
     h += '<div class="edit-attach-item" id="edit_certattach_' + cert.id + '">';
     h += '<span class="attach-info"><span class="attach-name">📄 ' + escapeHtml(cert.attachment.name) + '</span> <span class="attach-meta">(' + formatSize(cert.attachment.size) + ')</span>';
@@ -2324,12 +2464,53 @@ function removeChildEditor(idx) {
   }
 }
 
+function renderCheckboxDropdown(name, options, selectedVals, placeholder) {
+  var selSet = {};
+  (selectedVals || []).forEach(function(v) { selSet[v] = true; });
+  var selectedLabels = (selectedVals || []).join('、') || placeholder;
+  var h = '<div class="cb-dropdown" id="cb_' + name + '">';
+  h += '<div class="cb-dropdown-toggle" onclick="toggleCbDropdown(\'' + name + '\')">';
+  h += '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(selectedLabels) + '</span>';
+  h += '<span class="arrow">▼</span></div>';
+  h += '<div class="cb-dropdown-panel">';
+  for (var i = 0; i < options.length; i++) {
+    if (!options[i]) continue;
+    h += '<label><input type="checkbox" class="chk-' + name + '" value="' + escapeHtml(options[i]) + '"' + (selSet[options[i]] ? ' checked' : '') + ' onchange="updateCbToggle(\'' + name + '\')"> ' + escapeHtml(options[i]) + '</label>';
+  }
+  h += '</div></div>';
+  return h;
+}
+function toggleCbDropdown(name) {
+  var el = document.getElementById('cb_' + name);
+  if (el) el.classList.toggle('open');
+}
+function updateCbToggle(name) {
+  var el = document.getElementById('cb_' + name);
+  if (!el) return;
+  var checks = el.querySelectorAll('.chk-' + name + ':checked');
+  var labels = [];
+  for (var i = 0; i < checks.length; i++) { labels.push(checks[i].value); }
+  var span = el.querySelector('.cb-dropdown-toggle span');
+  if (span) span.textContent = labels.length > 0 ? labels.join('、') : (name === 'secPeriod' ? '请选择学段' : '请选择学科');
+}
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.cb-dropdown')) {
+    var all = document.querySelectorAll('.cb-dropdown.open');
+    for (var i = 0; i < all.length; i++) { all[i].classList.remove('open'); }
+  }
+});
+
 function showEditProfileModal() {
   var profile = loadUserProfile();
   // Merge with entry data for non-editable display
   var records = loadData();
   var data = findTeacherRecords(records, targetTeacher.name);
   var entryProfile = buildProfile(data);
+  // 继承入编模块已有的身份证附件
+  if (!profile.idCardAttachment && entryProfile.idCardAttachment) {
+    profile.idCardAttachment = entryProfile.idCardAttachment;
+  }
 
   // Detect setup mode
   var isSetup = (getUrlParam('mode') === 'setup');
@@ -2352,32 +2533,23 @@ function showEditProfileModal() {
     c += '</div>';
   }
 
-  // === Block 1: Read-only Basic Info ===
-  c += '<div class="edit-block"><div class="edit-block-title">📋 基本信息（来源于人事档案，不可修改）</div>';
-  c += '<div class="edit-readonly-grid">';
-  c += '<div class="edit-readonly-item"><span class="erl">姓名</span><div class="erv">' + escapeHtml(entryProfile.name) + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">性别</span><div class="erv">' + escapeHtml(entryProfile.gender||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">民族</span><div class="erv">' + escapeHtml(entryProfile.ethnicity||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">出生年月</span><div class="erv">' + escapeHtml(entryProfile.birthDate||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">身份证号</span><div class="erv">' + escapeHtml(entryProfile.idCard||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">毕业院校</span><div class="erv">' + escapeHtml(entryProfile.graduateInfo||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">单位名称</span><div class="erv">' + escapeHtml(entryProfile.school||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">编制类型</span><div class="erv">' + escapeHtml(entryProfile.staffingType||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">岗位类别</span><div class="erv">' + escapeHtml(entryProfile.categoryName||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">岗位等级</span><div class="erv">' + escapeHtml(entryProfile.currentPost||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">岗位名称</span><div class="erv">' + escapeHtml(entryProfile.assignPosition||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">任职时间</span><div class="erv">' + escapeHtml(entryProfile.appointTime||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">入编方式</span><div class="erv">' + escapeHtml(entryProfile.entryMethod||'—') + '</div></div>';
-  c += '</div></div>';
-
-  // === Block 2: Editable Info ===
-  c += '<div class="edit-block-divider"></div>';
+  // === Block 1: Editable Info ===
   c += '<div class="edit-block"><div class="edit-block-title">✏️ 可编辑信息</div>';
 
   // Political status
   c += '<div class="edit-form-group"><label>政治面貌<span style="color:var(--danger);">*</span></label>';
   c += renderSelect('editPolitics', 'editPolitics', ['中共党员','中共预备党员','共青团员','民主党派','群众'], profile.politicalStatus || entryProfile.politicalStatus || '', '请选择');
   c += '</div>';
+
+  // 户籍地 — 省/市/区三级级联下拉
+  var curHousehold = profile.household || '';
+  var hhParts = curHousehold ? curHousehold.split('/') : [];
+  var hhProvince = hhParts[0] || '';
+  var hhCity = hhParts[1] || '';
+  var hhDistrict = hhParts[2] || '';
+  c += '<div class="edit-form-row"><div class="edit-form-group"><label>户籍地 — 省</label><select id="editHhProvince" onchange="onHhProvinceChange()"><option value="">请选择</option></select></div>';
+  c += '<div class="edit-form-group"><label>市</label><select id="editHhCity" onchange="onHhCityChange()"><option value="">请选择</option></select></div>';
+  c += '<div class="edit-form-group"><label>区/县</label><select id="editHhDistrict"><option value="">请选择</option></select></div></div>';
 
   // Education — moved from read-only to editable
   var curEdu = profile.education || entryProfile.education || '';
@@ -2437,9 +2609,9 @@ function showEditProfileModal() {
   c += renderSelect('editMainPeriod', 'editMainPeriod', ENUMS.period, ti.mainPeriod||'', '请选择');
   c += '</div>';
 
-  // Other periods (multi-select)
+  // Other periods (checkbox dropdown)
   c += '<div class="edit-form-group"><label>其他任教学段（可多选）</label>';
-  c += renderMultiSelect('editSecPeriods', 'editSecPeriods', ENUMS.period, ti.secPeriods||[], 5);
+  c += renderCheckboxDropdown('secPeriod', ENUMS.period, ti.secPeriods||[], '请选择学段');
   c += '</div>';
 
   // Main subject
@@ -2447,9 +2619,9 @@ function showEditProfileModal() {
   c += renderSelect('editMainSubject', 'editMainSubject', ENUMS.subject, ti.mainSubject||'', '请选择');
   c += '</div>';
 
-  // Other subjects (multi-select)
+  // Other subjects (checkbox dropdown)
   c += '<div class="edit-form-group"><label>其他任教学科（可多选）</label>';
-  c += renderMultiSelect('editSecSubjects', 'editSecSubjects', ENUMS.subject, ti.secSubjects||[], 5);
+  c += renderCheckboxDropdown('secSubject', ENUMS.subject, ti.secSubjects||[], '请选择学科');
   c += '</div>';
 
   // Chinese level
@@ -2487,7 +2659,26 @@ function showEditProfileModal() {
   c += '<input type="file" id="editEduCertFile" accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="handleEditAttachUpload(\'eduCert\', this)">';
   c += '</div>'; // end attachments
 
-  // === Block 4: Family ===
+  // === Block 4: Read-only Basic Info ===
+  c += '<div class="edit-block-divider"></div>';
+  c += '<div class="edit-block"><div class="edit-block-title">📋 基本信息（来源于人事档案，不可修改）</div>';
+  c += '<div class="edit-readonly-grid">';
+  c += '<div class="edit-readonly-item"><span class="erl">姓名</span><div class="erv">' + escapeHtml(entryProfile.name) + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">性别</span><div class="erv">' + escapeHtml(entryProfile.gender||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">民族</span><div class="erv">' + escapeHtml(entryProfile.ethnicity||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">出生年月</span><div class="erv">' + escapeHtml(entryProfile.birthDate||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">身份证号</span><div class="erv">' + escapeHtml(entryProfile.idCard||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">毕业院校</span><div class="erv">' + escapeHtml(entryProfile.graduateInfo||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">单位名称</span><div class="erv">' + escapeHtml(entryProfile.school||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">编制类型</span><div class="erv">' + escapeHtml(entryProfile.staffingType||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">岗位类别</span><div class="erv">' + escapeHtml(entryProfile.categoryName||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">岗位等级</span><div class="erv">' + escapeHtml(entryProfile.currentPost||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">岗位名称</span><div class="erv">' + escapeHtml(entryProfile.assignPosition||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">任职时间</span><div class="erv">' + escapeHtml(entryProfile.appointTime||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">入编方式</span><div class="erv">' + escapeHtml(entryProfile.entryMethod||'—') + '</div></div>';
+  c += '</div></div>';
+
+  // === Block 5: Family ===
   c += '<div class="edit-block-divider"></div>';
   c += '<div class="edit-block"><div class="edit-block-title">👪 家庭信息</div>';
 
@@ -2592,13 +2783,24 @@ function showEditProfileModal() {
   window._editTeachCert = teachCert;
   window._editOtherCerts = otherCerts;
   window._editEduCerts = eduCerts.slice();
-  window._editIdCardFile = null;
-  window._editPhotoFile = null;
+  window._editIdCardFile = undefined;
+  window._editPhotoFile = undefined;
   window._editEduCertFiles = [];
   window._editChildren = (fm.children || []).slice();
   window._editIsSetup = isSetup;
   window._smsVerified = false;
   window._smsCountdown = 0;
+
+  // 初始化户籍地级联下拉
+  populateHhProvinceOptions(hhProvince);
+  if (hhProvince) { onHhProvinceChange(); setTimeout(function() {
+    var citySel = document.getElementById('editHhCity');
+    if (citySel && hhCity) { citySel.value = hhCity; onHhCityChange(); }
+    setTimeout(function() {
+      var distSel = document.getElementById('editHhDistrict');
+      if (distSel && hhDistrict) { distSel.value = hhDistrict; }
+    }, 50);
+  }, 50); }
 }
 
 // ===== SMS VERIFICATION =====
@@ -2701,23 +2903,27 @@ function saveEditProfile() {
   ti.mainSubject = document.getElementById('editMainSubject') ? document.getElementById('editMainSubject').value : '';
   ti.chineseLevel = document.getElementById('editChineseLevel') ? document.getElementById('editChineseLevel').value : '';
 
-  // Multi-select: secPeriods
+  // Multi-select: secPeriods (checkbox dropdown)
   ti.secPeriods = [];
-  var spEl = document.getElementById('editSecPeriods');
-  if (spEl) {
-    for (var spi = 0; spi < spEl.options.length; spi++) {
-      if (spEl.options[spi].selected && spEl.options[spi].value !== '') ti.secPeriods.push(spEl.options[spi].value);
-    }
-  }
-  // Multi-select: secSubjects
+  var spChecks = document.querySelectorAll('.chk-sec-period:checked');
+  for (var spi = 0; spi < spChecks.length; spi++) { ti.secPeriods.push(spChecks[spi].value); }
+  // Multi-select: secSubjects (checkbox dropdown)
   ti.secSubjects = [];
-  var ssEl = document.getElementById('editSecSubjects');
-  if (ssEl) {
-    for (var ssi = 0; ssi < ssEl.options.length; ssi++) {
-      if (ssEl.options[ssi].selected && ssEl.options[ssi].value !== '') ti.secSubjects.push(ssEl.options[ssi].value);
-    }
-  }
+  var ssChecks = document.querySelectorAll('.chk-sec-subject:checked');
+  for (var ssi = 0; ssi < ssChecks.length; ssi++) { ti.secSubjects.push(ssChecks[ssi].value); }
   up.teachingInfo = ti;
+
+  // 户籍地
+  var hhProv = document.getElementById('editHhProvince') ? document.getElementById('editHhProvince').value : '';
+  var hhCity = document.getElementById('editHhCity') ? document.getElementById('editHhCity').value : '';
+  var hhDist = document.getElementById('editHhDistrict') ? document.getElementById('editHhDistrict').value : '';
+  if (hhProv && hhCity && hhDist) {
+    up.household = hhProv + '/' + hhCity + '/' + hhDist;
+  } else if (hhProv) {
+    up.household = hhProv; // Allow partial save
+  } else {
+    delete up.household;
+  }
 
   // Helper: validate required fields for a family member
   function validateFmFields(prefix, label, isChild) {
@@ -2864,6 +3070,15 @@ function saveEditProfile() {
   }
   up.certificates = newCerts;
 
+  // 继承入编模块已有的身份证附件
+  if (!up.idCardAttachment) {
+    var records2 = loadData();
+    var data2 = findTeacherRecords(records2, targetTeacher.name);
+    var entryP = buildProfile(data2);
+    if (entryP.idCardAttachment) {
+      up.idCardAttachment = entryP.idCardAttachment;
+    }
+  }
   // Validate ID card attachment (always required)
   if (!up.idCardAttachment) {
     showToast('请上传身份证附件（必填）', 'warning');
@@ -2903,13 +3118,19 @@ function renderContent() {
     currentTab = 'contract';
   }
 
+  // 默认选中基本信息
+  if (!currentTab) currentTab = 'profile';
+  // URL 参数支持
+  var urlTab = getUrlParam('tab');
+  if (urlTab) currentTab = urlTab;
+
   var h = '';
-  h += renderProfileCard(profile);
   h += renderTabs();
   document.getElementById('contentArea').innerHTML = h;
 
   var tc = document.getElementById('tabContent');
-  if (currentTab === 'staffing') tc.innerHTML = renderStaffingTab(data);
+  if (currentTab === 'profile') tc.innerHTML = renderProfileCard(profile);
+  else if (currentTab === 'staffing') tc.innerHTML = renderStaffingTab(data);
   else if (currentTab === 'post') tc.innerHTML = renderPostTab(data);
   else if (currentTab === 'employ') tc.innerHTML = renderEmployTab(data);
   else if (currentTab === 'contract') tc.innerHTML = renderContractEmployTab(profile);

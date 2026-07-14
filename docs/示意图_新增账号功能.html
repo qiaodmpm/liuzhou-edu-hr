@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新增账号功能 — 页面示意图 v3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Noto Sans SC', sans-serif; background:#F1F5F9; color:#1E293B; padding:30px; }
+  h1 { font-size:22px; margin-bottom:4px; }
+  .subtitle { color:#64748B; font-size:13px; margin-bottom:24px; }
+  h2 { font-size:16px; margin:36px 0 14px; padding-bottom:6px; border-bottom:1px solid #E2E8F0; }
+  h3 { font-size:13px; margin:6px 0 4px; color:#64748B; }
+  .scene-label { display:inline-block; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:500; margin-right:6px; }
+  .scene-label.a { background:#EFF6FF; color:#1E40AF; }
+  .scene-label.b { background:#FEF3C7; color:#92400E; }
+  .scene-label.c { background:#D1FAE5; color:#065F46; }
+
+  .scene-row { display:flex; gap:14px; margin-bottom:8px; }
+  .scene-card { flex:1; background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden; min-width:0; }
+  .scene-topbar { background:linear-gradient(135deg,#1E3A8A,#1E40AF); height:28px; display:flex; align-items:center; padding:0 10px; gap:5px; }
+  .scene-topbar .dot { width:7px; height:7px; border-radius:50%; }
+  .scene-topbar .dot.r { background:#EF4444; } .scene-topbar .dot.y { background:#F59E0B; } .scene-topbar .dot.g { background:#10B981; }
+  .scene-topbar .title { color:rgba(255,255,255,0.55); font-size:9px; margin-left:4px; }
+  .scene-body { padding:12px; }
+
+  fieldset { border:1px solid #E2E8F0; border-radius:6px; padding:8px 10px; margin-bottom:6px; }
+  legend { font-size:10px; font-weight:600; color:#1E40AF; padding:0 4px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; }
+  .fg { display:flex; flex-direction:column; gap:2px; }
+  .fg label { font-size:9px; color:#64748B; font-weight:500; }
+  .fg select, .fg input { padding:4px 6px; border:1px solid #E2E8F0; border-radius:4px; font-size:10px; font-family:inherit; }
+  .fg .hint { font-size:8px; color:#94A3B8; }
+  .req { color:#EF4444; }
+  .span2 { grid-column:1 / -1; }
+
+  .btn-sm { padding:5px 14px; border-radius:4px; font-size:11px; font-weight:500; cursor:pointer; border:1px solid transparent; font-family:inherit; }
+  .btn-primary { background:#1E40AF; color:#fff; }
+  .btn-outline { background:#fff; color:#64748B; border-color:#E2E8F0; }
+
+  .hl-box { border:2px dashed #F59E0B; border-radius:6px; padding:6px; position:relative; }
+  .hl-box::before { content:'注意'; position:absolute; top:-10px; left:8px; background:#F59E0B; color:#fff; font-size:8px; padding:1px 5px; border-radius:3px; font-weight:600; }
+
+  .role-chk { display:inline-flex; align-items:center; gap:3px; font-size:10px; margin-right:10px; }
+  .role-chk.disabled { opacity:0.35; pointer-events:none; }
+
+  .divider { height:1px; background:#E2E8F0; margin:6px 0; }
+  .anno { font-size:10px; color:#64748B; background:#F8FAFC; padding:6px 10px; border-radius:4px; margin-top:6px; border-left:2px solid #3B82F6; line-height:1.5; }
+  .pwd-card { background:linear-gradient(135deg,#EFF6FF,#F8FAFC); border:2px dashed #3B82F6; border-radius:8px; padding:12px; text-align:center; }
+  .pwd-display { font-family:'Courier New',monospace; font-size:18px; font-weight:700; color:#1E40AF; letter-spacing:2px; margin:4px 0; }
+
+  .step-box { display:flex; gap:8px; margin:10px 0; }
+  .step { flex:1; background:#EFF6FF; border:1px solid #DBEAFE; border-radius:6px; padding:8px; text-align:center; font-size:10px; }
+  .step .num { display:inline-block; width:18px; height:18px; border-radius:50%; background:#1E40AF; color:#fff; font-size:9px; font-weight:700; line-height:18px; margin-bottom:2px; }
+  .step .label { font-weight:600; color:#1E40AF; }
+  .step .desc { font-size:9px; color:#64748B; }
+
+  .note { font-size:10px; color:#D97706; padding:6px 8px; background:#FFFBEB; border-radius:4px; border:1px solid #FDE68A; }
+  .disabled-field { opacity:0.35; pointer-events:none; }
+  .readonly-val { font-size:11px; font-weight:500; padding:5px 0; color:#64748B; }
+  .readonly-tag { font-size:8px; background:#F1F5F9; color:#94A3B8; padding:1px 4px; border-radius:2px; margin-left:4px; }
+</style>
+</head>
+<body>
+
+<h1>新增账号功能 — 页面示意图 v3</h1>
+<p class="subtitle">account-management.html · 角色权限 × 编制类型 × 岗位信息联动</p>
+
+<!-- ====== SCENE 1: 三种角色入口 + 角色候选 ====== -->
+<h2>一、所属角色候选（按操作者过滤）</h2>
+
+<div class="scene-row">
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">系统管理员 — 全角色可选</span></div>
+    <div class="scene-body">
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">新增账号</div>
+      <fieldset><legend>账号信息</legend>
+        <div class="form-grid">
+          <div class="fg span2"><label>所属角色 <span class="req">*</span></label>
+            <div>
+              <span class="role-chk"><input type="checkbox"> 市管理员</span>
+              <span class="role-chk"><input type="checkbox"> 区管理员</span>
+              <span class="role-chk"><input type="checkbox"> 校管理员</span>
+              <span class="role-chk"><input type="checkbox" checked> 教师</span>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+      <div class="anno">系统管理员可新建任何角色账号。</div>
+    </div>
+  </div>
+
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">市管理员 — 不可选市管理员</span></div>
+    <div class="scene-body">
+      <div class="hl-box">
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">新增账号</div>
+      <fieldset><legend>账号信息</legend>
+        <div class="form-grid">
+          <div class="fg span2"><label>所属角色 <span class="req">*</span></label>
+            <div>
+              <span class="role-chk disabled"><input type="checkbox" disabled> <span style="color:#94A3B8;">市管理员</span></span>
+              <span class="role-chk"><input type="checkbox"> 区管理员</span>
+              <span class="role-chk"><input type="checkbox"> 校管理员</span>
+              <span class="role-chk"><input type="checkbox" checked> 教师</span>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+      </div>
+      <div class="anno">市管理员不能新增同级或上级，市管理员选项置灰。</div>
+    </div>
+  </div>
+
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">区管理员 — 仅校管理员+教师可选</span></div>
+    <div class="scene-body">
+      <div class="hl-box">
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">新增账号</div>
+      <fieldset><legend>账号信息</legend>
+        <div class="form-grid">
+          <div class="fg span2"><label>所属角色 <span class="req">*</span></label>
+            <div>
+              <span class="role-chk disabled"><input type="checkbox" disabled> <span style="color:#94A3B8;">市管理员</span></span>
+              <span class="role-chk disabled"><input type="checkbox" disabled> <span style="color:#94A3B8;">区管理员</span></span>
+              <span class="role-chk"><input type="checkbox"> 校管理员</span>
+              <span class="role-chk"><input type="checkbox" checked> 教师</span>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+      </div>
+      <div class="anno">区管理员仅可建校管理员和教师，且范围仅限本辖区。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCENE 2: 三种弹框 ====== -->
+<h2>二、新增弹框 — 按角色+编制类型三重联动</h2>
+
+<div class="scene-row">
+  <!-- A: 教师·事业编 -->
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title"><span class="scene-label a">教师</span> 事业编 — 岗位信息全部必填</span></div>
+    <div class="scene-body">
+      <fieldset><legend>账号信息</legend>
+        <div class="form-grid">
+          <div class="fg span2"><label>所属角色 <span class="req">*</span></label><div><span class="role-chk"><input type="checkbox" checked> 教师</span></div></div>
+          <div class="fg"><label>所属单位 <span class="req">*</span></label><input value="柳州市第八中学"></div>
+          <div class="fg"><label>编制类型 <span class="req">*</span></label><select><option>—</option><option selected>事业编</option><option>控制数</option><option>合同制</option></select></div>
+          <div class="fg"><label>入编方式 <span class="req">*</span></label><select><option>—</option><option>统一公开招聘</option><option>…</option></select></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>岗位信息</legend>
+        <div class="form-grid">
+          <div class="fg"><label>岗位类别 <span class="req">*</span></label><select><option>—</option><option>专业技术岗位</option><option>管理岗位</option><option>工勤技能岗位</option></select></div>
+          <div class="fg"><label>岗位等级 <span class="req">*</span></label><select><option>—</option></select></div>
+          <div class="fg"><label>岗位名称 <span class="req">*</span></label><input placeholder="如：语文教师"></div>
+          <div class="fg"><label>任职时间 <span class="req">*</span></label><input type="month"></div>
+        </div>
+      </fieldset>
+      <div class="anno">事业编/控制数：<b>岗位信息四个字段全部必填</b>。入编方式显示+必填。合同期限隐藏。</div>
+    </div>
+  </div>
+
+  <!-- B: 教师·合同制 -->
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title"><span class="scene-label b">教师</span> 合同制 — 岗位名称+任职时间+合同期限必填</span></div>
+    <div class="scene-body">
+      <fieldset><legend>账号信息</legend>
+        <div class="form-grid">
+          <div class="fg span2"><label>所属角色 <span class="req">*</span></label><div><span class="role-chk"><input type="checkbox" checked> 教师</span></div></div>
+          <div class="fg"><label>所属单位 <span class="req">*</span></label><input value="柳州市第八中学"></div>
+          <div class="fg"><label>编制类型 <span class="req">*</span></label><select><option>—</option><option>事业编</option><option>控制数</option><option selected>合同制</option></select></div>
+          <div class="fg"><label>入编方式</label><select disabled class="disabled-field"><option>—</option></select><div class="hint">合同制无入编方式</div></div>
+        </div>
+      </fieldset>
+      <div class="hl-box">
+      <fieldset style="border-color:#F59E0B;">
+        <legend style="color:#92400E;">岗位信息</legend>
+        <div class="form-grid">
+          <div class="fg"><label>岗位类别</label><select><option>—</option><option>专业技术岗位</option><option>管理岗位</option><option>工勤技能岗位</option></select></div>
+          <div class="fg"><label>岗位等级</label><select><option>—</option></select></div>
+          <div class="fg"><label>岗位名称 <span class="req">*</span></label><input placeholder="如：语文教师"></div>
+          <div class="fg"><label>任职时间 <span class="req">*</span></label><input type="month"></div>
+          <div class="span2"><div class="divider"></div></div>
+          <div class="fg"><label>合同开始日期 <span class="req">*</span></label><input type="date"></div>
+          <div class="fg"><label>合同结束日期 <span class="req">*</span></label><input type="date"></div>
+        </div>
+        <div class="hint">※ 创建后合同期限只读，变更走续聘审批。</div>
+      </fieldset>
+      </div>
+      <div class="anno">合同制：入编方式隐藏；<b>岗位名称+任职时间必填</b>；岗位类别+等级选填；合同期限必填。</div>
+    </div>
+  </div>
+
+  <!-- C: 管理员（不含教师） -->
+  <div class="scene-card">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title"><span class="scene-label c">管理员</span> 仅校管理员 — 无岗位信息</span></div>
+    <div class="scene-body">
+      <fieldset><legend>账号信息</legend>
+        <div class="form-grid">
+          <div class="fg"><label>姓名 <span class="req">*</span></label><input placeholder="姓名"></div>
+          <div class="fg"><label>身份证号 <span class="req">*</span></label><input placeholder="18位身份证号"></div>
+          <div class="fg"><label>手机号 <span class="req">*</span></label><input placeholder="11位手机号"></div>
+          <div class="fg span2"><label>所属角色 <span class="req">*</span></label><div><span class="role-chk"><input type="checkbox" checked> 校管理员</span></div></div>
+          <div class="fg"><label>所属单位 <span class="req">*</span></label><input placeholder="搜索单位..."></div>
+          <!-- 编制类型 隐藏 -->
+        </div>
+      </fieldset>
+      <div class="hl-box">
+        <div style="text-align:center;padding:16px;color:#94A3B8;font-size:11px;border:1px dashed #CBD5E1;border-radius:6px;">
+          📌 管理员账号无需填写<br>编制类型和岗位信息
+        </div>
+      </div>
+      <div class="anno">管理员角色不含"教师"：<b>编制类型</b>和<b>岗位信息</b>区域整体隐藏。只需填账号信息。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCENE 3: 创建成功 → 初始密码 ====== -->
+<h2>三、创建成功 → 自动弹初始密码 + 列表刷新</h2>
+
+<div class="scene-row">
+  <div class="scene-card" style="max-width:520px;">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">创建成功后自动弹出</span></div>
+    <div class="scene-body">
+
+      <div class="step-box">
+        <div class="step"><div class="num">1</div><div class="label">校验通过</div></div>
+        <div class="step"><div class="num">2</div><div class="label">写入数据</div></div>
+        <div class="step"><div class="num">3</div><div class="label">列表刷新</div></div>
+        <div class="step"><div class="num">4</div><div class="label">弹密码</div></div>
+      </div>
+
+      <div class="hl-box">
+      <div class="pwd-card">
+        <div style="font-size:11px;color:#64748B;margin-bottom:4px;">🔑 账号已创建 — 请线下传递给教师</div>
+        <div style="font-size:10px;color:#64748B;">登录账号（身份证号）</div>
+        <div style="font-family:monospace;font-size:13px;font-weight:600;">450201199608150009</div>
+        <div style="font-size:10px;color:#64748B;margin-top:6px;">初始密码</div>
+        <div class="pwd-display">Edu@19960009</div>
+        <button class="btn-sm btn-outline" style="margin-top:6px;">📋 复制密码</button>
+        <div style="font-size:9px;color:#EF4444;margin-top:6px;">⚠ 教师首次登录后需修改密码</div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCENE 4: 编辑弹框合同期限只读 ====== -->
+<h2>四、编辑弹框 — 合同期限创建后只读</h2>
+
+<div class="scene-row">
+  <div class="scene-card" style="max-width:520px;">
+    <div class="scene-topbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">编辑账号 — 合同制教师（已创建）</span></div>
+    <div class="scene-body">
+      <fieldset><legend>账号信息</legend>…</fieldset>
+      <fieldset><legend>归属信息</legend>…</fieldset>
+
+      <div class="hl-box">
+      <fieldset style="border-color:#F59E0B;">
+        <legend style="color:#92400E;">岗位信息</legend>
+        <div class="form-grid">
+          <div class="fg"><label>岗位名称</label><input value="语文教师"></div>
+          <div class="fg"><label>任职时间</label><input type="month" value="2024-07"></div>
+          <div class="span2"><div class="divider"></div></div>
+          <div class="fg"><label>合同开始日期</label>
+            <div class="readonly-val">2026-07-01 <span class="readonly-tag">只读</span></div>
+          </div>
+          <div class="fg"><label>合同结束日期</label>
+            <div class="readonly-val">2029-06-30 <span class="readonly-tag">只读</span></div>
+          </div>
+        </div>
+        <div class="hint">※ 合同期限创建后不可编辑。变更请走续聘审批流程。</div>
+      </fieldset>
+      </div>
+
+      <div class="note">⚠ 合同变更需在编外教师管理模块发起续聘/变更申请，主管单位审核通过后自动更新 contractEnd。</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

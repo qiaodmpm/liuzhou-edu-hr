@@ -251,6 +251,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 window.onerror = function(msg,url,line){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d);};
 
@@ -335,16 +336,10 @@ function getRejectReason(r){ return r.rejectReason || r.opinion || ''; }
 
 /* ---------- sidebar / role ---------- */
 function renderSidebar(){
-  var rd=ROLES[currentRole]; if(!rd)return;
-  var h='';
-  (rd.sidebar.top||[]).forEach(function(i){h+='<a class="menu-item" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[i.icon]||'')+'<span class="menu-label">'+i.label+'</span></a>';});
-  (rd.sidebar.groups||[]).forEach(function(g){
-    h+='<div class="menu-group">'+g.name+'</div>';
-    g.items.forEach(function(i){h+='<a class="menu-item'+(i.id==='contract-exit'?' active':'')+'" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[MENU_ICONS[i.id]||'file'])+'<span class="menu-label">'+i.label+'</span>'+(i.badge?'<span class="menu-badge">'+i.badge+'</span>':'')+'</a>';});
-  });
-  document.getElementById('sidebarMenu').innerHTML=h;
+  renderSidebarMenu('sidebarMenu', currentRole, 'contract-exit');
 }
 function sidebarClick(el,id){
+  if (arguments.length === 1) { id = el; el = null; }
   var admin=isAdmin();
   if(id==='contract-exit'){ goBack(); return; }
   if(id==='workbench'){window.location.href='workbench.html';return;}
@@ -363,6 +358,7 @@ function sidebarClick(el,id){
   if(id==='org'){window.location.href='org-management.html';return;}
   if(id==='perm'){showToast('角色权限页面开发中');return;}
   if(id==='log'){showToast('操作日志页面开发中');return;}
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('跳转至：'+(el.textContent||id));
 }
 function switchRole(role){

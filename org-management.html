@@ -369,7 +369,7 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
         <legend>管理信息</legend>
         <div class="form-grid">
           <div class="form-group">
-            <label>单位主管 <span class="required">*</span></label>
+            <label>单位管理员 <span class="required">*</span></label>
             <select id="fSchoolAdmin"></select>
           </div>
           <div class="form-group">
@@ -394,20 +394,20 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
   </div>
 </div>
 
-<!-- Delete Confirm Modal -->
-<div class="modal-overlay" id="deleteModal">
+<!-- Confirm Modal (reusable for disable/enable) -->
+<div class="modal-overlay" id="confirmModal">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
-      <h3>确认停用</h3>
-      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+      <h3 id="confirmTitle">确认操作</h3>
+      <button class="modal-close" onclick="closeConfirm()">✕</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:14px;color:var(--text-secondary);">确定要停用机构 <strong id="deleteTargetName"></strong> 吗？</p>
-      <p style="font-size:12px;color:var(--text-light);margin-top:6px;">停用后该机构将从活动列表中隐藏，但数据保留。</p>
+      <p style="font-size:14px;color:var(--text-secondary);" id="confirmMsg"></p>
+      <p style="font-size:12px;color:var(--text-light);margin-top:6px;" id="confirmSubMsg"></p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeDeleteModal()">取消</button>
-      <button class="btn btn-danger" id="deleteConfirmBtn" onclick="confirmDelete()">确认停用</button>
+      <button class="btn btn-outline" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmBtn">确认</button>
     </div>
   </div>
 </div>
@@ -452,7 +452,7 @@ function getDemoOrgs() {
     { orgId:'gxlzh-00-008', orgName:'柳州市第三中学', orgShortName:'柳州三中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234573', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区北站路19号', phone:'0772-3800006', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-03-28' },
     // ===== 鱼峰区 =====
     { orgId:'gxlzh-08-001', orgName:'鱼峰区教育局', orgShortName:'鱼峰教育局', district:'鱼峰区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450203MB01234585', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区蝴蝶山路1号', phone:'0772-3830007', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-08-002', orgName:'柳州市第八中学', orgShortName:'柳州八中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234574', status:'active', schoolAdminId:'13807720003', schoolAdminName:'王玉兰', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区东环大道120号', phone:'0772-3830001', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-12' },
+    { orgId:'gxlzh-08-002', orgName:'柳州市第八中学', orgShortName:'柳州八中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234574', status:'active', schoolAdminId:'S001', schoolAdminName:'王玉兰', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区东环大道120号', phone:'0772-3830001', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-12' },
     { orgId:'gxlzh-08-003', orgName:'柳州市第十三中学', orgShortName:'柳州十三中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234575', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区荣军路31号', phone:'0772-3830002', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-05-30' },
     { orgId:'gxlzh-08-004', orgName:'柳州市第二十五中学', orgShortName:'柳州二十五中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234576', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区屏山大道55号', phone:'0772-3830003', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-05-18' },
     { orgId:'gxlzh-08-005', orgName:'柳州市第六中学', orgShortName:'柳州六中', district:'鱼峰区', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234577', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区柳石路21号', phone:'0772-3830004', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-04-22' },
@@ -536,8 +536,16 @@ function init() {
     localStorage.setItem('org_directory', JSON.stringify(orgDirectory));
   }
 
-  // Backfill change logs for orgs without one
   var needsSave = false;
+
+  // Migrate: fix legacy schoolAdminId format (phone number → admin account ID)
+  var ID_MIGRATIONS = { '13807720003': 'S001' };
+  for (var mi = 0; mi < orgDirectory.length; mi++) {
+    var newId = ID_MIGRATIONS[orgDirectory[mi].schoolAdminId];
+    if (newId) { orgDirectory[mi].schoolAdminId = newId; needsSave = true; }
+  }
+
+  // Backfill change logs for orgs without one
   for (var ci = 0; ci < orgDirectory.length; ci++) {
     if (!orgDirectory[ci].changeLog || !orgDirectory[ci].changeLog.length) {
       orgDirectory[ci].changeLog = [{
@@ -562,6 +570,26 @@ function init() {
   if (mergeMissingDemoOrgs()) {
     localStorage.setItem('org_directory', JSON.stringify(orgDirectory));
   }
+
+  // Backfill role_permissions to ensure all expected menus are present
+  var FULL_MENU_IDS = ['workbench','ledger','staffing','entry','exit','postset','promote','recruit','employ','contract-entry','contract-exit','retire','ethics','account','org','menuMgr','perm','log','announcement'];
+  try {
+    var rp = JSON.parse(localStorage.getItem('role_permissions') || 'null');
+    if (rp) {
+      var rpChanged = false;
+      ['system','city','district','school'].forEach(function(role) {
+        if (rp[role] && rp[role].permissions) {
+          FULL_MENU_IDS.forEach(function(mid) {
+            if (rp[role].permissions.indexOf(mid) === -1) {
+              rp[role].permissions.push(mid);
+              rpChanged = true;
+            }
+          });
+        }
+      });
+      if (rpChanged) { localStorage.setItem('role_permissions', JSON.stringify(rp)); }
+    }
+  } catch(e) {}
 
   renderSidebar();
   renderRoleSwitcher();
@@ -603,7 +631,7 @@ function renderPage() {
       }
     }
     if (schoolOrgId) {
-      window.location.href = 'org-ledger-detail.html?orgId=' + encodeURIComponent(schoolOrgId);
+      window.location.href = 'org-detail.html?orgId=' + encodeURIComponent(schoolOrgId);
       return;
     }
     // School admin but no matching org found — show empty state
@@ -785,7 +813,8 @@ function sidebarClick(id) {
     org: 'org-management.html',
     perm: 'perm-management.html',
     log: 'log-management.html',
-    menuMgr: 'menu-management.html'
+    menuMgr: 'menu-management.html',
+    announcement: 'announcement-management.html'
   };
   var dest = ROUTES[id];
   if (dest) {
@@ -946,7 +975,7 @@ function renderOrgTable(orgs, title, isPending) {
   h += '<th style="width:150px;">单位名称</th>';
   h += '<th style="width:80px;">所属区域</th>';
   h += '<th style="width:90px;">组织类型</th>';
-  h += '<th style="width:90px;">单位主管</th>';
+  h += '<th style="width:90px;">单位管理员</th>';
   h += '<th style="width:90px;">更新时间</th>';
   h += '<th style="width:60px;">状态</th>';
   h += '<th style="width:160px;">操作</th>';
@@ -989,7 +1018,7 @@ function renderOrgTable(orgs, title, isPending) {
     var isPending = o.reviewStatus === 'pending';
 
     // View button: everyone
-    h += '<a class="btn-xs btn-xs-outline" href="org-ledger-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&mode=view">查看</a>';
+    h += '<a class="btn-xs btn-xs-outline" href="org-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&mode=view">查看</a>';
 
     if (isPending) {
       // Pending: admin can review, school can only view
@@ -997,9 +1026,10 @@ function renderOrgTable(orgs, title, isPending) {
         // Check jurisdiction for review
         var canReview = true;
         if (currentUser.role === 'district' && o.district !== (currentUser.district || '')) canReview = false;
-        if ((currentUser.role === 'system' || currentUser.role === 'city') && o.district !== '市直属') canReview = false;
+        if (currentUser.role === 'city' && o.district !== '市直属') canReview = false;
+        // 系统管理员可审核全平台所有待审核机构，不做 district 限制
         if (canReview) {
-          h += '<a class="btn-xs btn-xs-primary" href="org-ledger-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&action=review">审核</a>';
+          h += '<a class="btn-xs btn-xs-primary" href="org-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&action=review">审核</a>';
         }
       }
     } else {
@@ -1009,17 +1039,24 @@ function renderOrgTable(orgs, title, isPending) {
         // Jurisdiction check for edit/disable
         var canEdit = true;
         if (currentUser.role === 'district' && o.district !== (currentUser.district || '')) canEdit = false;
+        // 已停用的机构不允许编辑
+        if (o.status === 'inactive') canEdit = false;
         if (canEdit) {
           h += '<button class="btn-xs btn-xs-primary" onclick="openEditModal(\'' + escAttr(o.orgId) + '\')">编辑</button>';
           if (o.status === 'active') {
             h += '<button class="btn-xs btn-xs-danger" onclick="openDeleteModal(\'' + escAttr(o.orgId) + '\')">停用</button>';
           } else {
-            h += '<button class="btn-xs btn-xs-primary" onclick="reactivateOrg(\'' + escAttr(o.orgId) + '\')">启用</button>';
+            h += '<button class="btn-xs btn-xs-primary" onclick="confirmReactivate(\'' + escAttr(o.orgId) + '\')">启用</button>';
           }
+        } else if (o.status === 'inactive') {
+          // 已停用机构仅显示启用按钮
+          h += '<button class="btn-xs btn-xs-primary" onclick="confirmReactivate(\'' + escAttr(o.orgId) + '\')">启用</button>';
         }
       } else if (isSchool) {
-        // School: can edit their own school
-        h += '<a class="btn-xs btn-xs-primary" href="org-ledger-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&action=edit">编辑</a>';
+        // School: can only edit their own active school
+        if (o.status === 'active') {
+          h += '<a class="btn-xs btn-xs-primary" href="org-detail.html?orgId=' + encodeURIComponent(o.orgId) + '&action=edit">编辑</a>';
+        }
       }
     }
 
@@ -1075,6 +1112,8 @@ function openEditModal(orgId) {
     if (orgDirectory[i].orgId === orgId) { o = orgDirectory[i]; break; }
   }
   if (!o) return;
+  // 已停用的机构不允许编辑
+  if (o.status === 'inactive') { showToast('已停用的机构不可编辑，请先启用', 'warning'); return; }
 
   editingOrgId = orgId;
   document.getElementById('formModalTitle').textContent = '编辑机构';
@@ -1198,7 +1237,7 @@ function saveOrg() {
   if (creditCode.length !== 18) { showToast('统一社会信用代码须为18位', 'warning'); return; }
 
   var schoolAdminId = document.getElementById('fSchoolAdmin').value;
-  if (!schoolAdminId) { showToast('请选择单位主管', 'warning'); return; }
+  if (!schoolAdminId) { showToast('请选择单位管理员', 'warning'); return; }
 
   if (!document.getElementById('fSchoolCategory').value) { showToast('请选择岗位设置分类', 'warning'); return; }
   if (!document.getElementById('fAddress').value.trim()) { showToast('请输入单位地址', 'warning'); return; }
@@ -1320,15 +1359,20 @@ function openDeleteModal(orgId) {
   deletingOrgId = orgId;
   for (var i = 0; i < orgDirectory.length; i++) {
     if (orgDirectory[i].orgId === orgId) {
-      document.getElementById('deleteTargetName').textContent = orgDirectory[i].orgName;
+      document.getElementById('confirmTitle').textContent = '确认停用';
+      document.getElementById('confirmMsg').textContent = '确定要停用机构「' + orgDirectory[i].orgName + '」吗？';
+      document.getElementById('confirmSubMsg').textContent = '停用后该机构将从活动列表中隐藏，但数据保留。';
+      document.getElementById('confirmBtn').className = 'btn btn-danger';
+      document.getElementById('confirmBtn').textContent = '确认停用';
+      document.getElementById('confirmBtn').onclick = confirmDelete;
       break;
     }
   }
-  document.getElementById('deleteModal').classList.add('show');
+  document.getElementById('confirmModal').classList.add('show');
 }
 
-function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.remove('show');
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('show');
   deletingOrgId = null;
 }
 
@@ -1338,7 +1382,23 @@ function confirmDelete() {
     if (orgDirectory[i].orgId === deletingOrgId) {
       // District admin: verify ownership
       if (currentUser.role === 'district' && orgDirectory[i].district !== (currentUser.district || '')) {
-        showToast('无权操作其他区的学校', 'warning'); closeDeleteModal(); return;
+        showToast('无权操作其他区的学校', 'warning'); closeConfirm(); return;
+      }
+      // Check for active accounts associated with this org
+      var orgName = orgDirectory[i].orgName;
+      var activeAccountCount = 0;
+      try {
+        var teachers = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+        for (var ta = 0; ta < teachers.length; ta++) {
+          if (teachers[ta].school === orgName && teachers[ta].status === 'active') activeAccountCount++;
+        }
+        var admins = JSON.parse(localStorage.getItem('admin_accounts') || '[]');
+        for (var aa = 0; aa < admins.length; aa++) {
+          if (admins[aa].school === orgName && admins[aa].status !== 'disabled') activeAccountCount++;
+        }
+      } catch(e) {}
+      if (activeAccountCount > 0) {
+        showToast('该机构下还有 ' + activeAccountCount + ' 个正常账号，请先处理后再停用', 'warning'); closeConfirm(); return;
       }
       orgDirectory[i].status = 'inactive';
       var now = new Date();
@@ -1350,11 +1410,26 @@ function confirmDelete() {
     }
   }
   localStorage.setItem('org_directory', JSON.stringify(orgDirectory));
-  closeDeleteModal();
+  closeConfirm();
   updateSubtitle();
   renderTree();
   renderFilterTabs();
   renderList();
+}
+
+function confirmReactivate(orgId) {
+  var o = null;
+  for (var i = 0; i < orgDirectory.length; i++) {
+    if (orgDirectory[i].orgId === orgId) { o = orgDirectory[i]; break; }
+  }
+  if (!o) return;
+  document.getElementById('confirmTitle').textContent = '确认启用';
+  document.getElementById('confirmMsg').textContent = '确定要启用机构「' + o.orgName + '」吗？';
+  document.getElementById('confirmSubMsg').textContent = '启用后该机构将恢复在活动列表中显示。';
+  document.getElementById('confirmBtn').className = 'btn btn-primary';
+  document.getElementById('confirmBtn').textContent = '确认启用';
+  document.getElementById('confirmBtn').onclick = function() { reactivateOrg(orgId); closeConfirm(); };
+  document.getElementById('confirmModal').classList.add('show');
 }
 
 function reactivateOrg(orgId) {
@@ -1404,7 +1479,7 @@ function buildChangeLog(oldOrg, newOrg, operator) {
     { key: 'unitType', label: '单位类型' },
     { key: 'fundType', label: '经费类型' },
     { key: 'creditCode', label: '统一社会信用代码' },
-    { key: 'schoolAdminName', label: '单位主管' },
+    { key: 'schoolAdminName', label: '单位管理员' },
     { key: 'address', label: '单位地址' },
     { key: 'phone', label: '联系电话' },
     { key: 'postcode', label: '邮编' }

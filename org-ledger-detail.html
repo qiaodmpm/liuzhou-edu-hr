@@ -354,6 +354,7 @@ legend { font-size: 13px; font-weight: 600; color: var(--primary); padding: 0 8p
 
 <script src="src/ledger-plan-utils.js"></script>
 <script src="src/ledger-migrate.js"></script>
+<script src="src/menu-config.js"></script>
 <script>
 var LPU = window.LedgerPlanUtils;
 var LDM = window.LedgerMigrate;
@@ -401,32 +402,17 @@ var ROLES = {
 
 // ===== SIDEBAR =====
 function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', currentUser.role || 'city', 'ledger');
   var role = currentUser.role || 'city';
   var cfg = ROLES[role];
   if (!cfg) cfg = ROLES.city;
-  var h = '';
-  var activeMenuId = orgId ? 'org' : 'ledger';
-  (cfg.sidebar.top||[]).forEach(function(item) {
-    var icon = ICONS[item.icon] || '';
-    var active = item.id === activeMenuId;
-    h += '<a class="menu-item' + (active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + icon + item.label + '</a>';
-  });
-  (cfg.sidebar.groups||[]).forEach(function(group) {
-    h += '<div class="menu-group">' + group.name + '</div>';
-    (group.items||[]).forEach(function(item) {
-      var icon = ICONS[MENU_ICONS[item.id]] || '';
-      var badge = item.badge ? '<span class="menu-badge">' + item.badge + '</span>' : '';
-      var active = item.id === activeMenuId;
-      h += '<a class="menu-item' + (active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">' + icon + item.label + badge + '</a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = h;
   document.getElementById('userName').textContent = cfg.name;
   document.getElementById('userAvatar').textContent = cfg.short;
   document.querySelectorAll('.role-switch-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.role === role); });
 }
 
 function sidebarClick(el, id) {
+  if (arguments.length === 1) { id = el; el = null; }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'ledger') { window.location.href = 'org-ledger-admin.html'; return; }
   if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
@@ -442,6 +428,7 @@ function sidebarClick(el, id) {
   else if (id === 'ethics') { showToast('师德师风举报 — 页面开发中'); }
   else if (id === 'account') { window.location.href = 'account-management.html'; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast(el.textContent.trim());
 }
 
@@ -1574,7 +1561,7 @@ function renderOrgInfo() {
   h += '<div class="form-card">';
   h += '<h2><span class="card-icon">👤</span>管理信息</h2>';
   h += '<div class="form-grid">';
-  h += '<div class="form-group"><label>单位主管</label><div class="field-value' + (o.schoolAdminName ? '' : ' empty') + '">' + escapeHtml(o.schoolAdminName || '未配置') + '</div></div>';
+  h += '<div class="form-group"><label>单位管理员</label><div class="field-value' + (o.schoolAdminName ? '' : ' empty') + '">' + escapeHtml(o.schoolAdminName || '未配置') + '</div></div>';
   h += '<div class="form-group"><label>单位地址</label><div class="field-value' + (o.address ? '' : ' empty') + '">' + escapeHtml(o.address || '—') + '</div></div>';
   h += '<div class="form-group"><label>联系电话</label><div class="field-value' + (o.phone ? '' : ' empty') + '">' + escapeHtml(o.phone || '—') + '</div></div>';
   h += '<div class="form-group"><label>邮编</label><div class="field-value' + (o.postcode ? '' : ' empty') + '">' + escapeHtml(o.postcode || '—') + '</div></div>';
@@ -1673,7 +1660,7 @@ function renderOrgEditForm() {
 
   // Admin info
   h += '<div class="form-card"><h2><span class="card-icon">👤</span>管理信息</h2><div class="form-grid">';
-  h += formFieldLocked('单位主管', o.schoolAdminName || '未配置');
+  h += formFieldLocked('单位管理员', o.schoolAdminName || '未配置');
   h += formField('单位地址', 'fAddress', o.address, 'text', false);
   h += formField('联系电话', 'fPhone', o.phone, 'text', false);
   h += formField('邮编', 'fPostcode', o.postcode, 'text', false);
@@ -1768,7 +1755,7 @@ function renderOrgReviewForm() {
 
   // Admin info
   h += '<div class="form-card"><h2><span class="card-icon">👤</span>管理信息</h2><div class="form-grid">';
-  h += formField('单位主管', 'fSchoolAdminName', o.schoolAdminName || '', 'text', false);
+  h += formField('单位管理员', 'fSchoolAdminName', o.schoolAdminName || '', 'text', false);
   h += formField('单位地址', 'fAddress', o.address, 'text', false);
   h += formField('联系电话', 'fPhone', o.phone, 'text', false);
   h += formField('邮编', 'fPostcode', o.postcode, 'text', false);
@@ -1929,7 +1916,7 @@ function buildChangeLogForOrg(oldOrg, newOrg) {
     { key: 'unitType', label: '单位类型' },
     { key: 'fundType', label: '经费类型' },
     { key: 'creditCode', label: '统一社会信用代码' },
-    { key: 'schoolAdminName', label: '单位主管' },
+    { key: 'schoolAdminName', label: '单位管理员' },
     { key: 'address', label: '单位地址' },
     { key: 'phone', label: '联系电话' },
     { key: 'postcode', label: '邮编' }
@@ -1949,7 +1936,7 @@ function getKeyForField(fieldLabel) {
     '单位名称': 'orgName', '单位简称': 'orgShortName', '所属区域': 'district',
     '单位级别': 'orgLevel', '组织类型': 'orgType', '学校类型': 'schoolType',
     '岗位设置分类': 'schoolCategory', '单位性质': 'orgNature', '单位类型': 'unitType',
-    '经费类型': 'fundType', '统一社会信用代码': 'creditCode', '单位主管': 'schoolAdminName',
+    '经费类型': 'fundType', '统一社会信用代码': 'creditCode', '单位管理员': 'schoolAdminName',
     '单位地址': 'address', '联系电话': 'phone', '邮编': 'postcode'
   };
   return map[fieldLabel] || '';
@@ -2260,6 +2247,26 @@ window.onerror = function(msg, url, line, col, err) {
 };
 
 // ===== PLAN RENDERING (NEW) =====
+function isAlertDismissed(key) {
+  try {
+    var d = JSON.parse(sessionStorage.getItem('ledger_dismissed_alerts') || '{}');
+    return !!d[key];
+  } catch(e) { return false; }
+}
+function dismissAlert(key) {
+  try {
+    var d = JSON.parse(sessionStorage.getItem('ledger_dismissed_alerts') || '{}');
+    d[key] = Date.now();
+    sessionStorage.setItem('ledger_dismissed_alerts', JSON.stringify(d));
+  } catch(e) {}
+}
+function undismissAlert(key) {
+  try {
+    var d = JSON.parse(sessionStorage.getItem('ledger_dismissed_alerts') || '{}');
+    delete d[key];
+    sessionStorage.setItem('ledger_dismissed_alerts', JSON.stringify(d));
+  } catch(e) {}
+}
 function renderExpiryAlerts() {
   if (!ledger || !LPU) return '';
   var allPlans = (ledger.careerPlans || []).concat(ledger.controlPlans || []);
@@ -2268,10 +2275,16 @@ function renderExpiryAlerts() {
   var expiringSoon = [];
   var alreadyExpired = [];
   var expiringOccupied = [];
+  var today = new Date();
+  var cutoff30 = new Date(today);
+  cutoff30.setDate(cutoff30.getDate() - 30);
+
   for (var i = 0; i < allPlans.length; i++) {
     var p = allPlans[i];
     var st = LPU.computePlanStatus(p);
     if (st === 'expired') {
+      var endDate = new Date(p.validEnd + 'T00:00:00');
+      if (endDate < cutoff30) continue;
       alreadyExpired.push(p);
     } else if (st === 'expiring_occupied') {
       expiringOccupied.push(p);
@@ -2281,35 +2294,54 @@ function renderExpiryAlerts() {
   }
 
   var h = '';
+  var sName = schoolName || (ledger.schoolName) || '';
   if (expiringOccupied.length > 0) {
-    h += '<div class="plan-expiry-alert" style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;margin-bottom:8px;">';
-    h += '🟠 <b>' + expiringOccupied.length + ' 个计划已过期，仍有在途人员待入编</b>';
-    for (var oi = 0; oi < expiringOccupied.length; oi++) {
-      var op = expiringOccupied[oi];
-      h += '<br>· ' + escapeHtml(op.offlineDocNo || op.sourceBatchId || op.id) + '：占用 ' + (op.occupiedCount || 0) + ' 人，已于 ' + op.validEnd + ' 到期';
+    var occKey = 'expiringOccupied_' + sName;
+    if (isAlertDismissed(occKey)) {
+      h += '<div class="plan-expiry-alert" style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:6px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#C2410C;">🟠 ' + expiringOccupied.length + ' 个计划已过期有占用（已忽略）<span style="cursor:pointer;opacity:0.6;" onclick="undismissAlert(\'' + occKey + '\');renderDetail()" title="重新显示">↩</span></div>';
+    } else {
+      h += '<div class="plan-expiry-alert" style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;margin-bottom:8px;position:relative;">';
+      h += '<span style="position:absolute;right:10px;top:8px;cursor:pointer;font-size:14px;color:#C2410C;opacity:0.6;" onclick="dismissAlert(\'' + occKey + '\');renderDetail()" title="忽略此提醒">✕</span>';
+      h += '🟠 <b>' + expiringOccupied.length + ' 个计划已过期，仍有在途人员待入编</b>';
+      for (var oi = 0; oi < expiringOccupied.length; oi++) {
+        var op = expiringOccupied[oi];
+        h += '<br>· ' + escapeHtml(op.offlineDocNo || op.sourceBatchId || op.id) + '：占用 ' + (op.occupiedCount || 0) + ' 人，已于 ' + op.validEnd + ' 到期';
+      }
+      h += '<br><span style="font-size:10px">占用名额仍有效，请尽快为占用人员办理入编手续。</span>';
+      h += '</div>';
     }
-    h += '<br><span style="font-size:10px">占用名额仍有效，请尽快为占用人员办理入编手续。</span>';
-    h += '</div>';
   }
   if (alreadyExpired.length > 0) {
-    h += '<div class="plan-expiry-alert expired">';
-    h += '🔒 <b>' + alreadyExpired.length + ' 个计划已到期，未使用名额已释放</b>';
-    for (var ei = 0; ei < alreadyExpired.length; ei++) {
-      var ep = alreadyExpired[ei];
-      var remain = LPU.remainingCount(ep);
-      h += '<br>· ' + escapeHtml(ep.offlineDocNo || ep.sourceBatchId || ep.id) + '：' + remain + ' 人，已于 ' + ep.validEnd + ' 到期';
+    var expKey = 'alreadyExpired_' + sName;
+    if (isAlertDismissed(expKey)) {
+      h += '<div class="plan-expiry-alert" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:6px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#94A3B8;">🔒 ' + alreadyExpired.length + ' 个计划已到期（已忽略）<span style="cursor:pointer;opacity:0.6;" onclick="undismissAlert(\'' + expKey + '\');renderDetail()" title="重新显示">↩</span></div>';
+    } else {
+      h += '<div class="plan-expiry-alert expired" style="position:relative;">';
+      h += '<span style="position:absolute;right:10px;top:8px;cursor:pointer;font-size:14px;color:#94A3B8;opacity:0.6;" onclick="dismissAlert(\'' + expKey + '\');renderDetail()" title="忽略此提醒">✕</span>';
+      h += '🔒 <b>' + alreadyExpired.length + ' 个计划已到期，未使用名额已释放</b>';
+      for (var ei = 0; ei < alreadyExpired.length; ei++) {
+        var ep = alreadyExpired[ei];
+        var remain = LPU.remainingCount(ep);
+        h += '<br>· ' + escapeHtml(ep.offlineDocNo || ep.sourceBatchId || ep.id) + '：' + remain + ' 人，已于 ' + ep.validEnd + ' 到期';
+      }
+      h += '</div>';
     }
-    h += '</div>';
   }
   if (expiringSoon.length > 0) {
-    h += '<div class="plan-expiry-alert warn">';
-    h += '⚠️ <b>' + expiringSoon.length + ' 个计划即将到期，请尽快安排招聘或入编</b>';
-    for (var wi = 0; wi < expiringSoon.length; wi++) {
-      var wp = expiringSoon[wi];
-      var days = LPU.daysUntilExpire(wp);
-      h += '<br>· ' + escapeHtml(wp.offlineDocNo || wp.sourceBatchId || wp.id) + '：剩余 ' + LPU.remainingCount(wp) + ' 人，' + days + ' 天后到期（' + wp.validEnd + '）';
+    var soonKey = 'expiringSoon_' + sName;
+    if (isAlertDismissed(soonKey)) {
+      h += '<div class="plan-expiry-alert" style="background:#FEFCE8;border:1px solid #FDE68A;border-radius:6px;padding:6px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#A16207;">⚠️ ' + expiringSoon.length + ' 个计划即将到期（已忽略）<span style="cursor:pointer;opacity:0.6;" onclick="undismissAlert(\'' + soonKey + '\');renderDetail()" title="重新显示">↩</span></div>';
+    } else {
+      h += '<div class="plan-expiry-alert warn" style="position:relative;">';
+      h += '<span style="position:absolute;right:10px;top:8px;cursor:pointer;font-size:14px;color:#A16207;opacity:0.6;" onclick="dismissAlert(\'' + soonKey + '\');renderDetail()" title="忽略此提醒">✕</span>';
+      h += '⚠️ <b>' + expiringSoon.length + ' 个计划即将到期，请尽快安排招聘或入编</b>';
+      for (var wi = 0; wi < expiringSoon.length; wi++) {
+        var wp = expiringSoon[wi];
+        var days = LPU.daysUntilExpire(wp);
+        h += '<br>· ' + escapeHtml(wp.offlineDocNo || wp.sourceBatchId || wp.id) + '：剩余 ' + LPU.remainingCount(wp) + ' 人，' + days + ' 天后到期（' + wp.validEnd + '）';
+      }
+      h += '</div>';
     }
-    h += '</div>';
   }
   return h;
 }

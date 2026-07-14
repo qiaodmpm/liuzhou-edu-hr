@@ -171,15 +171,31 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
   <div class="modal">
     <div class="modal-header"><h3 id="roleModalTitle">新增角色</h3><button class="modal-close" onclick="closeRoleModal()">✕</button></div>
     <div class="modal-body">
-      <div class="form-group"><label>角色名称 <span class="required">*</span></label><input id="fRoleName" placeholder="例：区管理员"></div>
+      <div id="roleNameGroup" class="form-group"><label>角色名称 <span class="required">*</span></label><input id="fRoleName" placeholder="例：区管理员"></div>
+      <div id="roleNameReadonly" class="form-group" style="display:none;"><label>角色名称</label><div style="font-size:13px;font-weight:600;padding:8px 0;color:var(--text);" id="roleNameDisplay"></div></div>
       <div class="form-group"><label>角色标识 <span class="required">*</span></label><input id="fRoleId" placeholder="英文标识，例：district" disabled style="background:#F8FAFC;"></div>
-      <div class="form-group"><label>描述</label><input id="fRoleDesc" placeholder="角色职责描述"></div>
+      <div id="roleDescGroup" class="form-group"><label>描述</label><input id="fRoleDesc" placeholder="角色职责描述"></div>
       <fieldset><legend>模块权限</legend><div id="permCheckboxes" style="max-height:50vh;overflow-y:auto;"></div></fieldset>
       <fieldset><legend>数据权限</legend><div class="form-group"><label>数据范围</label><select id="fDataScope"><option value="all">全平台</option><option value="city">全市</option><option value="district">本区</option><option value="school">本校</option><option value="self">本人</option></select></div></fieldset>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeRoleModal()">取消</button>
       <button class="btn btn-primary btn-sm" id="roleSaveBtn" onclick="saveRole()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Role Info Modal (lightweight: name + description only) -->
+<div class="modal-overlay" id="editInfoModal">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header"><h3 id="editInfoModalTitle">编辑角色</h3><button class="modal-close" onclick="closeEditInfoModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>角色名称 <span class="required">*</span></label><input id="fEditRoleName" placeholder="角色名称"></div>
+      <div class="form-group"><label>描述</label><input id="fEditRoleDesc" placeholder="角色职责描述"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeEditInfoModal()">取消</button>
+      <button class="btn btn-primary btn-sm" id="editInfoSaveBtn" onclick="saveRoleInfo()">保存</button>
     </div>
   </div>
 </div>
@@ -229,6 +245,9 @@ function sidebarClick(id) {
   else if (id === 'org') window.location.href = 'org-management.html';
   else if (id === 'menuMgr') window.location.href = 'menu-management.html';
   else if (id === 'log') window.location.href = 'log-management.html';
+  else if (id === 'contract-entry') window.location.href = 'contract-entry-list-admin.html';
+  else if (id === 'contract-exit') window.location.href = 'contract-exit-list-admin.html';
+  else if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
 }
 
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
@@ -434,6 +453,10 @@ function openAddRole() {
   editingRoleId = null;
   document.getElementById('roleModalTitle').textContent = '新增角色';
   document.getElementById('roleSaveBtn').textContent = '创建';
+  // 新增模式：显示名称和描述输入框
+  document.getElementById('roleNameGroup').style.display = '';
+  document.getElementById('roleNameReadonly').style.display = 'none';
+  document.getElementById('roleDescGroup').style.display = '';
   document.getElementById('fRoleName').value = '';
   document.getElementById('fRoleId').value = '';
   document.getElementById('fRoleId').disabled = false;
@@ -443,17 +466,21 @@ function openAddRole() {
   document.getElementById('roleModal').classList.add('show');
 }
 
+// ── 打开权限配置弹框（角色名称只读 + 权限树 + 数据范围）──
 function openEditRole(rid) {
   var roles = loadRoles();
   var r = roles[rid];
   if (!r) return;
   editingRoleId = rid;
-  document.getElementById('roleModalTitle').textContent = '编辑权限 — ' + (r.label || rid);
+  document.getElementById('roleModalTitle').textContent = '配置权限 — ' + (r.label || rid);
   document.getElementById('roleSaveBtn').textContent = '保存权限';
-  document.getElementById('fRoleName').value = r.label || '';
+  // 显示只读角色名称，隐藏输入框
+  document.getElementById('roleNameGroup').style.display = 'none';
+  document.getElementById('roleNameReadonly').style.display = '';
+  document.getElementById('roleNameDisplay').textContent = r.label || rid;
+  document.getElementById('roleDescGroup').style.display = 'none';
   document.getElementById('fRoleId').value = rid;
   document.getElementById('fRoleId').disabled = true;
-  document.getElementById('fRoleDesc').value = r.description || '';
   editPerms = {};
   (r.permissions || []).forEach(function(p) { editPerms[p] = true; });
   renderPermCheckboxes(r.permissions || []);
@@ -461,10 +488,36 @@ function openEditRole(rid) {
   document.getElementById('roleModal').classList.add('show');
 }
 
+// ── 打开编辑角色信息弹框（仅名称 + 描述）──
 function openEditRoleInfo(rid) {
-  openEditRole(rid);
-  document.getElementById('roleModalTitle').textContent = '编辑角色';
-  document.getElementById('roleSaveBtn').textContent = '保存';
+  var roles = loadRoles();
+  var r = roles[rid];
+  if (!r) return;
+  editingRoleId = rid;
+  document.getElementById('editInfoModalTitle').textContent = '编辑角色 — ' + (r.label || rid);
+  document.getElementById('fEditRoleName').value = r.label || '';
+  document.getElementById('fEditRoleDesc').value = r.description || '';
+  document.getElementById('editInfoModal').classList.add('show');
+}
+
+function closeEditInfoModal() {
+  document.getElementById('editInfoModal').classList.remove('show');
+  editingRoleId = null;
+}
+
+function saveRoleInfo() {
+  var name = document.getElementById('fEditRoleName').value.trim();
+  if (!name) { showToast('请输入角色名称', 'warning'); return; }
+  var roles = loadRoles();
+  var r = roles[editingRoleId];
+  if (!r) return;
+  r.label = name;
+  r.description = document.getElementById('fEditRoleDesc').value.trim();
+  saveRoles(roles);
+  closeEditInfoModal();
+  if (typeof writeLog === 'function') writeLog({ module: 'perm', actionType: 'update', targetType: 'role', targetId: editingRoleId, targetName: name, detail: '编辑角色信息', result: 'success' });
+  showToast('角色信息已更新', 'success');
+  renderRoleList();
 }
 
 function closeRoleModal() {
@@ -585,9 +638,16 @@ function clearAllPerms() {
 }
 
 function saveRole() {
-  var name = document.getElementById('fRoleName').value.trim();
-  if (!name) { showToast('请输入角色名称', 'warning'); return; }
+  var roles = loadRoles();
   var rid = document.getElementById('fRoleId').value.trim();
+  // 权限编辑模式（名称只读）：从已有角色数据中读取名称
+  var name;
+  if (editingRoleId && roles[editingRoleId]) {
+    name = roles[editingRoleId].label; // 使用原有名称
+  } else {
+    name = document.getElementById('fRoleName').value.trim();
+    if (!name) { showToast('请输入角色名称', 'warning'); return; }
+  }
   if (!editingRoleId && !rid) { showToast('请输入角色标识', 'warning'); return; }
   if (!editingRoleId) {
     // Auto-generate id from name
@@ -596,7 +656,6 @@ function saveRole() {
   } else {
     rid = editingRoleId;
   }
-  var roles = loadRoles();
   if (!editingRoleId && roles[rid]) { showToast('角色标识已存在', 'warning'); return; }
   var perms = [];
   Object.keys(editPerms).forEach(function(k) { if (editPerms[k]) perms.push(k); });
@@ -685,7 +744,7 @@ function logout() { localStorage.removeItem('currentUser'); window.location.href
 
 // ===== INIT =====
 document.addEventListener('click', function(e) {
-  if (e.target.id === 'roleModal' || e.target.id === 'confirmModal') {
+  if (e.target.id === 'roleModal' || e.target.id === 'confirmModal' || e.target.id === 'editInfoModal') {
     e.target.classList.remove('show');
   }
 });

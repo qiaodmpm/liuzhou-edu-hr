@@ -220,6 +220,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 var ICONS = {
   home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
@@ -418,15 +419,23 @@ function switchRole(role) {
 
 // ===== SIDEBAR =====
 function renderSidebar() {
-  var roleData = ROLES[currentRole]; if (!roleData) return;
-  var s = roleData.sidebar, html = '';
-  (s.top||[]).forEach(function(i) { html += '<a class="menu-item" onclick="sidebarClick(\'' + i.id + '\')">' + (ICONS[i.icon]||'') + '<span class="menu-label">' + i.label + '</span></a>'; });
-  (s.groups||[]).forEach(function(g) { html += '<div class="menu-group">' + g.name + '</div>'; g.items.forEach(function(i) { html += '<a class="menu-item' + (i.id==='promote'?' active':'') + '" onclick="sidebarClick(\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id]||'file']) + '<span class="menu-label">' + i.label + '</span>' + (i.badge?'<span class="menu-badge">'+i.badge+'</span>':'') + '</a>'; }); });
-  document.getElementById('sidebarMenu').innerHTML = html;
-  document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
-  var t = getCurrentTeacher();
-  var n = document.querySelector('.topnav-user span'); if(n) n.textContent = t.name;
-  var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = t.short;
+  if (currentRole === 'teacher') {
+    var roleData = ROLES[currentRole]; if (!roleData) return;
+    var t = getCurrentTeacher();
+    var n = document.querySelector('.topnav-user span'); if(n) n.textContent = t.name;
+    var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = t.short;
+    document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
+    var s = roleData.sidebar, html = '';
+    (s.top||[]).forEach(function(i) { html += '<a class="menu-item" onclick="sidebarClick(\'' + i.id + '\')">' + (ICONS[i.icon]||'') + '<span class="menu-label">' + i.label + '</span></a>'; });
+    (s.groups||[]).forEach(function(g) { html += '<div class="menu-group">' + g.name + '</div>'; g.items.forEach(function(i) { html += '<a class="menu-item' + (i.id==='promote'?' active':'') + '" onclick="sidebarClick(\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id]||'file']) + '<span class="menu-label">' + i.label + '</span>' + (i.badge?'<span class="menu-badge">'+i.badge+'</span>':'') + '</a>'; }); });
+    document.getElementById('sidebarMenu').innerHTML = html;
+  } else {
+    renderSidebarMenu('sidebarMenu', currentRole, 'promote');
+    var roleData = ROLES[currentRole]; if (!roleData) return;
+    document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
+    var n = document.querySelector('.topnav-user span'); if(n) n.textContent = roleData.name;
+    var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = roleData.short;
+  }
 }
 
 function sidebarClick(id) {
@@ -441,6 +450,7 @@ function sidebarClick(id) {
   if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
   else if (id === 'account') { window.location.href = 'account-management.html'; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('跳转至：' + id);
 }
 

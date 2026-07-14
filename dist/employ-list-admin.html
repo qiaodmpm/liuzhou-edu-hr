@@ -132,6 +132,7 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 </main>
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 window.onerror=function(msg,url,line){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d);};
 
@@ -224,18 +225,19 @@ function getDistrict(schoolName){
 }
 
 function renderSidebar(){
-  var rd=ROLES[currentRole];if(!rd)return;
-  var h='';
-  (rd.sidebar.top||[]).forEach(function(i){h+='<a class="menu-item" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[i.icon]||'')+'<span class="menu-label">'+i.label+'</span></a>';});
-  (rd.sidebar.groups||[]).forEach(function(g){
-    h+='<div class="menu-group">'+g.name+'</div>';
-    g.items.forEach(function(i){h+='<a class="menu-item'+(i.id==='employ'?' active':'')+'" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[MENU_ICONS[i.id]||'file'])+'<span class="menu-label">'+i.label+'</span>'+(i.badge?'<span class="menu-badge">'+i.badge+'</span>':'')+'</a>';});
-  });
-  document.getElementById('sidebarMenu').innerHTML=h;
+  if (currentRole === 'teacher') {
+    var rd = ROLES.teacher; if (!rd || !rd.sidebar) { document.getElementById('sidebarMenu').innerHTML = ''; return; }
+    var h = '';
+    (rd.sidebar.top||[]).forEach(function(i){h+='<a class="menu-item" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[i.icon]||'')+'<span class="menu-label">'+i.label+'</span></a>';});
+    (rd.sidebar.groups||[]).forEach(function(g){h+='<div class="menu-group">'+g.name+'</div>';g.items.forEach(function(i){h+='<a class="menu-item" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[MENU_ICONS[i.id]||'file'])+'<span class="menu-label">'+i.label+'</span>'+(i.badge?'<span class="menu-badge">'+i.badge+'</span>':'')+'</a>';});});
+    document.getElementById('sidebarMenu').innerHTML = h;
+  } else {
+    renderSidebarMenu('sidebarMenu', currentRole, 'employ');
+  }
 }
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i){i.classList.remove('active');}); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
   if (id === 'entry') { window.location.href = currentRole === 'school' ? '教师入编管理（学校管理员视角）.html' : '教师入编管理（学校管理员视角）.html'; return; }
@@ -253,6 +255,11 @@ function sidebarClick(el, id) {
 
   if (id === 'dashboard') { showToast('编制岗位台账页面开发中'); return; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+  if (id === 'menuMgr') { window.location.href = 'menu-management.html'; return; }
+  if (id === 'perm') { window.location.href = 'perm-management.html'; return; }
+  if (id === 'log') { window.location.href = 'log-management.html'; return; }
+
   showToast('跳转至：' + (el.textContent || id));
 }
 function switchRole(role){

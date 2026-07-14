@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD_编制岗位台账模块 — 柳州教育人事管理平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC',sans-serif; color:var(--text); background:var(--bg); line-height:1.7; }
+
+.cover { background:linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #6366F1 100%); color:#fff; padding:80px 60px; text-align:center; }
+.cover .tag { display:inline-block; border:1px solid rgba(255,255,255,0.4); border-radius:20px; padding:6px 20px; font-size:13px; margin-bottom:24px; letter-spacing:2px; }
+.cover h1 { font-size:38px; font-weight:700; margin-bottom:12px; }
+.cover .sub { font-size:18px; opacity:0.85; margin-bottom:32px; }
+.cover .meta { font-size:13px; opacity:0.6; }
+.cover .meta span { margin:0 16px; }
+
+.container { max-width:1100px; margin:0 auto; padding:60px 40px; }
+.section { margin-bottom:64px; }
+.section-title { font-size:28px; font-weight:700; color:var(--primary); margin-bottom:8px; padding-bottom:12px; border-bottom:3px solid var(--primary); }
+.section-desc { color:var(--text-secondary); font-size:15px; margin-bottom:32px; }
+.sub-title { font-size:20px; font-weight:600; color:var(--text); margin:32px 0 16px; padding-left:12px; border-left:4px solid var(--accent); }
+.sub-sub-title { font-size:16px; font-weight:600; color:var(--primary); margin:24px 0 12px; }
+
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:20px; }
+.card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; box-shadow:var(--shadow); transition:0.2s; }
+.card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.12); }
+.card h4 { font-size:17px; font-weight:600; margin-bottom:8px; }
+.card p { font-size:14px; color:var(--text-secondary); }
+
+.table-wrap { overflow-x:auto; background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); margin-bottom:20px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:var(--primary); color:#fff; padding:10px 14px; text-align:left; font-weight:500; white-space:nowrap; }
+td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--primary-light); }
+td.center { text-align:center; }
+
+.flow-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:20px; }
+
+.rule-item { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; margin-bottom:12px; border-left:4px solid var(--accent); }
+.rule-item.danger { border-left-color:var(--danger); }
+.rule-item.warning { border-left-color:var(--warning); }
+.rule-item.success { border-left-color:var(--success); }
+.rule-item strong { color:var(--primary); }
+
+.toc { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; box-shadow:var(--shadow); }
+.toc ol { padding-left:24px; }
+.toc li { padding:4px 0; }
+.toc a { color:var(--accent); text-decoration:none; }
+.toc a:hover { text-decoration:underline; }
+
+.feat-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:16px; box-shadow:var(--shadow); }
+.feat-card .feat-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.feat-card .feat-id { background:var(--primary); color:#fff; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+.feat-card .feat-name { font-size:16px; font-weight:600; }
+.feat-card .feat-priority { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600; }
+.feat-card .feat-priority.p0 { background:#FEE2E2; color:#991B1B; }
+.feat-card .feat-priority.p1 { background:#FEF3C7; color:#92400E; }
+.feat-card .feat-priority.p2 { background:#DBEAFE; color:#1E40AF; }
+.feat-dl { display:grid; grid-template-columns:100px 1fr; gap:6px 16px; font-size:13px; }
+.feat-dl dt { font-weight:600; color:var(--text-secondary); }
+.feat-dl dd { color:var(--text); }
+
+.matrix-yes { color:var(--success); font-weight:700; }
+.matrix-no { color:var(--danger); }
+.matrix-cond { color:var(--warning); }
+
+.summary-box { background:var(--primary-light); border:1px solid var(--accent); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:20px; }
+
+.footer { text-align:center; padding:40px; color:var(--text-secondary); font-size:13px; border-top:1px solid var(--border); }
+
+.state-diagram { display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; padding:20px; }
+.state-node { background:var(--white); border:2px solid var(--border); border-radius:var(--radius-lg); padding:16px 24px; text-align:center; min-width:100px; }
+.state-node.active { border-color:var(--success); background:#F0FDF4; }
+.state-node.pending { border-color:var(--warning); background:#FFFBEB; }
+.state-node.draft { border-color:var(--text-light); background:#F8FAFC; }
+.state-arrow { font-size:20px; color:var(--text-light); }
+
+@media print {
+  .cover { padding:40px; }
+  .container { padding:20px; }
+  .card, .flow-box, .rule-item, .feat-card { break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="tag">MODULE PRODUCT REQUIREMENTS DOCUMENT</div>
+  <h1>编制岗位台账模块</h1>
+  <div class="sub">产品需求文档 · 学校编制与岗位数据唯一权威数据源</div>
+  <div class="meta">
+    <span>📅 2026-07-14</span>
+    <span>📌 Version 1.0（正式版）</span>
+    <span>📎 父文档：PRD_总纲_柳州教育人事管理平台.md</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ============= 目录 ============= -->
+<div class="section">
+  <div class="section-title">📑 目录</div>
+  <div class="toc">
+    <ol>
+      <li><a href="#s1">模块概述</a> — 定位、业务背景、核心价值、适用角色</li>
+      <li><a href="#s2">业务流程</a> — 台账全生命周期、审核流程、编制计划补录、状态流转（Mermaid 流程图）</li>
+      <li><a href="#s3">功能清单</a> — F07.01~F07.08 完整功能点（含前置条件/角色/业务规则/交互规则）</li>
+      <li><a href="#s4">页面字段清单</a> — 各页面字段定义 + 校验规则表</li>
+      <li><a href="#s5">操作级权限矩阵</a></li>
+      <li><a href="#s6">数据模型</a> — 36 个字段的完整数据定义</li>
+      <li><a href="#s7">页面清单</a></li>
+      <li><a href="#s8">异常处理</a> — 边界情况 + 错误场景</li>
+      <li><a href="#s9">通知触发点</a></li>
+      <li><a href="#s10">操作日志埋点</a></li>
+      <li><a href="#s11">验收标准</a> — 功能判定 + 关键测试场景</li>
+      <li><a href="#s12">迭代记录</a></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============= 1. 模块概述 ============= -->
+<div class="section" id="s1">
+  <div class="section-title">一、模块概述</div>
+
+  <div class="sub-title">1.1 模块定位</div>
+  <p>编制岗位台账模块是柳州教育人事管理平台的<strong>数据底座层（P0 基础层）</strong>，作为全校编制和岗位数据的<strong>唯一权威数据源</strong>。台账以学校为单位建立，涵盖基础信息（10 个字段，含标识信息和分类属性）、事业编编制（7 个字段）、控制数编制（7 个字段）、领导职数（6 个字段）、岗位结构（8 个字段）共 <strong>38 个字段</strong>，由校管理员录入、主管单位审核通过后正式生效，供编制申请、教师入编、教师出编、岗位设置、岗位晋升、招聘岗位、聘用手续等 7 个业务模块读取和回写。</p>
+  <p>本模块在总纲排期中为 <strong>P0 平台基础层</strong>，是岗位设置和编制使用申请的前置依赖——台账审批通过后，其他模块方可使用。</p>
+
+  <div class="sub-title">1.2 业务背景</div>
+  <ul style="margin-left:20px; line-height:2;">
+    <li><strong>数据孤岛消除</strong>：当前平台中多个业务模块各自独立维护学校的编制和岗位数据，分散在多个页面文件中，数据值可能不一致。台账模块将这些分散数据归集到一个统一数据源，实现"一校一账、数出一源"</li>
+    <li><strong>编制岗位一体化管理</strong>：事业编（实名制）和控制数（备案制）的核定数、实有人数、已批复计划数、已使用计划数统一在一个台账中管理，实时联动各业务模块的审批操作</li>
+    <li><strong>审核机制保障数据质量</strong>：学校提交台账后须主管单位审核通过方可生效，审核期间全局锁定其他模块。审核时若发现数据问题则退回修改，由学校修正后重新提交</li>
+    <li><strong>跨模块数据联动</strong>：入编审批通过 → 实有在编人数 +1；出编审批通过 → 实有在编人数 -1；编制申请审批通过 → 已批复计划数累加；岗位设置审批通过 → 岗位结构更新。台账为所有联动操作的唯一落点</li>
+    <li><strong>编制计划补录</strong>：支持区/市管理员补录线下已批复的编制使用计划（含有效期），补录后招聘模块可锁定这些编制。解决编制申请模块上线前存量编制批复数据的录入问题</li>
+  </ul>
+
+  <div class="sub-title">1.3 核心价值</div>
+  <div class="card-grid">
+    <div class="card"><h4>📊 唯一数据源</h4><p>消除多个模块各自维护编制数据的"数据孤岛"问题，台账为全校编制和岗位数据的唯一权威来源</p></div>
+    <div class="card"><h4>🔗 跨模块联动</h4><p>入编/出编/编制申请/岗位设置审批通过后自动回写台账，实时更新在编人数、批复计划数、岗位结构</p></div>
+    <div class="card"><h4>🔒 全局锁定</h4><p>台账审核期间全局锁定其他模块，确保基础数据变更时的数据一致性</p></div>
+    <div class="card"><h4>📋 审核把关</h4><p>主管单位审核台账数据，发现问题退回修改，学校修正后重新提交，确保数据准确可靠</p></div>
+    <div class="card"><h4>📈 编制可视化</h4><p>编制容量/占用/余量三段式可视化展示，岗位结构按等级×编制类型交叉展示，一目了然</p></div>
+    <div class="card"><h4>📝 变更可追溯</h4><p>每次编辑保存、审核通过、退回修改均记录变更日志，含变更内容、操作人、时间</p></div>
+  </div>
+
+  <div class="sub-title">1.4 适用角色</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:120px;">角色</th><th style="width:100px;">标识</th><th>访问权限</th></tr>
+      <tr><td>系统管理员</td><td class="center"><code>system</code></td><td>可查看全平台台账数据（只读），不可编辑、不可审核。系统管理员不参与业务审批</td></tr>
+      <tr><td>市管理员</td><td class="center"><code>city</code></td><td>查看全市学校列表和台账详情。审核市直属学校的待审核台账。可补录线下编制计划</td></tr>
+      <tr><td>区管理员</td><td class="center"><code>district</code></td><td>查看本区学校列表和台账详情。审核本区学校的待审核台账</td></tr>
+      <tr><td>校管理员</td><td class="center"><code>school</code></td><td>仅可查看和编辑本校台账。未建立台账时填写全部字段并提交审核。待审核/已生效后按权限矩阵编辑部分字段。可补录线下编制计划</td></tr>
+      <tr><td>教师</td><td class="center"><code>teacher</code></td><td>无台账模块访问权限</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">1.5 模块范围</div>
+  <p>侧边栏「通用」分组下的「编制岗位台账」菜单项，对应 <strong>3 个页面</strong>：</p>
+  <div class="summary-box">
+    <table style="background:transparent;">
+      <tr><th style="background:transparent;color:var(--primary);padding:4px 12px;">页面</th><th style="background:transparent;color:var(--primary);padding:4px 12px;">功能点</th><th style="background:transparent;color:var(--primary);padding:4px 12px;">说明</th></tr>
+      <tr><td>台账管理列表页</td><td>F07.01-F07.03</td><td>管理员视图：学校列表、搜索筛选、状态标签页、统计汇总、审核入口</td></tr>
+      <tr><td>台账学校视图页</td><td>F07.04-F07.06, F07.08-F07.10</td><td>学校视图：本校台账概览、编制可视化、填写/编辑/提交、编制计划补录、到期提醒、实聘下钻、待审核只读</td></tr>
+      <tr><td>台账详情审核页</td><td>F07.07, F07.11</td><td>详情/审核页：台账详情查看、审核通过/退回、编辑台账、变更日志</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 2. 业务流程 ============= -->
+<div class="section" id="s2">
+  <div class="section-title">二、业务流程</div>
+
+  <div class="sub-title">2.1 台账全生命周期</div>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[学校未建立台账] --> B[校管理员进入台账页面]
+    B --> C[点击 建立台账]
+    C --> D[填写全部字段]
+    D --> D1{字段组}
+    D1 --> D2[基础信息: 单位全称/区域/学校类型/机构级别/单位性质/经费类型/信用代码/所在市]
+    D1 --> D3[编制信息: 事业编核定数/实有在编人数 + 控制数对应字段]
+    D1 --> D4[领导职数: 核定领导职数/实配领导/实配其他领导/厅级/处级/科级明细]
+    D1 --> D5[岗位结构: 管理/专技/工勤三类岗位的核定数+等级分布]
+    D1 --> D6[补录线下编制计划: 填写已批复计划数和已使用计划数 来自线下编办批复]
+    D2 --> E[点击 提交审核]
+    D3 --> E
+    D4 --> E
+    D5 --> E
+    D6 --> E
+    E --> F{状态变为 待审核}
+    F --> G[主管单位管理员查看待审核列表]
+    G --> H[点击 审核 进入台账详情审核页]
+    H --> I{审核操作}
+    I -->|审核通过| J[台账状态变为 已生效]
+    I -->|退回修改| K[填写退回原因]
+    K --> L[台账状态变为 已驳回]
+    L --> M[学校看到退回原因]
+    M --> N[修改字段后重新提交]
+    N --> F
+    J --> Q{台账已生效}
+    Q --> Q1[其他模块可读取台账数据]
+    Q --> Q2[入编/出编审批通过后自动同步实有人数 直接生效]
+    Q --> Q3[编制申请/岗位设置/聘用手续等模块审批通过后自动同步计划数与岗位数据 直接生效]
+    Q --> Q4[平台上线后 线上模块同步数据逐步替代线下补录数据]
+    Q --> R{数据变更来源}
+    R -->|其他模块审批通过自动同步| R1[编制管理/岗位管理/聘用管理等模块自动更新台账对应字段 无需审核 直接生效]
+    R -->|校管理员手动编辑| S[校管理员按权限编辑部分字段]
+    S --> S1[提交主管单位审核]
+    S1 --> S2[主管单位审核通过后生效 其他模块方可使用新数据]
+    S2 --> U[记录变更日志]
+</div>
+  </div>
+
+  <div class="sub-title">2.2 审核流程详解</div>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[台账处于 待审核 状态] --> B[主管单位管理员进入台账详情审核页]
+    B --> C[页面展示台账全部字段]
+    C --> D{审核人操作}
+    D -->|审核通过| E[弹出确认弹框]
+    E --> F[确认后 台账状态变为 已生效]
+    F --> F1[记录变更日志: 审核通过 + 审核人 + 时间]
+    F1 --> F2[全局锁释放 - 其他模块可正常使用]
+    D -->|退回修改| G[弹出退回原因输入弹框]
+    G --> H[填写退回原因 必填]
+    H --> I[确认退回]
+    I --> I1[台账状态: 待审核 + 退回原因已记录]
+    I1 --> I2[记录变更日志: 审核退回 + 退回原因 + 时间]
+    I2 --> I3[学校看到退回原因提示 - 所有字段恢复可编辑]
+</div>
+  </div>
+
+  <div class="sub-title">2.2a 编制计划补录流程</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">编制计划补录由<strong>校管理员</strong>在台账编辑页面操作，保存后须提交主管单位审核，审核通过后方可生效并被招聘模块使用。审核人在审核台账时可查看补录内容，若发现问题则退回修改。</p>
+  <div class="flow-box">
+    <div class="mermaid">
+flowchart TD
+    A[校管理员在台账编辑页面] --> B[点击 补录线下编制计划]
+    B --> C[填写编制有效期 + 各使用类型的编制数]
+    C --> D[保存补录记录]
+    D --> E[补录记录随台账一起提交审核]
+    E --> F[主管单位管理员审核台账时查看补录内容]
+    F --> G{审核结果}
+    G -->|审核通过| H[补录计划随台账一同生效]
+    H --> I[招聘模块可锁定有效期内补录计划中的编制]
+    G -->|退回修改| J[补录记录退回 学校可修改后重新提交]
+</div>
+  </div>
+
+  <div class="sub-title">2.3 台账状态流转</div>
+  <div class="summary-box">
+    <div class="state-diagram">
+      <div class="state-node draft"><strong>未建立</strong><br><small>台账中无该校记录</small></div>
+      <div class="state-arrow">→</div>
+      <div class="state-node draft"><strong>待提交</strong><br><small>已填写未提交审核</small></div>
+      <div class="state-arrow">→</div>
+      <div class="state-node pending"><strong>待审核</strong><br><small>已提交 等待主管单位审核</small></div>
+      <div class="state-arrow">→</div>
+      <div class="state-node active"><strong>已生效</strong><br><small>审核通过 正式启用</small></div>
+    </div>
+    <div class="state-diagram" style="margin-top:12px;">
+      <div class="state-node pending"><strong>已驳回</strong><br><small>审核退回 有退回原因</small></div>
+      <div class="state-arrow">→ 学校修改重提 →</div>
+      <div class="state-node pending"><strong>待审核</strong></div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-top:8px;">注：台账从"已生效"状态不可直接回到"待审核"。数据变更区分两类场景——① <strong>其他模块审批通过后的自动同步</strong>（如入编审批通过后实有人数+1）：系统直接更新台账对应字段，无需再次审核，即时生效；② <strong>校管理员手动编辑</strong>：编辑后须提交主管单位审核，审核通过后方可生效并被其他模块使用。主管单位审核时若发现数据问题，应退回修改让学校修正后重新提交。</p>
+</div>
+
+<!-- ============= 3. 功能清单 ============= -->
+<div class="section" id="s3">
+  <div class="section-title">三、功能清单</div>
+
+  <div class="summary-box">
+    <p><strong>功能点总览：</strong>本模块共 <strong>11</strong> 个功能点，覆盖管理员列表（3）、学校台账（6）、详情审核（2）三大功能域。</p>
+  </div>
+
+  <div class="table-wrap" style="margin-bottom:20px;">
+    <table>
+      <tr><th style="width:40px;">编号</th><th>功能名称</th><th>功能 ID</th><th>优先级</th><th>功能域</th><th>适用角色</th><th>所属页面</th></tr>
+      <tr><td class="center">1</td><td>台账学校列表</td><td>F07.01</td><td class="center"><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P0</span></td><td>管理员列表</td><td>市/区管理员</td><td>台账管理列表页</td></tr>
+      <tr><td class="center">2</td><td>列表筛选与统计</td><td>F07.02</td><td class="center"><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P0</span></td><td>管理员列表</td><td>市/区管理员</td><td>台账管理列表页</td></tr>
+      <tr><td class="center">3</td><td>台账审核入口</td><td>F07.03</td><td class="center"><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P0</span></td><td>管理员列表</td><td>市/区管理员</td><td>台账管理列表页</td></tr>
+      <tr><td class="center">4</td><td>本校台账概览</td><td>F07.04</td><td class="center"><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P0</span></td><td>学校台账</td><td>校管理员</td><td>台账学校视图页</td></tr>
+      <tr><td class="center">5</td><td>台账填写与提交</td><td>F07.05</td><td class="center"><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P0</span></td><td>学校台账</td><td>校管理员</td><td>台账学校视图页</td></tr>
+      <tr><td class="center">6</td><td>台账编制可视化</td><td>F07.06</td><td class="center"><span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P1</span></td><td>学校台账</td><td>校管理员</td><td>台账学校视图页</td></tr>
+      <tr><td class="center">7</td><td>台账详情与审核</td><td>F07.07</td><td class="center"><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P0</span></td><td>详情审核</td><td>市/区/校管理员</td><td>台账详情审核页</td></tr>
+      <tr><td class="center">8</td><td>编制计划补录</td><td>F07.08</td><td class="center"><span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P1</span></td><td>学校台账</td><td>校管理员</td><td>台账学校视图页</td></tr>
+      <tr><td class="center">9</td><td>编制计划到期提醒</td><td>F07.09</td><td class="center"><span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P1</span></td><td>学校台账</td><td>市/区/校管理员</td><td>台账学校视图页 / 台账详情审核页</td></tr>
+      <tr><td class="center">10</td><td>实聘人员列表（岗位下钻）</td><td>F07.10</td><td class="center"><span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P2</span></td><td>学校台账</td><td>市/区/校管理员</td><td>台账学校视图页 / 台账详情审核页</td></tr>
+      <tr><td class="center">11</td><td>编辑台账</td><td>F07.11</td><td class="center"><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">P0</span></td><td>详情审核</td><td>校管理员</td><td>台账详情审核页</td></tr>
+    </table>
+  </div>
+
+  <!-- F07.01 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.01</span>
+      <span class="feat-name">台账学校列表</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账管理列表页</dd>
+      <dt>适用角色</dt><dd>市管理员（全市学校）；区管理员（本区学校）</dd>
+      <dt>前置条件</dt><dd>当前用户已登录，拥有台账模块权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 列表展示管辖范围内所有学校的台账记录，默认按学校名称排序<br>
+        2. 每所学校一行，展示其台账关键指标的快照<br>
+        3. 列表字段：标准视图为 <strong>14 列</strong>（全部/待审核/已驳回/已生效标签页）：序号、单位编号、单位名称、所属区域、学校类型、单位级别、事业编核定数、实有在编人数、控制数核定数、实有控制数、岗位总量、提交时间、状态、操作。待提交标签页使用<strong>简化 6 列表格</strong>：序号、学校编号、学校名称、所属区域、最近提醒、操作<br>
+        4. 标准视图状态标签：<strong>待审核</strong>（黄色）、<strong>已驳回</strong>（红色，待审核且存在退回原因）、<strong>已生效</strong>（绿色）。待提交状态的台账不在此处展示，由独立的「待提交」标签页以简化表格承载<br>
+        5. 列表分页显示，每页 10 条<br>
+        6. 数据范围：按角色管辖范围过滤——市管理员看全市，区管理员看本区<br>
+        7. 操作列按钮根据台账状态动态变化：待提交→「提醒建立」（无台账记录的新学校）或「提醒提交」（已建立未提交）或「已提醒」（当天已提醒）；待审核→「查看」「审核」（管辖范围内）；已驳回→「查看」；已生效→「查看」
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 顶部显示汇总统计栏：学校总数、事业编制合计、控制数合计、在编人数合计<br>
+        · 列表为空时显示"暂无学校台账数据"空状态<br>
+        · 点击「查看」→ 跳转台账详情审核页，以查看模式展示台账全部信息<br>
+        · 点击「审核」→ 跳转台账详情审核页，以审核模式展示，可进行审核操作<br>
+        · 区管理员仅可审核本区学校，非本区学校的「审核」按钮不显示
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.02 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.02</span>
+      <span class="feat-name">列表筛选与统计</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账管理列表页</dd>
+      <dt>适用角色</dt><dd>市/区管理员</dd>
+      <dt>前置条件</dt><dd>已进入台账管理列表页</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>顶部统计卡片</strong>：显示当前筛选条件下的汇总数据——学校总数、事业编制合计、控制数合计、在编人数合计<br>
+        2. <strong>状态标签页</strong>（5 个）：全部 / 待审核 / 已驳回 / 已生效 / 待提交。切换时列表和统计数据同步更新。其中「全部」标签页仅展示已提交过的台账，不包含待提交状态的记录<br>
+        3. <strong>搜索框</strong>：支持按学校名称模糊搜索<br>
+        4. <strong>区域筛选</strong>（仅市管理员可见）：下拉选择区县过滤<br>
+        5. <strong>提醒提交</strong>：待提交标签页中展示两类学校——① 机构目录中存在但台账中无记录的新学校，显示「提醒建立」按钮；② 已建立台账但未提交的学校，显示「提醒提交」按钮。当天已提醒过的学校显示"已提醒"文字
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 统计栏在搜索/筛选/标签页切换时实时更新<br>
+        · 「提醒提交」按钮点击后系统发送提醒通知（正式阶段需对接消息推送服务）<br>
+        · 搜索框输入后自动触发过滤，避免频繁请求
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.03 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.03</span>
+      <span class="feat-name">台账审核入口</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账管理列表页</dd>
+      <dt>适用角色</dt><dd>市管理员（市直属学校）；区管理员（本区学校）</dd>
+      <dt>前置条件</dt><dd>有待审核的台账记录，且当前用户拥有审核权限</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 待审核标签页中展示所有处于"待审核"状态的台账记录<br>
+        2. 每条待审核记录操作列显示「查看」和「审核」按钮<br>
+        3. 点击「审核」→ 跳转到台账详情审核页，进入审核模式<br>
+        4. 审核权限校验：市管理员只能审核"市直属"的台账；区管理员只能审核本区的台账。非管辖范围内的待审核记录仅显示「查看」<br>
+        5. 审核操作在详情审核页完成（详见 F07.07）
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 待审核标签页数字角标实时显示待审核数量<br>
+        · 管辖范围外的待审核记录不显示「审核」按钮
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.04 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.04</span>
+      <span class="feat-name">本校台账概览</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账学校视图页</dd>
+      <dt>适用角色</dt><dd>校管理员</dd>
+      <dt>前置条件</dt><dd>当前用户为校管理员角色，已登录</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>未建立台账</strong>：显示引导页——"尚未建立编制岗位台账"提示 + 引导说明文字 +「建立台账」按钮<br>
+        2. <strong>已建立台账</strong>：展示本校台账完整信息，分为以下区域：<br>
+        &emsp;① <strong>页面头部</strong>：台账标题 + 状态标签（编辑中/待审核/已驳回/已生效）+ 提交/更新时间 + 操作按钮（已生效和已驳回状态显示「编辑」按钮，点击后进入编辑模式）<br>
+        &emsp;② <strong>基础信息区</strong>（只读展示）：分"标识信息"和"分类属性"两组展示。标识信息含单位名称、单位编号、统一社会信用代码；分类属性含所属区域、学校类型、单位级别、单位性质、经费类型、岗位设置分类。数据来源于机构管理模块，提示"机构基础信息如需修改，请前往机构管理模块编辑"并附带超链接<br>
+        &emsp;③ <strong>编制概览区</strong>（编制到期提醒条 + 4 张统计卡片）：先显示补录计划到期提醒（如有即将过期的补录计划），再以文字卡片形式展示事业编核定数/实有/空缺/可申请以及控制数核定数/实有/空缺/可申请<br>
+        &emsp;④ <strong>编制使用情况</strong>（左右双卡片 + 进度条）：事业编卡片（容量/占用/余量三段式）+ 控制数卡片（同上）<br>
+        &emsp;⑤ <strong>岗位结构区</strong>：三类岗位（管理/专技/工勤）的核定岗位数/实有人数/等级分布 + 小高地岗位 + 岗位总量<br>
+        &emsp;⑥ <strong>领导职数区</strong>：核定领导职数、实配领导、实配其他领导、厅级/处级/科级分级别明细<br>
+        3. 各区域的字段编辑权限按生效后权限矩阵控制（详见第五节）
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 台账待审核状态时顶部显示提示条："⏳ 台账已提交至上级管理部门审核，审核期间不可修改"<br>
+        · 已驳回时显示退回原因（红色背景卡片）<br>
+        · 右侧展示变更记录时间轴（只读），按时间倒序显示编辑/提交/审核/退回等操作历史<br>
+        · 页面布局为左侧主内容区 + 右侧变更日志侧边栏
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.05 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.05</span>
+      <span class="feat-name">台账填写与提交</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账学校视图页</dd>
+      <dt>适用角色</dt><dd>校管理员</dd>
+      <dt>前置条件</dt><dd>台账处于"未建立"或"已驳回"状态</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>首次建立台账</strong>：<br>
+        &emsp;① 从引导页点击「建立台账」→ 进入编辑模式，所有字段可编辑<br>
+        &emsp;② 填写全部字段（36 个字段按 5 个信息分组展示），字段分组：基础信息 / 编制信息 / 领导职数 / 岗位结构 / 编制计划<br>
+        &emsp;③ 点击「提交审核」→ 弹框标题为"首次提交申报"，不展示变更明细区域。确认后台账状态变为"待审核"，记录提交时间<br>
+        2. <strong>退回后重新提交 / 已生效后编辑提交</strong>：<br>
+        &emsp;① 顶部显示退回原因卡片（如有）<br>
+        &emsp;② 所有字段恢复可编辑（预填上次填写的数据）<br>
+        &emsp;③ 点击「提交审核」→ 弹框标题为"再次提交申报"，展示「📋 本次变更内容」区域（列出字段新旧值对比和补录计划增减），<strong>须填写修改原因</strong>（必填）<br>
+        &emsp;④ 确认后清除退回原因，状态恢复为"待审核"<br>
+        3. <strong>数据校验</strong>（以下全部通过方可提交审核）：<br>
+        &emsp;① <strong>完整性校验</strong>：机构基础信息（单位全称、所属区域、学校类型、单位级别、单位性质、经费类型、统一社会信用代码）必须全部填写完整；事业编制信息（核定数、实有人数、已批复计划数等）和控制数编制信息必须填写，且两项核定数至少有一项大于 0；岗位结构（三类岗位的核定数和各等级分布）必须完整填写；领导职数（核定领导职数、实配领导人数、实配其他领导人数及厅/处/科级明细）必须完整填写<br>
+        &emsp;② <strong>待完善人员校验</strong>：提交前须确认本校不存在待完善人员——即所有在编教师账号必须已匹配岗位类别和岗位等级，不存在缺少岗位信息的数据。若存在待完善人员，提示"本校还有 X 名教师缺少岗位信息，请前往账号管理补充后再提交台账"，并阻止提交<br>
+        &emsp;③ <strong>岗位结构校验</strong>：各等级核定数合计不能超过对应类别的核定岗位数；三类核定岗位数合计必须等于岗位总量<br>
+        4. 提交前系统自动同步汇总数据：领导职数合计由厅/处/科三级明细自动汇总；补录计划的已批复统计由计划列表自动汇总<br>
+        5. 提交后台账进入待审核状态，审核期间学校不可修改<br>
+        6. <strong>取消编辑行为</strong>：未提交过的台账取消编辑时直接丢弃数据回到未建立状态；已提交过的台账取消编辑时从存储重新加载，丢弃本次所有修改
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 已生效和已驳回状态下需点击「编辑」按钮进入编辑模式。编辑模式下底部显示「取消编辑」和「提交审核」两个按钮<br>
+        · 首次提交时弹框标题为"首次提交申报"，不展示变更明细；再次提交时弹框标题为"再次提交申报"，展示「📋 本次变更内容」区域（列出字段新旧值对比和补录计划增减），须填写修改原因<br>
+        · 提交成功后刷新页面，退出编辑模式进入待审核只读视图（提示条显示详见 F07.04）<br>
+        · 支持单文件申报附件上传（PDF/Word/Excel/图片，≤10MB，不支持压缩包格式 .zip/.rar/.7z/.tar/.gz）
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.06 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.06</span>
+      <span class="feat-name">台账编制可视化</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账学校视图页</dd>
+      <dt>适用角色</dt><dd>校管理员</dd>
+      <dt>前置条件</dt><dd>台账已建立（含已提交、待审核、已生效状态）</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>编制概览卡片</strong>（4 张文字卡片）：事业编制（核定数）、控制数（核定数）、在编人数（事业编实有+控制数实有）、空缺编制（可申请编制数+可申请控制数）<br>
+        2. <strong>编制使用情况</strong>（双卡片左右布局）：<br>
+        &emsp;① 事业编卡片：<br>
+        &emsp;&emsp;· 编制容量（文字展示）：显示核定编制数。可申请数 &gt; 0 时蓝色，可申请数 ≤ 0 时红色<br>
+        &emsp;&emsp;· 编制占用：实有在编人数 + 空缺编制计算公式（"空缺编制 = 核定数 - 实有人数 = X 人"）。如有跨校人员，显示"└ 其中跨校人员 X 人（借调 X / 支教 X / 轮岗 X）"。已批复计划数（含 ⓘ 提示 +「查看明细 ›」链接，编辑模式下额外显示「[+ 补录]」链接）、已使用计划数（缩进展示，含 ⓘ 提示）、未使用计划数（含 ⓘ 提示）。如有已过期但仍有占用的计划，追加"到期占用中"行（橙色文字）<br>
+        &emsp;&emsp;· 编制余量：可申请编制数（含 ⓘ 提示，核定 - 实有 - 已批复）<br>
+        &emsp;② 控制数卡片：同上结构<br>
+        3. <strong>岗位结构表格</strong>：三类岗位 × 等级双向交叉表——行=类别（管理/专技/工勤）× 等级，列=核准岗位数/实有人数（含事业编+控制数分列+超岗聘用数+小高地岗位）<br>
+        4. 所有由公式计算的字段系统实时自动计算，无需手动刷新
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 编制容量颜色：可申请数 &gt; 0 时蓝色，可申请数 ≤ 0 时红色<br>
+        · 岗位结构表中超岗聘用数大于 0 时以红色字体高亮<br>
+        · 各编制指标旁 ⓘ 图标点击弹出浮层解释该字段的含义和计算方式<br>
+        · 已批复计划数旁「查看明细 ›」链接点击弹出计划明细弹框；编辑模式下「[+ 补录]」链接点击弹出补录弹框
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.07 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.07</span>
+      <span class="feat-name">台账详情与审核</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账详情审核页</dd>
+      <dt>适用角色</dt><dd>市/区管理员（审核+查看）；校管理员（查看+编辑，编辑功能详见 F07.11）</dd>
+      <dt>前置条件</dt><dd>从台账列表点击"查看"或"审核"进入。页面支持通过参数切换模式：<code>mode=view</code>（查看，全部角色可用）、<code>mode=review</code>（审核，仅市/区管理员可用，且须在管辖范围内）。编辑模式见 F07.11</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. <strong>查看模式（mode=view）</strong>：<br>
+        &emsp;① 全部台账字段只读展示，与学校视图的字段分组一致<br>
+        &emsp;② 右侧展示变更记录时间轴<br>
+        &emsp;③ 基础信息数据从机构管理模块同步展示<br>
+        &emsp;④ 编制补录计划以表格形式展示：使用类型、编制数、有效期起止、状态<br>
+        2. <strong>审核模式（mode=review，仅市/区管理员）</strong>：<br>
+        &emsp;① 全部台账字段<strong>只读展示</strong>，审核人不可修改字段值。若发现数据问题，应通过「退回修改」让学校修正后重新提交<br>
+        &emsp;② 页面底部显示<strong>两个操作按钮</strong>：<br>
+        &emsp;&emsp;· <strong>退回修改</strong>（红色）：弹出退回原因输入弹框（必填）→ 确认后记录退回原因，写入变更日志。学校看到退回原因后可重新编辑提交<br>
+        &emsp;&emsp;· <strong>审核通过</strong>（绿色）：弹出确认弹框，显示学校名称 → 确认后台账状态变为"已生效"，记录审核人和审核时间，写入变更日志<br>
+        &emsp;③ 市管理员仅可审核"市直属"台账，区管理员仅可审核本区台账。无权限时显示 🔒 专属错误页，提示管辖范围并引导返回列表<br>
+        3. <strong>权限控制</strong>：区管理员访问非本区台账时显示"您无权查看该校的台账数据"错误页；市管理员对非市直属台账仅可查看（无法进入审核模式）。编辑功能见 F07.11<br>
+        4. <strong>全局锁定</strong>：台账处于待审核状态时，其他模块（编制申请/岗位设置/招聘等）暂停新申请。审核通过后锁定释放<br>
+        5. 变更日志记录每次操作的类型（提交申报/审核通过/审核退回）、操作人、时间和变更内容。变更明细以<strong>可折叠形式</strong>展示，默认收起，点击"▸ 变更明细（N 项）"展开，点击"▾ 收起明细"收起
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 面包屑导航：工作台 / 编制岗位台账 / 台账详情（学校名称）<br>
+        · 审核模式下页面头部显示黄色「🟡 待审核」状态标签<br>
+        · 审核模式下全部字段只读，审核人不可修改<br>
+        · 退回原因弹框校验：退回原因不能为空<br>
+        · 审核通过弹框显示学校名称，确认后台账立即生效<br>
+        · 无权限访问时显示 🔒 专属错误页，提示管辖范围并提供「← 返回列表」按钮
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.08 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.08</span>
+      <span class="feat-name">编制计划补录</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账学校视图页（校管理员编辑模式）</dd>
+      <dt>适用角色</dt><dd>校管理员（台账编辑模式下可补录，补录后随台账一同提交审核）</dd>
+      <dt>前置条件</dt><dd>台账已建立且处于可编辑状态（未建立/已驳回/已生效后编辑），当前用户为校管理员</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 编制计划补录由<strong>校管理员</strong>在台账编辑页面操作，用于录入线下已通过编办批复的编制使用记录，解决编制申请模块上线前存量批复数据无法录入的问题。补录弹框<strong>按编制类型分开</strong>，每次只处理一种编制类型（事业编或控制数），弹框标题为"补录线下{事业编/控制数}编制计划"<br>
+        2. 补录弹框包含以下字段：<br>
+        &emsp;① <strong>批复文号</strong>（文本输入，必填，如"柳编办[2025]8号"）<br>
+        &emsp;② <strong>编制有效期起始</strong>（日期选择，必填）<br>
+        &emsp;③ <strong>编制有效期截止</strong>（日期选择，必填，须晚于起始日期）<br>
+        &emsp;④ <strong>使用类型明细表</strong>（多行输入，6 种使用类型，每行含 4 列）：<br>
+        &emsp;&emsp;· 使用类型（固定枚举，不可修改）：① 统一公开招聘 / ② 自主实施招聘 / ③ 中高级人才招聘 / ④ 引进高层次人才 / ⑤ 调动 / ⑥ 其他<br>
+        &emsp;&emsp;· 批复（数字输入，默认 0，编办批准数）<br>
+        &emsp;&emsp;· 已占用（数字输入，默认 0，招聘途中已锁定的数量）<br>
+        &emsp;&emsp;· 已入编（数字输入，默认 0，已正式入编的数量。若已有入编记录则字段锁定为只读，title 提示"已有入编记录，不可修改"）<br>
+        &emsp;&emsp;· 未使用（系统自动计算：批复 − 已占用 − 已入编）<br>
+        &emsp;⑤ <strong>附件</strong>（文件上传，选填，支持 PDF/Word/Excel/JPG/PNG，≤10MB）<br>
+        &emsp;⑥ <strong>备注</strong>（文本域，选填，补充说明）<br>
+        3. 逐行填写各使用类型的编制使用情况。如某类型无数据填 0，合计不能全为 0<br>
+        4. 表格底部显示公式："未使用合计 = 批复合计 − 已占用合计 − 已入编合计 = X 人"，动态更新<br>
+        5. 每条补录记录系统自动生成唯一编号，保存到台账对应编制类型的补录计划列表中<br>
+        6. 补录记录保存后，<strong>随台账一同提交主管单位审核</strong>。审核通过后，补录计划随台账一同生效，补录记录中的已批复编制数会计入台账编制概览的"已批复计划数"统计<br>
+        7. <strong>审核通过生效后</strong>，编制有效期内且未被招聘锁定的补录记录方可被招聘模块使用；过期的补录记录以"已过期"标注<br>
+        8. 支持<strong>编辑已有补录计划</strong>：点击已保存的补录计划可打开编辑弹框，弹框标题变为"编辑线下{事业编/控制数}编制计划"，可修改各字段后重新保存<br>
+        9. 审核人在审核台账时可查看补录内容，若发现问题则退回修改让学校重新提交
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 校管理员在台账编辑页面的编制使用情况卡片中点击「[+ 补录]」链接或「+ 补录线下计划」按钮弹出补录弹框<br>
+        · 表头 ⓘ 图标点击可查看每个字段的含义和填写示例<br>
+        · 合计行和未使用公式行自动计算，不能全为 0（保存时校验）<br>
+        · 关闭弹框时若已填写数据，弹出确认提示"已填写的数据将丢失，确认关闭？"<br>
+        · 补录记录在台账详情页以表格形式展示（批复文号 / 使用类型明细 / 编制数 / 有效期 / 状态）<br>
+        · 已过期的计划显示灰色"已过期"标签<br>
+        · 补录记录随台账提交审核，审核期间不可修改
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.09 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.09</span>
+      <span class="feat-name">编制计划到期提醒</span>
+      <span class="feat-priority p1">P1</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账学校视图页 / 台账详情审核页</dd>
+      <dt>适用角色</dt><dd>市/区/校管理员（查看台账时展示）</dd>
+      <dt>前置条件</dt><dd>台账中存在补录编制计划记录</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 台账概览区域顶部展示编制计划到期提醒条，根据计划状态分三类：<br>
+        &emsp;① <strong>即将到期</strong>（⚠️ 橙色提醒）：距到期日 ≤ 60 天且仍有剩余名额的计划。提示文案："X 个计划即将到期，请尽快安排招聘或入编"。逐计划显示：计划编号、剩余人数、剩余天数、到期日期<br>
+        &emsp;② <strong>已到期但仍有占用</strong>（🟠 橙色提醒）：已到期但仍有在途人员待入编的计划。提示文案："X 个计划已过期，仍有在途人员待入编"。逐计划显示：计划编号、占用人数、到期日期。附加说明："占用名额仍有效，请尽快为占用人员办理入编手续"<br>
+        &emsp;③ <strong>已到期且彻底失效</strong>（🔒 灰色提醒）：已到期且无占用的计划。提示文案："X 个计划已到期，未使用名额已释放"。逐计划显示：计划编号、已释放名额数、到期日期<br>
+        2. 三类提醒按优先级排列：过期但有占用 → 已到期失效 → 即将到期<br>
+        3. 提醒条仅在编制概览区上方展示，不阻断其他内容的显示<br>
+        4. <strong>提醒消失规则</strong>：<br>
+        &emsp;· ⚠️ 即将到期：剩余名额用完或计划到期后自动消失<br>
+        &emsp;· 🟠 已过期有占用：所有占用人员完成入编（占用数归零）后自动消失<br>
+        &emsp;· 🔒 已到期失效：显示 30 天后自动隐藏（名额已释放，提醒价值递减）<br>
+        5. <strong>手动关闭</strong>：每种提醒条右侧提供「✕ 忽略」按钮，点击后该条提醒当前会话内不再显示（刷新页面后若条件仍满足则重新出现）<br>
+        6. 过期但有占用的计划：占用名额在入编时仍可继续使用（锁定状态不释放）；已到期且无占用的计划：未使用的编制名额自动释放，不可再被招聘锁定
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 提醒条以彩色背景卡片形式展示，不同类型使用不同颜色区分<br>
+        · 每种提醒条右上角提供「✕」忽略按钮，点击后该条提醒收起为一行"已忽略"提示（含 ↩ 重新显示按钮），当前会话有效<br>
+        · 逐计划显示详细信息，帮助管理员快速定位需要处理的计划
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.10 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.10</span>
+      <span class="feat-name">实聘人员列表（岗位等级下钻）</span>
+      <span class="feat-priority p2">P2</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账学校视图页 / 台账详情审核页</dd>
+      <dt>适用角色</dt><dd>市/区/校管理员</dd>
+      <dt>前置条件</dt><dd>台账已建立且岗位结构表中有实聘数据</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 岗位结构表中每个等级的实有人数合计为可点击的数字链接<br>
+        2. 点击后弹出动态标题弹框（标题格式为"{岗位类别} — {等级} 实聘人员"，如"专业技术岗位 — 七级 实聘人员"），分两个标签页展示该等级下的人员：<br>
+        &emsp;① <strong>已匹配人员</strong>：已明确岗位类别和等级的教师列表，字段包括姓名、编制类型、身份证号、入编方式、跨校状态<br>
+        &emsp;② <strong>待完善人员</strong>：属于本校但缺少岗位类别或等级信息的人员列表，字段与已匹配人员一致（姓名、编制类型、身份证号、入编方式、跨校状态），提示"请前往账号管理补充"并附带超链接跳转<br>
+        3. 弹框顶部显示汇总统计：该等级的核定数、实聘数、超岗数<br>
+        4. 数据来源：从教师账号列表和行政账号列表中按学校名称和岗位信息匹配<br>
+        5. 支持分页显示，每页展示一定数量的人员记录<br>
+        6. 支持切换查看同一岗位类别下不同等级的人员列表（弹框内标签页切换）
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 岗位结构表中的合计数字以下划线链接样式展示（蓝色可点击）<br>
+        · 弹框宽度自适应，最大 880px，内容区可滚动<br>
+        · 待完善人员标签页仅在存在不完整数据时显示<br>
+        · 已匹配人员为空时显示"暂无匹配的实聘人员"空状态
+      </dd>
+    </dl>
+  </div>
+
+  <!-- F07.11 -->
+  <div class="feat-card">
+    <div class="feat-header">
+      <span class="feat-id">F07.11</span>
+      <span class="feat-name">编辑台账</span>
+      <span class="feat-priority p0">P0</span>
+    </div>
+    <dl class="feat-dl">
+      <dt>页面</dt><dd>台账详情审核页</dd>
+      <dt>适用角色</dt><dd>校管理员（仅本校）</dd>
+      <dt>前置条件</dt><dd>台账已建立，当前用户为校管理员，通过 <code>mode=edit</code> 参数进入编辑模式。主管单位（市/区管理员）不可使用编辑模式</dd>
+      <dt>核心业务规则</dt>
+      <dd>
+        1. 校管理员在台账详情审核页可通过编辑模式修改本校台账数据<br>
+        2. 编辑模式下全部可编辑字段展示为可输入状态，与学校视图的编辑表单字段一致<br>
+        3. 底部显示两个操作按钮：<br>
+        &emsp;· <strong>取消编辑</strong>：放弃本次修改，跳转回查看模式（`mode=view`）<br>
+        &emsp;· <strong>保存修改</strong>：弹出确认弹框（标题"保存修改"），须填写修改原因（必填），确认后保存修改内容，记录变更日志，台账进入待审核状态<br>
+        4. 编辑模式下的可编辑字段范围与学校视图编辑模式一致（详见第五节权限矩阵）<br>
+        5. 编辑保存后变更进入待审核状态，须主管单位审核通过后方可生效并被其他模块使用<br>
+        6. 主管单位（市/区管理员）不可使用编辑模式——主管单位在审核时如发现数据问题应退回修改，由学校修正后重新提交
+      </dd>
+      <dt>交互规则</dt>
+      <dd>
+        · 页面头部显示「编辑中」状态标签<br>
+        · 岗位结构表支持直接修改数值，自动重算合计行<br>
+        · 保存修改弹框仅包含修改原因输入框（必填），变更内容由系统在后台计算后直接写入变更日志<br>
+        · 保存成功后自动返回查看模式，Toast 提示"台账修改已保存"
+      </dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ============= 4. 页面字段清单 ============= -->
+<div class="section" id="s4">
+  <div class="section-title">四、页面字段清单</div>
+
+  <div class="sub-title">4.1 台账管理 — 列表页字段（14 列）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>序号</td><td>数字</td><td>列表行号，按分页递增</td></tr>
+      <tr><td class="center">2</td><td>单位编号</td><td>文本</td><td>系统自动生成的机构唯一编号，从机构目录关联</td></tr>
+      <tr><td class="center">3</td><td>单位名称</td><td>文本</td><td>全站统一的单位标识，从机构目录关联</td></tr>
+      <tr><td class="center">4</td><td>所属区域</td><td>枚举</td><td>市直属/各区县名</td></tr>
+      <tr><td class="center">5</td><td>学校类型</td><td>枚举</td><td>小学/初中/高中/完中/九年一贯制/中职/幼儿园/特殊教育/专门学校/十二年一贯制</td></tr>
+      <tr><td class="center">6</td><td>单位级别</td><td>枚举</td><td>副厅级/正处级/副处级/正科级/副科级/其他未定级</td></tr>
+      <tr><td class="center">7</td><td>事业编核定数</td><td>数字</td><td>编办批复的事业编制员额上限</td></tr>
+      <tr><td class="center">8</td><td>实有在编人数</td><td>数字</td><td>当前实际在编的事业编制人员数</td></tr>
+      <tr><td class="center">9</td><td>控制数核定数</td><td>数字</td><td>编办批复的聘用控制数员额上限</td></tr>
+      <tr><td class="center">10</td><td>实有控制数</td><td>数字</td><td>当前实际在岗的控制数人员数</td></tr>
+      <tr><td class="center">11</td><td>岗位总量</td><td>数字</td><td>系统自动计算：事业编核定数 + 控制数核定数 - 小高地岗位数</td></tr>
+      <tr><td class="center">12</td><td>提交时间</td><td>日期时间</td><td>学校提交审核的时间，未提交时显示"—"</td></tr>
+      <tr><td class="center">13</td><td>状态</td><td>枚举</td><td>待提交 / 待审核 / 已驳回 / 已生效</td></tr>
+      <tr><td class="center">14</td><td>操作</td><td>操作按钮</td><td>查看 / 审核（待审核 + 管辖范围内）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.2 台账详情/学校视图 — 基础信息字段（10 个字段，只读）</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">基础信息来源于机构管理模块，台账页只读展示，不可在台账中编辑。页面显示提示"机构基础信息如需修改，请前往机构管理模块编辑"并附带超链接跳转。数据分为两组展示：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>分组</th><th>字段名称</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>标识信息</td><td>单位名称</td><td>文本</td><td class="center">是</td><td>事业单位法人证书上的法定名称，与公章一致</td></tr>
+      <tr><td class="center">2</td><td>标识信息</td><td>单位编号</td><td>文本</td><td class="center">—</td><td>系统自动生成的机构唯一编号，从机构目录关联</td></tr>
+      <tr><td class="center">3</td><td>标识信息</td><td>统一社会信用代码</td><td>文本</td><td class="center">是</td><td>18 位，单位的法定身份证号</td></tr>
+      <tr><td class="center">4</td><td>分类属性</td><td>所属区域</td><td>枚举</td><td class="center">是</td><td>市直属/城中区/鱼峰区/柳南区/柳北区/柳江区/柳城县/鹿寨县/融安县/融水县/三江县</td></tr>
+      <tr><td class="center">5</td><td>分类属性</td><td>学校类型</td><td>枚举</td><td class="center">是</td><td>小学/初中/高中/完中/九年一贯制/十二年一贯制/中职/幼儿园/特殊教育/专门学校</td></tr>
+      <tr><td class="center">6</td><td>分类属性</td><td>单位级别</td><td>枚举</td><td class="center">是</td><td>副厅级/正处级/副处级/正科级/副科级/其他未定级</td></tr>
+      <tr><td class="center">7</td><td>分类属性</td><td>单位性质</td><td>枚举</td><td class="center">是</td><td>事业单位/参公事业单位/机关单位/其他</td></tr>
+      <tr><td class="center">8</td><td>分类属性</td><td>经费类型</td><td>枚举</td><td class="center">是</td><td>全额拨款/差额拨款/自收自支</td></tr>
+      <tr><td class="center">9</td><td>分类属性</td><td>岗位设置分类</td><td>枚举</td><td class="center">—</td><td>自治区示范高中/自治区特色高中/普通高中/初中/小学/幼儿园，从机构目录关联</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.3 台账详情/学校视图 — 编制信息字段（事业编 7 个字段 + 控制数 7 个字段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>分组</th><th>字段名称</th><th>类型</th><th>必填</th><th>生效后编辑权限</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>事业编</td><td>核定事业编制数</td><td>数字</td><td class="center">是</td><td>仅校管理员可编辑</td><td>编办批复的事业编制员额上限</td></tr>
+      <tr><td class="center">2</td><td>事业编</td><td>实有在编人数</td><td>数字</td><td class="center">是</td><td>仅校管理员可编辑（生效后锁定）</td><td>入编+1，出编-1（由业务流程驱动）</td></tr>
+      <tr><td class="center">3</td><td>事业编</td><td>已批复计划数</td><td>数字</td><td class="center">是</td><td>只读（由业务流程驱动）</td><td>编制申请审批通过时累加</td></tr>
+      <tr><td class="center">4</td><td>事业编</td><td>已使用计划数</td><td>数字</td><td class="center">是</td><td>只读（由业务流程驱动）</td><td>入编审批通过时累加</td></tr>
+      <tr><td class="center">5</td><td>事业编</td><td>未使用计划数</td><td>数字</td><td class="center">—</td><td>系统自动计算</td><td>已批复计划数 - 已使用计划数</td></tr>
+      <tr><td class="center">6</td><td>事业编</td><td>可申请编制数</td><td>数字</td><td class="center">—</td><td>系统自动计算</td><td>核定数 - 实有人数 - 已批复计划数</td></tr>
+      <tr><td class="center">7</td><td>控制数</td><td>核定控制数</td><td>数字</td><td class="center">是</td><td>仅校管理员可编辑</td><td>编办批复的聘用控制数员额上限</td></tr>
+      <tr><td class="center">8</td><td>控制数</td><td>实有控制数人数</td><td>数字</td><td class="center">是</td><td>仅校管理员可编辑（生效后锁定）</td><td>入编+1，出编-1（由业务流程驱动）</td></tr>
+      <tr><td class="center">9</td><td>控制数</td><td>已批复控制数</td><td>数字</td><td class="center">是</td><td>只读（由业务流程驱动）</td><td>编制申请审批通过时累加</td></tr>
+      <tr><td class="center">10</td><td>控制数</td><td>已使用控制数</td><td>数字</td><td class="center">是</td><td>只读（由业务流程驱动）</td><td>入编审批通过时累加</td></tr>
+      <tr><td class="center">11</td><td>控制数</td><td>未使用控制数</td><td>数字</td><td class="center">—</td><td>系统自动计算</td><td>已批复控制数 - 已使用控制数</td></tr>
+      <tr><td class="center">12</td><td>控制数</td><td>可申请控制数</td><td>数字</td><td class="center">—</td><td>系统自动计算</td><td>核定数 - 实有人数 - 已批复控制数</td></tr>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">注：已批复计划数和已使用计划数（事业编/控制数）同时也受编制计划补录中未过期计划数的影响，补录记录中的批复数会计入"已批复"统计。</p>
+
+  <div class="sub-title">4.4 台账详情/学校视图 — 领导职数字段（6 个字段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>必填</th><th>生效后编辑权限</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>核定领导职数（合计）</td><td>数字</td><td class="center">是</td><td>只读（自动计算）</td><td>编办批准的校级领导岗位数上限（校长+副校长），由厅/处/科三级核定数自动合计</td></tr>
+      <tr><td class="center">2</td><td>实配领导人数（合计）</td><td>数字</td><td class="center">是</td><td>只读（自动计算）</td><td>当前实际在岗的校级领导人数，由厅/处/科三级实配领导人数自动合计</td></tr>
+      <tr><td class="center">3</td><td>实配其他领导人数（合计）</td><td>数字</td><td class="center">是</td><td>只读（自动计算）</td><td>不担任领导实职但享受相应职级待遇的管理人员，由厅/处/科三级实配其他领导人数自动合计</td></tr>
+      <tr><td class="center">4</td><td>厅级领导职数</td><td>数字组</td><td class="center">是</td><td>仅校管理员可编辑</td><td>含核定职数、实配领导人数、实配其他领导人数三个子字段；实配人数 = 实配领导人数 + 实配其他领导人数，系统自动计算</td></tr>
+      <tr><td class="center">5</td><td>处级领导职数</td><td>数字组</td><td class="center">是</td><td>仅校管理员可编辑</td><td>含核定职数、实配领导人数、实配其他领导人数三个子字段；实配人数 = 实配领导人数 + 实配其他领导人数，系统自动计算</td></tr>
+      <tr><td class="center">6</td><td>科级领导职数</td><td>数字组</td><td class="center">是</td><td>仅校管理员可编辑</td><td>含核定职数、实配领导人数、实配其他领导人数三个子字段；实配人数 = 实配领导人数 + 实配其他领导人数，系统自动计算</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.5 台账详情/学校视图 — 岗位结构字段（8 个字段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>必填</th><th>生效后编辑权限</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>总量控制数</td><td>数字</td><td class="center">—</td><td>系统自动计算</td><td>事业编核定数 + 控制数核定数</td></tr>
+      <tr><td class="center">2</td><td>小高地岗位数</td><td>数字</td><td class="center">是</td><td>仅校管理员可编辑</td><td>广西人才小高地专项岗位配额，包含在事业编核定数内</td></tr>
+      <tr><td class="center">3</td><td>岗位总量</td><td>数字</td><td class="center">—</td><td>系统自动计算</td><td>总量控制数 - 小高地岗位数</td></tr>
+      <tr><td class="center">4</td><td>岗位三大类分布</td><td>数字组</td><td class="center">是</td><td>全部管理员可编辑</td><td>管理岗位/专业技术岗位/工勤技能岗位各自的核定数与实有人数</td></tr>
+      <tr><td class="center">5</td><td>管理岗位等级分布</td><td>数字组</td><td class="center">是</td><td>核准岗位数：生效后锁定；实有人数：只读</td><td>五级~十级，每等级含核定数、事业编实有、控制数实有、超岗聘用数</td></tr>
+      <tr><td class="center">6</td><td>专业技术岗位等级分布</td><td>数字组</td><td class="center">是</td><td>核准岗位数：生效后锁定；实有人数：只读</td><td>正高（3-4级）/副高（5-7级）/中级（8-10级）/初级（11-13级），每等级含核定数、事业编实有、控制数实有、超岗聘用数、小高地岗位数</td></tr>
+      <tr><td class="center">7</td><td>工勤技能岗位等级分布</td><td>数字组</td><td class="center">是</td><td>核准岗位数：生效后锁定；实有人数：只读</td><td>一级~五级+普通工，每等级含核定数、事业编实有、控制数实有、超岗聘用数</td></tr>
+      <tr><td class="center">8</td><td>实聘数明细</td><td>数字组</td><td class="center">—</td><td>只读（由业务流程驱动）</td><td>专业技术岗位每等级按实名编/控制数/超岗/小高地的实聘数拆分</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">4.6 编制计划补录 — 表单字段</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">补录弹框按编制类型分开（事业编 / 控制数），弹框标题为"补录线下{事业编/控制数}编制计划"。以下为弹框中的字段：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>批复文号</td><td>文本</td><td class="center">是</td><td>编办批复文件编号，如"柳编办[2025]8号"</td></tr>
+      <tr><td class="center">2</td><td>编制有效期起始</td><td>日期</td><td class="center">是</td><td>编制批复的生效日期</td></tr>
+      <tr><td class="center">3</td><td>编制有效期截止</td><td>日期</td><td class="center">是</td><td>编制批复的失效日期，须晚于起始日期</td></tr>
+      <tr><td class="center">4</td><td>使用类型</td><td>枚举</td><td class="center">是</td><td>固定 6 种：① 统一公开招聘 / ② 自主实施招聘 / ③ 中高级人才招聘 / ④ 引进高层次人才 / ⑤ 调动 / ⑥ 其他</td></tr>
+      <tr><td class="center">5</td><td>批复</td><td>数字</td><td class="center">—</td><td>该使用类型下编办批准的数量，默认 0</td></tr>
+      <tr><td class="center">6</td><td>已占用</td><td>数字</td><td class="center">—</td><td>招聘途中已锁定的数量，默认 0</td></tr>
+      <tr><td class="center">7</td><td>已入编</td><td>数字</td><td class="center">—</td><td>已正式入编的数量，默认 0。若已有入编记录则锁定为只读</td></tr>
+      <tr><td class="center">8</td><td>附件</td><td>文件</td><td class="center">否</td><td>选填，支持 PDF/Word/Excel/JPG/PNG，≤10MB</td></tr>
+      <tr><td class="center">9</td><td>备注</td><td>文本</td><td class="center">否</td><td>补充说明，选填</td></tr>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">注：每条补录记录包含以上字段，系统自动生成唯一编号和创建时间。未使用 = 批复 − 已占用 − 已入编（系统自动计算）。合计校验：各使用类型批复数合计不能全为 0。</p>
+
+  <div class="sub-title">4.7 台账详情 — 审核页面专属元素</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>审核专属元素</th><th>说明</th></tr>
+      <tr><td><strong>审核操作栏</strong></td><td>页面底部显示「退回修改」（红色）和「审核通过」（绿色）两个按钮。审核模式下所有字段只读，审核人不可修改</td></tr>
+      <tr><td><strong>退回原因弹框</strong></td><td>点击「退回修改」后弹出，退回原因为必填文本。确认后退回原因记录到台账中</td></tr>
+      <tr><td><strong>审核确认弹框</strong></td><td>点击「审核通过」后弹出确认弹框，展示学校名称，确认后台账立即生效</td></tr>
+      <tr><td><strong>状态标识</strong></td><td>页面标题显示「审核」字样 + 黄色「🟡 待审核」状态标签 + 提交时间</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 5. 操作级权限矩阵 ============= -->
+<div class="section" id="s5">
+  <div class="section-title">五、操作级权限矩阵</div>
+
+  <div class="sub-title">5.1 台账生效前（审核流程中）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>操作</th><th style="width:80px;">校管理员</th><th style="width:80px;">区管理员</th><th style="width:80px;">市管理员</th><th style="width:80px;">系统管理员</th></tr>
+      <tr><td>填写/编辑全部字段（未建立/已驳回）</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td></tr>
+      <tr><td>提交审核</td><td class="center matrix-yes">✅</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td><td class="center matrix-no">—</td></tr>
+      <tr><td>查看台账详情</td><td class="center matrix-yes">✅ 本校</td><td class="center matrix-yes">✅ 本区</td><td class="center matrix-yes">✅ 全市</td><td class="center matrix-yes">✅ 全平台</td></tr>
+      <tr><td>审核通过</td><td class="center matrix-no">—</td><td class="center matrix-cond">🔸 本区</td><td class="center matrix-cond">🔸 市直属</td><td class="center matrix-no">—</td></tr>
+      <tr><td>退回修改</td><td class="center matrix-no">—</td><td class="center matrix-cond">🔸 本区</td><td class="center matrix-cond">🔸 市直属</td><td class="center matrix-no">—</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">5.2 台账生效后（按字段编辑权限）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>数据区</th><th>字段</th><th style="width:80px;">校管理员</th><th style="width:80px;">区管理员</th><th style="width:80px;">市管理员</th><th style="width:80px;">系统管理员</th></tr>
+      <tr><td>基础信息</td><td>全部 9 个字段</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>事业编</td><td>核定编制数</td><td class="center matrix-yes">✅</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>事业编</td><td>实有在编人数</td><td class="center matrix-cond">🔸 生效后锁定</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>事业编</td><td>已批复计划数、已使用计划数</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>事业编</td><td>未使用计划数、可申请编制数</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>事业编/控制数</td><td>到期占用中</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>控制数</td><td>核定控制数</td><td class="center matrix-yes">✅</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>控制数</td><td>实有控制数人数</td><td class="center matrix-cond">🔸 生效后锁定</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>控制数</td><td>已批复控制数、已使用控制数</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>控制数</td><td>未使用控制数、可申请控制数</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>领导职数</td><td>合计 3 字段</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>领导职数</td><td>分级别子字段（核定/实配领导/实配其他领导）</td><td class="center matrix-yes">✅</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>岗位结构</td><td>小高地岗位数</td><td class="center matrix-yes">✅</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>岗位结构</td><td>核准岗位数</td><td class="center matrix-cond">🔸 生效后锁定</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+      <tr><td>岗位结构</td><td>实有人数</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td><td class="center matrix-no">只读</td></tr>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-secondary);margin-top:8px;">注：上述编辑权限为台账生效后的初始化编辑权限。所有编辑操作均须提交主管单位审核，审核通过后方可生效。主管单位审核时不可修改台账数据，发现问题应退回修改。系统管理员仅可查看，不参与业务操作。</p>
+
+  <div class="sub-title">5.3 全局锁定规则</div>
+  <div class="rule-item danger">
+    <strong>台账审核期间全局锁定</strong>：台账处于待审核状态时，其他模块（编制使用申请、岗位设置、招聘岗位、教师入编、教师出编、岗位晋升、聘用手续）不可发起新申请，进行中的审批也暂停操作，直至台账审核完成。
+  </div>
+</div>
+
+<!-- ============= 6. 数据模型 ============= -->
+<div class="section" id="s6">
+  <div class="section-title">六、数据模型</div>
+
+  <div class="sub-title">6.0 存储说明</div>
+  <div class="rule-item">
+    <strong>当前阶段</strong>：数据以浏览器端存储方式保存，以学校为维度组织为字典结构。无后端、无数据库。<br><br>
+    <strong>正式阶段（规划）</strong>：将迁移至服务端数据库，对应学校编制台账表和台账管理 API。
+  </div>
+
+  <div class="sub-title">6.1 台账完整数据定义（共 38 个业务字段 + 状态管理字段 + 变更记录）</div>
+
+  <div class="sub-sub-title">一、台账状态管理信息</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>台账状态</td><td>枚举</td><td>待审核 / 已生效（未建立的学校在台账中不存在记录）</td></tr>
+      <tr><td class="center">2</td><td>提交时间</td><td>日期</td><td>学校提交审核的时间</td></tr>
+      <tr><td class="center">3</td><td>审核通过时间</td><td>日期</td><td>审核通过的时间</td></tr>
+      <tr><td class="center">4</td><td>审核人</td><td>文本</td><td>审核操作人姓名</td></tr>
+      <tr><td class="center">5</td><td>退回原因</td><td>文本</td><td>审核退回时填写的原因，重新提交后清空</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sub-title">二、基础信息（8 个字段，来源于机构管理模块）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>示例值</th><th>含义</th><th>数据来源</th></tr>
+      <tr><td class="center">1</td><td>单位全称</td><td>文本</td><td>柳州市第一中学</td><td>事业单位法人证书上的法定名称，与公章一致</td><td>编办批复</td></tr>
+      <tr><td class="center">2</td><td>所属区域</td><td>枚举</td><td>城中区 / 市直属</td><td>学校所在行政区。市直属学校值为"市直属"，决定管辖权归属和审批链路</td><td>行政划分</td></tr>
+      <tr><td class="center">3</td><td>学校类型</td><td>枚举</td><td>高中</td><td>办学层次：小学/初中/高中/完中/九年一贯制/中职/幼儿园/自治区示范高中</td><td>教育部门</td></tr>
+      <tr><td class="center">4</td><td>单位级别</td><td>枚举</td><td>正处级</td><td>学校在行政体系中的级别。市直属中学通常正处级，区属中学正科级。决定校长的职级天花板和岗位等级上限</td><td>编办核定</td></tr>
+      <tr><td class="center">5</td><td>单位性质</td><td>枚举</td><td>事业单位</td><td>机构的组织属性。公办学校几乎都是"事业单位"</td><td>编办核定</td></tr>
+      <tr><td class="center">6</td><td>经费类型</td><td>枚举</td><td>全额拨款</td><td>经费的财政保障方式。全额拨款=全部由财政负担；差额拨款=财政负担一部分+单位自筹；自收自支=完全自行解决</td><td>编办+财政</td></tr>
+      <tr><td class="center">7</td><td>统一社会信用代码</td><td>文本</td><td>12450200498597851Y</td><td>统一社会信用代码，18位，单位的法定身份证号。入编备案、社保开户、工资统发时均需填写</td><td>事业单位登记管理局</td></tr>
+      <tr><td class="center">8</td><td>所在市</td><td>文本</td><td>柳州市</td><td>学校所在城市。当前平台仅覆盖柳州市，为常量</td><td>行政划分</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sub-title">三、编制信息 — 事业编（7 个字段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>示例值</th><th>含义</th><th>变更驱动</th></tr>
+      <tr><td class="center">1</td><td>核定事业编制数</td><td>数字</td><td>88</td><td>编办批复的事业编制员额上限</td><td>编办核定，手动维护</td></tr>
+      <tr><td class="center">2</td><td>实有在编人数</td><td>数字</td><td>80</td><td>当前实际在编的事业编制人员数</td><td>入编+1，出编-1</td></tr>
+      <tr><td class="center">3</td><td>已批复计划数</td><td>数字</td><td>5</td><td>编制使用申请中已获批的计划数累计（含补录计划中有效的批复数）</td><td>编制申请审批通过</td></tr>
+      <tr><td class="center">4</td><td>已使用计划数</td><td>数字</td><td>4</td><td>已通过入编实际使用的计划数</td><td>入编审批通过</td></tr>
+      <tr><td class="center">5</td><td>未使用计划数</td><td>数字</td><td>1</td><td>已批复计划数 - 已使用计划数</td><td>系统自动计算</td></tr>
+      <tr><td class="center">6</td><td>可申请编制数</td><td>数字</td><td>3</td><td>核定数 - 实有人数 - 已批复计划数</td><td>系统自动计算</td></tr>
+      <tr><td class="center">7</td><td>到期占用中</td><td>数字</td><td>0</td><td>已过期但仍有在途人员待入编的编制数，来自补录计划中已过期且有占用的记录</td><td>系统自动计算（根据补录计划状态）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sub-title">四、编制信息 — 控制数（7 个字段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>示例值</th><th>含义</th><th>变更驱动</th></tr>
+      <tr><td class="center">1</td><td>核定控制数</td><td>数字</td><td>16</td><td>编办批复的聘用控制数员额上限</td><td>编办核定，手动维护</td></tr>
+      <tr><td class="center">2</td><td>实有控制数人数</td><td>数字</td><td>14</td><td>当前实际在岗的控制数人员数</td><td>入编+1，出编-1</td></tr>
+      <tr><td class="center">3</td><td>已批复控制数</td><td>数字</td><td>3</td><td>编制使用申请中已获批的控制数累计（含补录计划中有效的批复数）</td><td>编制申请审批通过</td></tr>
+      <tr><td class="center">4</td><td>已使用控制数</td><td>数字</td><td>1</td><td>已通过入编实际使用的控制数</td><td>入编审批通过</td></tr>
+      <tr><td class="center">5</td><td>未使用控制数</td><td>数字</td><td>2</td><td>已批复控制数 - 已使用控制数</td><td>系统自动计算</td></tr>
+      <tr><td class="center">6</td><td>可申请控制数</td><td>数字</td><td>1</td><td>核定数 - 实有人数 - 已批复控制数</td><td>系统自动计算</td></tr>
+      <tr><td class="center">7</td><td>到期占用中</td><td>数字</td><td>0</td><td>已过期但仍有在途人员待入编的控制数，来自补录计划中已过期且有占用的记录</td><td>系统自动计算（根据补录计划状态）</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sub-title">五、领导职数（6 个字段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>示例值</th><th>含义</th><th>变更驱动</th></tr>
+      <tr><td class="center">1</td><td>核定领导职数</td><td>数字</td><td>5</td><td>编办批准的校级领导岗位数上限（校长+副校长）</td><td>编办核定，手动维护</td></tr>
+      <tr><td class="center">2</td><td>实配领导人数</td><td>数字</td><td>4</td><td>当前实际在岗的校级领导人数</td><td>组织部门任命</td></tr>
+      <tr><td class="center">3</td><td>实配其他领导人数</td><td>数字</td><td>3</td><td>不担任领导实职但享受相应职级待遇的管理人员（如退居二线的原副校长）</td><td>组织部门备案</td></tr>
+      <tr><td class="center">4</td><td>厅级领导职数明细</td><td>数字组</td><td>核定职数 0，实配领导 0，实配其他领导 0</td><td>厅级领导职数的核定职数、实配领导人数、实配其他领导人数</td><td>组织部门核定</td></tr>
+      <tr><td class="center">5</td><td>处级领导职数明细</td><td>数字组</td><td>核定职数 0，实配领导 5，实配其他领导 0</td><td>处级领导职数的核定职数、实配领导人数、实配其他领导人数</td><td>组织部门核定</td></tr>
+      <tr><td class="center">6</td><td>科级领导职数明细</td><td>数字组</td><td>核定职数 0，实配领导 0，实配其他领导 0</td><td>科级领导职数的核定职数、实配领导人数、实配其他领导人数</td><td>组织部门核定</td></tr>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">注：核定领导职数（合计）= 厅级核定职数 + 处级核定职数 + 科级核定职数。实配领导人数（合计）= 厅级实配领导 + 处级实配领导 + 科级实配领导。实配其他领导人数（合计）= 厅级实配其他领导 + 处级实配其他领导 + 科级实配其他领导。实配人数 = 实配领导人数 + 实配其他领导人数，系统自动计算。机构级别不同，领导职数的级别构成也不同（正处级学校有处级领导配额，正科级学校只有科级领导配额）。</p>
+
+  <div class="sub-sub-title">六、岗位结构（8 个字段）</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>示例值</th><th>含义</th><th>变更驱动</th></tr>
+      <tr><td class="center">1</td><td>总量控制数</td><td>数字</td><td>104</td><td>事业编核定数 + 控制数核定数。岗位的上限基准</td><td>系统自动计算</td></tr>
+      <tr><td class="center">2</td><td>小高地岗位数</td><td>数字</td><td>0</td><td>广西人才小高地专项岗位配额，包含在事业编核定数内。不计入常规岗位总量</td><td>自治区人社厅批复</td></tr>
+      <tr><td class="center">3</td><td>岗位总量</td><td>数字</td><td>104</td><td>总量控制数 - 小高地岗位数。学校实际可分配的常规岗位数</td><td>系统自动计算</td></tr>
+      <tr><td class="center">4</td><td>岗位三大类分布</td><td>数字组</td><td>管理 0/4，专技 0/580，工勤 0/0</td><td>岗位三大类的核定数与实有人数。管理=行政管理，专技=专业技术，工勤=后勤服务</td><td>岗位设置申请审批</td></tr>
+      <tr><td class="center">5</td><td>管理岗位等级分布</td><td>数字组</td><td>五级~十级各等级分布</td><td>管理岗位按等级（五级~十级）的核定/事业编实有/控制数实有/超岗聘用</td><td>岗位设置申请审批</td></tr>
+      <tr><td class="center">6</td><td>专业技术岗位等级分布</td><td>数字组</td><td>正高/副高/中级/初级各等级分布</td><td>专业技术岗位按层级（正高/副高/中级/初级）及等级（三级~十三级）的核定数、事业编实有、控制数实有、超岗聘用、小高地实聘</td><td>岗位设置申请审批</td></tr>
+      <tr><td class="center">7</td><td>工勤技能岗位等级分布</td><td>数字组</td><td>一级~五级+普通工各等级分布</td><td>工勤技能岗位按等级（一级~五级+普通工）的核定/事业编实有/控制数实有/超岗聘用</td><td>岗位设置申请审批</td></tr>
+      <tr><td class="center">8</td><td>实聘数明细</td><td>数字组</td><td>每等级按实名编/控制数/超岗/小高地拆分</td><td>专业技术岗位每等级按编制类型拆分的实聘数。入编/出编审批通过时更新</td><td>入编/出编审批通过</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sub-title">七、编制计划补录记录</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">补录计划按编制类型分为<strong>两个独立数组</strong>：事业编补录计划列表和控制数补录计划列表。两条数组独立管理，提交时系统自动汇总到台账的已批复/已使用统计字段中。每条补录记录包含以下字段：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>记录编号</td><td>文本</td><td>系统自动生成的唯一编号</td></tr>
+      <tr><td class="center">2</td><td>批复文号</td><td>文本</td><td>编办批复文件编号，如"柳编办[2025]8号"</td></tr>
+      <tr><td class="center">3</td><td>编制类型</td><td>枚举</td><td>事业编 / 控制数</td></tr>
+      <tr><td class="center">4</td><td>来源类型</td><td>枚举</td><td>线上（编制申请模块同步）/ 线下（手动补录）</td></tr>
+      <tr><td class="center">5</td><td>有效期起始</td><td>日期</td><td>编制批复的生效日期</td></tr>
+      <tr><td class="center">6</td><td>有效期截止</td><td>日期</td><td>编制批复的失效日期</td></tr>
+      <tr><td class="center">7</td><td>使用类型明细</td><td>数字组</td><td>固定 6 种类型（统一公开招聘/自主实施招聘/中高级人才招聘/引进高层次人才/调动/其他），每种类型含批复数、已占用数、已入编数、未使用数（自动计算）</td></tr>
+      <tr><td class="center">8</td><td>附件</td><td>文件</td><td>选填，批复文件扫描件</td></tr>
+      <tr><td class="center">9</td><td>备注</td><td>文本</td><td>补充说明</td></tr>
+      <tr><td class="center">10</td><td>创建时间</td><td>日期</td><td>补录记录的创建时间</td></tr>
+      <tr><td class="center">11</td><td>计划状态</td><td>枚举</td><td>有效 / 即将到期 / 已过期 / 已过期有占用，由系统根据有效期和占用情况自动计算</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sub-title">八、变更日志记录</div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">系统维护<strong>两套独立记录</strong>：变更日志（用于页面展示）和提交日志（用于记录每次提交的原始数据）。每次台账数据变更时：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>记录类型</th><th>用途</th><th>包含字段</th></tr>
+      <tr><td><strong>变更日志</strong></td><td>页面右侧时间轴展示，供所有用户查看台账操作历史</td><td>操作类型（提交申报/再次提交申报/审核通过/审核退回）、操作时间、操作人、操作描述、退回原因、变更明细（字段名+旧值+新值，可折叠展开）、补录计划变更（新增/删除）、附件信息</td></tr>
+      <tr><td><strong>提交日志</strong></td><td>记录每次提交审核时的完整快照，用于再次提交时计算变更差异</td><td>提交时间、提交人、字段变更列表、补录计划变更列表、修改原因、附件信息</td></tr>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">注：页面变更日志中的「变更明细」以可折叠形式展示，默认收起，点击"▸ 变更明细（N 项）"展开查看具体字段变化和补录计划增减。</p>
+
+  <div class="sub-sub-title">九、元数据</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>字段名称</th><th>类型</th><th>说明</th></tr>
+      <tr><td class="center">1</td><td>最后更新时间</td><td>日期</td><td>台账数据的最后修改日期</td></tr>
+      <tr><td class="center">2</td><td>最后更新人</td><td>文本</td><td>最后一次修改操作的执行人</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">6.2 自动计算字段公式</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>计算字段</th><th>计算公式</th><th>说明</th></tr>
+      <tr><td>总量控制数</td><td>核定事业编制数 + 核定控制数</td><td>编制总量基准</td></tr>
+      <tr><td>岗位总量</td><td>总量控制数 - 小高地岗位数</td><td>常规岗位可分配总量</td></tr>
+      <tr><td>未使用计划数（事业编）</td><td>已批复计划数 - 已使用计划数</td><td>事业编待使用的计划数</td></tr>
+      <tr><td>可申请编制数（事业编）</td><td>核定事业编制数 - 实有在编人数 - 已批复计划数</td><td>事业编可申请的最大编制数</td></tr>
+      <tr><td>未使用控制数</td><td>已批复控制数 - 已使用控制数</td><td>控制数待使用的计划数</td></tr>
+      <tr><td>可申请控制数</td><td>核定控制数 - 实有控制数人数 - 已批复控制数</td><td>控制数可申请的最大编制数</td></tr>
+      <tr><td>空缺编制（事业编）</td><td>核定事业编制数 - 实有在编人数</td><td>事业编当前空缺数</td></tr>
+      <tr><td>空缺编制（控制数）</td><td>核定控制数 - 实有控制数人数</td><td>控制数当前空缺数</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">6.3 跨模块数据流</div>
+  <p>台账作为唯一数据源，7 个业务模块从台账读取数据，审批通过后回写台账：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>模块</th><th>读取的台账数据</th><th>审批通过后回写的数据</th></tr>
+      <tr><td>编制使用申请</td><td>事业编核定数、实有人数、已批复/已使用/可申请数；控制数核定数、实有人数、已批复/已使用/可申请数</td><td>已批复计划数（事业编/控制数）累加</td></tr>
+      <tr><td>教师入编</td><td>事业编核定数/实有人数/未使用计划数；控制数核定数/实有人数/未使用控制数；统一社会信用代码；领导职数全部字段</td><td>实有在编人数 +1 或 实有控制数人数 +1；已使用计划数/已使用控制数 +1</td></tr>
+      <tr><td>教师出编</td><td>事业编实有人数、控制数实有人数、未使用计划数（事业编）</td><td>实有在编人数 -1 或 实有控制数人数 -1</td></tr>
+      <tr><td>岗位设置</td><td>总量控制数、小高地岗位数、岗位总量、经费类型、学校类型</td><td>岗位大类分布、管理/专技/工勤各等级分布（审批通过时更新）</td></tr>
+      <tr><td>岗位晋升</td><td>专业技术岗位等级配额</td><td>—（不直接写台账，入编确认时更新实聘数）</td></tr>
+      <tr><td>招聘岗位</td><td>单位全称、学校类型、单位级别、经费类型、所在市、所属区域</td><td>—（招聘不直接写台账，入编确认时更新）</td></tr>
+      <tr><td>聘用手续</td><td>单位全称、学校类型、单位级别、经费类型、所属区域</td><td>—（聘用不涉及占编占岗）</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 7. 页面清单 ============= -->
+<div class="section" id="s7">
+  <div class="section-title">七、页面清单</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>页面名称</th><th>页面文件</th><th>页面类型</th><th>功能说明</th><th>权限控制</th></tr>
+      <tr><td class="center">1</td><td>编制岗位台账管理</td><td><code>org-ledger-admin.html</code></td><td>列表 + 搜索筛选</td><td>管理员视角的学校列表（14列）、状态标签页（全部/待审核）、搜索筛选、统计汇总卡片、审核入口、提醒提交</td><td>市管理员：全市；区管理员：本区</td></tr>
+      <tr><td class="center">2</td><td>编制岗位台账（学校）</td><td><code>org-ledger-school.html</code></td><td>概览 + 编辑</td><td>学校视角的本校台账详情、编制可视化（卡片+进度条+环形图）、台账填写/编辑/提交、待审核只读、退回修改、变更日志时间轴</td><td>校管理员：本校</td></tr>
+      <tr><td class="center">3</td><td>编制岗位台账详情</td><td><code>org-ledger-detail.html</code></td><td>详情 + 审核 + 编辑</td><td>台账完整详情查看、审核操作（审核通过/退回修改）、编辑台账（校管理员）、编制计划补录、变更日志</td><td>市/区管理员：审核+查看；校管理员：查看+编辑</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 8. 异常处理 ============= -->
+<div class="section" id="s8">
+  <div class="section-title">八、异常处理</div>
+
+  <div class="sub-title">8.1 边界情况</div>
+  <div class="rule-item"><strong>台账数据为空（未建立）：</strong>学校管理员看到引导页——"尚未建立编制岗位台账"提示 +「建立台账」按钮。管理员的学校列表中将该校标记为"未建立"（在机构目录中存在但台账中无记录）</div>
+  <div class="rule-item"><strong>机构目录数据缺失：</strong>台账基础信息从机构管理模块关联读取。如果机构目录中无该校数据，基础信息字段显示"未同步"，提示"请先在机构管理中完善学校基础信息"</div>
+  <div class="rule-item"><strong>必填字段未填写：</strong>提交审核时校验所有必填字段，未通过则提示"请填写所有必填字段"并定位到第一个缺失字段位置</div>
+  <div class="rule-item"><strong>岗位结构校验失败：</strong>各等级核定数合计超过类别核定岗位数时，提示具体哪个类别的哪个等级超出上限</div>
+  <div class="rule-item"><strong>编制计划无效：</strong>补录的编制计划中事业编制数和控制数编制数合计为 0 时，提示"至少填写一项编制数"</div>
+  <div class="rule-item"><strong>提交后审核中：</strong>待审核和已生效状态下学校端显示只读视图。已驳回状态下方可编辑并重新提交</div>
+
+  <div class="sub-title">8.2 错误场景</div>
+  <div class="rule-item danger"><strong>存储不可用：</strong>浏览器隐私模式或存储空间满时，页面显示"存储不可用，请联系管理员"。台账数据无法保存</div>
+  <div class="rule-item danger"><strong>台账数据损坏：</strong>如果台账数据损坏或无法解析，页面展示错误提示并引导管理员进行数据恢复</div>
+  <div class="rule-item danger"><strong>全局锁定冲突：</strong>台账审核期间其他模块提交申请时，提示"编制岗位台账审核中，请稍后再试"。台账审核完成后锁定自动释放</div>
+  <div class="rule-item warning"><strong>非管辖范围审核：</strong>区管理员试图审核非本区台账时，不显示「审核」按钮。直接通过页面参数访问审核模式时，系统校验权限并提示无权操作</div>
+  <div class="rule-item warning"><strong>教师角色访问：</strong>教师角色无台账模块访问权限，侧边栏不显示台账菜单项</div>
+  <div class="rule-item warning"><strong>审核期间并发编辑：</strong>同一台账被多个管理员同时审核时，后提交者覆盖前者。需引入版本号校验机制确保数据一致性（正式版）</div>
+  <div class="rule-item warning"><strong>编制计划过期：</strong>已过期的补录计划在台账中标注"已过期"，不计入编制占用统计。招聘模块不可锁定过期计划中的编制</div>
+  <div class="rule-item warning"><strong>附件上传失败：</strong>单文件超过 10MB 或总数超过 5 个时，弹出提示并阻止上传。不支持的文件格式在文件选择对话框中过滤</div>
+</div>
+
+<!-- ============= 9. 通知触发点 ============= -->
+<div class="section" id="s9">
+  <div class="section-title">九、通知触发点</div>
+  <p class="section-desc">台账模块作为底层数据模块，以下为系统级通知场景：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>触发操作</th><th>通知对象</th><th>通知内容</th><th>渠道</th></tr>
+      <tr><td>台账提交审核</td><td>主管单位管理员</td><td>"{学校名称} 已提交编制岗位台账，请及时审核"</td><td>站内消息 / 工作台待办</td></tr>
+      <tr><td>台账审核通过</td><td>校管理员</td><td>"您的编制岗位台账已审核通过，各业务模块可正常使用"</td><td>站内消息</td></tr>
+      <tr><td>台账审核退回</td><td>校管理员</td><td>"您的编制岗位台账已被退回，原因：{退回原因}。请修改后重新提交"</td><td>站内消息 / 工作台待办</td></tr>
+      <tr><td>台账全局锁定</td><td>所有相关模块的管理员</td><td>"编制岗位台账审核中，编制申请/岗位设置/招聘等模块暂停新申请"</td><td>工作台通知</td></tr>
+      <tr><td>台账全局锁定释放</td><td>所有相关模块的管理员</td><td>"编制岗位台账已完成审核，各模块已恢复正常使用"</td><td>工作台通知</td></tr>
+    </table>
+  </div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-top:8px;">注：通知需对接消息推送服务实现实时触达。通知规则如下——① <strong>提交审核</strong>和<strong>审核退回</strong>产生工作台待办（铃铛通知），需及时处理；② <strong>审核通过</strong>和<strong>数据自动同步</strong>（如入编后实有人数+1）仅通过站内消息告知，不产生待办，因为无后续操作或为系统自动行为。通知需对接消息推送服务实现实时触达。</p>
+</div>
+
+<!-- ============= 10. 操作日志埋点 ============= -->
+<div class="section" id="s10">
+  <div class="section-title">十、操作日志埋点</div>
+  <p class="section-desc">遵循总纲 4.7 操作日志规范，本模块以下操作须自动记录日志：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>功能域</th><th>操作类型</th><th>记录内容</th></tr>
+      <tr><td>台账管理</td><td>建立台账</td><td>操作人、学校名称、初始编制数（核定事业编/控制数）</td></tr>
+      <tr><td>台账管理</td><td>提交审核</td><td>操作人、学校名称、提交时间</td></tr>
+      <tr><td>台账管理</td><td>审核通过</td><td>操作人、学校名称、审核时间</td></tr>
+      <tr><td>台账管理</td><td>审核退回</td><td>操作人、学校名称、退回原因</td></tr>
+      <tr><td>台账管理</td><td>编辑台账</td><td>操作人、学校名称、修改原因、变更字段及新旧值</td></tr>
+      <tr><td>台账管理</td><td>补录编制计划</td><td>操作人、学校名称、补录计划内容（有效期+各使用类型编制数）</td></tr>
+      <tr><td>台账管理</td><td>附件上传</td><td>操作人、学校名称、文件名、文件大小</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 11. 验收标准 ============= -->
+<div class="section" id="s11">
+  <div class="section-title">十一、验收标准</div>
+
+  <div class="sub-title">11.1 功能判定标准</div>
+  <ol style="margin-left:20px; line-height:2;">
+    <li>市管理员可查看全市学校台账列表，区管理员仅可查看本区学校列表</li>
+    <li>台账列表支持按状态（全部/待审核）筛选，搜索框可按学校名称搜索</li>
+    <li>校管理员首次进入台账页面看到引导页，点击「建立台账」可进入编辑模式</li>
+    <li>校管理员填写全部必填字段后可成功提交审核，台账状态变为"待审核"</li>
+    <li>主管单位管理员可对待审核台账进行审核通过、退回修改操作</li>
+    <li>审核通过后台账状态变为"已生效"，各业务模块可正常使用台账数据</li>
+    <li>退回修改时校管理员看到退回原因，可重新编辑并提交</li>
+    <li>台账生效后按权限矩阵控制各角色的编辑权限（仅校管理员可编辑，编辑后须提交审核，市/区管理员只读）</li>
+    <li>编制概览卡片正确显示事业编/控制数的核定数、实有人数、空缺、可申请数</li>
+    <li>编制容量文字颜色按可申请数正确变化（>0 蓝色，≤0 红色）</li>
+    <li>岗位结构表各等级核定数合计不超过类别核定数</li>
+    <li>补录编制计划可正常新增、查看，过期计划正确标注</li>
+    <li>变更日志正确记录每次编辑、提交、审核、退回操作</li>
+    <li>台账审核期间全局锁定：其他模块不可发起新申请</li>
+    <li>提交申报附件上传功能正常（PDF/Word/Excel/图片，≤10MB，单文件）</li>
+    <li>教师角色无台账模块访问权限</li>
+  </ol>
+
+  <div class="sub-title">11.2 关键测试场景</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:40px;">#</th><th>测试场景</th><th>预期结果</th></tr>
+      <tr><td class="center">1</td><td>校管理员首次建立台账——填写全部字段并提交</td><td>台账状态变为"待审核"，记录提交时间。变更日志记录"提交申报"</td></tr>
+      <tr><td class="center">2</td><td>区管理员审核本区学校台账——审核通过</td><td>台账状态变为"已生效"，变更日志记录"审核通过"。台账可被其他模块读取</td></tr>
+      <tr><td class="center">3</td><td>区管理员审核本区学校台账——退回修改</td><td>台账状态保持"待审核"，退回原因已记录。学校端看到退回原因，可重新编辑提交</td></tr>
+      <tr><td class="center">4</td><td>市管理员审核台账——审核通过</td><td>台账状态变为"已生效"，变更日志记录"审核通过"。其他模块可读取台账数据</td></tr>
+      <tr><td class="center">5</td><td>台账生效后校管理员编辑台账</td><td>进入编辑模式后可编辑核定数、领导职数等字段（实有人数和核准岗位数锁定），保存后进入待审核状态，变更日志记录</td></tr>
+      <tr><td class="center">6</td><td>台账生效后校管理员尝试编辑实有人数</td><td>字段锁定为只读，显示"已生效台账不允许修改"，不可编辑</td></tr>
+      <tr><td class="center">7</td><td>校管理员补录线下编制计划</td><td>补录弹框可正常填写批复文号、有效期和各使用类型编制数，保存后随台账提交审核</td></tr>
+      <tr><td class="center">8</td><td>台账待审核时，编制申请模块提交新申请</td><td>被全局锁定规则阻止，提示"台账审核中，请稍后再试"</td></tr>
+      <tr><td class="center">9</td><td>台账审核通过后，编制申请模块正常提交</td><td>台账数据可正常读取，提交成功，全局锁定释放</td></tr>
+      <tr><td class="center">10</td><td>校管理员查看本校台账概览</td><td>4 张统计卡片数据正确，编制使用情况卡片文字展示正确，岗位结构表完整展示</td></tr>
+      <tr><td class="center">11</td><td>区管理员通过页面参数访问非本区台账的审核模式</td><td>显示 🔒 专属错误页，提示"您无权查看该校的台账数据"并提供「← 返回列表」按钮</td></tr>
+      <tr><td class="center">12</td><td>市管理员在台账列表中搜索"八中"</td><td>列表过滤仅显示名称包含"八中"的学校</td></tr>
+      <tr><td class="center">13</td><td>岗位结构表三级~十三级编制数合计校验</td><td>各级合计不超过专业技术岗位核定数，超出时提示具体超限信息</td></tr>
+      <tr><td class="center">14</td><td>教师角色尝试访问台账页面</td><td>侧边栏不显示台账菜单项，直接访问时显示"无权访问"</td></tr>
+      <tr><td class="center">15</td><td>提交申报时上传附件</td><td>PDF/Word/Excel/图片可正常上传。超过 10MB 时被拦截并提示</td></tr>
+      <tr><td class="center">16</td><td>台账中存在即将到期（≤60天）的补录计划</td><td>概览区顶部显示 ⚠️ 到期提醒条，逐计划显示剩余天数和剩余人数</td></tr>
+      <tr><td class="center">17</td><td>台账中存在已过期但仍有占用的补录计划</td><td>显示 🟠 提示"X 个计划已过期，仍有在途人员待入编"，占用名额仍有效</td></tr>
+      <tr><td class="center">18</td><td>台账中所有计划均已过期且无占用</td><td>显示 🔒 提示"X 个计划已到期，未使用名额已释放"</td></tr>
+      <tr><td class="center">19</td><td>点击岗位结构表中某等级的合计数字</td><td>弹出"{类别} — {等级} 实聘人员"弹框，已匹配标签页展示人员列表（姓名/编制类型/身份证号/入编方式/跨校状态）</td></tr>
+      <tr><td class="center">20</td><td>本校存在缺少岗位信息的教师时查看实聘列表</td><td>待完善标签页出现，提示"请前往账号管理补充"并附带超链接</td></tr>
+      <tr><td class="center">21</td><td>校管理员在详情页进入编辑模式</td><td>页面头部显示「编辑中」标签，底部显示「取消编辑」+「保存修改」按钮</td></tr>
+      <tr><td class="center">22</td><td>编辑模式下点击「保存修改」</td><td>弹出"保存修改"弹框，须填写修改原因（必填），确认后保存并记录变更日志</td></tr>
+      <tr><td class="center">23</td><td>校管理员在已驳回状态下重新编辑并提交</td><td>弹框标题为"再次提交申报"，展示变更明细，须填写修改原因</td></tr>
+      <tr><td class="center">24</td><td>补录计划截止日期已过期但仍有占用时确认补录</td><td>弹出确认提示"该计划截止日期已过期，但尚有 X 人占用未入编。确定补录此过期计划吗？"</td></tr>
+      <tr><td class="center">25</td><td>市管理员对非市直属台账进入审核模式</td><td>显示 🔒 错误页"市管理员仅可审核/编辑市直属学校台账"，提供「← 返回列表」按钮</td></tr>
+      <tr><td class="center">26</td><td>切换到「待提交」标签页</td><td>列表切换为简化 6 列视图，展示未建立台账的学校和已建立未提交的学校</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============= 12. 迭代记录 ============= -->
+<div class="section" id="s12">
+  <div class="section-title">十二、迭代记录</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:80px;">版本</th><th style="width:100px;">日期</th><th>变更内容</th><th style="width:80px;">变更人</th></tr>
+      <tr>
+        <td class="center">v1.0</td>
+        <td class="center">2026-07-14</td>
+        <td>
+          初始版本，创建编制岗位台账模块 PRD。<br>
+          覆盖 11 个功能点：台账学校列表（F07.01）、列表筛选与统计（F07.02）、台账审核入口（F07.03）、本校台账概览（F07.04）、台账填写与提交（F07.05）、台账编制可视化（F07.06）、台账详情与审核（F07.07）、编制计划补录（F07.08）、编制计划到期提醒（F07.09）、实聘人员列表（F07.10）、编辑台账（F07.11）。<br>
+          包含 3 个页面、38 字段完整数据模型（5 组：基础信息/编制信息/领导职数/岗位结构/补录计划）、Mermaid 流程图、权限矩阵（生效前+生效后+全局锁定）、跨模块数据流、异常处理、通知触发点、操作日志埋点、验收标准 26 场景。
+        </td>
+        <td class="center">产品</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- .container -->
+
+<div class="footer">
+  <p>柳州教育人事管理平台 · 编制岗位台账模块 PRD · Version 1.0（正式版） · 2026-07-14</p>
+  <p>父文档：PRD_总纲_柳州教育人事管理平台.md · 内部文档</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+</body>
+</html>

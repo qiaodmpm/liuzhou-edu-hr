@@ -416,6 +416,7 @@ body {
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 // ===== SVG ICONS =====
 var ICONS = {
@@ -459,7 +460,7 @@ var ROLES = {
         { name: '聘用管理', items: [{ id: 'employ', label: '聘用手续办理' }] },
         { name: '编外教师管理', items: [{ id: 'contract-entry', label: '教师入职管理' }, { id: 'contract-exit', label: '教师离职管理' }] },
         { name: '人事管理', items: [{ id: 'retire', label: '退休呈报' }, { id: 'ethics', label: '师德师风举报' }] },
-        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }] }
+        { name: '系统设置', items: [{ id: 'account', label: '账号管理' }, { id: 'org', label: '机构管理' }, { id: 'perm', label: '角色权限' }, { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }] }
       ]
     }
   },
@@ -899,40 +900,38 @@ function getTransferLevels(category) {
 
 // ===== RENDER SIDEBAR =====
 function renderSidebar() {
-  var roleData = ROLES[currentRole];
-  if (!roleData) return;
-  var s = roleData.sidebar;
-  var html = '';
-  (s.top || []).forEach(function (i) {
-    html += '<a class="menu-item' + (i.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[i.icon] || '') + '<span class="menu-label">' + i.label + '</span></a>';
-  });
-  (s.groups || []).forEach(function (g) {
-    html += '<div class="menu-group">' + g.name + '</div>';
-    g.items.forEach(function (i) {
-      html += '<a class="menu-item' + (i.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id] || 'file']) + '<span class="menu-label">' + i.label + '</span>' + (i.badge ? '<span class="menu-badge">' + i.badge + '</span>' : '') + '</a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = html;
-
-  // Update topnav
   if (currentRole === 'teacher') {
     var t = getCurrentTeacher();
     document.getElementById('topAvatar').textContent = t.short || t.name.charAt(0);
     document.getElementById('topName').textContent = t.name;
+    var roleData = ROLES[currentRole];
+    if (!roleData) return;
+    var s = roleData.sidebar;
+    var html = '';
+    (s.top || []).forEach(function (i) {
+      html += '<a class="menu-item' + (i.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[i.icon] || '') + '<span class="menu-label">' + i.label + '</span></a>';
+    });
+    (s.groups || []).forEach(function (g) {
+      html += '<div class="menu-group">' + g.name + '</div>';
+      g.items.forEach(function (i) {
+        html += '<a class="menu-item' + (i.id === 'promote' ? ' active' : '') + '" onclick="sidebarClick(this,\'' + i.id + '\')">' + (ICONS[MENU_ICONS[i.id] || 'file']) + '<span class="menu-label">' + i.label + '</span>' + (i.badge ? '<span class="menu-badge">' + i.badge + '</span>' : '') + '</a>';
+      });
+    });
+    document.getElementById('sidebarMenu').innerHTML = html;
+    document.querySelectorAll('.role-switch-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.role === currentRole); });
   } else {
+    renderSidebarMenu('sidebarMenu', currentRole, 'promote');
+    var roleData = ROLES[currentRole];
+    if (!roleData) return;
     document.getElementById('topAvatar').textContent = roleData.short;
     document.getElementById('topName').textContent = roleData.name;
+    document.querySelectorAll('.role-switch-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.role === currentRole); });
   }
-
-  // Highlight current role switch button
-  document.querySelectorAll('.role-switch-btn').forEach(function (b) {
-    b.classList.toggle('active', b.dataset.role === currentRole);
-  });
 }
 
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function (i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function (i) { i.classList.remove('active'); }); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'promote') return; // stay on this page
   if (id === 'recruit') { showToast('无权限访问', 'warning'); return; }
@@ -947,6 +946,7 @@ function sidebarClick(el, id) {
   else if (id === 'account') { window.location.href = 'account-management.html'; }
 
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
 }
 

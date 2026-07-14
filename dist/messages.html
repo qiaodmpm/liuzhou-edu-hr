@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>消息列表 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ===== TOP NAV ===== */
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+/* ===== MESSAGE POPOVER ===== */
+.msg-popover { display: none; position: absolute; top: 50px; right: 60px; width: 340px; background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 200; overflow: hidden; }
+.msg-popover.show { display: block; }
+.msg-popover-header { padding: 14px 18px; font-size: 14px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.msg-list { max-height: 300px; overflow-y: auto; }
+.msg-item { display: flex; gap: 10px; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid #F1F5F9; transition: var(--transition); }
+.msg-item:hover { background: #F8FAFC; }
+.msg-item.unread .msg-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+.msg-item.read .msg-dot { width: 8px; flex-shrink: 0; }
+.msg-item-title { font-size: 13px; color: var(--text); margin-bottom: 2px; }
+.msg-item-time { font-size: 11px; color: var(--text-light); }
+.msg-popover-footer { padding: 10px 18px; text-align: center; border-top: 1px solid var(--border); }
+.msg-popover-footer a { font-size: 12px; color: var(--primary); text-decoration: none; }
+
+/* ===== SIDEBAR ===== */
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); margin-top: auto; }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.system { background: #EF4444; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
+/* ===== MAIN ===== */
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.page-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+.page-header h1 { font-size: 20px; font-weight: 700; }
+.page-header .subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
+.tab { padding: 8px 20px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition); background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+.tab:hover { color: var(--primary); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab .tab-count { display: inline-block; background: var(--gray-bg); color: var(--text-secondary); font-size: 11px; padding: 1px 8px; border-radius: 10px; margin-left: 6px; font-weight: 400; }
+.tab.active .tab-count { background: var(--primary-light); color: var(--primary); }
+
+/* Table */
+.list-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.list-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+.list-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tbody tr { cursor: pointer; transition: var(--transition); }
+.list-table tbody tr:hover { background: #FAFBFC; }
+.list-table tbody tr.unread { background: #F8FAFF; }
+.list-table tbody tr.unread:hover { background: #EFF4FF; }
+.list-table .col-title { text-align: left; font-weight: 500; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-table .col-content { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 12px; text-align: left; }
+.list-table .col-time { color: var(--text-secondary); font-size: 12px; }
+
+/* Status badges */
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.status-badge.unread { background: #DBEAFE; color: #1E40AF; }
+.status-badge.read { background: #F1F5F9; color: #94A3B8; }
+
+/* Module tag */
+.module-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; background: #EFF6FF; color: #1E40AF; }
+.module-tag.system { background: #F1F5F9; color: #64748B; }
+.module-tag.security { background: #FEE2E2; color: #991B1B; }
+
+/* Pagination */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; flex-wrap: wrap; }
+.pagination button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-secondary); transition: var(--transition); }
+.pagination button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+.pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+.pagination .page-info { font-size: 12px; color: var(--text-light); margin: 0 8px; }
+
+/* Toast */
+.toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; font-weight: 500; opacity: 0; transform: translateY(-10px); transition: var(--transition); pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.warning { background: var(--warning); }
+.toast.error { background: var(--danger); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text-light); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 13px; }
+
+/* Responsive */
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+  .main { margin-left: 0; padding: 16px; }
+  .sidebar { display: none; }
+  .msg-popover { right: 10px; width: 300px; }
+}
+@media (max-width: 500px) { .stats-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP NAVBAR ===== -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="20" width="8" height="22" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="14" y="14" width="8" height="28" rx="2" fill="rgba(255,255,255,0.85)"/><rect x="24" y="6" width="8" height="36" rx="2" fill="rgba(255,255,255,0.95)"/><rect x="34" y="10" width="8" height="32" rx="2" fill="rgba(255,255,255,0.75)"/><circle cx="38" cy="10" r="6" fill="#fff" opacity="0.5"/><path d="M36.5 8.5L39.5 11.5L42 8" stroke="#1E40AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell" id="bellBtn" onclick="toggleMsgPopover()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge" id="bellBadge">0</span>
+    </div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">管</div>
+      <span id="userName">管理员</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="personal-center.html">个人中心</a>
+        <div class="divider"></div>
+        <a class="logout" href="index.html" onclick="localStorage.clear()">退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== MESSAGE POPOVER ===== -->
+<div class="msg-popover" id="msgPopover">
+  <div class="msg-popover-header"><span>消息通知</span><span style="font-size:11px;color:var(--text-light);" id="popoverCount">共0条</span></div>
+  <div class="msg-list" id="popoverMsgList"></div>
+  <div class="msg-popover-footer"><a href="messages.html">查看全部消息 →</a></div>
+</div>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu">
+    <!-- Filled by JS based on role -->
+  </div>
+
+  <!-- Role Switcher -->
+  <div class="role-switcher" id="roleSwitcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="system" onclick="switchRole('system')">
+        <span class="role-switch-dot system"></span>
+        <span class="role-switcher-name">系统管理员</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">赵建国</span>
+      </button>
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')">
+        <span class="role-switch-dot city"></span>
+        <span class="role-switcher-name">市管理员</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">张建国</span>
+      </button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')">
+        <span class="role-switch-dot district"></span>
+        <span class="role-switcher-name">区管理员</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">李振华</span>
+      </button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')">
+        <span class="role-switch-dot school"></span>
+        <span class="role-switcher-name">校管理员</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">王玉兰</span>
+      </button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')">
+        <span class="role-switch-dot teacher"></span>
+        <span class="role-switcher-name">教 师</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">陈明辉</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      <span class="menu-label">收起菜单</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main" id="mainContent">
+  <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>消息列表</span></div>
+  <div class="page-header">
+    <div>
+      <h1>消息列表</h1>
+      <div class="subtitle">查看和管理所有通知消息</div>
+    </div>
+    <button class="btn btn-outline" onclick="markAllRead()" id="btnMarkAllRead">✅ 全部标记已读</button>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="tabs" id="filterTabs">
+    <button class="tab active" data-filter="all" onclick="setFilter('all', this)">全部消息<span class="tab-count" id="tabCountAll">0</span></button>
+    <button class="tab" data-filter="unread" onclick="setFilter('unread', this)">未读<span class="tab-count" id="tabCountUnread">0</span></button>
+    <button class="tab" data-filter="read" onclick="setFilter('read', this)">已读<span class="tab-count" id="tabCountRead">0</span></button>
+  </div>
+
+  <!-- Message table -->
+  <div class="list-card">
+    <div class="table-scroll">
+      <table class="list-table" id="msgTable">
+        <thead>
+          <tr>
+            <th style="width:70px;">状态</th>
+            <th class="col-title" style="text-align:left;">标题</th>
+            <th class="col-content" style="text-align:left;">内容</th>
+            <th style="width:110px;">来源模块</th>
+            <th style="width:150px;">时间</th>
+          </tr>
+        </thead>
+        <tbody id="msgTableBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3H10l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      <p id="emptyStateText">暂无消息</p>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="src/menu-config.js"></script>
+<script src="src/notifications.js"></script>
+<script src="src/logger.js"></script>
+<script>
+// ========== ERROR HANDLER ==========
+window.onerror = function(msg, url, line, col, err) {
+  var debugInfo = '消息列表页 — 错误: ' + msg + ' @ ' + (url || '').split('/').pop() + ':' + line;
+  var el = document.getElementById('debugInfo');
+  if (!el) { el = document.createElement('div'); el.id = 'debugInfo'; el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#FEE2E2;color:#991B1B;padding:8px 16px;font-size:12px;z-index:99999;'; document.body.appendChild(el); }
+  el.textContent = debugInfo;
+  return false;
+};
+
+// ========== INIT ==========
+var currentUser = null;
+try {
+  var raw = localStorage.getItem('currentUser');
+  if (raw) currentUser = JSON.parse(raw);
+} catch(e) {}
+if (!currentUser) { location.href = 'index.html'; }
+
+var userId = currentUser.id || currentUser.uid || 'u001';
+var userName = currentUser.name || '管理员';
+var currentRole = currentUser.role || 'city';
+
+document.getElementById('userName').textContent = userName;
+document.getElementById('userAvatar').textContent = userName.charAt(0);
+
+// Highlight active role in switcher
+(function() {
+  var btns = document.querySelectorAll('.role-switch-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.toggle('active', btns[i].getAttribute('data-role') === currentRole);
+  }
+})();
+
+// ========== SIDEBAR ==========
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', currentRole, 'workbench');
+}
+renderSidebar();
+
+function sidebarClick(id) {
+  var ROUTES = {
+    workbench: 'workbench.html',
+    staffing: 'staffing-application.html',
+    entry: 'entry-list-school.html',
+    exit: 'exit-list-school.html',
+    postset: 'post-list-school.html',
+    promote: 'promote-list-school.html',
+    recruit: 'recruit-list-school.html',
+    employ: 'employ-list-school.html',
+    'contract-entry': 'contract-entry-list-school.html',
+    'contract-exit': 'contract-exit-list-school.html',
+    retire: 'retire-list-school.html',
+    ethics: 'ethics-list-school.html',
+    ledger: 'org-ledger-admin.html',
+    account: 'account-management.html',
+    org: 'org-management.html',
+    menuMgr: 'menu-management.html',
+    perm: 'perm-management.html',
+    log: 'log-management.html',
+    announcement: 'announcement-management.html'
+  };
+  var dest = ROUTES[id];
+  if (dest) { window.location.href = dest; }
+}
+
+function switchRole(role) {
+  var roleData = {
+    system: { name: '赵建国', id: '13807720000' },
+    city: { name: '张建国', id: '13807720001' },
+    district: { name: '李振华', id: '13807720002' },
+    school: { name: '王玉兰', id: '13807720003' },
+    teacher: { name: '陈明辉', id: '13807720004' }
+  };
+  var data = roleData[role];
+  if (data) {
+    localStorage.setItem('currentUser', JSON.stringify({ role: role, name: data.name, id: data.id }));
+  }
+  if (role === 'system') {
+    window.location.href = 'account-management.html';
+  } else {
+    window.location.href = 'workbench.html';
+  }
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+// ========== DATA ==========
+var PAGE_SIZE = 10;
+var currentFilter = 'all';
+var currentPage = 1;
+
+var MODULE_LABELS = {
+  'staffing': '编制使用申请', 'entry': '教师入编', 'exit': '教师出编',
+  'post': '岗位设置', 'promote': '岗位晋升', 'recruit': '招聘',
+  'employ': '聘用手续', 'ledger': '台账管理', 'org': '机构管理',
+  'account': '账号管理', 'contract-entry': '合同入编', 'contract-exit': '合同出编',
+  'system': '系统', 'security': '安全'
+};
+
+// Seed demo notifications if none exist
+function seedDemoNotifications() {
+  var existing = window.Notifications ? window.Notifications.get(userId, 1000) : [];
+  if (existing.length > 0) return;
+  if (!window.Notifications) return;
+
+  var demos = [
+    { title: '入编申请（张三）待您审批', content: '张三提交了事业编实名制入编申请，请及时审批。', type: 'submit', module: 'entry', linkUrl: 'entry-detail.html?id=ENT20260701' },
+    { title: '岗位晋升（李四）待您审批', content: '李四提交了岗位晋升申请（十级→九级），请进行材料审核。', type: 'submit', module: 'promote', linkUrl: 'promote-detail.html?id=PRO20260702' },
+    { title: '招聘计划审批已退回', content: '您提交的2026年秋季招聘计划已被市管理员退回，请查看退回意见并修改后重新提交。', type: 'reject', module: 'recruit', linkUrl: 'recruit-detail.html?id=REC20260703' },
+    { title: '退休呈报（王五）已通过', content: '王五的退休呈报申请已通过全部审批，退休日期为2026-08-31。', type: 'approve', module: 'exit' },
+    { title: '系统将于本周六升级维护', content: '平台计划于2026年7月12日（周六）凌晨2:00-6:00进行系统升级维护，届时暂停使用。', type: 'system', module: 'system' },
+    { title: '编制使用申请已通过', content: '柳江中学提交的2026年秋季编制使用申请（事业编2名）已通过市编办审批。', type: 'approve', module: 'staffing' },
+    { title: '聘用手续（赵六）提交审核', content: '赵六的聘用手续已提交，请审核相关材料。', type: 'submit', module: 'employ' },
+    { title: '学校信息审核通过', content: '您提交的学校基本信息已通过审核，可在个人中心查看最新信息。', type: 'approve', module: 'org' },
+    { title: '学校信息审核驳回', content: '您提交的学校基本信息未通过审核，原因：单位地址填写不完整。请修改后重新提交。', type: 'reject', module: 'org' },
+    { title: '编制/岗位/聘用数据补录完成', content: '您补录的编制与聘用信息已保存成功，可在个人中心查看。', type: 'system', module: 'account' },
+    { title: '账号安全提醒', content: '您的账号在异地设备上登录，如非本人操作请及时修改密码。', type: 'security', module: 'security' },
+    { title: '岗位晋升终审通过', content: '李四的岗位晋升申请（十级→九级）已通过终审，新岗位等级自2026年8月起生效。', type: 'approve', module: 'promote' }
+  ];
+
+  var now = new Date();
+  for (var i = 0; i < demos.length; i++) {
+    var d = demos[i];
+    var t = new Date(now.getTime() - i * 3600000 * (i < 5 ? i + 0.5 : i * 3));
+    var n = window.Notifications.add({
+      userId: userId,
+      title: d.title,
+      content: d.content,
+      type: d.type,
+      module: d.module,
+      linkUrl: d.linkUrl || '',
+      recordId: ''
+    });
+    if (n) {
+      n.createTime = t.toISOString().replace('T', ' ').substring(0, 19);
+      if (i >= 3 && i < 6) n.isRead = true;
+      // Persist in storage
+      var raw = localStorage.getItem('notifications');
+      if (raw) {
+        var list = JSON.parse(raw);
+        for (var j = 0; j < list.length; j++) {
+          if (list[j].id === n.id) {
+            list[j].createTime = n.createTime;
+            list[j].isRead = n.isRead;
+            break;
+          }
+        }
+        localStorage.setItem('notifications', JSON.stringify(list));
+      }
+    }
+  }
+}
+
+seedDemoNotifications();
+
+// ========== LOAD ==========
+function loadMessages() {
+  var all = window.Notifications ? window.Notifications.get(userId, 1000) : [];
+  if (!all.length) {
+    document.getElementById('msgTableBody').innerHTML = '';
+    document.getElementById('emptyState').style.display = '';
+    document.getElementById('emptyStateText').textContent = '暂无消息';
+    document.getElementById('pagination').innerHTML = '';
+    updateStats(all);
+    updateTabs(all);
+    updatePopover(all);
+    updateBellBadge(all);
+    return;
+  }
+
+  updateStats(all);
+  updateTabs(all);
+  updatePopover(all);
+  updateBellBadge(all);
+
+  // Filter
+  var filtered = all;
+  if (currentFilter === 'unread') {
+    filtered = all.filter(function(n) { return !n.isRead; });
+  } else if (currentFilter === 'read') {
+    filtered = all.filter(function(n) { return n.isRead; });
+  }
+
+  if (!filtered.length) {
+    document.getElementById('msgTableBody').innerHTML = '';
+    document.getElementById('emptyState').style.display = '';
+    document.getElementById('emptyStateText').textContent = currentFilter === 'unread' ? '暂无未读消息' : (currentFilter === 'read' ? '暂无已读消息' : '暂无消息');
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('emptyState').style.display = 'none';
+
+  // Paginate
+  var totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  var start = (currentPage - 1) * PAGE_SIZE;
+  var pageData = filtered.slice(start, start + PAGE_SIZE);
+
+  // Render table
+  var html = '';
+  for (var i = 0; i < pageData.length; i++) {
+    var m = pageData[i];
+    var isUnread = !m.isRead;
+    var rowClass = isUnread ? 'unread' : '';
+    var statusBadge = isUnread
+      ? '<span class="status-badge unread">● 未读</span>'
+      : '<span class="status-badge read">○ 已读</span>';
+    var moduleLabel = MODULE_LABELS[m.module] || m.module || '系统';
+    var timeStr = formatTime(m.createTime || '');
+    var title = escapeHtml(m.title || '(无标题)');
+    var content = escapeHtml(m.content || '');
+    var linkUrl = m.linkUrl || '';
+
+    html += '<tr class="' + rowClass + '" data-id="' + m.id + '" data-link="' + escapeHtml(linkUrl) + '" onclick="onMsgClick(this)">';
+    html += '<td>' + statusBadge + '</td>';
+    html += '<td class="col-title" style="text-align:left;">' + title + '</td>';
+    html += '<td class="col-content">' + content + '</td>';
+    html += '<td><span class="module-tag ' + (m.module || 'system') + '">' + moduleLabel + '</span></td>';
+    html += '<td class="col-time">' + timeStr + '</td>';
+    html += '</tr>';
+  }
+  document.getElementById('msgTableBody').innerHTML = html;
+
+  // Pagination
+  renderPagination(totalPages);
+}
+
+function updateStats(all) {
+  var unreadCount = all.filter(function(n) { return !n.isRead; }).length;
+  document.getElementById('btnMarkAllRead').style.display = unreadCount > 0 ? '' : 'none';
+}
+
+function updateTabs(all) {
+  var unreadCount = all.filter(function(n) { return !n.isRead; }).length;
+  var readCount = all.filter(function(n) { return n.isRead; }).length;
+  document.getElementById('tabCountAll').textContent = all.length;
+  document.getElementById('tabCountUnread').textContent = unreadCount;
+  document.getElementById('tabCountRead').textContent = readCount;
+}
+
+function updateBellBadge(all) {
+  var unreadCount = all.filter(function(n) { return !n.isRead; }).length;
+  var badge = document.getElementById('bellBadge');
+  if (unreadCount > 0) {
+    badge.style.display = '';
+    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function updatePopover(all) {
+  var popoverList = document.getElementById('popoverMsgList');
+  var popoverCount = document.getElementById('popoverCount');
+  if (!popoverList) return;
+
+  var recent = all.slice(0, 5);
+  popoverCount.textContent = '共' + all.length + '条';
+
+  if (!recent.length) {
+    popoverList.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);font-size:13px;">暂无消息</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < recent.length; i++) {
+    var m = recent[i];
+    var itemClass = m.isRead ? 'read' : 'unread';
+    html += '<div class="msg-item ' + itemClass + '" onclick="onPopoverMsgClick(\'' + m.id + '\', \'' + escapeHtml(m.linkUrl || '') + '\')">';
+    html += '<span class="msg-dot"></span><div><div class="msg-item-title">' + escapeHtml(m.title) + '</div>';
+    html += '<div class="msg-item-time">' + formatTime(m.createTime) + '</div></div></div>';
+  }
+  popoverList.innerHTML = html;
+}
+
+function onPopoverMsgClick(id, linkUrl) {
+  if (window.Notifications) window.Notifications.markAsRead(id);
+  document.getElementById('msgPopover').classList.remove('show');
+  if (linkUrl) {
+    location.href = linkUrl;
+  } else {
+    loadMessages();
+    showToast('已标记为已读', 'success');
+  }
+}
+
+// ========== FILTER ==========
+function setFilter(filter, el) {
+  currentFilter = filter;
+  currentPage = 1;
+  var tabs = document.querySelectorAll('#filterTabs .tab');
+  for (var i = 0; i < tabs.length; i++) { tabs[i].classList.remove('active'); }
+  el.classList.add('active');
+  loadMessages();
+}
+
+// ========== PAGINATION ==========
+function renderPagination(totalPages) {
+  var container = document.getElementById('pagination');
+  if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+  var html = '';
+  html += '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goPage(' + (currentPage - 1) + ')">‹</button>';
+
+  var maxShow = 7;
+  var startP = Math.max(1, currentPage - Math.floor(maxShow / 2));
+  var endP = Math.min(totalPages, startP + maxShow - 1);
+  if (endP - startP < maxShow - 1) startP = Math.max(1, endP - maxShow + 1);
+
+  if (startP > 1) {
+    html += '<button onclick="goPage(1)">1</button>';
+    if (startP > 2) html += '<button disabled>…</button>';
+  }
+
+  for (var p = startP; p <= endP; p++) {
+    html += '<button ' + (p === currentPage ? 'class="active"' : '') + ' onclick="goPage(' + p + ')">' + p + '</button>';
+  }
+
+  if (endP < totalPages) {
+    if (endP < totalPages - 1) html += '<button disabled>…</button>';
+    html += '<button onclick="goPage(' + totalPages + ')">' + totalPages + '</button>';
+  }
+
+  html += '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goPage(' + (currentPage + 1) + ')">›</button>';
+  html += '<span class="page-info">共 ' + totalPages + ' 页</span>';
+  container.innerHTML = html;
+}
+
+function goPage(page) {
+  currentPage = page;
+  loadMessages();
+  document.getElementById('mainContent').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ========== MSG CLICK ==========
+function onMsgClick(row) {
+  var id = row.getAttribute('data-id');
+  var linkUrl = row.getAttribute('data-link');
+  if (window.Notifications) window.Notifications.markAsRead(id);
+  if (linkUrl) {
+    location.href = linkUrl;
+  } else {
+    loadMessages();
+    showToast('已标记为已读', 'success');
+  }
+}
+
+// ========== MARK ALL READ ==========
+function markAllRead() {
+  if (!window.Notifications) return;
+  window.Notifications.markAllAsRead(userId);
+  loadMessages();
+  showToast('全部消息已标记为已读', 'success');
+}
+
+// ========== POPOVER ==========
+function toggleMsgPopover() {
+  document.getElementById('msgPopover').classList.toggle('show');
+  document.getElementById('userDropdown').classList.remove('show');
+  if (document.getElementById('msgPopover').classList.contains('show')) {
+    var all = window.Notifications ? window.Notifications.get(userId, 1000) : [];
+    updatePopover(all);
+  }
+}
+
+function toggleUserMenu() {
+  document.getElementById('userDropdown').classList.toggle('show');
+  document.getElementById('msgPopover').classList.remove('show');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show');
+  if (!e.target.closest('.topnav-bell')) document.getElementById('msgPopover').classList.remove('show');
+});
+
+// ========== UTILS ==========
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  var d = new Date(timeStr.replace(' ', 'T'));
+  if (isNaN(d.getTime())) return timeStr;
+  var now = new Date();
+  var diff = now - d;
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+  if (diff < 172800000) return '昨天';
+  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
+  var y = d.getFullYear();
+  var m = ('0' + (d.getMonth() + 1)).slice(-2);
+  var day = ('0' + d.getDate()).slice(-2);
+  return y + '-' + m + '-' + day;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(msg, type) {
+  type = type || 'success';
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(function() { t.className = 'toast ' + type; }, 2200);
+}
+
+// ========== PAGE LOAD ==========
+loadMessages();
+</script>
+
+</body>
+</html>

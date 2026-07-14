@@ -265,15 +265,41 @@
     background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
   }
-  .lock-alert {
+  /* 台账全局锁定提醒条 */
+  .ledger-lock-banner {
     display: flex; align-items: center; gap: 10px;
-    margin-top: 10px; padding: 10px 14px;
-    background: #FEF2F2; border: 1px solid #FECACA;
+    margin-bottom: 8px; padding: 10px 14px;
+    background: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid var(--danger);
     border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: var(--transition);
   }
-  .lock-alert:hover { background: #FEE2E2; }
-  .lock-alert .lock-count { font-weight: 700; color: var(--danger); }
-  .lock-alert .lock-text { color: #991B1B; flex: 1; }
+  .ledger-lock-banner:hover { background: #FEE2E2; }
+  .ledger-lock-banner .lock-icon { font-size: 16px; flex-shrink: 0; }
+  .ledger-lock-banner .lock-text { color: #991B1B; flex: 1; font-weight: 500; }
+  .ledger-lock-banner .lock-arrow { color: var(--danger); font-size: 12px; white-space: nowrap; }
+
+  /* 学校信息审核中提示条 */
+  .school-audit-banner {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px; padding: 10px 14px;
+    background: #FFFBEB; border: 1px solid #FDE68A; border-left: 4px solid var(--warning);
+    border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: var(--transition);
+  }
+  .school-audit-banner:hover { background: #FEF3C7; }
+  .school-audit-banner .audit-icon { font-size: 16px; flex-shrink: 0; }
+  .school-audit-banner .audit-text { color: #92400E; flex: 1; font-weight: 500; }
+  .school-audit-banner .audit-arrow { color: #92400E; font-size: 12px; white-space: nowrap; }
+
+  /* 学校信息审核驳回提示条 */
+  .school-reject-banner {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px; padding: 10px 14px;
+    background: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid var(--danger);
+    border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: var(--transition);
+  }
+  .school-reject-banner:hover { background: #FEE2E2; }
+  .school-reject-banner .reject-icon { font-size: 16px; flex-shrink: 0; }
+  .school-reject-banner .reject-text { color: #991B1B; flex: 1; font-weight: 500; }
+  .school-reject-banner .reject-arrow { color: var(--danger); font-size: 12px; white-space: nowrap; }
 
   /* Quick Actions */
   .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -332,17 +358,23 @@
     border: 1px solid var(--border); box-shadow: var(--shadow-sm);
   }
   .announce-item {
-    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    display: flex; align-items: center; gap: 16px; padding: 13px 20px;
     cursor: pointer; transition: var(--transition);
     border-bottom: 1px solid #F1F5F9; text-decoration: none; color: inherit;
   }
   .announce-item:last-child { border-bottom: none; }
   .announce-item:hover { background: #F8FAFC; }
-  .announce-item .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-  .announce-item .read-dot { width: 8px; flex-shrink: 0; }
-  .announce-title { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); }
+  .announce-item .unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .announce-item .read-dot { width: 7px; flex-shrink: 0; }
+  .announce-title { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .announce-item:hover .announce-title { color: var(--primary); }
-  .announce-meta { font-size: 11px; color: var(--text-light); display: flex; gap: 12px; white-space: nowrap; }
+  .announce-time { font-size: 12px; color: var(--text-light); white-space: nowrap; flex-shrink: 0; }
+  .announce-source { font-size: 12px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+  .scope-tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 500; }
+  .scope-tag.all { background: #EFF6FF; color: #1E40AF; }
+  .scope-tag.city { background: #DBEAFE; color: #1E40AF; }
+  .scope-tag.district { background: #FEF3C7; color: #92400E; }
+  .scope-tag.school { background: #D1FAE5; color: #065F46; }
 
   /* Toast */
   .toast {
@@ -472,15 +504,14 @@
 
 <!-- ===== MESSAGE POPOVER ===== -->
 <div class="msg-popover" id="msgPopover">
-  <div class="msg-popover-header"><span>消息通知</span><span style="font-size:11px;color:var(--text-light);">共5条</span></div>
+  <div class="msg-popover-header"><span>消息通知</span><span style="font-size:11px;color:var(--text-light);">共4条</span></div>
   <div class="msg-list">
     <div class="msg-item unread"><span class="msg-dot"></span><div><div class="msg-item-title">入编申请（张三）待您审批</div><div class="msg-item-time">5分钟前</div></div></div>
     <div class="msg-item unread"><span class="msg-dot"></span><div><div class="msg-item-title">岗位晋升（李四）待您审批</div><div class="msg-item-time">1小时前</div></div></div>
     <div class="msg-item unread"><span class="msg-dot"></span><div><div class="msg-item-title">招聘计划审批已退回</div><div class="msg-item-time">3小时前</div></div></div>
     <div class="msg-item read"><span class="msg-dot"></span><div><div class="msg-item-title">退休呈报（王五）已通过</div><div class="msg-item-time">昨天</div></div></div>
-    <div class="msg-item read"><span class="msg-dot"></span><div><div class="msg-item-title">系统将于本周六升级维护</div><div class="msg-item-time">2天前</div></div></div>
   </div>
-  <div class="msg-popover-footer"><a href="#">查看全部消息 →</a></div>
+  <div class="msg-popover-footer"><a href="messages.html">查看全部消息 →</a></div>
 </div>
 
 <!-- ===== CHANGE PASSWORD MODAL ===== -->
@@ -638,7 +669,7 @@
   <div class="section">
     <div class="section-header">
       <span class="section-title">系统公告</span>
-      <a href="#" class="section-link" onclick="event.preventDefault();showToast('查看全部公告')">查看全部 →</a>
+      <a href="announcement-management.html" class="section-link">查看全部 →</a>
     </div>
     <div class="announce-list" id="announceArea">
       <!-- Filled by JS -->
@@ -670,7 +701,7 @@ const ROLES = {
           { id: 'org', label: '机构管理' },
           { id: 'menuMgr', label: '菜单管理' },
           { id: 'perm', label: '角色权限' },
-          { id: 'log', label: '操作日志' }
+          { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }
         ]}
       ]
     }
@@ -736,7 +767,7 @@ const ROLES = {
           { id: 'account', label: '账号管理' },
           { id: 'org', label: '机构管理' },
           { id: 'perm', label: '角色权限' },
-          { id: 'log', label: '操作日志' }
+          { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }
         ]}
       ]
     }
@@ -1191,6 +1222,28 @@ function renderMain() {
       todoHtml = '<div class="todo-empty">暂无待办事项</div>';
     }
   }
+  // 台账全局锁定 + 学校信息审核提醒条
+  var bannerHtml = '';
+  var ledgerLocked = checkLedgerLocked();
+  var schoolAudit = checkSchoolAuditStatus();
+  if (ledgerLocked) {
+    bannerHtml += '<div class="ledger-lock-banner" onclick="window.location.href=\'' + getLedgerUrl() + '\'">';
+    bannerHtml += '<span class="lock-icon">🔒</span>';
+    bannerHtml += '<span class="lock-text">编制岗位台账审核中，所有模块的新申请和进行中的审批已暂停</span>';
+    bannerHtml += '<span class="lock-arrow">查看详情 →</span></div>';
+  }
+  if (schoolAudit.status === 'pending') {
+    bannerHtml += '<div class="school-audit-banner" onclick="window.location.href=\'org-management.html\'">';
+    bannerHtml += '<span class="audit-icon">🏫</span>';
+    bannerHtml += '<span class="audit-text">学校信息审核中 — 你的学校信息已提交，等待主管单位审批</span>';
+    bannerHtml += '<span class="audit-arrow">查看详情 →</span></div>';
+  } else if (schoolAudit.status === 'rejected') {
+    bannerHtml += '<div class="school-reject-banner" onclick="window.location.href=\'org-management.html\'">';
+    bannerHtml += '<span class="reject-icon">⚠️</span>';
+    bannerHtml += '<span class="reject-text">学校信息审核驳回 — ' + (schoolAudit.reason || '请修改后重新提交') + '</span>';
+    bannerHtml += '<span class="reject-arrow">去修改 →</span></div>';
+  }
+  todoHtml = bannerHtml + todoHtml;
   document.getElementById('todoArea').innerHTML = todoHtml;
 
   var quickHtml = '';
@@ -1218,15 +1271,71 @@ function renderMain() {
     '<a class="ethics-btn secondary" href="#" onclick="event.preventDefault();showToast(\'跳转至举报记录列表\')"><span class="eb-icon">📋</span><span class="eb-title">' + eb.secondary + '</span><span class="eb-desc">' + eb.sdesc + '</span></a>' +
     '</div>';
 
-  // Announcements
+  // Announcements — from localStorage (seed demo data if empty)
   var annHtml = '';
-  data.announcements.forEach(function(a) {
-    annHtml += '<a class="announce-item" href="#" onclick="event.preventDefault();showToast(\'打开公告详情\')">';
-    annHtml += '<span class="' + (a.unread ? 'unread-dot' : 'read-dot') + '"></span>';
-    annHtml += '<span class="announce-title">' + a.title + '</span>';
-    annHtml += '<span class="announce-meta"><span>' + a.date + '</span><span>' + a.source + '</span></span>';
-    annHtml += '</a>';
-  });
+  var allAnns = [];
+  try { var raw = localStorage.getItem('announcements'); if (raw) allAnns = JSON.parse(raw); } catch(e) {}
+  if (allAnns.length === 0) {
+    var now = new Date();
+    var abd = function(daysAgo, hour) { var d = new Date(now); d.setDate(d.getDate() - daysAgo); d.setHours(hour || 9, 0, 0, 0); return d.toISOString().replace('T', ' ').substring(0, 16); };
+    var abx = function(daysLater) { var d = new Date(now); d.setDate(d.getDate() + daysLater); return d.toISOString().replace('T', ' ').substring(0, 16); };
+    allAnns = [
+      { id: 'ann_001', title: '平台系统升级维护通知', content: '<p><b>各用户：</b></p><p>平台计划于<b>2026年7月12日（周六）凌晨2:00-6:00</b>进行系统升级维护，届时暂停使用，请提前做好工作安排。</p>', source: '系统管理员', publisherId: '13807720000', publisherName: '赵建国', publisherRole: 'system', scope: 'system', scopeOrgId: '', publisherOrgId: '', isPinned: true, publishTime: abd(0, 8), expireTime: abx(30), status: 'active', attachments: [] },
+      { id: 'ann_002', title: '关于2026年度公开招聘岗位计划的通知', content: '<p><b>各区教育局、各市属学校：</b></p><ol><li>本次招聘计划共设岗位<b>1,200</b>个，其中事业编<b>800</b>个、控制数<b>400</b>个。</li><li>各校请于2026年7月31日前提交岗位需求申报表。</li></ol>', source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city', scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200', isPinned: true, publishTime: abd(1, 10), expireTime: abx(29), status: 'active', attachments: [{ name: '2026年度公开招聘岗位一览表.xlsx', size: '2.3 MB' }, { name: '岗位申报材料.zip', size: '18.5 MB' }] },
+      { id: 'ann_003', title: '城中区教师岗位调整申报通知', content: '<p>城中区各学校：</p><p>请于<b>7月15日前</b>提交教师岗位调整申报材料，逾期不再受理。</p>', source: '城中区教育局', publisherId: '13807720002', publisherName: '李振华', publisherRole: 'district', scope: 'district', scopeOrgId: '450202', publisherOrgId: '450202', isPinned: false, publishTime: abd(2, 9), expireTime: abx(28), status: 'active', attachments: [] },
+      { id: 'ann_004', title: '柳江中学暑假值班安排', content: '<p>各位教师：</p><p>2026年暑假值班安排如下，请各位教师按时到岗。</p>', source: '柳江中学', publisherId: '13807720003', publisherName: '王玉兰', publisherRole: 'school', scope: 'school', scopeOrgId: '450202001', publisherOrgId: '450202001', isPinned: false, publishTime: abd(3, 11), expireTime: abx(27), status: 'active', attachments: [{ name: '暑假值班表.xlsx', size: '0.5 MB' }] },
+      { id: 'ann_005', title: '关于调整岗位设置比例的通知', content: '<p>各区教育局：</p><p>根据自治区最新文件精神，对我市中小学岗位设置比例进行调整。</p>', source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city', scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200', isPinned: false, publishTime: abd(30, 8), expireTime: abd(-1, 0), status: 'expired', attachments: [] },
+      { id: 'ann_006', title: '关于2026年秋季学期开学工作的通知', content: '<p><b>各区教育局、各中小学：</b></p><p>现将2026年秋季学期开学工作安排通知如下：</p><ol><li>教师返校时间：2026年8月25日</li><li>学生报到时间：2026年8月30日-31日</li><li>正式上课时间：2026年9月1日</li></ol>', source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city', scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200', isPinned: false, publishTime: abd(-6, 9), expireTime: abx(38), status: 'scheduled', attachments: [{ name: '秋季学期校历.pdf', size: '3.2 MB' }] }
+    ];
+    try { localStorage.setItem('announcements', JSON.stringify(allAnns)); } catch(e) {}
+  }
+
+  // Filter by visibility scope for current role
+  var cu = null;
+  try { cu = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch(e) {}
+  var uid = cu ? (cu.id || cu.uid || '') : '';
+  var userOrgCtx = { cityId: currentRole === 'city' ? (uid === '13807720001' ? '450200' : '') : (currentRole === 'district' ? '450200' : (currentRole === 'school' || currentRole === 'teacher' ? '450200' : '')), districtId: currentRole === 'district' ? '450202' : (currentRole === 'school' || currentRole === 'teacher' ? '450202' : ''), orgId: currentRole === 'school' || currentRole === 'teacher' ? '450202001' : '' };
+  var visibleAnns = allAnns.filter(function(a) {
+    if (currentRole === 'system') return true;
+    if (a.scope === 'system') return true;
+    if (a.scope === 'city' && a.scopeOrgId === userOrgCtx.cityId) return true;
+    if (a.scope === 'district' && a.scopeOrgId === userOrgCtx.districtId) return true;
+    if (a.scope === 'school' && a.scopeOrgId === userOrgCtx.orgId) return true;
+    return false;
+  }).filter(function(a) {
+    // 定时待发公告：工作台所有角色不可见，仅在公告管理列表页可见
+    if (a.status === 'scheduled') return false;
+    return a.status === 'active';
+  })
+  .sort(function(a, b) {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(b.publishTime.replace(' ', 'T')) - new Date(a.publishTime.replace(' ', 'T'));
+  }).slice(0, 5);
+
+  if (visibleAnns.length === 0) {
+    annHtml = '<div style="text-align:center;padding:20px;color:var(--text-light);font-size:13px;">暂无公告</div>';
+  } else {
+    var SCOPE_TAGS = { system: '<span class="scope-tag all">全平台</span>', city: '<span class="scope-tag city">全市</span>', district: '<span class="scope-tag district">本区</span>', school: '<span class="scope-tag school">本校</span>' };
+    visibleAnns.forEach(function(a) {
+      var isNew = (new Date() - new Date(a.publishTime.replace(' ', 'T'))) < 3 * 86400000; // within 3 days
+      var newTag = isNew ? '<span style="background:#D1FAE5;color:#065F46;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:2px;">新</span>' : '';
+      var expTag = a.status === 'expired' ? '<span style="background:#F1F5F9;color:#94A3B8;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:2px;">已过期</span>' : '';
+      var scopeTag = SCOPE_TAGS[a.scope] || '';
+      annHtml += '<a class="announce-item" href="announcement-detail.html?id=' + a.id + '">';
+      annHtml += '<span class="' + (isNew ? 'unread-dot' : 'read-dot') + '"></span>';
+      annHtml += '<span class="announce-title">' + (newTag || expTag) + scopeTag + escapeHtml(a.title) + '</span>';
+      annHtml += '<span class="announce-time">' + (a.publishTime || '').substring(0, 10) + '</span>';
+      annHtml += '<span class="announce-source">' + escapeHtml(a.source) + '</span>';
+      annHtml += '</a>';
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   document.getElementById('announceArea').innerHTML = annHtml;
 }
 
@@ -1330,6 +1439,7 @@ function sidebarClick(elOrId, idOrUndefined) {
   else if (id === 'menuMgr') { window.location.href = 'menu-management.html'; }
   else if (id === 'perm') { window.location.href = 'perm-management.html'; }
   else if (id === 'log') { window.location.href = 'log-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
 
@@ -1643,6 +1753,31 @@ function openAllTodosModal() {
 
 function closeAllTodosModal() {
   document.getElementById('allTodosModalOverlay').classList.remove('show');
+}
+
+// ===== 台账全局锁定检查 =====
+function checkLedgerLocked() {
+  // 仅校管理员可见（主管单位在台账管理页直接审批，工作台不重复提醒）
+  if (currentRole !== 'school') return false;
+  // 检查本校台账是否处于审核中
+  try {
+    var cu = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    var schoolName = cu ? (cu.org || cu.school || '') : '';
+    var ledgerData = JSON.parse(localStorage.getItem('org_ledger') || '{}');
+    if (ledgerData[schoolName] && (ledgerData[schoolName].status === 'pending' || ledgerData[schoolName].status === 'submitted')) {
+      return true;
+    }
+  } catch(e) {}
+  // Demo fallback：校管理员始终显示（模拟台账审核中）
+  return true;
+}
+
+// ===== 学校信息审核状态检查 =====
+function checkSchoolAuditStatus() {
+  // Demo：校管理员始终显示学校信息审核中（正式版改为从 org_directory 读取真实状态）
+  if (currentRole !== 'school') return { status: 'none', reason: '' };
+  // Demo 模拟：校管理员始终看到"待审核"状态
+  return { status: 'pending', reason: '' };
 }
 
 // ===== Init =====

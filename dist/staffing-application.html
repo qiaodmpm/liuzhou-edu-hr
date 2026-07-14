@@ -578,6 +578,7 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="modal" id="modalBox"></div>
 </div>
 
+<script src="src/menu-config.js"></script>
 <script>
 
 // ===== SVG ICONS =====
@@ -640,7 +641,7 @@ const ROLES = {
           { id: 'account', label: '账号管理' },
           { id: 'org', label: '机构管理' },
           { id: 'perm', label: '角色权限' },
-          { id: 'log', label: '操作日志' }
+          { id: 'log', label: '操作日志' }, { id: 'announcement', label: '公告管理' }
         ]}
       ]
     }
@@ -1462,61 +1463,11 @@ function setStaffingTypeFilter(val) {
 
 // ===== RENDER SIDEBAR =====
 function renderSidebar() {
-  var data = ROLES[currentRole].sidebar;
-  var html = '';
-  data.top.forEach(function(item) {
-    html += '<a class="menu-item' + (item.active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">';
-    html += ICONS[item.icon];
-    html += '<span class="menu-label">' + item.label + '</span>';
-    html += '</a>';
-  });
-  data.groups.forEach(function(group) {
-    html += '<div class="menu-group">' + group.name + '</div>';
-    group.items.forEach(function(item) {
-      html += '<a class="menu-item' + (item.active ? ' active' : '') + '" onclick="sidebarClick(this,\'' + item.id + '\')">';
-      html += ICONS[MENU_ICONS[item.id] || 'file'];
-      html += '<span class="menu-label">' + item.label + '</span>';
-      if (item.badge) html += '<span class="menu-badge">' + item.badge + '</span>';
-      html += '</a>';
-    });
-  });
-  document.getElementById('sidebarMenu').innerHTML = html;
+  renderSidebarMenu('sidebarMenu', currentRole, 'staffing');
 }
-
-function getEntryUrl() {
-  if (currentRole === 'city' || currentRole === 'district') return '教师入编管理（主管单位视角）.html';
-  if (currentRole === 'school') return '教师入编管理（学校管理员视角）.html';
-  return null;
-}
-
-function getExitUrl() {
-  if (currentRole === 'city' || currentRole === 'district') return '教师出编管理（主管单位视角）.html';
-  if (currentRole === 'school') return '教师出编管理（学校管理员视角）.html';
-  return null;
-}
-
-function getPostUrl() {
-  if (currentRole === 'city' || currentRole === 'district') return 'post-list-admin.html?role=' + currentRole;
-  if (currentRole === 'school') return 'post-list-school.html';
-  return null;
-}
-
-function getPromoteUrl() {
-  if (currentRole === 'city' || currentRole === 'district') return 'promote-list-admin.html?role=' + currentRole;
-  if (currentRole === 'school') return 'promote-list-school.html';
-  if (currentRole === 'teacher') return 'promote-list-teacher.html';
-  return null;
-}
-
-function getRecruitUrl() {
-  if (currentRole === 'city' || currentRole === 'district') return 'recruit-list-admin.html?role=' + currentRole;
-  if (currentRole === 'school') return 'recruit-list-school.html';
-  return null;
-}
-
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); }); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; }
   else if (id === 'staffing') { return; }
   else if (id === 'entry') { var url = getEntryUrl(); if (url) window.location.href = url; else showToast('跳转至：入编申请'); }
@@ -1530,6 +1481,7 @@ function sidebarClick(el, id) {
   else if (id === 'ledger') { var _r = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (_r === 'city' || _r === 'district') ? 'org-ledger-admin.html' : _r === 'school' ? 'org-ledger-school.html' : 'workbench.html'; }
   else if (id === 'account') { window.location.href = 'account-management.html'; }
   else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   else { showToast('跳转至：' + el.textContent.trim()); }
 }
 

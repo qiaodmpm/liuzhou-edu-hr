@@ -195,6 +195,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 
 <div id="toastContainer"></div>
 
+<script src="src/menu-config.js"></script>
 <script>
 window.onerror = function(msg,url,line){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d);};
 
@@ -294,18 +295,11 @@ function saveRecords(r){localStorage.setItem('contract_entry_records',JSON.strin
 
 /* ---------- Sidebar ---------- */
 function renderSidebar(){
-  var rd=ROLES[currentRole]; if(!rd)return;
-  var h='';
-  (rd.sidebar.top||[]).forEach(function(i){h+='<a class="menu-item" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[i.icon]||'')+'<span class="menu-label">'+i.label+'</span></a>';});
-  (rd.sidebar.groups||[]).forEach(function(g){
-    h+='<div class="menu-group">'+g.name+'</div>';
-    g.items.forEach(function(i){h+='<a class="menu-item'+(i.id==='contract_entry'?' active':'')+'" onclick="sidebarClick(this,\''+i.id+'\')">'+(ICONS[MENU_ICONS[i.id]||'file'])+'<span class="menu-label">'+i.label+'</span>'+(i.badge?'<span class="menu-badge">'+i.badge+'</span>':'')+'</a>';});
-  });
-  document.getElementById('sidebarMenu').innerHTML = h;
+  renderSidebarMenu('sidebarMenu', currentRole, 'contract-entry');
 }
 function sidebarClick(el, id) {
-  document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); }); el.classList.add('active'); }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
   if (id === 'ledger') { window.location.href = 'org-ledger-admin.html'; return; }
   if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
@@ -316,11 +310,14 @@ function sidebarClick(el, id) {
   if (id === 'recruit') { window.location.href = 'recruit-list-admin.html?role=' + currentRole; return; }
   if (id === 'employ') { window.location.href = 'employ-list-admin.html?role=' + currentRole; return; }
   if (id === 'contract_entry') { window.location.href = 'contract-entry-list-admin.html?role=' + currentRole; return; }
+  if (id === 'contract-entry') { window.location.href = 'contract-entry-list-admin.html?role=' + currentRole; return; }
   if (id === 'contract_exit') { showToast('教师离职管理页面开发中'); return; }
+  if (id === 'contract-exit') { window.location.href = 'contract-exit-list-admin.html?role=' + currentRole; return; }
   if (id === 'retire') { showToast('退休呈报页面开发中'); return; }
   if (id === 'ethics') { showToast('师德师风举报页面开发中'); return; }
   if (id === 'account') { window.location.href = 'account-management.html'; return; }
   if (id === 'org') { window.location.href = 'org-management.html'; return; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
   showToast('跳转至：' + (el.textContent || id));
 }
 function switchRole(role){
