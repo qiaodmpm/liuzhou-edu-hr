@@ -303,6 +303,7 @@ var STORAGE_KEY = 'contract_exit_records';
 var STATUS_MAP = { pending:'待审核', approved:'已通过', rejected:'已驳回', draft:'草稿' };
 var EXIT_TYPES = ['辞职','辞退','合同到期不续签','退休','其他'];
 var EXIT_MATERIALS = ['辞职申请书','单位同意离职批复','其他佐证材料'];
+var MULTI_FILE_MATERIAL = '其他佐证材料';
 
 var DEMO_CONTRACT_STAFF = [
   {name:'蓝雅琴',gender:'女',idCard:'450203199208145024'},
@@ -337,7 +338,7 @@ function loadRecords(){
     { id:'CX20260701001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'pending', submitTime:'2026-07-01 10:24:00',
       teachers:[
         {name:'蓝雅琴',gender:'女',idCard:'450203199208145024',exitType:'辞职',exitDate:'2026-07-31',materials:{'辞职申请书':{name:'辞职申请书_蓝雅琴.pdf',size:156000}}},
-        {name:'覃国华',gender:'男',idCard:'450203198911230517',exitType:'辞退',exitDate:'2026-07-15',materials:{'单位同意离职批复':{name:'批复_覃国华.pdf',size:89000}}}
+        {name:'覃国华',gender:'男',idCard:'450203198911230517',exitType:'辞退',exitDate:'2026-07-15',materials:{'单位同意离职批复':{name:'批复_覃国华.pdf',size:89000},'其他佐证材料':[{name:'佐证材料1_覃国华.pdf',size:45000},{name:'佐证材料2_覃国华.pdf',size:67000}]}}
       ],
       reviewer:null, reviewTime:null, rejectReason:'',
       timeline:[{time:'2026-07-01 10:24:00',action:'学校提交申报',operator:'王玉兰'}] },
@@ -474,9 +475,17 @@ function renderDetailPanel(r){
     var mats=t.materials||{};
     var hasAny=false;
     EXIT_MATERIALS.forEach(function(item){
-      if(mats[item]){
+      var val=mats[item];
+      var isMulti=item===MULTI_FILE_MATERIAL;
+      if(isMulti&&Array.isArray(val)&&val.length>0){
         hasAny=true;
-        h+='<div style="margin:2px 0;"><span style="color:#10B981;">&#9745;</span> '+escapeHtml(item)+': <span style="color:var(--primary);cursor:pointer;" onclick="downloadFile(\''+escapeHtml(mats[item].name||item)+'\')">'+escapeHtml((mats[item].name||'').substring(0,12))+'...</span></div>';
+        h+='<div style="margin:2px 0;"><span style="color:#10B981;">&#9745;</span> '+escapeHtml(item)+':</div>';
+        val.forEach(function(f){
+          h+='<div style="margin:1px 0 1px 14px;"><span style="color:var(--primary);cursor:pointer;font-size:10px;" onclick="downloadFile(\''+escapeHtml(f.name||'')+'\')">📄 '+escapeHtml((f.name||'').substring(0,14))+'...</span></div>';
+        });
+      }else if(!isMulti&&val){
+        hasAny=true;
+        h+='<div style="margin:2px 0;"><span style="color:#10B981;">&#9745;</span> '+escapeHtml(item)+': <span style="color:var(--primary);cursor:pointer;" onclick="downloadFile(\''+escapeHtml(val.name||item)+'\')">'+escapeHtml((val.name||'').substring(0,12))+'...</span></div>';
       }else{
         h+='<div style="margin:2px 0;"><span style="color:#94A3B8;">&#9744;</span> '+escapeHtml(item)+': <span style="color:#F59E0B;">未上传</span></div>';
       }
@@ -574,12 +583,20 @@ function renderEntryRows(){
     var mats=t.materials||{};
     EXIT_MATERIALS.forEach(function(item){
       var uploaded=mats[item];
+      var isMulti=item===MULTI_FILE_MATERIAL;
+      var hasFiles=isMulti?(Array.isArray(uploaded)&&uploaded.length>0):!!uploaded;
       h+='<div class="checklist-item">';
-      h+='<span class="checklist-icon">'+(uploaded?'&#9745;':'&#9744;')+'</span>';
+      h+='<span class="checklist-icon">'+(hasFiles?'&#9745;':'&#9744;')+'</span>';
       h+='<span class="checklist-name">'+escapeHtml(item)+'</span>';
       h+='<button class="checklist-upload-btn" onclick="triggerMaterialUpload(event,'+i+',\''+escapeHtml(item)+'\')">上传</button>';
-      if(uploaded){
-        h+='<span class="checklist-file-name" title="'+escapeHtml(uploaded.name)+'">'+escapeHtml(uploaded.name.substring(0,8))+'...<span class="file-remove" onclick="event.stopPropagation();removeMaterialFile('+i+',\''+escapeHtml(item)+'\')">×</span></span>';
+      if(hasFiles){
+        if(isMulti){
+          uploaded.forEach(function(f,fi){
+            h+='<span class="checklist-file-name" title="'+escapeHtml(f.name)+'">'+escapeHtml(f.name.substring(0,6))+'...<span class="file-remove" onclick="event.stopPropagation();removeMaterialFile('+i+',\''+escapeHtml(item)+'\','+fi+')">×</span></span>';
+          });
+        }else{
+          h+='<span class="checklist-file-name" title="'+escapeHtml(uploaded.name)+'">'+escapeHtml(uploaded.name.substring(0,8))+'...<span class="file-remove" onclick="event.stopPropagation();removeMaterialFile('+i+',\''+escapeHtml(item)+'\')">×</span></span>';
+        }
       }
       h+='</div>';
     });
@@ -630,13 +647,25 @@ function handleMaterialFile(idx,event){
   var itemName=pendingMaterialUpload.materialItem;
   pendingMaterialUpload=null;
   if(!modalTeachers[idx].materials) modalTeachers[idx].materials={};
-  modalTeachers[idx].materials[itemName]=file;
+  if(itemName===MULTI_FILE_MATERIAL){
+    if(!Array.isArray(modalTeachers[idx].materials[itemName])){
+      modalTeachers[idx].materials[itemName]=[];
+    }
+    modalTeachers[idx].materials[itemName].push(file);
+  }else{
+    modalTeachers[idx].materials[itemName]=file;
+  }
   renderEntryRows();
   event.target.value='';
 }
-function removeMaterialFile(rowIdx,itemName){
+function removeMaterialFile(rowIdx,itemName,fileIndex){
   if(modalTeachers[rowIdx]&&modalTeachers[rowIdx].materials){
-    delete modalTeachers[rowIdx].materials[itemName];
+    if(itemName===MULTI_FILE_MATERIAL&&fileIndex!==undefined){
+      var arr=modalTeachers[rowIdx].materials[itemName];
+      if(Array.isArray(arr)){ arr.splice(fileIndex,1); if(arr.length===0){ delete modalTeachers[rowIdx].materials[itemName]; } }
+    }else{
+      delete modalTeachers[rowIdx].materials[itemName];
+    }
   }
   renderEntryRows();
 }
@@ -661,7 +690,13 @@ function collectTeachers(){
     var mats={};
     var src=t.materials||{};
     EXIT_MATERIALS.forEach(function(item){
-      if(src[item]) mats[item]={name:src[item].name,size:src[item].size};
+      if(item===MULTI_FILE_MATERIAL){
+        if(Array.isArray(src[item])&&src[item].length>0){
+          mats[item]=src[item].map(function(f){ return {name:f.name,size:f.size}; });
+        }
+      }else{
+        if(src[item]) mats[item]={name:src[item].name,size:src[item].size};
+      }
     });
     return {name:t.name,gender:t.gender,idCard:t.idCard,exitType:t.exitType,exitDate:t.exitDate,materials:mats};
   });

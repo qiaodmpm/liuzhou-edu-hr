@@ -493,27 +493,43 @@ function render(){
   h+='<tr><td colspan="7" style="color:var(--text-light);">暂无教师信息</td></tr>';
   }else{
   var EXIT_MATERIALS=['辞职申请书','单位同意离职批复','其他佐证材料'];
+  var MULTI_FILE_MATERIAL='其他佐证材料';
   (r.teachers||[]).forEach(function(t,i){
-    h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.gender)+'</td><td>'+escapeHtml(t.idCard)+'</td><td><span class="exit-tag">'+escapeHtml(t.exitType||'—')+'</span></td><td>'+escapeHtml(t.exitDate||'—')+'</td>';
-      h+='<td style="font-size:11px;text-align:left;">';
-      var mats=t.materials||{};
-	    EXIT_MATERIALS.forEach(function(item){
-	      if(mats[item]){
-	        var fn=escapeHtml(mats[item].name||item);
-	        h+='<div class="checklist-row done">';
-	        h+='<span class="checklist-icon-done">☑</span>';
-	        h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
-	        h+='<span class="checklist-file-chip" onclick="previewFile(\''+fn+'\')" title="点击预览">📄 '+fn+'</span>';
-	        h+='<span class="checklist-file-chip" onclick="downloadFile(\''+fn+'\')" title="点击下载" style="color:var(--text-secondary);"><span class="chip-dl">⬇</span></span>';
-	        h+='</div>';
-	      }else{
-	        h+='<div class="checklist-row missing">';
-	        h+='<span class="checklist-icon-missing">☐</span>';
-	        h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
-	        h+='<span class="checklist-missing-label">未上传</span>';
-	        h+='</div>';
-	      }
-	    });
+  h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.gender)+'</td><td>'+escapeHtml(t.idCard)+'</td><td><span class="exit-tag">'+escapeHtml(t.exitType||'—')+'</span></td><td>'+escapeHtml(t.exitDate||'—')+'</td>';
+  h+='<td style="font-size:11px;text-align:left;">';
+   var mats=t.materials||{};
+  EXIT_MATERIALS.forEach(function(item){
+  var val=mats[item];
+  var isMulti=item===MULTI_FILE_MATERIAL;
+  if(isMulti&&Array.isArray(val)&&val.length>0){
+  h+='<div class="checklist-row done">';
+  h+='<span class="checklist-icon-done">☑</span>';
+  h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
+  h+='<span style="font-size:10px;color:var(--text-secondary);">('+val.length+'个文件)</span>';
+    h+='</div>';
+  val.forEach(function(f){
+    var fn=escapeHtml(f.name||'');
+    h+='<div class="checklist-row done" style="padding-left:18px;">';
+    h+='<span class="checklist-file-chip" onclick="previewFile(\''+fn+'\')" title="点击预览">📄 '+fn+'</span>';
+    h+='<span class="checklist-file-chip" onclick="downloadFile(\''+fn+'\')" title="点击下载" style="color:var(--text-secondary);"><span class="chip-dl">⬇</span></span>';
+      h+='</div>';
+      });
+		      }else if(!isMulti&&val){
+		        var fn=escapeHtml(val.name||item);
+		        h+='<div class="checklist-row done">';
+		        h+='<span class="checklist-icon-done">☑</span>';
+		        h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
+		        h+='<span class="checklist-file-chip" onclick="previewFile(\''+fn+'\')" title="点击预览">📄 '+fn+'</span>';
+		        h+='<span class="checklist-file-chip" onclick="downloadFile(\''+fn+'\')" title="点击下载" style="color:var(--text-secondary);"><span class="chip-dl">⬇</span></span>';
+		        h+='</div>';
+		      }else{
+		        h+='<div class="checklist-row missing">';
+		        h+='<span class="checklist-icon-missing">☐</span>';
+		        h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
+		        h+='<span class="checklist-missing-label">未上传</span>';
+		        h+='</div>';
+		      }
+		    });
 	    h+='</td>';
 	    h+='</tr>';
 	  });
