@@ -312,9 +312,16 @@ function listAdminUrl(){ return 'contract-entry-list-admin.html?role='+ROLE; }
 function listSchoolUrl(){ return 'contract-entry-list-school.html'; }
 function backUrl(){ return IS_ADMIN ? listAdminUrl() : listSchoolUrl(); }
 
-/* dual-schema attachment readers */
-function idCardName(t){ return t.idCardAttachment ? (t.idCardAttachment.name||'') : (t.idCardFile||''); }
-function laborName(t){ return t.laborContractAttachment ? (t.laborContractAttachment.name||'') : (t.laborContractFile||''); }
+/* dual-schema attachment readers — unified materials format */
+var DETAIL_MATERIALS=['身份证正反面','劳动合同'];
+function getMaterialFile(t,itemName){
+  var mats=t.materials||{};
+  if(mats[itemName]) return mats[itemName];
+  // backward compat: old idCardAttachment / laborContractAttachment fields
+  if(itemName==='身份证正反面') return t.idCardAttachment||null;
+  if(itemName==='劳动合同') return t.laborContractAttachment||null;
+  return null;
+}
 function rejectReason(r){ return r.opinion || r.rejectOpinion || ''; }
 
 /* ---------- data ---------- */
@@ -523,9 +530,9 @@ function renderDetail(){
   // LEFT: teacher list
   h+='<div class="main-col">';
   h+='<div class="detail-card"><div class="card-title">入职教师名单（'+teacherCount+' 人）</div><div class="table-scroll">';
-  h+='<table class="t-table"><thead><tr><th class="col-idx">序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>手机号</th><th>入职时间</th><th>合同起止</th><th>身份证附件</th><th>劳动合同</th></tr></thead><tbody>';
+  h+='<table class="t-table"><thead><tr><th class="col-idx">序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>手机号</th><th>入职时间</th><th>合同起止</th><th>证明材料</th></tr></thead><tbody>';
   if(teacherCount===0){
-    h+='<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:24px;">暂无教师数据</td></tr>';
+    h+='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:24px;">暂无教师数据</td></tr>';
   } else {
     (r.teachers||[]).forEach(function(t,i){
       h+='<tr>';
@@ -536,8 +543,20 @@ function renderDetail(){
       h+='<td>'+escapeHtml(t.phone||'—')+'</td>';
       h+='<td>'+escapeHtml(t.entryDate||'—')+'</td>';
       h+='<td>'+escapeHtml(t.contractStart||'—')+' 至 '+escapeHtml(t.contractEnd||'—')+'</td>';
-      h+='<td>'+fileCell(idCardName(t))+'</td>';
-      h+='<td>'+fileCell(laborName(t))+'</td>';
+      h+='<td>';
+      DETAIL_MATERIALS.forEach(function(item){
+        var f=getMaterialFile(t,item);
+        if(f){
+          var raw=f.name||item;
+          var short=escapeHtml(raw.length>14?raw.substring(0,14)+'...':raw);
+          h+='<span class="checklist-file-chip" onclick="previewFile(\''+escapeJs(raw)+'\')" title="点击预览" style="margin:1px 2px;">📄 '+short+'</span>';
+          h+='<span class="checklist-file-chip" onclick="downloadFile(\''+escapeJs(raw)+'\')" title="点击下载" style="color:var(--text-secondary);margin:1px 2px;">⬇</span>';
+        }else{
+          h+='<span style="font-size:10px;color:var(--text-light);margin:1px 2px;">☐ '+escapeHtml(item)+'</span>';
+        }
+        h+='<br>';
+      });
+      h+='</td>';
       h+='</tr>';
     });
   }

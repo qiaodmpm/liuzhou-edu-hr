@@ -150,6 +150,13 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .row-upload.has-file { color:var(--success); }
 .row-file-name { display:inline-flex; align-items:center; gap:2px; font-size:10px; color:#10B981; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80px; cursor:default; }
 .row-file-remove { color:var(--danger); cursor:pointer; font-size:12px; flex-shrink:0; }
+.checklist-container { display:flex; flex-direction:column; gap:3px; }
+.checklist-item { display:flex; align-items:center; gap:3px; font-size:10px; padding:2px 0; }
+.checklist-icon { font-size:11px; flex-shrink:0; }
+.checklist-cname { flex-shrink:0; color:var(--text-secondary); min-width:72px; font-size:10px; }
+.checklist-upload-btn { font-size:9px; padding:1px 6px; background:#F8FAFC; border:1px solid var(--border); border-radius:3px; cursor:pointer; color:var(--primary); font-family:inherit; flex-shrink:0; }
+.checklist-upload-btn:hover { background:var(--primary-light); }
+.checklist-file-tag { font-size:9px; color:#10B981; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:55px; cursor:default; display:inline-flex; align-items:center; gap:1px; }
 .row-remove { cursor:pointer; color:var(--danger); font-size:16px; line-height:1; background:none; border:none; padding:2px 6px; }
 .row-remove:hover { color:#B91C1C; }
 .add-row-btn { margin-top:10px; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--primary); cursor:pointer; padding:6px 14px; border:1px dashed var(--accent); border-radius:6px; background:var(--primary-light); transition:var(--transition); }
@@ -223,8 +230,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
             <th style="width:120px;">手机号</th>
             <th style="width:210px;">合同起止</th>
             <th style="width:130px;">入职时间</th>
-            <th style="width:110px;">身份证正反面</th>
-            <th style="width:100px;">劳动合同</th>
+            <th style="width:180px;">证明材料</th>
             <th style="width:36px;"></th>
           </tr></thead>
           <tbody id="teacherTableBody"></tbody>
@@ -232,7 +238,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
       </div>
       <div class="add-row-btn" onclick="addTeacherRow()">+ 添加行</div>
 
-      <div class="up-tip">提示：身份证正反面（JPG/PNG）和劳动合同（PDF）均需每位教师单独上传，单个文件 ≤ 10MB。</div>
+      <div class="up-tip">提示：身份证正反面支持 JPG/PNG，劳动合同支持 PDF，单个文件 ≤ 10MB，均为必填。</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
@@ -331,18 +337,18 @@ function seedDemo(){
   return [
     { id:'CE20260701001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'pending', submitTime:'2026-07-01 09:00', rejectOpinion:'',
       teachers:[
-        {name:'张三',gender:'男',idCard:'450203199203051234',contractStart:'2026-07-01',contractEnd:'2029-06-30',phone:'13877001234',entryDate:'2026-07-01',idCardAttachment:{name:'张三_身份证正反面.jpg',size:845210,type:'image/jpeg'},laborContractAttachment:{name:'张三_劳动合同.pdf',size:856000,type:'application/pdf'}},
-        {name:'李四',gender:'女',idCard:'450203199506128765',contractStart:'2026-07-01',contractEnd:'2029-06-30',phone:'13877005678',entryDate:'2026-07-01',idCardAttachment:{name:'李四_身份证正反面.jpg',size:792340,type:'image/jpeg'},laborContractAttachment:{name:'李四_劳动合同.pdf',size:812400,type:'application/pdf'}},
-        {name:'王五',gender:'男',idCard:'450203198811234567',contractStart:'2026-07-01',contractEnd:'2028-06-30',phone:'13877009012',entryDate:'2026-07-01',idCardAttachment:{name:'王五_身份证正反面.png',size:903118,type:'image/png'},laborContractAttachment:{name:'王五_劳动合同.pdf',size:790500,type:'application/pdf'}}
+        {name:'张三',gender:'男',idCard:'450203199203051234',contractStart:'2026-07-01',contractEnd:'2029-06-30',phone:'13877001234',entryDate:'2026-07-01',materials:{'身份证正反面':{name:'张三_身份证正反面.jpg',size:845210,type:'image/jpeg'},'劳动合同':{name:'张三_劳动合同.pdf',size:856000,type:'application/pdf'}}},
+        {name:'李四',gender:'女',idCard:'450203199506128765',contractStart:'2026-07-01',contractEnd:'2029-06-30',phone:'13877005678',entryDate:'2026-07-01',materials:{'身份证正反面':{name:'李四_身份证正反面.jpg',size:792340,type:'image/jpeg'},'劳动合同':{name:'李四_劳动合同.pdf',size:812400,type:'application/pdf'}}},
+        {name:'王五',gender:'男',idCard:'450203198811234567',contractStart:'2026-07-01',contractEnd:'2028-06-30',phone:'13877009012',entryDate:'2026-07-01',materials:{'身份证正反面':{name:'王五_身份证正反面.png',size:903118,type:'image/png'},'劳动合同':{name:'王五_劳动合同.pdf',size:790500,type:'application/pdf'}}}
       ]},
     { id:'CE20260628001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'approved', submitTime:'2026-06-28 14:20', rejectOpinion:'',
       teachers:[
-        {name:'赵六',gender:'女',idCard:'450203199401019988',contractStart:'2026-06-28',contractEnd:'2029-06-27',phone:'13966002233',entryDate:'2026-06-28',idCardAttachment:{name:'赵六_身份证正反面.jpg',size:712009,type:'image/jpeg'},laborContractAttachment:{name:'赵六_劳动合同.pdf',size:734500,type:'application/pdf'}},
-        {name:'孙七',gender:'男',idCard:'450203199009157711',contractStart:'2026-06-28',contractEnd:'2029-06-27',phone:'13966004455',entryDate:'2026-06-28',idCardAttachment:{name:'孙七_身份证正反面.jpg',size:688412,type:'image/jpeg'},laborContractAttachment:{name:'孙七_劳动合同.pdf',size:701200,type:'application/pdf'}}
+        {name:'赵六',gender:'女',idCard:'450203199401019988',contractStart:'2026-06-28',contractEnd:'2029-06-27',phone:'13966002233',entryDate:'2026-06-28',materials:{'身份证正反面':{name:'赵六_身份证正反面.jpg',size:712009,type:'image/jpeg'},'劳动合同':{name:'赵六_劳动合同.pdf',size:734500,type:'application/pdf'}}},
+        {name:'孙七',gender:'男',idCard:'450203199009157711',contractStart:'2026-06-28',contractEnd:'2029-06-27',phone:'13966004455',entryDate:'2026-06-28',materials:{'身份证正反面':{name:'孙七_身份证正反面.jpg',size:688412,type:'image/jpeg'},'劳动合同':{name:'孙七_劳动合同.pdf',size:701200,type:'application/pdf'}}}
       ]},
     { id:'CE20260615001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'rejected', submitTime:'2026-06-15 10:35', rejectOpinion:'材料不全',
       teachers:[
-        {name:'周八',gender:'女',idCard:'450203199712038844',contractStart:'2026-06-15',contractEnd:'2028-06-14',phone:'13755006677',entryDate:'2026-06-15',idCardAttachment:{name:'周八_身份证正反面.jpg',size:654001,type:'image/jpeg'},laborContractAttachment:{name:'周八_劳动合同.pdf',size:612800,type:'application/pdf'}}
+        {name:'周八',gender:'女',idCard:'450203199712038844',contractStart:'2026-06-15',contractEnd:'2028-06-14',phone:'13755006677',entryDate:'2026-06-15',materials:{'身份证正反面':{name:'周八_身份证正反面.jpg',size:654001,type:'image/jpeg'},'劳动合同':{name:'周八_劳动合同.pdf',size:612800,type:'application/pdf'}}}
       ]}
   ];
 }
@@ -443,12 +449,11 @@ function renderSubArea(r){
 
   h+='<div class="att-row">';
   (r.teachers||[]).forEach(function(t){
-    if(t.idCardAttachment){
-      h+=fileChip(t.name+' 身份证', t.idCardAttachment);
-    }
-    if(t.laborContractAttachment){
-      h+=fileChip(t.name+' 劳动合同', t.laborContractAttachment);
-    }
+    var mats=t.materials||{};
+    var ic=mats['身份证正反面'];
+    var lc=mats['劳动合同'];
+    if(ic) h+=fileChip(t.name+' 身份证', ic);
+    if(lc) h+=fileChip(t.name+' 劳动合同', lc);
   });
   h+='</div>';
 
@@ -475,11 +480,12 @@ function viewDetail(id){ window.location.href='contract-entry-detail.html?id='+e
 
 /* ---------- new application modal ---------- */
 var rowSeq=0;
-var rowFiles={};   // uid -> idCardAttachment {name,size,type}
-var rowLabor={};   // uid -> laborContractAttachment {name,size,type}
+var rowMaterials={};   // uid -> { '身份证正反面': fileObj, '劳动合同': fileObj }
+var ENTRY_MATERIALS=['身份证正反面','劳动合同'];
+var pendingEntryUpload=null;
 
 function openModal(){
-  rowSeq=0; rowFiles={}; rowLabor={};
+  rowSeq=0; rowMaterials={};
   document.getElementById('teacherTableBody').innerHTML='';
   document.getElementById('rowFileInputs').innerHTML='';
   addTeacherRow();
@@ -489,42 +495,46 @@ function closeModal(){ document.getElementById('appModal').classList.remove('sho
 
 function addTeacherRow(){
   var uid='r'+(++rowSeq);
+  rowMaterials[uid]={};
   var tb=document.getElementById('teacherTableBody');
   var tr=document.createElement('tr');
   tr.setAttribute('data-uid',uid);
-  tr.innerHTML=
-    '<td class="row-index" style="text-align:center;color:var(--text-secondary);"></td>'+
-    '<td><input type="text" class="f-name" placeholder="姓名"></td>'+
-    '<td><select class="f-gender"><option value="">选择</option><option value="男">男</option><option value="女">女</option></select></td>'+
-    '<td><input type="text" class="f-id" placeholder="身份证号" maxlength="18"></td>'+
-    '<td><input type="text" class="f-phone" placeholder="手机号" maxlength="11"></td>'+
-    '<td><div class="date-pair"><input type="date" class="f-start"><span>至</span><input type="date" class="f-end"></div></td>'+
-    '<td><input type="date" class="f-entry"></td>'+
-    '<td><span class="row-upload" id="ru-'+uid+'" onclick="triggerRowFile(\''+uid+'\')">+ 上传</span></td>'+
-    '<td><span class="row-upload" id="rul-'+uid+'" onclick="triggerRowLabor(\''+uid+'\')">+ 上传</span></td>'+
-    '<td style="text-align:center;"><button class="row-remove" onclick="removeRow(\''+uid+'\')" title="删除">&times;</button></td>';
+  var h='';
+  h+='<td class="row-index" style="text-align:center;color:var(--text-secondary);"></td>';
+  h+='<td><input type="text" class="f-name" placeholder="姓名"></td>';
+  h+='<td><select class="f-gender"><option value="">选择</option><option value="男">男</option><option value="女">女</option></select></td>';
+  h+='<td><input type="text" class="f-id" placeholder="身份证号" maxlength="18"></td>';
+  h+='<td><input type="text" class="f-phone" placeholder="手机号" maxlength="11"></td>';
+  h+='<td><div class="date-pair"><input type="date" class="f-start"><span>至</span><input type="date" class="f-end"></div></td>';
+  h+='<td><input type="date" class="f-entry"></td>';
+  h+='<td><div class="checklist-container">';
+  ENTRY_MATERIALS.forEach(function(item){
+    h+='<div class="checklist-item" id="ci-'+uid+'-'+item+'">';
+    h+='<span class="checklist-icon">☐</span>';
+    h+='<span class="checklist-cname">'+item+'</span>';
+    h+='<button class="checklist-upload-btn" onclick="triggerEntryUpload(event,\''+uid+'\',\''+item+'\')">上传</button>';
+    h+='</div>';
+  });
+  h+='</div></td>';
+  h+='<td style="text-align:center;"><button class="row-remove" onclick="removeRow(\''+uid+'\')" title="删除">&times;</button></td>';
+  tr.innerHTML=h;
   tb.appendChild(tr);
 
   var fi=document.createElement('input');
-  fi.type='file'; fi.accept='image/jpeg,image/png,.jpg,.jpeg,.png';
-  fi.id='file-'+uid; fi.style.display='none';
-  fi.onchange=function(){ onRowFile(uid,this); };
+  fi.type='file'; fi.id='file-'+uid; fi.style.display='none';
+  fi.onchange=function(){ handleEntryFile(uid,this); };
   document.getElementById('rowFileInputs').appendChild(fi);
-
-  var fl=document.createElement('input');
-  fl.type='file'; fl.accept='application/pdf,.pdf';
-  fl.id='file-labor-'+uid; fl.style.display='none';
-  fl.onchange=function(){ onRowLabor(uid,this); };
-  document.getElementById('rowFileInputs').appendChild(fl);
 
   refreshRowIndexes();
 }
+function fileExt(name,def){ var m=/\.([a-z0-9]+)$/i.exec(name||''); return m?m[1].toLowerCase():def; }
 var pendingDeleteUid=null;
 function rowHasData(uid){
   var tr=document.querySelector('#teacherTableBody tr[data-uid="'+uid+'"]');
   if(!tr) return false;
   var v=function(sel){ var el=tr.querySelector(sel); return el?(el.value||'').trim():''; };
-  return !!(v('.f-name')||v('.f-id')||v('.f-gender')||v('.f-phone')||v('.f-start')||v('.f-end')||v('.f-entry')||rowFiles[uid]||rowLabor[uid]);
+  var mats=rowMaterials[uid]||{};
+  return !!(v('.f-name')||v('.f-id')||v('.f-gender')||v('.f-phone')||v('.f-start')||v('.f-end')||v('.f-entry')||mats['身份证正反面']||mats['劳动合同']);
 }
 function removeRow(uid){
   if(!rowHasData(uid)){ doRemoveRow(uid); return; }
@@ -533,16 +543,14 @@ function removeRow(uid){
   var rows=Array.prototype.slice.call(document.querySelectorAll('#teacherTableBody tr'));
   var idx=rows.indexOf(tr)+1;
   var nm=(tr.querySelector('.f-name').value||'').trim();
-  document.getElementById('delConfirmMsg').innerHTML='确定删除第 '+idx+' 行教师'+(nm?'「'+escapeHtml(nm)+'」':'')+'？<br>删除后该行信息及已上传的身份证、劳动合同附件将一并移除。';
+  document.getElementById('delConfirmMsg').innerHTML='确定删除第 '+idx+' 行教师'+(nm?'「'+escapeHtml(nm)+'」':'')+'？<br>删除后该行信息及已上传的证明材料将一并移除。';
   document.getElementById('delConfirmModal').classList.add('show');
 }
 function doRemoveRow(uid){
   var tr=document.querySelector('#teacherTableBody tr[data-uid="'+uid+'"]');
   if(tr) tr.remove();
   var fi=document.getElementById('file-'+uid); if(fi) fi.remove();
-  var fl=document.getElementById('file-labor-'+uid); if(fl) fl.remove();
-  delete rowFiles[uid];
-  delete rowLabor[uid];
+  delete rowMaterials[uid];
   refreshRowIndexes();
 }
 function confirmDeleteRow(){ if(pendingDeleteUid){ doRemoveRow(pendingDeleteUid); } pendingDeleteUid=null; closeDelConfirm(); }
@@ -551,57 +559,48 @@ function refreshRowIndexes(){
   var rows=document.querySelectorAll('#teacherTableBody tr');
   rows.forEach(function(tr,i){ var c=tr.querySelector('.row-index'); if(c) c.textContent=(i+1); });
 }
-function triggerRowFile(uid){ document.getElementById('file-'+uid).click(); }
-function fileExt(name,def){ var m=/\.([a-z0-9]+)$/i.exec(name||''); return m?m[1].toLowerCase():def; }
-function onRowFile(uid,input){
-  var f=input.files&&input.files[0]; if(!f) return;
-  if(!/\.(jpe?g|png)$/i.test(f.name) && f.type.indexOf('image/')!==0){ showToast('身份证仅支持 JPG/PNG 格式','warning'); input.value=''; return; }
-  if(f.size>10*1048576){ showToast('身份证文件不能超过 10MB','warning'); input.value=''; return; }
-  rowFiles[uid]={name:f.name,size:f.size,type:f.type||'image/jpeg',ext:fileExt(f.name,'jpg')};
-  renderRowFileLabel(uid,'idcard');
-}
-function clearRowFile(uid){
-  delete rowFiles[uid];
-  renderRowFileLabel(uid,'idcard');
-}
-function triggerRowLabor(uid){ document.getElementById('file-labor-'+uid).click(); }
-function onRowLabor(uid,input){
-  var f=input.files&&input.files[0]; if(!f) return;
-  if(!/\.pdf$/i.test(f.name) && f.type!=='application/pdf'){ showToast('劳动合同仅支持 PDF 格式','warning'); input.value=''; return; }
-  if(f.size>10*1048576){ showToast('劳动合同文件不能超过 10MB','warning'); input.value=''; return; }
-  rowLabor[uid]={name:f.name,size:f.size,type:'application/pdf',ext:'pdf'};
-  renderRowFileLabel(uid,'labor');
-}
-function clearRowLabor(uid){
-  delete rowLabor[uid];
-  renderRowFileLabel(uid,'labor');
-}
 
-function renderRowFileLabel(uid,type){
-  var id=type==='labor'?'rul-'+uid:'ru-'+uid;
-  var lbl=document.getElementById(id);
-  if(!lbl) return;
-  var file=type==='labor'?rowLabor[uid]:rowFiles[uid];
+function triggerEntryUpload(e,uid,itemName){
+  e.stopPropagation(); e.preventDefault();
+  pendingEntryUpload={uid:uid,item:itemName};
+  var fi=document.getElementById('file-'+uid);
+  if(fi){ fi.value=''; fi.click(); }
+}
+function handleEntryFile(uid,input){
+  var f=input.files&&input.files[0]; if(!f){ pendingEntryUpload=null; return; }
+  if(!pendingEntryUpload||pendingEntryUpload.uid!==uid){ pendingEntryUpload=null; return; }
+  var itemName=pendingEntryUpload.item;
+  pendingEntryUpload=null;
+  if(itemName==='身份证正反面'){
+    if(!/\.(jpe?g|png)$/i.test(f.name) && f.type.indexOf('image/')!==0){ showToast('身份证仅支持 JPG/PNG 格式','warning'); input.value=''; return; }
+  }else{
+    if(!/\.pdf$/i.test(f.name) && f.type!=='application/pdf'){ showToast('劳动合同仅支持 PDF 格式','warning'); input.value=''; return; }
+  }
+  if(f.size>10*1048576){ showToast('文件不能超过 10MB','warning'); input.value=''; return; }
+  if(!rowMaterials[uid]) rowMaterials[uid]={};
+  rowMaterials[uid][itemName]={name:f.name,size:f.size};
+  renderEntryMaterialLabel(uid,itemName);
+  input.value='';
+}
+function clearEntryMaterial(uid,itemName){
+  if(rowMaterials[uid]){ delete rowMaterials[uid][itemName]; }
+  renderEntryMaterialLabel(uid,itemName);
+}
+function renderEntryMaterialLabel(uid,itemName){
+  var div=document.getElementById('ci-'+uid+'-'+itemName);
+  if(!div) return;
+  var file=rowMaterials[uid]&&rowMaterials[uid][itemName];
+  var h='';
+  h+='<span class="checklist-icon">'+(file?'☑':'☐')+'</span>';
+  h+='<span class="checklist-cname">'+itemName+'</span>';
   if(file){
     var short=file.name.length>8?file.name.substring(0,8)+'...':file.name;
-    var fn=document.createElement('span');
-    fn.className='row-file-name';
-    fn.title=file.name;
-    fn.textContent=short;
-    var rm=document.createElement('span');
-    rm.className='row-file-remove';
-    rm.textContent='×';
-    rm.onclick=function(e){ e.stopPropagation(); if(type==='labor')clearRowLabor(uid);else clearRowFile(uid); };
-    lbl.textContent='';
-    lbl.appendChild(fn);
-    lbl.appendChild(rm);
-    lbl.classList.add('has-file');
-    lbl.title='点击重新上传';
+    h+='<span class="checklist-file-tag" title="'+escapeHtml(file.name)+'">'+escapeHtml(short)+' <span class="file-remove" onclick="event.stopPropagation();clearEntryMaterial(\''+uid+'\',\''+itemName+'\')">×</span></span>';
+    h+='<button class="checklist-upload-btn" onclick="triggerEntryUpload(event,\''+uid+'\',\''+itemName+'\')">重传</button>';
   }else{
-    lbl.textContent='+ 上传';
-    lbl.classList.remove('has-file');
-    lbl.title='';
+    h+='<button class="checklist-upload-btn" onclick="triggerEntryUpload(event,\''+uid+'\',\''+itemName+'\')">上传</button>';
   }
+  div.innerHTML=h;
 }
 
 function collectTeachers(){
@@ -609,6 +608,7 @@ function collectTeachers(){
   var list=[];
   rows.forEach(function(tr){
     var uid=tr.getAttribute('data-uid');
+    var mats=rowMaterials[uid]||{};
     list.push({
       uid:uid,
       name:tr.querySelector('.f-name').value.trim(),
@@ -618,8 +618,7 @@ function collectTeachers(){
       contractStart:tr.querySelector('.f-start').value,
       contractEnd:tr.querySelector('.f-end').value,
       entryDate:tr.querySelector('.f-entry').value,
-      idCardAttachment:rowFiles[uid]||null,
-      laborContractAttachment:rowLabor[uid]||null
+      materials:{'身份证正反面':mats['身份证正反面']||null,'劳动合同':mats['劳动合同']||null}
     });
   });
   return list;
@@ -650,8 +649,8 @@ function saveRecord(mode){
       if(t.contractEnd<t.contractStart){ showToast('第'+n+'行：合同截止日期不能早于起始日期','warning'); return; }
       if(!t.entryDate){ showToast('第'+n+'行：请选择入职时间','warning'); return; }
       if(t.entryDate<t.contractStart){ showToast('第'+n+'行：入职时间不能早于合同起始日期','warning'); return; }
-      if(!t.idCardAttachment){ showToast('第'+n+'行：请上传身份证正反面','warning'); return; }
-      if(!t.laborContractAttachment){ showToast('第'+n+'行：请上传劳动合同（PDF）','warning'); return; }
+      if(!t.materials['身份证正反面']){ showToast('第'+n+'行：请上传身份证正反面','warning'); return; }
+      if(!t.materials['劳动合同']){ showToast('第'+n+'行：请上传劳动合同（PDF）','warning'); return; }
     }
   }
 
@@ -671,10 +670,12 @@ function saveRecord(mode){
     usedNames[cand]=true; return cand;
   }
   var mappedTeachers=teachers.map(function(t){
-    var ic=null, lc=null;
-    if(t.idCardAttachment){ ic={ name:uniqueName((t.name||'教师')+'_身份证正反面.'+(t.idCardAttachment.ext||'jpg')), size:t.idCardAttachment.size, type:t.idCardAttachment.type }; }
-    if(t.laborContractAttachment){ lc={ name:uniqueName((t.name||'教师')+'_劳动合同.pdf'), size:t.laborContractAttachment.size, type:t.laborContractAttachment.type||'application/pdf' }; }
-    return { name:t.name, gender:t.gender, idCard:t.idCard, phone:t.phone, contractStart:t.contractStart, contractEnd:t.contractEnd, entryDate:t.entryDate, idCardAttachment:ic, laborContractAttachment:lc };
+    var materials={};
+    var ic=t.materials['身份证正反面'];
+    var lc=t.materials['劳动合同'];
+    if(ic){ materials['身份证正反面']={ name:uniqueName((t.name||'教师')+'_身份证正反面.'+fileExt(ic.name||'','jpg')), size:ic.size, type:ic.type||'image/jpeg' }; }
+    if(lc){ materials['劳动合同']={ name:uniqueName((t.name||'教师')+'_劳动合同.pdf'), size:lc.size, type:lc.type||'application/pdf' }; }
+    return { name:t.name, gender:t.gender, idCard:t.idCard, phone:t.phone, contractStart:t.contractStart, contractEnd:t.contractEnd, entryDate:t.entryDate, materials:materials };
   });
   var rec={
     id:newId,
