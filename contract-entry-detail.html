@@ -108,6 +108,11 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .checklist-file-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; background:#fff; border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer; color:var(--primary); transition:var(--transition); }
 .checklist-file-chip:hover { border-color:var(--accent); }
 .file-none { color:var(--text-light); }
+.checklist-row { display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12px; }
+.checklist-icon-done { color:#10B981; font-size:13px; flex-shrink:0; }
+.checklist-icon-missing { color:#94A3B8; font-size:13px; flex-shrink:0; }
+.checklist-item-name { color:var(--text-secondary); min-width:80px; flex-shrink:0; font-size:11px; }
+.checklist-missing-label { font-size:11px; color:#F59E0B; }
 /* Audit box */
 .audit-box { background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:22px 24px; }
 .audit-box label { display:block; font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:8px; }
@@ -549,12 +554,19 @@ function renderDetail(){
         if(f){
           var raw=f.name||item;
           var short=escapeHtml(raw.length>14?raw.substring(0,14)+'...':raw);
-          h+='<span class="checklist-file-chip" onclick="previewFile(\''+escapeJs(raw)+'\')" title="点击预览" style="margin:1px 2px;">📄 '+short+'</span>';
-          h+='<span class="checklist-file-chip" onclick="downloadFile(\''+escapeJs(raw)+'\')" title="点击下载" style="color:var(--text-secondary);margin:1px 2px;">⬇</span>';
+          h+='<div class="checklist-row done">';
+          h+='<span class="checklist-icon-done">☑</span>';
+          h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
+          h+='<span class="checklist-file-chip" onclick="previewFile(\''+escapeJs(raw)+'\')" title="点击预览">📄 '+short+'</span>';
+          h+='<span class="checklist-file-chip" onclick="downloadFile(\''+escapeJs(raw)+'\')" title="点击下载" style="color:var(--text-secondary);">⬇</span>';
+          h+='</div>';
         }else{
-          h+='<span style="font-size:10px;color:var(--text-light);margin:1px 2px;">☐ '+escapeHtml(item)+'</span>';
+          h+='<div class="checklist-row missing">';
+          h+='<span class="checklist-icon-missing">☐</span>';
+          h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
+          h+='<span class="checklist-missing-label">未上传</span>';
+          h+='</div>';
         }
-        h+='<br>';
       });
       h+='</td>';
       h+='</tr>';
