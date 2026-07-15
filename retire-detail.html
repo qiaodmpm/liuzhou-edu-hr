@@ -20,6 +20,9 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 .checklist-file-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1px solid var(--border);border-radius:4px;font-size:11px;cursor:pointer;color:var(--primary)}.checklist-file-chip:hover{border-color:var(--accent)}
 .timeline{padding:12px 0}.timeline-item{display:flex;gap:12px;padding:8px 0}.tl-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;background:var(--accent)}.tl-content{font-size:12px}.tl-time{color:var(--text-light);font-size:11px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;font-family:inherit;transition:var(--transition);border:1px solid transparent}.btn-outline{background:#fff;color:var(--text-secondary);border:1px solid var(--border)}.btn-primary{background:var(--primary);color:#fff}
+.two-columns{display:flex;gap:18px;align-items:flex-start}.two-columns .main-col{flex:1;min-width:0}.two-columns .side-col{width:300px;flex-shrink:0}
+.timeline{padding:4px 0}.timeline-item{display:flex;gap:10px;padding:6px 0}.tl-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;background:var(--accent)}.tl-content{font-size:12px;flex:1}.tl-time{color:var(--text-light);font-size:10px}.tl-action{font-weight:500;color:var(--text)}.tl-operator{color:var(--text-secondary);font-size:11px}.tl-opinion{margin-top:2px}
+.summary-list{display:flex;flex-direction:column;gap:4px}.s-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}.s-label{color:var(--text-light);flex-shrink:0}.s-value{color:var(--text);font-weight:500;text-align:right}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;animation:toastIn .3s ease}.toast.warning{background:var(--warning);color:#1E293B}.toast.success{background:var(--success)}@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 </style>
 </head>
@@ -57,6 +60,9 @@ function renderAll(){
   h+='<div class="progress-bar">';
   for(var i=0;i<steps.length;i++){var cls='',disp=i+1;if(stepIdx===-1&&i===1)cls='rejected';else if(i<stepIdx)cls='done';else if(i===stepIdx)cls='current';h+='<div class="step '+cls+'"><div class="step-dot">'+(cls==='done'?'✓':cls==='rejected'?'✕':i+1)+'</div><div class="step-text">'+steps[i].label+'</div></div>';if(i<steps.length-1)h+='<div class="step-line '+(i<stepIdx?'done':'')+'"></div>'}
   h+='</div>';
+
+  // Two-column layout
+  h+='<div class="two-columns"><div class="main-col">';
 
   // 基本信息
   h+='<div class="detail-card"><h3>基本信息</h3><div class="info-grid">';
@@ -116,7 +122,27 @@ function renderAll(){
   });
   h+='</div>';
 
-  // HR result
+  h+='</div>'; // close main-col
+
+  // Right sidebar: timeline + summary
+  h+='<div class="side-col">';
+  h+='<div class="detail-card"><h3>申报履历</h3><div class="timeline">';
+  var tl=[{time:r.submitTime||'',action:'学校提交申报',operator:r.schoolName||''}];
+  if(r.status==='approved_first'||r.status==='pending_hr'||r.status==='pending_second'||r.status==='approved')tl.push({time:r.firstReviewTime||'',action:'主管一审通过',operator:r.firstReviewer||''});
+  if(r.status==='rejected')tl.push({time:r.firstReviewTime||'',action:'主管一审驳回',operator:r.firstReviewer||'',opinion:r.rejectReason||''});
+  if(r.status==='pending_second'||r.status==='approved')tl.push({time:r.hrEntryTime||'',action:'学校录入人社结果',operator:r.schoolName||''});
+  if(r.status==='approved')tl.push({time:r.secondReviewTime||'',action:'主管二审通过',operator:r.secondReviewer||''});
+  tl.forEach(function(t){if(t.time||t.action){h+='<div class="timeline-item"><div class="tl-dot"></div><div class="tl-content"><div class="tl-time">'+escapeHtml(t.time?t.time.substring(0,16):'')+'</div><div class="tl-action">'+escapeHtml(t.action)+'</div><div class="tl-operator">'+escapeHtml(t.operator||'')+'</div>'+(t.opinion?'<div class="tl-opinion" style="color:var(--danger);font-size:11px">'+escapeHtml(t.opinion)+'</div>':'')+'</div></div>'}});
+  h+='</div></div>';
+  h+='<div class="detail-card"><h3>申报基本信息</h3><div class="summary-list">';
+  h+='<div class="s-row"><span class="s-label">申请编号</span><span class="s-value">'+escapeHtml(r.id)+'</span></div>';
+  h+='<div class="s-row"><span class="s-label">单位名称</span><span class="s-value">'+escapeHtml(r.schoolName||'—')+'</span></div>';
+  h+='<div class="s-row"><span class="s-label">所属区县</span><span class="s-value">'+escapeHtml(r.district||'—')+'</span></div>';
+  h+='<div class="s-row"><span class="s-label">提交时间</span><span class="s-value">'+escapeHtml((r.submitTime||'').substring(0,16))+'</span></div>';
+  h+='<div class="s-row"><span class="s-label">当前状态</span><span class="s-value">'+(STATUS_MAP[r.status]||r.status)+'</span></div>';
+  h+='</div></div></div></div>'; // close side-col, two-columns
+
+  // HR result (full width below columns)
   if(r.hrResult&&(r.status==='pending_second'||r.status==='approved')){
     h+='<div class="detail-card"><h3>人社审批结果</h3><div class="info-grid">';
     h+=renderField('批准退休等级',r.hrResult.level);h+=renderField('退休文号',r.hrResult.docNumber);h+=renderField('退休类型',r.hrResult.retireType);
