@@ -112,7 +112,8 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 <script>
 window.onerror = function(msg,url,line){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d);};
 var currentRole='school',currentSchool='柳州市第八中学',currentDistrict='鱼峰区',currentFilter='all';
-var STATUS_MAP={pending_first:'待初审',approved_first:'初审通过',rejected:'已驳回',pending_hr:'待人社会结果录入',pending_second:'待二审',approved:'已完成'};
+var STATUS_MAP={pending_first:'待一审',approved_first:'一审通过',rejected:'一审驳回',pending_hr:'待人社录入',pending_second:'待二审',approved:'已完成'};
+function getFilterKey(status){if(status==='pending_first'||status==='pending_hr'||status==='pending_second')return'pending';if(status==='approved_first'||status==='approved')return'approved';if(status==='rejected')return'rejected';return status;}
 function escapeHtml(s){if(s===undefined||s===null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function showToast(m,t){var e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;document.getElementById('toastContainer').appendChild(e);setTimeout(function(){e.remove();},2200);}
 function toggleUserMenu(){document.getElementById('userDropdown').classList.toggle('show');}
@@ -120,27 +121,30 @@ document.addEventListener('click',function(e){if(!e.target.closest('.topnav-user
 function switchRole(role){if(role==='school')return;if(role==='city'||role==='district'){window.location.href='retire-list-admin.html?role='+role;return;}}
 function loadRecords(){var s=localStorage.getItem('retire_records');try{return JSON.parse(s)||[];}catch(e){return[];}}
 function saveRecords(r){localStorage.setItem('retire_records',JSON.stringify(r));}
+function calcAge(birthDate,retireDate){if(!birthDate||!retireDate)return'—';var b=new Date(birthDate),r=new Date(retireDate);var a=r.getFullYear()-b.getFullYear();if(r.getMonth()<b.getMonth()||(r.getMonth()===b.getMonth()&&r.getDate()<b.getDate()))a--;return a+'岁';}
+function calcWorkYears(start,retire){if(!start||!retire)return'—';var w=new Date(start),r=new Date(retire);var yy=r.getFullYear()-w.getFullYear(),mm=r.getMonth()-w.getMonth();if(mm<0){yy--;mm+=12}return yy+'年'+mm+'个月';}
 function seedDemo(){
-  return [{id:'RT20260701001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'pending_first',submitTime:'2026-07-10 09:20:00',teacherName:'张美华',gender:'女',birthDate:'1971-05-15',idCard:'450203197105152345'},
-    {id:'RT20260701002',schoolName:'柳州市第八中学',district:'鱼峰区',status:'approved_first',submitTime:'2026-07-05 10:30:00',teacherName:'刘国强',gender:'男',birthDate:'1966-03-20',idCard:'450203196603202345'},
-    {id:'RT20260601001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'rejected',submitTime:'2026-06-15 14:00:00',teacherName:'陈秀兰',gender:'女',birthDate:'1971-08-22',idCard:'450203197108223456',rejectReason:'档案年龄材料不清晰，请重新上传'},
-    {id:'RT20260620001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'approved',submitTime:'2026-06-20 08:45:00',teacherName:'赵志远',gender:'男',birthDate:'1966-01-10',idCard:'450203196601101234'}];
+  return [{id:'RT20260701001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'pending_first',submitTime:'2026-07-10 09:20',teacherName:'张美华',gender:'女',birthDate:'1971-05-15',retireDate:'2026-07-15',education:'本科',politics:'中共党员',workStart:'1991-09-01',teachYears:'35',personType:'03 事业单位专业技术人员',post:'专技七级(事业) 227',salaryLevel:'32级（事业） 131'},
+    {id:'RT20260701002',schoolName:'柳州市第八中学',district:'鱼峰区',status:'approved_first',submitTime:'2026-07-05 10:30',teacherName:'刘国强',gender:'男',birthDate:'1966-03-20',retireDate:'2026-07-01',education:'硕士',politics:'中共党员',workStart:'1988-07-01',teachYears:'38',personType:'03 事业单位专业技术人员',post:'专技五级(事业) 225',salaryLevel:'38级（事业） 137'},
+    {id:'RT20260601001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'rejected',submitTime:'2026-06-15 14:00',teacherName:'陈秀兰',gender:'女',birthDate:'1971-08-22',retireDate:'2026-08-31',education:'本科',politics:'群众',workStart:'1993-08-01',teachYears:'33',personType:'03 事业单位专业技术人员',post:'专技八级(事业) 228',salaryLevel:'28级（事业） 127',rejectReason:'档案年龄材料不清晰，请重新上传'},
+    {id:'RT20260620001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'approved',submitTime:'2026-06-20 08:45',teacherName:'赵志远',gender:'男',birthDate:'1966-01-10',retireDate:'2026-06-30',education:'大专',politics:'中共党员',workStart:'1984-02-01',teachYears:'42',personType:'04 事业单位管理人员',post:'管理五级(事业) 205',salaryLevel:'35级（事业） 134'}];
 }
 function renderList(){
-  var records=loadRecords();
-  if(records.length===0){records=seedDemo();saveRecords(records);}
+  var records=loadRecords();if(records.length===0){records=seedDemo();saveRecords(records);}
   records=records.filter(function(r){return r.schoolName===currentSchool;});
-  var counts={all:records.length,pending_first:0,approved_first:0,rejected:0,pending_hr:0,pending_second:0,approved:0};
-  records.forEach(function(r){if(counts[r.status]!==undefined)counts[r.status]++;});
-  var filters=[{key:'all',label:'全部('+counts.all+')'},{key:'pending_first',label:'待初审('+counts.pending_first+')'},{key:'approved_first',label:'初审通过('+counts.approved_first+')'},{key:'rejected',label:'已驳回('+counts.rejected+')'},{key:'pending_hr',label:'待人社会结果录入('+counts.pending_hr+')'},{key:'pending_second',label:'待二审('+counts.pending_second+')'},{key:'approved',label:'已完成('+counts.approved+')'}];
+  var counts={all:records.length,pending:0,approved:0,rejected:0};
+  records.forEach(function(r){var k=getFilterKey(r.status);if(counts[k]!==undefined)counts[k]++;});
+  var filters=[{key:'all',label:'全部('+counts.all+')'},{key:'pending',label:'待审核('+counts.pending+')'},{key:'approved',label:'已通过('+counts.approved+')'},{key:'rejected',label:'已驳回('+counts.rejected+')'}];
   var fb=document.getElementById('filterBar');fb.innerHTML='';
   filters.forEach(function(f){var b=document.createElement('button');b.className='filter-pill'+(currentFilter===f.key?' active':'');b.textContent=f.label;b.onclick=function(){currentFilter=f.key;renderList();};fb.appendChild(b);});
-  if(currentFilter!=='all')records=records.filter(function(r){return r.status===currentFilter;});
+  if(currentFilter!=='all')records=records.filter(function(r){return getFilterKey(r.status)===currentFilter;});
   var list=document.getElementById('recordList');
   if(records.length===0){list.innerHTML='<div class="list-card"><div class="empty-state"><div class="empty-icon">&#128196;</div><div class="empty-text">暂无退休申报记录</div></div></div>';return;}
-  var h='<div class="list-card"><div class="table-scroll"><table class="list-table"><thead><tr><th>申请编号</th><th>教师姓名</th><th>性别</th><th>出生日期</th><th>提交时间</th><th>状态</th><th style="width:160px;">操作</th></tr></thead><tbody>';
+  var h='<div class="list-card"><div class="table-scroll"><table class="list-table"><thead><tr><th>申请编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>学历</th><th>政治面貌</th><th>参加工作时间</th><th>实际工作年限</th><th>教护龄</th><th>人员类别</th><th>岗位</th><th>薪级</th><th>提交时间</th><th>状态</th><th style="width:160px;white-space:nowrap">操作</th></tr></thead><tbody>';
   records.forEach(function(r){
-    h+='<tr><td style="color:var(--primary);font-weight:600;">'+escapeHtml(r.id)+'</td><td>'+escapeHtml(r.teacherName||'—')+'</td><td>'+escapeHtml(r.gender||'—')+'</td><td>'+escapeHtml(r.birthDate||'—')+'</td><td style="font-size:12px;">'+escapeHtml(r.submitTime||'—')+'</td><td><span class="status-badge '+r.status+'">'+(STATUS_MAP[r.status]||r.status)+'</span></td><td style="white-space:nowrap;">';
+    var age=calcAge(r.birthDate,r.retireDate);var wy=calcWorkYears(r.workStart,r.retireDate);
+    var ptShort=r.personType?r.personType.substring(0,3):'—';var postShort=r.post?r.post.split(' ')[0]:'—';var slShort=r.salaryLevel?r.salaryLevel.split(' ')[0]:'—';
+    h+='<tr><td style="color:var(--primary);font-weight:600;white-space:nowrap">'+escapeHtml(r.id)+'</td><td>'+escapeHtml(r.teacherName||'—')+'</td><td>'+escapeHtml(r.gender||'—')+'</td><td>'+age+'</td><td>'+escapeHtml(r.education||'—')+'</td><td>'+escapeHtml(r.politics||'—')+'</td><td>'+escapeHtml(r.workStart||'—')+'</td><td>'+wy+'</td><td>'+escapeHtml(r.teachYears||'—')+'</td><td>'+escapeHtml(ptShort)+'</td><td>'+escapeHtml(postShort)+'</td><td>'+escapeHtml(slShort)+'</td><td style="font-size:11px">'+escapeHtml((r.submitTime||'').substring(0,16))+'</td><td><span class="status-badge '+r.status+'">'+(STATUS_MAP[r.status]||r.status)+'</span></td><td style="white-space:nowrap">';
     if(r.status==='rejected')h+='<button class="btn btn-primary btn-sm" onclick="location.href=\'retire-form.html?id='+r.id+'\'">修改重提</button> ';
     if(r.status==='approved_first')h+='<button class="btn btn-success btn-sm" onclick="location.href=\'retire-hr-entry.html?id='+r.id+'\'">录入人社结果</button> ';
     h+='<button class="btn btn-outline btn-sm" onclick="location.href=\'retire-detail.html?id='+r.id+'&role=school\'">查看</button></td></tr>';
