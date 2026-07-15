@@ -116,11 +116,9 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .sub-table th { padding:8px 12px; background:#F1F5F9; font-weight:600; font-size:11px; color:var(--text-secondary); text-align:left; border-bottom:1px solid var(--border); }
 .sub-table td { padding:8px 12px; border-bottom:1px solid var(--border); text-align:left; color:var(--text); }
 .sub-table tr:last-child td { border-bottom:none; }
-.att-row { margin-top:14px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-.att-link { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--primary); background:var(--primary-light); border:1px solid #DBEAFE; padding:6px 12px; border-radius:6px; cursor:pointer; transition:var(--transition); }
-.att-link:hover { background:#DBEAFE; }
-.att-link svg { width:13px; height:13px; }
-.att-link .att-size { color:var(--text-light); font-size:11px; }
+.att-row { margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.checklist-file-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; background:#fff; border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer; color:var(--primary); transition:var(--transition); }
+.checklist-file-chip:hover { border-color:var(--accent); }
 .reject-note { margin-top:12px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:10px 14px; font-size:12px; color:#991B1B; }
 .empty-state { text-align:center; padding:60px 20px; color:var(--text-light); }
 .empty-state .empty-icon { font-size:42px; margin-bottom:12px; }
@@ -147,9 +145,11 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .edit-table input:focus, .edit-table select:focus { border-color:var(--accent); }
 .edit-table .date-pair { display:flex; align-items:center; gap:4px; }
 .edit-table .date-pair span { color:var(--text-light); font-size:11px; }
-.row-upload { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:var(--primary); cursor:pointer; white-space:nowrap; }
-.row-upload:hover { text-decoration:underline; }
+.row-upload { display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--primary); cursor:pointer; white-space:nowrap; padding:2px 6px; border:1px solid var(--border); border-radius:3px; background:#F8FAFC; font-family:inherit; }
+.row-upload:hover { background:var(--primary-light); }
 .row-upload.has-file { color:var(--success); }
+.row-file-name { display:inline-flex; align-items:center; gap:2px; font-size:10px; color:#10B981; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80px; cursor:default; }
+.row-file-remove { color:var(--danger); cursor:pointer; font-size:12px; flex-shrink:0; }
 .row-remove { cursor:pointer; color:var(--danger); font-size:16px; line-height:1; background:none; border:none; padding:2px 6px; }
 .row-remove:hover { color:#B91C1C; }
 .add-row-btn { margin-top:10px; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--primary); cursor:pointer; padding:6px 14px; border:1px dashed var(--accent); border-radius:6px; background:var(--primary-light); transition:var(--transition); }
@@ -444,10 +444,10 @@ function renderSubArea(r){
   h+='<div class="att-row">';
   (r.teachers||[]).forEach(function(t){
     if(t.idCardAttachment){
-      h+=attChip(t.name+' 身份证：'+t.idCardAttachment.name, t.idCardAttachment.size);
+      h+=fileChip(t.name+' 身份证', t.idCardAttachment);
     }
     if(t.laborContractAttachment){
-      h+=attChip(t.name+' 劳动合同：'+t.laborContractAttachment.name, t.laborContractAttachment.size);
+      h+=fileChip(t.name+' 劳动合同', t.laborContractAttachment);
     }
   });
   h+='</div>';
@@ -458,12 +458,18 @@ function renderSubArea(r){
   h+='</div>';
   return h;
 }
-function attChip(label,size){
-  return '<span class="att-link" onclick="event.stopPropagation();mockDownload(\''+escapeHtml(label).replace(/'/g,"")+'\')">'+
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'+
-    escapeHtml(label)+' <span class="att-size">('+fmtSize(size)+')</span></span>';
+function fileChip(label,att){
+  var fn=escapeHtml(att.name||label);
+  var sz=att.size?fmtSize(att.size):'';
+  return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;">'+
+    '<span style="color:var(--text-secondary);">'+escapeHtml(label)+'</span>'+
+    '<span class="checklist-file-chip" onclick="event.stopPropagation();mockPreview(\''+fn+'\')" title="点击预览">📄 '+fn+'</span>'+
+    '<span class="checklist-file-chip" onclick="event.stopPropagation();mockDownload(\''+fn+'\')" title="点击下载" style="color:var(--text-secondary);">⬇</span>'+
+    (sz?'<span style="font-size:10px;color:var(--text-light);">('+sz+')</span>':'')+
+    '</span>';
 }
 function mockDownload(name){ showToast('模拟下载：'+name,'success'); }
+function mockPreview(name){ showToast('模拟预览：'+name); }
 
 function viewDetail(id){ window.location.href='contract-entry-detail.html?id='+encodeURIComponent(id)+'&role=school'; }
 
@@ -551,20 +557,45 @@ function onRowFile(uid,input){
   var f=input.files&&input.files[0]; if(!f) return;
   if(!/\.(jpe?g|png)$/i.test(f.name) && f.type.indexOf('image/')!==0){ showToast('身份证仅支持 JPG/PNG 格式','warning'); input.value=''; return; }
   if(f.size>10*1048576){ showToast('身份证文件不能超过 10MB','warning'); input.value=''; return; }
-  rowFiles[uid]={size:f.size,type:f.type||'image/jpeg',ext:fileExt(f.name,'jpg')};
-  var lbl=document.getElementById('ru-'+uid);
-  lbl.textContent='✔ 已上传';
-  lbl.classList.add('has-file');
+  rowFiles[uid]={name:f.name,size:f.size,type:f.type||'image/jpeg',ext:fileExt(f.name,'jpg')};
+  renderRowFileLabel(uid,'idcard');
+}
+function clearRowFile(uid){
+  delete rowFiles[uid];
+  renderRowFileLabel(uid,'idcard');
 }
 function triggerRowLabor(uid){ document.getElementById('file-labor-'+uid).click(); }
 function onRowLabor(uid,input){
   var f=input.files&&input.files[0]; if(!f) return;
   if(!/\.pdf$/i.test(f.name) && f.type!=='application/pdf'){ showToast('劳动合同仅支持 PDF 格式','warning'); input.value=''; return; }
   if(f.size>10*1048576){ showToast('劳动合同文件不能超过 10MB','warning'); input.value=''; return; }
-  rowLabor[uid]={size:f.size,type:'application/pdf',ext:'pdf'};
-  var lbl=document.getElementById('rul-'+uid);
-  lbl.textContent='✔ 已上传';
-  lbl.classList.add('has-file');
+  rowLabor[uid]={name:f.name,size:f.size,type:'application/pdf',ext:'pdf'};
+  renderRowFileLabel(uid,'labor');
+}
+function clearRowLabor(uid){
+  delete rowLabor[uid];
+  renderRowFileLabel(uid,'labor');
+}
+
+function renderRowFileLabel(uid,type){
+  var id=type==='labor'?'rul-'+uid:'ru-'+uid;
+  var lbl=document.getElementById(id);
+  if(!lbl) return;
+  var file=type==='labor'?rowLabor[uid]:rowFiles[uid];
+  if(file){
+    var short=file.name.length>8?file.name.substring(0,8)+'...':file.name;
+    var fn='<span class=\"row-file-name\" title=\"'+escapeHtml(file.name)+'\">'+escapeHtml(short)+'</span>';
+    var rm='<span class=\"row-file-remove\" onclick=\"event.stopPropagation();';
+    rm+=type==='labor'?'clearRowLabor(\\''+uid+'\\')':'clearRowFile(\\''+uid+'\\')';
+    rm+='\">×</span>';
+    lbl.innerHTML=fn+rm;
+    lbl.classList.add('has-file');
+    lbl.title='点击重新上传';
+  }else{
+    lbl.textContent='+ 上传';
+    lbl.classList.remove('has-file');
+    lbl.title='';
+  }
 }
 
 function collectTeachers(){
