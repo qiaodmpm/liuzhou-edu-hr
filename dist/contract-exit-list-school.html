@@ -303,6 +303,18 @@ var STORAGE_KEY = 'contract_exit_records';
 var STATUS_MAP = { pending:'待审核', approved:'已通过', rejected:'已驳回', draft:'草稿' };
 var EXIT_TYPES = ['辞职','辞退','合同到期不续签','退休','其他'];
 var EXIT_MATERIALS = ['辞职申请书','单位同意离职批复','其他佐证材料'];
+
+var DEMO_CONTRACT_STAFF = [
+  {name:'蓝雅琴',gender:'女',idCard:'450203199208145024'},
+  {name:'覃国华',gender:'男',idCard:'450203198911230517'},
+  {name:'韦明珠',gender:'女',idCard:'450203199105062028'},
+  {name:'陆志远',gender:'男',idCard:'450203199407181235'},
+  {name:'梁晓彤',gender:'女',idCard:'450203199607182024'},
+  {name:'韦俊明',gender:'男',idCard:'450203199503095517'},
+  {name:'黄志强',gender:'男',idCard:'450203199001124513'},
+  {name:'罗美玲',gender:'女',idCard:'450203199206052026'},
+  {name:'吴佳怡',gender:'女',idCard:'450203199704187042'}
+];
 var currentRole = 'school';
 var currentSchool = '柳州市第八中学';
 var currentDistrict = '鱼峰区';
@@ -546,7 +558,11 @@ function renderEntryRows(){
   modalTeachers.forEach(function(t,i){
     h+='<tr>';
     h+='<td style="text-align:center;">'+(i+1)+'</td>';
-    h+='<td><input value="'+escapeHtml(t.name)+'" placeholder="姓名" oninput="setField('+i+',\'name\',this.value)"></td>';
+    h+='<td><select onchange="onContractNameChange('+i+',this.value)"><option value="">— 请选择 —</option>';
+    DEMO_CONTRACT_STAFF.forEach(function(s){
+      h+='<option value="'+s.name+'"'+(t.name===s.name?' selected':'')+'>'+s.name+'</option>';
+    });
+    h+='</select></td>';
     h+='<td><select onchange="setField('+i+',\'gender\',this.value)"><option value="">请选择</option><option value="男"'+(t.gender==='男'?' selected':'')+'>男</option><option value="女"'+(t.gender==='女'?' selected':'')+'>女</option></select></td>';
     h+='<td><input value="'+escapeHtml(t.idCard)+'" placeholder="18位身份证号" maxlength="18" oninput="setField('+i+',\'idCard\',this.value)"></td>';
     h+='<td><select onchange="setField('+i+',\'exitType\',this.value)"><option value="">请选择</option>';
@@ -582,6 +598,22 @@ function renderEntryRows(){
 }
 function setField(i,field,val){ if(modalTeachers[i]) modalTeachers[i][field]=val; }
 function addTeacherRow(){ modalTeachers.push({name:'',gender:'',idCard:'',exitType:'',exitDate:'',materials:{}}); renderEntryRows(); }
+
+function onContractNameChange(idx,val){
+  modalTeachers[idx].name=val;
+  var found=null;
+  for(var i=0;i<DEMO_CONTRACT_STAFF.length;i++){
+    if(DEMO_CONTRACT_STAFF[i].name===val){ found=DEMO_CONTRACT_STAFF[i]; break; }
+  }
+  if(found){
+    modalTeachers[idx].gender=found.gender;
+    modalTeachers[idx].idCard=found.idCard;
+  }else{
+    modalTeachers[idx].gender='';
+    modalTeachers[idx].idCard='';
+  }
+  renderEntryRows();
+}
 
 function triggerMaterialUpload(e,idx,itemName){
   e.stopPropagation();
