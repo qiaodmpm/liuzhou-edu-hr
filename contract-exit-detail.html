@@ -108,6 +108,15 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .att-link { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--border); border-radius:6px; padding:8px 14px; font-size:12px; color:var(--primary); cursor:pointer; text-decoration:none; transition:var(--transition); }
 .att-link:hover { border-color:var(--accent); background:var(--primary-light); }
 .att-link svg { width:14px; height:14px; }
+.checklist-file-chip { display:inline-flex; align-items:center; gap:2px; padding:2px 8px; background:#fff; border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer; color:var(--primary); transition:var(--transition); }
+.checklist-file-chip:hover { border-color:var(--accent); }
+.checklist-file-chip .chip-dl { color:var(--text-light); margin-left:2px; font-size:10px; }
+.checklist-file-chip .chip-dl:hover { color:var(--accent); }
+.checklist-row { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12px; }
+.checklist-icon-done { color:#10B981; font-size:13px; flex-shrink:0; }
+.checklist-icon-missing { color:#94A3B8; font-size:13px; flex-shrink:0; }
+.checklist-item-name { color:var(--text-secondary); min-width:110px; flex-shrink:0; font-size:11px; }
+.checklist-missing-label { font-size:11px; color:#F59E0B; }
 .reject-note { background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:12px 14px; font-size:12px; color:#991B1B; margin-top:16px; line-height:1.6; }
 .review-meta { background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:12px 14px; font-size:12px; color:#065F46; margin-top:16px; line-height:1.6; }
 /* audit box */
@@ -491,15 +500,18 @@ function render(){
 	    EXIT_MATERIALS.forEach(function(item){
 	      if(mats[item]){
 	        var fn=escapeHtml(mats[item].name||item);
-	        var shortName=escapeHtml((mats[item].name||'').length>14?(mats[item].name||'').substring(0,14)+'...':(mats[item].name||''));
-	        h+='<div style="margin:2px 0;display:flex;align-items:center;gap:4px;flex-wrap:wrap;">';
-	        h+='<span style="color:#10B981;flex-shrink:0;">☑</span> <span style="font-size:10px;color:var(--text-secondary);flex-shrink:0;">'+escapeHtml(item)+':</span>';
-	        h+='<span style="font-size:10px;color:var(--text);" title="'+fn+'">'+shortName+'</span>';
-	        h+='<button class="btn btn-sm" style="padding:1px 8px;font-size:10px;line-height:1.4;" onclick="previewFile(\''+fn+'\')">预览</button>';
-	        h+='<button class="btn btn-sm" style="padding:1px 8px;font-size:10px;line-height:1.4;background:var(--gray-bg);color:var(--text-secondary);border:1px solid var(--border);" onclick="downloadFile(\''+fn+'\')">下载</button>';
+	        h+='<div class="checklist-row done">';
+	        h+='<span class="checklist-icon-done">☑</span>';
+	        h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
+	        h+='<span class="checklist-file-chip" onclick="previewFile(\''+fn+'\')" title="点击预览">📄 '+fn+'</span>';
+	        h+='<span class="checklist-file-chip" onclick="downloadFile(\''+fn+'\')" title="点击下载" style="color:var(--text-secondary);"><span class="chip-dl">⬇</span></span>';
 	        h+='</div>';
 	      }else{
-	        h+='<div style="margin:2px 0;"><span style="color:#94A3B8;">☐</span> '+escapeHtml(item)+': <span style="color:#F59E0B;">未上传</span></div>';
+	        h+='<div class="checklist-row missing">';
+	        h+='<span class="checklist-icon-missing">☐</span>';
+	        h+='<span class="checklist-item-name">'+escapeHtml(item)+'</span>';
+	        h+='<span class="checklist-missing-label">未上传</span>';
+	        h+='</div>';
 	      }
 	    });
 	    h+='</td>';
