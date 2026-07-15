@@ -456,7 +456,6 @@ function render(){
   var isAudit=(currentMode==='audit');
   var statusLabel=STATUS_MAP[r.status]||r.status;
   var teacherCount=(r.teachers||[]).length;
-  var proof=getProof(r);
   var showAudit=(isAudit && r.status==='pending' && isAdmin());
 
   var h='';
@@ -480,30 +479,28 @@ function render(){
   // LEFT: 离职教师明细 + 附件材料
   h+='<div class="main-col">';
   h+='<div class="detail-card"><h3>离职教师明细</h3><div style="overflow-x:auto;">';
-  h+='<table class="detail-table"><thead><tr><th style="width:52px;">序号</th><th>姓名</th><th style="width:70px;">性别</th><th>身份证号</th><th>离职类型</th><th>离职日期</th></tr></thead><tbody>';
+  h+='<table class="detail-table"><thead><tr><th style="width:52px;">序号</th><th>姓名</th><th style="width:70px;">性别</th><th>身份证号</th><th>离职类型</th><th>离职日期</th><th>证明材料</th></tr></thead><tbody>';
   if(teacherCount===0){
-    h+='<tr><td colspan="6" style="color:var(--text-light);">暂无教师信息</td></tr>';
+  h+='<tr><td colspan="7" style="color:var(--text-light);">暂无教师信息</td></tr>';
   }else{
-    (r.teachers||[]).forEach(function(t,i){
-      h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.gender)+'</td><td>'+escapeHtml(t.idCard)+'</td><td><span class="exit-tag">'+escapeHtml(t.exitType||'—')+'</span></td><td>'+escapeHtml(t.exitDate||'—')+'</td></tr>';
-    });
-  }
-  h+='</tbody></table></div></div>';
+  var EXIT_MATERIALS=['辞职申请书','单位同意离职批复','其他佐证材料'];
+  (r.teachers||[]).forEach(function(t,i){
+    h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.gender)+'</td><td>'+escapeHtml(t.idCard)+'</td><td><span class="exit-tag">'+escapeHtml(t.exitType||'—')+'</span></td><td>'+escapeHtml(t.exitDate||'—')+'</td>';
+      h+='<td style="font-size:11px;text-align:left;">';
+      var mats=t.materials||{};
+	    EXIT_MATERIALS.forEach(function(item){
+	      if(mats[item]){
+	        h+='<div style="margin:1px 0;"><span style="color:#10B981;">☑</span> '+escapeHtml(item)+': <span style="color:var(--primary);cursor:pointer;" onclick="previewFile(\''+escapeHtml(mats[item].name||item)+'\')">'+escapeHtml((mats[item].name||'').substring(0,12))+'...</span></div>';
+	      }else{
+	        h+='<div style="margin:1px 0;"><span style="color:#94A3B8;">☐</span> '+escapeHtml(item)+': <span style="color:#F59E0B;">未上传</span></div>';
+	      }
+	    });
+	    h+='</td>';
+	    h+='</tr>';
+	  });
+	}
+	h+='</tbody></table></div></div>';
 
-  h+='<div class="detail-card"><h3>附件材料</h3>';
-  var eyeIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-  var dlIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-  h+='<div class="att-links">';
-  if(proof){
-    var fn=escapeHtml(proof.name||'解除劳动合同证明.pdf');
-    var sz=proof.size?('<span style="color:var(--text-light)">（'+fmtSize(proof.size)+'）</span>'):'';
-    h+='<a class="att-link" onclick="previewFile(\''+fn+'\')">'+eyeIcon+'解除劳动合同证明：'+fn+sz+'</a>';
-    h+='<a class="att-link" onclick="downloadFile(\''+fn+'\')">'+dlIcon+'下载</a>';
-  }else{
-    h+='<span style="font-size:12px;color:var(--text-light);">暂无附件</span>';
-  }
-  h+='</div></div>';
-  h+='</div>';
 
   // RIGHT: 申报履历 + 精简申报基本信息
   h+='<div class="side-col">';

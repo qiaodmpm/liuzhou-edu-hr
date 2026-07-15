@@ -161,6 +161,14 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .file-chip { display:inline-flex; align-items:center; gap:8px; background:var(--gray-bg); padding:6px 12px; border-radius:6px; font-size:12px; margin-top:8px; }
 .file-chip svg { width:14px; height:14px; color:var(--primary); }
 .file-chip .rm { color:var(--danger); cursor:pointer; font-weight:700; }
+.checklist-container { display:flex; flex-direction:column; gap:4px; }
+.checklist-item { display:flex; align-items:center; gap:4px; font-size:11px; padding:3px 0; }
+.checklist-icon { font-size:12px; flex-shrink:0; }
+.checklist-name { flex-shrink:0; color:var(--text-secondary); min-width:90px; font-size:10px; }
+.checklist-upload-btn { font-size:10px; padding:2px 8px; background:#F8FAFC; border:1px solid var(--border); border-radius:3px; cursor:pointer; color:var(--primary); font-family:inherit; flex-shrink:0; }
+.checklist-upload-btn:hover { background:var(--primary-light); }
+.checklist-file-name { font-size:10px; color:#10B981; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70px; cursor:default; }
+.file-remove { color:var(--danger); cursor:pointer; margin-left:2px; font-size:12px; }
 .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1E293B; color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; z-index:9999; animation:toastIn .3s ease; box-shadow:var(--shadow-lg); }
 .toast.warning { background:var(--warning); color:#1E293B; }
 .toast.success { background:var(--success); }
@@ -221,6 +229,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
             <th style="width:190px;">身份证号</th>
             <th style="width:150px;">离职类型</th>
             <th style="width:150px;">离职日期</th>
+            <th style="width:220px;">证明材料</th>
             <th style="width:48px;">操作</th>
           </tr></thead>
           <tbody id="entryTbody"></tbody>
@@ -228,15 +237,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
       </div>
       <div class="add-row-btn" onclick="addTeacherRow()">+ 添加行</div>
 
-      <div class="upload-section">
-        <label class="upload-label">解除劳动合同证明 <span class="req">*</span><span class="hint">PDF 格式，单文件 ≤ 10MB，本批次共用</span></label>
-        <div class="dropzone" id="proofDrop" onclick="document.getElementById('proofInput').click()">
-          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-          点击上传解除劳动合同证明（PDF）
-        </div>
-        <input type="file" id="proofInput" accept="application/pdf,.pdf" style="display:none" onchange="onProofPick(this)">
-        <div id="proofChip"></div>
-      </div>
+      <div id="rowFileInputs"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeNewModal()">取消</button>
@@ -300,7 +301,8 @@ var ROLES = {
 
 var STORAGE_KEY = 'contract_exit_records';
 var STATUS_MAP = { pending:'待审核', approved:'已通过', rejected:'已驳回', draft:'草稿' };
-var EXIT_TYPES = ['合同到期','个人辞职','协商解除'];
+var EXIT_TYPES = ['辞职','辞退','合同到期不续签','退休','其他'];
+var EXIT_MATERIALS = ['辞职申请书','单位同意离职批复','其他佐证材料'];
 var currentRole = 'school';
 var currentSchool = '柳州市第八中学';
 var currentDistrict = '鱼峰区';
@@ -321,27 +323,24 @@ function loadRecords(){
   if(s){try{existing=JSON.parse(s);}catch(e){}}
   var demos=[
     { id:'CX20260701001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'pending', submitTime:'2026-07-01 10:24:00',
-      terminationProof:{name:'CX20260701001_解除劳动合同证明.pdf',size:1640000,type:'application/pdf'},
       teachers:[
-        {name:'蓝雅琴',gender:'女',idCard:'450203199208145024',exitType:'个人辞职',exitDate:'2026-07-31',contractStart:'2023-08-01',contractEnd:'2026-07-31'},
-        {name:'覃国华',gender:'男',idCard:'450203198911230517',exitType:'协商解除',exitDate:'2026-07-15',contractStart:'2024-08-01',contractEnd:'2027-07-31'}
+        {name:'蓝雅琴',gender:'女',idCard:'450203199208145024',exitType:'辞职',exitDate:'2026-07-31',materials:{'辞职申请书':{name:'辞职申请书_蓝雅琴.pdf',size:156000}}},
+        {name:'覃国华',gender:'男',idCard:'450203198911230517',exitType:'辞退',exitDate:'2026-07-15',materials:{'单位同意离职批复':{name:'批复_覃国华.pdf',size:89000}}}
       ],
       reviewer:null, reviewTime:null, rejectReason:'',
       timeline:[{time:'2026-07-01 10:24:00',action:'学校提交申报',operator:'王玉兰'}] },
     { id:'CX20260625001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'approved', submitTime:'2026-06-25 15:10:00',
-      terminationProof:{name:'CX20260625001_解除劳动合同证明.pdf',size:1280000,type:'application/pdf'},
       teachers:[
-        {name:'韦明珠',gender:'女',idCard:'450203199105062028',exitType:'合同到期',exitDate:'2026-06-30',contractStart:'2023-07-01',contractEnd:'2026-06-30'}
+        {name:'韦明珠',gender:'女',idCard:'450203199105062028',exitType:'合同到期不续签',exitDate:'2026-06-30',materials:{}}
       ],
       reviewer:'李振华', reviewTime:'2026-06-26 09:50:00', rejectReason:'',
       timeline:[{time:'2026-06-25 15:10:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-26 09:50:00',action:'主管部门审核通过',operator:'李振华'}] },
     { id:'CX20260610001', schoolName:'柳州市第八中学', district:'鱼峰区', status:'rejected', submitTime:'2026-06-10 11:36:00',
-      terminationProof:{name:'CX20260610001_解除劳动合同证明.pdf',size:1020000,type:'application/pdf'},
       teachers:[
-        {name:'陆志远',gender:'男',idCard:'450203199407181235',exitType:'个人辞职',exitDate:'2026-06-30',contractStart:'2022-08-01',contractEnd:'2025-07-31'}
+        {name:'陆志远',gender:'男',idCard:'450203199407181235',exitType:'退休',exitDate:'2026-06-30',materials:{'其他佐证材料':{name:'退休证_陆志远.pdf',size:102000}}}
       ],
-      reviewer:'李振华', reviewTime:'2026-06-11 10:18:00', rejectReason:'解除劳动合同证明缺少双方签字盖章，请补充完整后重新提交。',
-      timeline:[{time:'2026-06-10 11:36:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-11 10:18:00',action:'主管部门审核驳回',operator:'李振华',opinion:'解除劳动合同证明缺少双方签字盖章，请补充完整后重新提交。'}] }
+      reviewer:'李振华', reviewTime:'2026-06-11 10:18:00', rejectReason:'证明材料不齐全，请补充辞职申请书。',
+      timeline:[{time:'2026-06-10 11:36:00',action:'学校提交申报',operator:'王玉兰'},{time:'2026-06-11 10:18:00',action:'主管部门审核驳回',operator:'李振华',opinion:'证明材料不齐全，请补充辞职申请书。'}] }
   ];
   var demoIds={}; demos.forEach(function(r){demoIds[r.id]=true;});
   var merged=existing.filter(function(r){return !demoIds[r.id];}).concat(demos);
@@ -455,17 +454,26 @@ function renderList(){
 function renderDetailPanel(r){
   var h='<div class="detail-panel">';
   h+='<h4>离职教师明细</h4>';
-  h+='<table class="detail-table"><thead><tr><th style="width:48px;">序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>离职类型</th><th>离职日期</th></tr></thead><tbody>';
+  h+='<table class="detail-table"><thead><tr><th style="width:48px;">序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>离职类型</th><th>离职日期</th><th>证明材料</th></tr></thead><tbody>';
   (r.teachers||[]).forEach(function(t,i){
-    h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.gender)+'</td><td>'+escapeHtml(t.idCard)+'</td><td>'+escapeHtml(t.exitType)+'</td><td>'+escapeHtml(t.exitDate||'')+'</td></tr>';
+    h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.gender)+'</td><td>'+escapeHtml(t.idCard)+'</td><td>'+escapeHtml(t.exitType)+'</td><td>'+escapeHtml(t.exitDate||'')+'</td>';
+    // materials column
+    h+='<td style="font-size:11px;text-align:left;">';
+    var mats=t.materials||{};
+    var hasAny=false;
+    EXIT_MATERIALS.forEach(function(item){
+      if(mats[item]){
+        hasAny=true;
+        h+='<div style="margin:2px 0;"><span style="color:#10B981;">&#9745;</span> '+escapeHtml(item)+': <span style="color:var(--primary);cursor:pointer;" onclick="downloadFile(\''+escapeHtml(mats[item].name||item)+'\')">'+escapeHtml((mats[item].name||'').substring(0,12))+'...</span></div>';
+      }else{
+        h+='<div style="margin:2px 0;"><span style="color:#94A3B8;">&#9744;</span> '+escapeHtml(item)+': <span style="color:#F59E0B;">未上传</span></div>';
+      }
+    });
+    if(!hasAny){ h+='<span style="color:var(--text-light);">暂无材料</span>'; }
+    h+='</td>';
+    h+='</tr>';
   });
   h+='</tbody></table>';
-
-  h+='<h4>附件材料</h4><div class="att-links">';
-  var dlIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-  if(r.terminationProof){ h+='<a class="att-link" onclick="downloadFile(\''+escapeHtml(r.terminationProof.name)+'\')">'+dlIcon+'解除劳动合同证明：'+escapeHtml(r.terminationProof.name)+'</a>'; }
-  else { h+='<span style="font-size:12px;color:var(--text-light);">暂无附件</span>'; }
-  h+='</div>';
 
   if(r.status==='rejected'&&r.rejectReason){
     h+='<div class="reject-note"><strong>驳回原因：</strong>'+escapeHtml(r.rejectReason)+'</div>';
@@ -494,6 +502,19 @@ function submitFromDetail(id){
 /* ---------- modal: new application ---------- */
 var modalTeachers=[];
 var modalProofFile=null;
+var pendingMaterialUpload=null;
+
+var ALLOWED_EXTS=['.pdf','.jpg','.jpeg','.png','.bmp','.gif','.doc','.docx','.xls','.xlsx'];
+var BLOCKED_EXTS=['.zip','.rar','.7z','.tar','.gz','.bz2','.xz','.tgz'];
+var MAX_FILE_SIZE=10*1024*1024;
+
+function validateFile(file){
+  var ext='.'+file.name.split('.').pop().toLowerCase();
+  if(BLOCKED_EXTS.indexOf(ext)>=0) return '不支持压缩包格式（'+ext+'），请解压后上传';
+  if(ALLOWED_EXTS.indexOf(ext)<0) return '不支持的文件格式：'+ext;
+  if(file.size>MAX_FILE_SIZE) return '文件过大（'+(file.size/1024/1024).toFixed(1)+'MB），单个文件不能超过 10MB';
+  return null;
+}
 
 function nowStr(){
   var d=new Date();
@@ -512,10 +533,9 @@ function genId(){
 }
 
 function openNewModal(){
-  modalTeachers=[{name:'',gender:'',idCard:'',exitType:'',exitDate:'',contractStart:'',contractEnd:''}];
+  modalTeachers=[{name:'',gender:'',idCard:'',exitType:'',exitDate:'',materials:{}}];
   modalProofFile=null;
   renderEntryRows();
-  renderProofChip();
   document.getElementById('newModal').classList.add('show');
 }
 function closeNewModal(){ document.getElementById('newModal').classList.remove('show'); }
@@ -533,13 +553,61 @@ function renderEntryRows(){
     EXIT_TYPES.forEach(function(opt){ h+='<option value="'+opt+'"'+(t.exitType===opt?' selected':'')+'>'+opt+'</option>'; });
     h+='</select></td>';
     h+='<td><input type="date" value="'+escapeHtml(t.exitDate)+'" oninput="setField('+i+',\'exitDate\',this.value)"></td>';
+    // 证明材料列 — checklist 上传
+    h+='<td><div class="checklist-container">';
+    var mats=t.materials||{};
+    EXIT_MATERIALS.forEach(function(item){
+      var uploaded=mats[item];
+      h+='<div class="checklist-item">';
+      h+='<span class="checklist-icon">'+(uploaded?'&#9745;':'&#9744;')+'</span>';
+      h+='<span class="checklist-name">'+escapeHtml(item)+'</span>';
+      h+='<button class="checklist-upload-btn" onclick="triggerMaterialUpload(event,'+i+',\''+escapeHtml(item)+'\')">上传</button>';
+      if(uploaded){
+        h+='<span class="checklist-file-name" title="'+escapeHtml(uploaded.name)+'">'+escapeHtml(uploaded.name.substring(0,8))+'...<span class="file-remove" onclick="event.stopPropagation();removeMaterialFile('+i+',\''+escapeHtml(item)+'\')">×</span></span>';
+      }
+      h+='</div>';
+    });
+    h+='</div></td>';
     h+='<td style="text-align:center;"><span class="row-del" title="删除" onclick="delTeacherRow('+i+')">&times;</span></td>';
     h+='</tr>';
   });
   tb.innerHTML=h;
+  // 动态生成每行的隐藏 file input
+  var fiContainer=document.getElementById('rowFileInputs');
+  var fiHtml='';
+  modalTeachers.forEach(function(t,i){
+    fiHtml+='<input type="file" id="rowFileInput_'+i+'" accept=".pdf,.jpg,.jpeg,.png,.bmp,.gif,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleMaterialFile('+i+',event)">';
+  });
+  fiContainer.innerHTML=fiHtml;
 }
 function setField(i,field,val){ if(modalTeachers[i]) modalTeachers[i][field]=val; }
-function addTeacherRow(){ modalTeachers.push({name:'',gender:'',idCard:'',exitType:'',exitDate:'',contractStart:'',contractEnd:''}); renderEntryRows(); }
+function addTeacherRow(){ modalTeachers.push({name:'',gender:'',idCard:'',exitType:'',exitDate:'',materials:{}}); renderEntryRows(); }
+
+function triggerMaterialUpload(e,idx,itemName){
+  e.stopPropagation();
+  pendingMaterialUpload={rowIdx:idx,materialItem:itemName};
+  var fi=document.getElementById('rowFileInput_'+idx);
+  if(fi){ fi.value=''; fi.click(); }
+}
+function handleMaterialFile(idx,event){
+  if(!event.target.files||!event.target.files[0]){ pendingMaterialUpload=null; return; }
+  var file=event.target.files[0];
+  var err=validateFile(file);
+  if(err){ showToast(err,'warning'); pendingMaterialUpload=null; return; }
+  if(!pendingMaterialUpload||pendingMaterialUpload.rowIdx!==idx){ pendingMaterialUpload=null; return; }
+  var itemName=pendingMaterialUpload.materialItem;
+  pendingMaterialUpload=null;
+  if(!modalTeachers[idx].materials) modalTeachers[idx].materials={};
+  modalTeachers[idx].materials[itemName]=file;
+  renderEntryRows();
+  event.target.value='';
+}
+function removeMaterialFile(rowIdx,itemName){
+  if(modalTeachers[rowIdx]&&modalTeachers[rowIdx].materials){
+    delete modalTeachers[rowIdx].materials[itemName];
+  }
+  renderEntryRows();
+}
 var pendingDelIdx=null;
 function teacherRowHasData(i){
   var t=modalTeachers[i]; if(!t) return false;
@@ -556,23 +624,16 @@ function delTeacherRow(i){
 function confirmDeleteRow(){ if(pendingDelIdx!==null){ modalTeachers.splice(pendingDelIdx,1); renderEntryRows(); } pendingDelIdx=null; closeDelConfirm(); }
 function closeDelConfirm(){ document.getElementById('delConfirmModal').classList.remove('show'); pendingDelIdx=null; }
 
-function onProofPick(input){
-  var f=input.files&&input.files[0]; if(!f)return;
-  if(!/\.pdf$/i.test(f.name)&&f.type!=='application/pdf'){ showToast('解除劳动合同证明仅支持 PDF 格式','warning'); input.value=''; return; }
-  if(f.size>10*1024*1024){ showToast('解除劳动合同证明超过 10MB','warning'); input.value=''; return; }
-  modalProofFile={size:f.size,type:'application/pdf'};
-  input.value='';
-  renderProofChip();
+function collectTeachers(){
+  return modalTeachers.map(function(t){
+    var mats={};
+    var src=t.materials||{};
+    EXIT_MATERIALS.forEach(function(item){
+      if(src[item]) mats[item]={name:src[item].name,size:src[item].size};
+    });
+    return {name:t.name,gender:t.gender,idCard:t.idCard,exitType:t.exitType,exitDate:t.exitDate,materials:mats};
+  });
 }
-function renderProofChip(){
-  var c=document.getElementById('proofChip');
-  if(!modalProofFile){ c.innerHTML=''; return; }
-  var fileIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
-  c.innerHTML='<div class="file-chip">'+fileIcon+'✔ 已上传 <span style="color:var(--text-light)">('+fmtSize(modalProofFile.size)+')</span> <span class="rm" onclick="clearProof()">&times;</span></div>';
-}
-function clearProof(){ modalProofFile=null; renderProofChip(); }
-
-function collectTeachers(){ return JSON.parse(JSON.stringify(modalTeachers)); }
 
 function validateFull(){
   if(modalTeachers.length<1){ showToast('请至少录入 1 名教师','warning'); return false; }
@@ -584,19 +645,15 @@ function validateFull(){
     if(!t.exitType){ showToast('第'+no+'行：请选择离职类型','warning'); return false; }
     if(!t.exitDate){ showToast('第'+no+'行：请选择离职日期','warning'); return false; }
   }
-  if(!modalProofFile){ showToast('请上传解除劳动合同证明（PDF）','warning'); return false; }
   return true;
 }
-
-// 解除劳动合同证明自动命名：{申请编号}_解除劳动合同证明.pdf，不使用原始文件名
-function namedProof(id){ return modalProofFile ? { name:id+'_解除劳动合同证明.pdf', size:modalProofFile.size, type:'application/pdf' } : null; }
 
 function submitApplication(){
   if(!validateFull())return;
   var t=nowStr();
   var newId=genId();
   var rec={ id:newId, schoolName:currentSchool, district:currentDistrict, status:'pending', submitTime:t,
-    terminationProof:namedProof(newId), teachers:collectTeachers(), reviewer:null, reviewTime:null, rejectReason:'',
+    teachers:collectTeachers(), reviewer:null, reviewTime:null, rejectReason:'',
     timeline:[{time:t,action:'学校提交申报',operator:'王玉兰'}] };
   var all=loadRecords(); all.unshift(rec); saveRecords(all);
   closeNewModal();
