@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教师离职管理（主管审核） — 柳州教育人事管理平台</title>
+<title>教师离职管理 — 柳州教育人事管理平台</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -93,6 +93,8 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .filter-pill.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 .school-select { padding:7px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; background:#fff; color:var(--text); cursor:pointer; min-width:180px; }
 .school-select:focus { outline:none; border-color:var(--accent); }
+.school-search { padding:7px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; background:#fff; color:var(--text); min-width:200px; outline:none; }
+.school-search:focus { border-color:var(--accent); }
 /* Table list */
 .list-card { background:#fff; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-sm); overflow:hidden; }
 .table-scroll { overflow-x:auto; }
@@ -154,11 +156,12 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 
 <main class="main">
   <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>编外教师管理</span> &nbsp;/&nbsp; <span>教师离职管理</span></div>
-  <div class="page-header"><div><h1>教师离职管理（主管审核）</h1><div class="subtitle">审核学校提交的合同制教师离职申报（批次级审核）</div></div></div>
+  <div class="page-header"><div><h1>教师离职管理</h1></div></div>
 
   <div class="list-toolbar">
     <div class="filter-bar" id="filterBar"></div>
-    <select class="school-select" id="schoolFilter" onchange="onSchoolChange(this.value)"></select>
+    <input type="text" id="schoolSearch" class="school-search" placeholder="搜索单位名称..." oninput="onSchoolSearch()" list="schoolList" autocomplete="off">
+    <datalist id="schoolList"></datalist>
   </div>
 
   <div id="recordList"></div>
@@ -268,7 +271,7 @@ function scopeRecords(all){
 /* records shown in the table (scope + school filter + status filter) */
 function getFilteredRecords(){
   var records=scopeRecords(loadRecords());
-  if(schoolFilter!=='all'){ records=records.filter(function(r){return r.schoolName===schoolFilter;}); }
+  if(schoolFilter!=='all'){ records=records.filter(function(r){return r.schoolName.indexOf(schoolFilter)>=0;}); }
   if(currentFilter!=='all'){ records=records.filter(function(r){return r.status===currentFilter;}); }
   return records;
 }
@@ -311,23 +314,26 @@ function updateRoleUI(){
 }
 
 /* ---------- list ---------- */
-function onSchoolChange(v){ schoolFilter=v; renderList(); }
+function onSchoolSearch(){
+  var v=(document.getElementById('schoolSearch').value||'').trim();
+  schoolFilter=v||'all';
+  renderList();
+}
 
-function buildSchoolOptions(){
+function buildSchoolDatalist(){
   var scope=scopeRecords(loadRecords());
   var seen={}, opts=[];
   scope.forEach(function(r){ if(!seen[r.schoolName]){ seen[r.schoolName]=true; opts.push(r.schoolName); } });
   opts.sort();
-  var sel=document.getElementById('schoolFilter');
-  var h='<option value="all">全部单位</option>';
-  opts.forEach(function(s){ h+='<option value="'+escapeHtml(s)+'"'+(schoolFilter===s?' selected':'')+'>'+escapeHtml(s)+'</option>'; });
-  sel.innerHTML=h;
-  if(schoolFilter!=='all' && opts.indexOf(schoolFilter)<0){ schoolFilter='all'; sel.value='all'; }
+  var dl=document.getElementById('schoolList');
+  var h='';
+  opts.forEach(function(s){ h+='<option value="'+escapeHtml(s)+'">'; });
+  dl.innerHTML=h;
 }
 
 function renderFilters(){
   var records=scopeRecords(loadRecords());
-  if(schoolFilter!=='all'){ records=records.filter(function(r){return r.schoolName===schoolFilter;}); }
+  if(schoolFilter!=='all'){ records=records.filter(function(r){return r.schoolName.indexOf(schoolFilter)>=0;}); }
   var counts={ all:records.length, pending:0, approved:0, rejected:0 };
   records.forEach(function(r){ if(counts[r.status]!==undefined) counts[r.status]++; });
   var filters=[
@@ -347,7 +353,7 @@ function renderFilters(){
 }
 
 function renderList(){
-  buildSchoolOptions();
+  buildSchoolDatalist();
   renderFilters();
 
   var filtered=getFilteredRecords();
