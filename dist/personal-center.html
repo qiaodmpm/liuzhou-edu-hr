@@ -1174,7 +1174,7 @@ function migrateEntryAttachments(teacherName) {
 // ===== STATE =====
 var currentRole = 'teacher';
 var targetTeacher = null;
-var currentTab = 'staffing';  // default, may be changed after profile loads
+var currentTab = 'profile';  // 默认选中基本信息
 
 // ===== UTILITY =====
 function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
@@ -1526,7 +1526,7 @@ function renderAttachments(attachments, sourceLabel) {
   attachments.forEach(function(a) {
     h += '<div class="att-item"><span class="att-name">' + escapeHtml(a.name) + '</span><span class="att-size">' + formatSize(a.size) + '</span>';
     if (sourceLabel) h += '<span class="att-source">' + sourceLabel + '</span>';
-    h += '<span class="att-actions"><span class="att-link" onclick="downloadMockFile(\'' + escapeHtml(a.name) + '\')">下载</span></span></div>';
+    h += '<span class="att-actions"><span class="att-link" onclick="previewAttachment(\'' + escapeHtml(a.name) + '\',' + (a.size||0) + ',\'' + (a.type||'application/pdf') + '\')">👁 预览</span><span class="att-link" onclick="downloadMockFile(\'' + escapeHtml(a.name) + '\')">下载</span></span></div>';
   });
   h += '</div>';
   return h;
@@ -1980,6 +1980,7 @@ function renderProfileCard(profile) {
     h += '<span class="attach-row">';
     h += '<span class="attach-name-link" onclick="previewAttachment(\'' + escapeHtml(profile.idCardAttachment.name) + '\',' + profile.idCardAttachment.size + ',\'' + (profile.idCardAttachment.type||'image/jpeg') + '\')">' + escapeHtml(profile.idCardAttachment.name) + '</span>';
     h += '<span class="attach-size">(' + formatSize(profile.idCardAttachment.size) + ')</span>';
+    h += '<span class="att-link" onclick="previewAttachment(\'' + escapeHtml(profile.idCardAttachment.name) + '\',' + profile.idCardAttachment.size + ',\'' + (profile.idCardAttachment.type||'image/jpeg') + '\')">👁 预览</span>';
     h += '<span class="att-link" onclick="downloadMockFile(\'' + escapeHtml(profile.idCardAttachment.name) + '\')">下载</span>';
     if (profile.idCardAttachment.source === 'entry') h += '<span class="source-tag">来源于入编</span>';
     h += '</span>';
@@ -1998,6 +1999,7 @@ function renderProfileCard(profile) {
       h += '<div class="edu-cert-item">';
       h += '<span class="edu-cert-name" onclick="previewAttachment(\'' + escapeHtml(ec.name) + '\',' + ec.size + ',\'' + (ec.type||'application/pdf') + '\')">📄 ' + escapeHtml(ec.name) + '</span>';
       h += '<span class="edu-cert-size">(' + formatSize(ec.size) + ')</span>';
+      h += '<span class="att-link" onclick="previewAttachment(\'' + escapeHtml(ec.name) + '\',' + ec.size + ',\'' + (ec.type||'application/pdf') + '\')">👁 预览</span>';
       h += '<span class="att-link" onclick="downloadMockFile(\'' + escapeHtml(ec.name) + '\')">下载</span>';
       if (ec.source === 'entry') h += '<span class="source-tag">来源于入编</span>';
       h += '</div>';
@@ -2044,8 +2046,6 @@ function renderProfileCard(profile) {
     for (var ci = 0; ci < fm.children.length; ci++) {
       h += renderFamilyMemberRow(fm.children[ci], '子女' + (fm.children.length > 1 ? String(ci + 1) : ''));
     }
-  } else {
-    h += '<div class="family-row"><span class="family-role">子女：</span><span style="color:var(--text-light);">无</span></div>';
   }
   h += '</div>';
 
@@ -2529,9 +2529,23 @@ function showEditProfileModal() {
     c += '<div class="setup-banner"><span class="setup-banner-icon">🎉</span><span class="setup-banner-text"><strong>欢迎使用柳州教育人事管理平台！</strong>请完善您的个人信息，带 <span style="color:var(--danger);">*</span> 标记的为必填项。</span></div>';
   } else {
     c += '<div style="margin-bottom:14px;padding:10px 14px;background:#EFF6FF;border-radius:6px;font-size:12px;color:var(--primary);">';
-    c += '💡 姓名、性别、民族、出生年月、毕业院校、单位名称等字段来源于人事档案。如需修改，请联系管理员在账号管理中更正。';
+    c += '💡 姓名、身份证号、单位名称等字段来源于人事档案。如需修改，请联系管理员在账号管理中更正。';
     c += '</div>';
   }
+
+  // === Block 0: Read-only Basic Info (moved to top) ===
+  c += '<div class="edit-block"><div class="edit-block-title">📋 基本信息（来源于人事档案，不可修改）</div>';
+  c += '<div class="edit-readonly-grid">';
+  c += '<div class="edit-readonly-item"><span class="erl">姓名</span><div class="erv">' + escapeHtml(entryProfile.name) + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">身份证号</span><div class="erv">' + escapeHtml(entryProfile.idCard||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">单位名称</span><div class="erv">' + escapeHtml(entryProfile.school||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">编制类型</span><div class="erv">' + escapeHtml(entryProfile.staffingType||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">岗位类别</span><div class="erv">' + escapeHtml(entryProfile.categoryName||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">岗位等级</span><div class="erv">' + escapeHtml(entryProfile.currentPost||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">岗位名称</span><div class="erv">' + escapeHtml(entryProfile.assignPosition||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">任职时间</span><div class="erv">' + escapeHtml(entryProfile.appointTime||'—') + '</div></div>';
+  c += '<div class="edit-readonly-item"><span class="erl">入编方式</span><div class="erv">' + escapeHtml(entryProfile.entryMethod||'—') + '</div></div>';
+  c += '</div></div>';
 
   // === Block 1: Editable Info ===
   c += '<div class="edit-block"><div class="edit-block-title">✏️ 可编辑信息</div>';
@@ -2539,6 +2553,29 @@ function showEditProfileModal() {
   // Political status
   c += '<div class="edit-form-group"><label>政治面貌<span style="color:var(--danger);">*</span></label>';
   c += renderSelect('editPolitics', 'editPolitics', ['中共党员','中共预备党员','共青团员','民主党派','群众'], profile.politicalStatus || entryProfile.politicalStatus || '', '请选择');
+  c += '</div>';
+
+  // Gender — now editable
+  var curGender = profile.gender || entryProfile.gender || '';
+  c += '<div class="edit-form-group"><label>性别<span style="color:var(--danger);">*</span></label>';
+  c += renderSelect('editGender', 'editGender', ['男','女'], curGender, '请选择');
+  c += '</div>';
+
+  // Ethnicity — dropdown select
+  var ETHNICITY_LIST = ['汉族','蒙古族','回族','藏族','维吾尔族','苗族','彝族','壮族','布依族','朝鲜族','满族','侗族','瑶族','白族','土家族','哈尼族','哈萨克族','傣族','黎族','傈僳族','佤族','畲族','高山族','拉祜族','水族','东乡族','纳西族','景颇族','柯尔克孜族','土族','达斡尔族','仫佬族','羌族','布朗族','撒拉族','毛南族','仡佬族','锡伯族','阿昌族','普米族','塔吉克族','怒族','乌孜别克族','俄罗斯族','鄂温克族','德昂族','保安族','裕固族','京族','塔塔尔族','独龙族','鄂伦春族','赫哲族','门巴族','珞巴族','基诺族'];
+  var curEthnicity = profile.ethnicity || entryProfile.ethnicity || '';
+  c += '<div class="edit-form-group"><label>民族<span style="color:var(--danger);">*</span></label>';
+  c += renderSelect('editEthnicity', 'editEthnicity', ETHNICITY_LIST, curEthnicity, '请选择');
+  c += '</div>';
+
+  // Birth date — date picker, default parsed from ID card
+  var curBirthDate = profile.birthDate || entryProfile.birthDate || '';
+  if (!curBirthDate && entryProfile.idCard) {
+    var idc = entryProfile.idCard;
+    if (idc.length === 18) curBirthDate = idc.substring(6, 10) + '-' + idc.substring(10, 12) + '-' + idc.substring(12, 14);
+  }
+  c += '<div class="edit-form-group"><label>出生年月日</label>';
+  c += '<input type="date" id="editBirthDate" value="' + escapeHtml(curBirthDate) + '">';
   c += '</div>';
 
   // 户籍地 — 省/市/区三级级联下拉
@@ -2550,6 +2587,12 @@ function showEditProfileModal() {
   c += '<div class="edit-form-row"><div class="edit-form-group"><label>户籍地 — 省</label><select id="editHhProvince" onchange="onHhProvinceChange()"><option value="">请选择</option></select></div>';
   c += '<div class="edit-form-group"><label>市</label><select id="editHhCity" onchange="onHhCityChange()"><option value="">请选择</option></select></div>';
   c += '<div class="edit-form-group"><label>区/县</label><select id="editHhDistrict"><option value="">请选择</option></select></div></div>';
+
+  // Graduate info — now editable
+  var curGraduateInfo = profile.graduateInfo || entryProfile.graduateInfo || '';
+  c += '<div class="edit-form-group"><label>毕业院校</label>';
+  c += '<input type="text" id="editGraduateInfo" value="' + escapeHtml(curGraduateInfo) + '" placeholder="如：华中师范大学 教育学">';
+  c += '</div>';
 
   // Education — moved from read-only to editable
   var curEdu = profile.education || entryProfile.education || '';
@@ -2658,25 +2701,6 @@ function showEditProfileModal() {
   c += '<div class="bf-upload-area" onclick="document.getElementById(\'editEduCertFile\').click()">+ 添加学历学位证书（PDF/JPG/PNG，≤10MB）</div>';
   c += '<input type="file" id="editEduCertFile" accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="handleEditAttachUpload(\'eduCert\', this)">';
   c += '</div>'; // end attachments
-
-  // === Block 4: Read-only Basic Info ===
-  c += '<div class="edit-block-divider"></div>';
-  c += '<div class="edit-block"><div class="edit-block-title">📋 基本信息（来源于人事档案，不可修改）</div>';
-  c += '<div class="edit-readonly-grid">';
-  c += '<div class="edit-readonly-item"><span class="erl">姓名</span><div class="erv">' + escapeHtml(entryProfile.name) + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">性别</span><div class="erv">' + escapeHtml(entryProfile.gender||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">民族</span><div class="erv">' + escapeHtml(entryProfile.ethnicity||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">出生年月</span><div class="erv">' + escapeHtml(entryProfile.birthDate||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">身份证号</span><div class="erv">' + escapeHtml(entryProfile.idCard||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">毕业院校</span><div class="erv">' + escapeHtml(entryProfile.graduateInfo||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">单位名称</span><div class="erv">' + escapeHtml(entryProfile.school||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">编制类型</span><div class="erv">' + escapeHtml(entryProfile.staffingType||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">岗位类别</span><div class="erv">' + escapeHtml(entryProfile.categoryName||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">岗位等级</span><div class="erv">' + escapeHtml(entryProfile.currentPost||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">岗位名称</span><div class="erv">' + escapeHtml(entryProfile.assignPosition||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">任职时间</span><div class="erv">' + escapeHtml(entryProfile.appointTime||'—') + '</div></div>';
-  c += '<div class="edit-readonly-item"><span class="erl">入编方式</span><div class="erv">' + escapeHtml(entryProfile.entryMethod||'—') + '</div></div>';
-  c += '</div></div>';
 
   // === Block 5: Family ===
   c += '<div class="edit-block-divider"></div>';
@@ -2875,6 +2899,12 @@ function saveEditProfile() {
 
   up.politicalStatus = politics;
   up.maritalStatus = maritalStatus;
+
+  // New editable fields: gender, ethnicity, birthDate, graduateInfo
+  up.gender = document.getElementById('editGender') ? document.getElementById('editGender').value : '';
+  up.ethnicity = document.getElementById('editEthnicity') ? document.getElementById('editEthnicity').value.trim() : '';
+  up.birthDate = document.getElementById('editBirthDate') ? document.getElementById('editBirthDate').value : '';
+  up.graduateInfo = document.getElementById('editGraduateInfo') ? document.getElementById('editGraduateInfo').value.trim() : '';
 
   // SMS verification if phone changed
   if (newPhone !== window._originalPhone) {
