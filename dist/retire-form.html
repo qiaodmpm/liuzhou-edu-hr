@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>退休呈报 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#1E40AF;--primary-dark:#1E3A8A;--primary-light:#EFF6FF;--accent:#3B82F6;--text:#1E293B;--text-secondary:#64748B;--text-light:#94A3B8;--border:#E2E8F0;--bg:#F8FAFC;--white:#FFFFFF;--gray-bg:#F1F5F9;--danger:#EF4444;--success:#10B981;--warning:#F59E0B;--radius:8px;--radius-lg:12px;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow:0 4px 24px rgba(0,0,0,.08);--transition:.2s cubic-bezier(.4,0,.2,1);--sidebar-w:240px}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topnav{position:fixed;top:0;left:0;right:0;height:56px;background:linear-gradient(135deg,#1E3A8A,#1E40AF);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.topnav-left{display:flex;align-items:center;gap:14px}
+.topnav-logo{width:38px;height:38px;background:rgba(255,255,255,.18);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.topnav-logo svg{width:24px;height:24px}
+.topnav-title{font-size:17px;font-weight:600;color:#fff}
+.topnav-right{display:flex;align-items:center;gap:18px}
+.topnav-bell{position:relative;cursor:pointer;color:rgba(255,255,255,.85);padding:6px;border-radius:6px;transition:var(--transition)}
+.topnav-bell:hover{background:rgba(255,255,255,.1);color:#fff}
+.topnav-bell .badge{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.topnav-user{display:flex;align-items:center;gap:8px;cursor:pointer;color:rgba(255,255,255,.9);padding:6px 12px;border-radius:6px;transition:var(--transition);font-size:13px;position:relative}
+.topnav-user:hover{background:rgba(255,255,255,.1)}
+.topnav-user .avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+.user-dropdown{display:none;position:absolute;top:46px;right:0;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-lg);min-width:160px;z-index:200;overflow:hidden}
+.user-dropdown.show{display:block}
+.user-dropdown a{display:block;padding:12px 18px;font-size:13px;color:var(--text);text-decoration:none;transition:var(--transition)}
+.sidebar{position:fixed;top:56px;left:0;bottom:0;width:var(--sidebar-w);background:#1E3A8A;z-index:90;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-menu{flex:1;padding:8px 0}
+.menu-group{padding:14px 20px 4px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px}
+.menu-item{display:flex;align-items:center;padding:10px 20px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.7);transition:var(--transition);text-decoration:none;border-left:3px solid transparent}
+.menu-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.menu-item.active{background:rgba(255,255,255,.08);color:#fff;font-weight:500;border-left-color:var(--accent)}
+.menu-item .menu-icon{width:18px;height:18px;margin-right:10px;flex-shrink:0;opacity:.7}
+.role-switcher{padding:10px 16px 12px;border-top:1px solid rgba(255,255,255,.08)}
+.role-switcher-label{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px;margin-bottom:8px}
+.role-switcher-options{display:flex;flex-direction:column;gap:4px}
+.role-switch-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);transition:var(--transition);border:1px solid transparent;background:transparent;font-family:inherit;width:100%;text-align:left}
+.role-switch-btn.active{background:rgba(59,130,246,.2);color:#fff;border-color:rgba(59,130,246,.4)}
+.role-switch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.role-switch-dot.city{background:#3B82F6}.role-switch-dot.district{background:#F59E0B}.role-switch-dot.school{background:#10B981}
+.main{margin-left:var(--sidebar-w);margin-top:56px;padding:24px;min-height:calc(100vh - 56px)}
+.breadcrumb{font-size:12px;color:var(--text-light);margin-bottom:16px}
+.breadcrumb a{color:var(--text-light);text-decoration:none}
+.breadcrumb a:hover{color:var(--primary)}
+.page-header{margin-bottom:20px}
+.page-header h1{font-size:20px;font-weight:700}
+.form-card{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:24px 28px;margin-bottom:18px}
+.form-card-title{font-size:15px;font-weight:600;color:var(--text);padding-bottom:14px;margin-bottom:18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 16px}
+.form-grid.col3{grid-template-columns:repeat(3,1fr)}
+.form-grid.col2{grid-template-columns:repeat(2,1fr)}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:12px;color:var(--text-secondary);font-weight:500}
+.form-group input,.form-group select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group .calc{font-size:13px;font-weight:600;color:var(--primary);padding:8px 10px;background:#F8FAFC;border-radius:6px}
+.sub-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.sub-table th{padding:6px 8px;background:#F8FAFC;border:1px solid var(--border);font-size:11px;color:var(--text-secondary);font-weight:600}
+.sub-table td{padding:5px 8px;border:1px solid var(--border);text-align:center}
+.sub-table input{width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit;outline:none}
+.sub-table input:focus{border-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;font-family:inherit;transition:var(--transition);border:1px solid transparent}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:#fff;color:var(--text-secondary);border:1px solid var(--border)}.btn-outline:hover{background:var(--gray-bg)}
+.btn-lg{padding:10px 28px;font-size:14px}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger-sm{background:#FEF2F2;color:var(--danger);border:none;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;font-family:inherit}
+.add-row-btn{margin-top:8px;display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--primary);cursor:pointer;padding:4px 12px;border:1px dashed var(--accent);border-radius:4px;background:var(--primary-light)}
+.add-row-btn:hover{background:#DBEAFE}
+.form-footer{display:flex;justify-content:space-between;align-items:center;padding-top:8px}
+.checklist-container{display:flex;flex-direction:column;gap:4px}
+.checklist-item{display:flex;align-items:center;gap:4px;font-size:11px;padding:3px 0}
+.checklist-icon{font-size:12px;flex-shrink:0}
+.checklist-name{flex-shrink:0;color:var(--text-secondary);min-width:110px;font-size:10px}
+.checklist-upload-btn{font-size:10px;padding:2px 8px;background:#F8FAFC;border:1px solid var(--border);border-radius:3px;cursor:pointer;color:var(--primary);font-family:inherit}
+.checklist-upload-btn:hover{background:var(--primary-light)}
+.checklist-file-tag{font-size:9px;color:#10B981;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55px}
+.file-remove{color:var(--danger);cursor:pointer;font-size:12px}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;animation:toastIn .3s ease;box-shadow:var(--shadow-lg)}
+.toast.warning{background:var(--warning);color:#1E293B}.toast.success{background:var(--success)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+<nav class="topnav">
+<div class="topnav-left"><div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div><span class="topnav-title">柳州教育人事管理平台</span></div>
+<div class="topnav-right">
+<div class="topnav-bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge">1</span></div>
+<div class="topnav-user" onclick="toggleUserMenu()"><div class="avatar">王</div><span id="userName">王玉兰</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+<div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a><div class="divider"></div><a href="index.html" class="logout">退出登录</a></div></div></div>
+</nav>
+<aside class="sidebar" id="sidebar"><div class="sidebar-menu" id="sidebarMenu"></div>
+<div class="role-switcher"><div class="role-switcher-label">切换演示角色</div>
+<div class="role-switcher-options">
+<button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span>市管理员</button>
+<button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span>区管理员</button>
+<button class="role-switch-btn active" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span>校管理员</button>
+</div></div>
+</aside>
+<main class="main" id="formMain"></main>
+<div id="rowFileInputs" style="display:none"></div>
+<div id="toastContainer"></div>
+<script src="src/menu-config.js"></script>
+<script>
+window.onerror=function(msg,url,line){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer">重新加载</button>';document.body.prepend(d)};
+var currentRole='school',currentSchool='柳州市第八中学',currentDistrict='鱼峰区',editRecordId=null;
+var PERSONNEL_TYPES=['01 公务员（含参公）','02 机关工勤人员','03 事业单位专业技术人员','04 事业单位管理人员','05 事业单位工人'];
+var POST_OPTIONS_BY_TYPE={'01 公务员（含参公）':['管理一级(事业) 201','管理二级(事业) 202','管理三级(事业) 203','管理四级(事业) 204','管理五级(事业) 205','管理六级(事业) 206','管理七级(事业) 207','管理八级(事业) 208','管理九级(事业) 209','管理十级(事业) 210'],'02 机关工勤人员':['技术工一级(事业) 241','技术工二级(事业) 242','技术工三级(事业) 243','技术工四级(事业) 244','技术工五级(事业) 245','事业普通工(事业) 246'],'03 事业单位专业技术人员':['专技一级(事业) 221','专技二级(事业) 222','专技三级(事业) 223','专技四级(事业) 224','专技五级(事业) 225','专技六级(事业) 226','专技七级(事业) 227','专技八级(事业) 228','专技九级(事业) 229','专技十级(事业) 230','专技十一级(事业) 231','专技十二级(事业) 232','专技十三级(事业) 233'],'04 事业单位管理人员':['管理一级(事业) 201','管理二级(事业) 202','管理三级(事业) 203','管理四级(事业) 204','管理五级(事业) 205','管理六级(事业) 206','管理七级(事业) 207','管理八级(事业) 208','管理九级(事业) 209','管理十级(事业) 210'],'05 事业单位工人':['技术工一级(事业) 241','技术工二级(事业) 242','技术工三级(事业) 243','技术工四级(事业) 244','技术工五级(事业) 245','事业普通工(事业) 246']};
+var SALARY_LEVELS=[];for(var i=1;i<=65;i++)SALARY_LEVELS.push(i+'级（事业） '+String(100+i));
+var EDUCATION=['博士','硕士','本科','大专','中专','高中','初中及以下'];
+var POLITICS=['中共党员','中共预备党员','共青团员','民主党派','群众'];
+var ATTACH_MATERIALS=['退休审批表','档案年龄证明材料','其他佐证材料'];
+var MULTI_FILE_MATERIAL='其他佐证材料';
+var ALLOWED_EXTS=['.pdf','.jpg','.jpeg','.png','.bmp','.gif','.doc','.docx'];
+var MAX_FILE_SIZE=10*1024*1024;
+var pendingMaterialUpload=null,materialFiles={};
+function escapeHtml(s){if(s===undefined||s===null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function showToast(m,t){var e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;document.getElementById('toastContainer').appendChild(e);setTimeout(function(){e.remove()},2200)}
+function toggleUserMenu(){document.getElementById('userDropdown').classList.toggle('show')}
+document.addEventListener('click',function(e){if(!e.target.closest('.topnav-user'))document.getElementById('userDropdown').classList.remove('show')})
+function goBack(){window.location.href='retire-list-school.html'}
+function switchRole(role){if(role==='school')return;if(role==='city'||role==='district'){window.location.href='retire-list-admin.html?role='+role;return}}
+function validateFile(f){var ext='.'+f.name.split('.').pop().toLowerCase();if(ALLOWED_EXTS.indexOf(ext)<0)return '不支持的文件格式：'+ext;if(f.size>MAX_FILE_SIZE)return '文件过大（'+(f.size/1024/1024).toFixed(1)+'MB），不能超过10MB';return null}
+function loadRecords(){var s=localStorage.getItem('retire_records');try{return JSON.parse(s)||[]}catch(e){return[]}}
+function saveRecords(r){localStorage.setItem('retire_records',JSON.stringify(r))}
+function pad(n){return n<10?'0'+n:''+n}function pad3(n){n=String(n);while(n.length<3)n='0'+n;return n}
+
+/* ---------- resume rows ---------- */
+var resumeRows=[{start:'',org:'',position:''}];
+function addResumeRow(){resumeRows.push({start:'',org:'',position:''});renderForm()}
+function delResumeRow(i){if(resumeRows.length<=1)return;resumeRows.splice(i,1);renderForm()}
+
+/* ---------- spouse rows ---------- */
+var spouseRows=[{name:'',gender:'',age:'',relation:'',dept:''}];
+function addSpouseRow(){spouseRows.push({name:'',gender:'',age:'',relation:'',dept:''});renderForm()}
+function delSpouseRow(i){if(spouseRows.length<=1)return;spouseRows.splice(i,1);renderForm()}
+
+/* ---------- upload ---------- */
+function triggerMaterialUpload(e,itemName){e.stopPropagation();pendingMaterialUpload={item:itemName};var fi=document.getElementById('matFileInput');if(fi){fi.value='';fi.click()}}
+function handleMaterialFile(input){var f=input.files&&input.files[0];if(!f){pendingMaterialUpload=null;return}var err=validateFile(f);if(err){showToast(err,'warning');pendingMaterialUpload=null;input.value='';return}var itemName=pendingMaterialUpload.item;pendingMaterialUpload=null;
+if(itemName===MULTI_FILE_MATERIAL){if(!Array.isArray(materialFiles[itemName]))materialFiles[itemName]=[];materialFiles[itemName].push(f)}
+else{materialFiles[itemName]=f}
+renderForm();input.value=''}
+function removeMaterial(itemName,fi){if(itemName===MULTI_FILE_MATERIAL&&fi!==undefined){var arr=materialFiles[itemName];if(Array.isArray(arr)){arr.splice(fi,1);if(arr.length===0)delete materialFiles[itemName]}}else{delete materialFiles[itemName]}renderForm()}
+
+/* ---------- form HTML ---------- */
+function renderForm(){
+  var h='<div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <a href="retire-list-school.html">退休呈报</a> &nbsp;/&nbsp; <span id="bcPage">'+(editRecordId?'修改申报':'新增退休呈报')+'</span></div>';
+  h+='<div class="page-header"><h1 id="pageTitle">'+(editRecordId?'修改退休呈报 — '+escapeHtml(editRecordId):'新增退休呈报')+'</h1></div>';
+
+  // 基本信息
+  h+='<div class="form-card"><div class="form-card-title">基本信息</div><div class="form-grid">';
+  h+=fg('姓名','text','f_name');h+=fg('性别','select','f_gender','','<option value="">请选择</option><option value="男">男</option><option value="女">女</option>');
+  h+=fg('出生日期','date','f_birthDate');h+=fg('身份证号','text','f_idCard','','','18');
+  h+=fg('文化程度','select','f_education','',EDUCATION.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''));
+  h+=fg('政治面貌','select','f_politics','',POLITICS.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''));
+  h+=fg('籍贯','text','f_native');h+=fg('单位名称','text','f_schoolName',currentSchool,'','','readonly');
+  h+=fg('退休日期','date','f_retireDate');h+=fg('年龄','calc','f_age','（自动计算）');
+  h+='</div></div>';
+
+  // 岗位信息
+  h+='<div class="form-card"><div class="form-card-title">岗位信息</div><div class="form-grid">';
+  h+=fg('人员类别','select','f_personType','',PERSONNEL_TYPES.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''),'','','onchange="onPersonTypeChange()"');
+  h+=fg('岗位','select','f_post','','','','','');h+=fg('薪级','select','f_salaryLevel','',SALARY_LEVELS.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''));
+  h+=fg('岗位工资','number','f_postSalary');h+=fg('薪级工资','number','f_levelSalary');
+  h+=fg('教护10%','number','f_teachSubsidy');h+=fg('小计','calc','f_subtotal','（自动计算）');
+  h+='</div></div>';
+
+  // 工作履历
+  h+='<div class="form-card"><div class="form-card-title">工作履历</div><div class="form-grid col2">';
+  h+=fg('参加工作时间','date','f_workStart');h+=fg('实际工作年限','calc','f_workYears','（自动计算）');
+  h+=fg('教护龄','number','f_teachYears');h+=fg('最后一次升降岗位时间','date','f_lastChangeTime');
+  h+='</div></div>';
+
+  // 退休费计算
+  h+='<div class="form-card"><div class="form-card-title">退休费计算</div><div class="form-grid col3">';
+  h+=fg('退休费计发比例%','number','f_retireRatio');h+=fg('生活补贴','number','f_lifeSubsidy');
+  h+=fg('增加退休费','number','f_extraRetire');h+=fg('教龄津贴','number','f_teachAllowance');
+  h+=fg('其他','number','f_other');h+=fg('月发退休费金额','calc','f_monthRetire');
+  h+='</div></div>';
+
+  // 退休时工资情况
+  h+='<div class="form-card"><div class="form-card-title">退休时工资情况（退休当月）</div><div class="form-grid col2">';
+  h+=fg('人员类别','select','f_retirePersonType','',PERSONNEL_TYPES.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''));
+  h+=fg('岗位工资','number','f_retirePostSalary');h+=fg('薪级工资','number','f_retireLevelSalary');
+  h+=fg('最后一次升降岗位时间','date','f_retireLastChange');h+=fg('岗位（工资等级）','text','f_retirePostLevel');
+  h+='</div></div>';
+
+  // 本人简历
+  h+='<div class="form-card"><div class="form-card-title">本人简历</div>';
+  h+='<table class="sub-table"><thead><tr><th>何年何月起</th><th>在何地区何部门</th><th>任何职</th><th style="width:48px">操作</th></tr></thead><tbody>';
+  resumeRows.forEach(function(r,i){
+    h+='<tr><td><input type="date" value="'+escapeHtml(r.start)+'" oninput="resumeRows['+i+'].start=this.value"></td>';
+    h+='<td><input value="'+escapeHtml(r.org)+'" oninput="resumeRows['+i+'].org=this.value" placeholder="何地区何部门"></td>';
+    h+='<td><input value="'+escapeHtml(r.position)+'" oninput="resumeRows['+i+'].position=this.value" placeholder="任何职"></td>';
+    h+='<td><button class="btn-danger-sm" onclick="delResumeRow('+i+')">×</button></td></tr>';
+  });
+  h+='</tbody></table><div class="add-row-btn" onclick="addResumeRow()">+ 添加行</div></div>';
+
+  // 其他信息
+  h+='<div class="form-card"><div class="form-card-title">其他信息</div><div class="form-grid col2">';
+  h+=fg('有何重大政治历史问题','text','f_politicalIssue','无');
+  h+='</div>';
+  h+='<div style="margin-top:16px"><div class="form-card-title" style="font-size:13px">配偶及子女情况</div>';
+  h+='<table class="sub-table"><thead><tr><th>姓名</th><th>性别</th><th>年龄</th><th>与本人关系</th><th>在何部门任何职</th><th style="width:48px">操作</th></tr></thead><tbody>';
+  spouseRows.forEach(function(r,i){
+    h+='<tr><td><input value="'+escapeHtml(r.name)+'" oninput="spouseRows['+i+'].name=this.value"></td>';
+    h+='<td><select onchange="spouseRows['+i+'].gender=this.value"><option value="">选择</option><option value="男"'+(r.gender==='男'?' selected':'')+'>男</option><option value="女"'+(r.gender==='女'?' selected':'')+'>女</option></select></td>';
+    h+='<td><input value="'+escapeHtml(r.age)+'" oninput="spouseRows['+i+'].age=this.value" style="width:60px"></td>';
+    h+='<td><input value="'+escapeHtml(r.relation)+'" oninput="spouseRows['+i+'].relation=this.value"></td>';
+    h+='<td><input value="'+escapeHtml(r.dept)+'" oninput="spouseRows['+i+'].dept=this.value"></td>';
+    h+='<td><button class="btn-danger-sm" onclick="delSpouseRow('+i+')">×</button></td></tr>';
+  });
+  h+='</tbody></table><div class="add-row-btn" onclick="addSpouseRow()">+ 添加行</div></div></div>';
+
+  // 附件
+  h+='<div class="form-card"><div class="form-card-title">附件材料 <span style="font-size:12px;color:var(--text-light);font-weight:400">（选填）</span></div>';
+  h+='<div class="checklist-container">';
+  ATTACH_MATERIALS.forEach(function(item){
+    var isMulti=item===MULTI_FILE_MATERIAL;
+    var uploaded=materialFiles[item];var hasFiles=isMulti?(Array.isArray(uploaded)&&uploaded.length>0):!!uploaded;
+    var hint=isMulti?'(可上传多个)':'(单文件)';
+    h+='<div class="checklist-item">';
+    h+='<span class="checklist-icon">'+(hasFiles?'☑':'☐')+'</span>';
+    h+='<span class="checklist-name">'+item+' <span style="font-size:9px;color:var(--text-light)">'+hint+'</span></span>';
+    h+='<button class="checklist-upload-btn" onclick="triggerMaterialUpload(event,\''+item+'\')">上传</button>';
+    if(hasFiles){
+      if(isMulti){uploaded.forEach(function(f,fi){var sn=f.name.length>6?f.name.substring(0,6)+'...':f.name;h+='<span style="display:inline-flex;align-items:center;gap:1px"><span class="checklist-file-tag" title="'+escapeHtml(f.name)+'">'+escapeHtml(sn)+'</span><span class="file-remove" onclick="event.stopPropagation();removeMaterial(\''+item+'\','+fi+')">×</span></span>'})}
+      else{var sn=uploaded.name.length>8?uploaded.name.substring(0,8)+'...':uploaded.name;h+='<span style="display:inline-flex;align-items:center;gap:1px"><span class="checklist-file-tag" title="'+escapeHtml(uploaded.name)+'">'+escapeHtml(sn)+'</span><span class="file-remove" onclick="event.stopPropagation();removeMaterial(\''+item+'\')">×</span></span>'}
+    }
+    h+='</div>';
+  });
+  h+='</div><div style="font-size:11px;color:var(--text-light);margin-top:8px">提示：支持 PDF、JPG、PNG、DOC、DOCX 格式，单个文件 ≤ 10MB，均为选填。</div></div>';
+
+  h+='<div class="form-footer"><button class="btn btn-outline btn-lg" onclick="goBack()">返回</button><button class="btn btn-primary btn-lg" id="submitBtn" onclick="submitForm()">'+(editRecordId?'重新提交':'提交审核')+'</button></div>';
+  document.getElementById('formMain').innerHTML=h;
+  // Restore values if editing
+  if(window._editData){
+    var d=window._editData;setVal('f_name',d.teacherName);setVal('f_gender',d.gender);setVal('f_birthDate',d.birthDate);
+    setVal('f_idCard',d.idCard);setVal('f_education',d.education);setVal('f_politics',d.politics);
+    setVal('f_native',d.native);setVal('f_retireDate',d.retireDate);setVal('f_personType',d.personType);onPersonTypeChange();
+    setVal('f_post',d.post);setVal('f_salaryLevel',d.salaryLevel);setVal('f_postSalary',d.postSalary);
+    setVal('f_levelSalary',d.levelSalary);setVal('f_teachSubsidy',d.teachSubsidy);setVal('f_workStart',d.workStart);
+    setVal('f_teachYears',d.teachYears);setVal('f_lastChangeTime',d.lastChangeTime);
+    setVal('f_retireRatio',d.retireRatio);setVal('f_lifeSubsidy',d.lifeSubsidy);setVal('f_extraRetire',d.extraRetire);
+    setVal('f_teachAllowance',d.teachAllowance);setVal('f_other',d.other);setVal('f_retirePersonType',d.retirePersonType);
+    setVal('f_retirePostSalary',d.retirePostSalary);setVal('f_retireLevelSalary',d.retireLevelSalary);
+    setVal('f_retireLastChange',d.retireLastChange);setVal('f_retirePostLevel',d.retirePostLevel);
+    setVal('f_politicalIssue',d.politicalIssue);setVal('f_schoolName',d.schoolName||currentSchool);
+    if(d.resumeRows)resumeRows=d.resumeRows;if(d.spouseRows)spouseRows=d.spouseRows;
+    renderForm();
+  }
+  updateCalculations();
+}
+function fg(label,type,id,defVal,options,placeholder,maxlen,extra){defVal=defVal||'';options=options||'';placeholder=placeholder||'';maxlen=maxlen||'';extra=extra||'';
+  var h='<div class="form-group"><label>'+label+'</label>';
+  if(type==='select')h+='<select id="'+id+'" '+extra+'>'+options+'</select>';
+  else if(type==='calc')h+='<div class="calc" id="'+id+'">'+defVal+'</div>';
+  else h+='<input type="'+type+'" id="'+id+'" value="'+escapeHtml(defVal)+'" placeholder="'+placeholder+'" '+(maxlen?'maxlength="'+maxlen+'"':'')+' '+extra+'>';
+  h+='</div>';return h}
+function setVal(id,v){var el=document.getElementById(id);if(el)el.value=v||''}
+function getVal(id){var el=document.getElementById(id);return el?el.value.trim():''}
+function onPersonTypeChange(){var t=getVal('f_personType');var sel=document.getElementById('f_post');if(!sel)return;var opts=POST_OPTIONS_BY_TYPE[t]||[];sel.innerHTML='<option value="">请选择</option>'+opts.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join('')}
+function updateCalculations(){
+  var ps=parseFloat(getVal('f_postSalary'))||0,ls=parseFloat(getVal('f_levelSalary'))||0,ts=parseFloat(getVal('f_teachSubsidy'))||0;
+  var subEl=document.getElementById('f_subtotal');if(subEl)subEl.textContent=(ps+ls+ts).toFixed(2);
+  var bd=getVal('f_birthDate'),rd=getVal('f_retireDate');
+  if(bd&&rd){var b=new Date(bd),r=new Date(rd);var age=r.getFullYear()-b.getFullYear();if(r.getMonth()<b.getMonth()||(r.getMonth()===b.getMonth()&&r.getDate()<b.getDate()))age--;var ageEl=document.getElementById('f_age');if(ageEl)ageEl.textContent=age+' 岁'}
+  var ws=getVal('f_workStart');if(ws&&rd){var w=new Date(ws),r=new Date(rd);var yy=r.getFullYear()-w.getFullYear(),mm=r.getMonth()-w.getMonth();if(mm<0){yy--;mm+=12}var wyEl=document.getElementById('f_workYears');if(wyEl)wyEl.textContent=yy+'年'+mm+'个月'}
+  var rr=parseFloat(getVal('f_retireRatio'))||0,lif=parseFloat(getVal('f_lifeSubsidy'))||0,ex=parseFloat(getVal('f_extraRetire'))||0,ta=parseFloat(getVal('f_teachAllowance'))||0,ot=parseFloat(getVal('f_other'))||0;
+  var baseSal=ps+ls+ts;var mr=baseSal*(rr/100)+lif+ex+ta+ot;
+  var mrEl=document.getElementById('f_monthRetire');if(mrEl)mrEl.textContent=mr.toFixed(2)
+}
+setInterval(updateCalculations,500);
+
+/* ---------- submit ---------- */
+function submitForm(){
+  var data={teacherName:getVal('f_name'),gender:getVal('f_gender'),birthDate:getVal('f_birthDate'),idCard:getVal('f_idCard'),education:getVal('f_education'),politics:getVal('f_politics'),native:getVal('f_native'),schoolName:getVal('f_schoolName')||currentSchool,retireDate:getVal('f_retireDate'),personType:getVal('f_personType'),post:getVal('f_post'),salaryLevel:getVal('f_salaryLevel'),postSalary:getVal('f_postSalary'),levelSalary:getVal('f_levelSalary'),teachSubsidy:getVal('f_teachSubsidy'),workStart:getVal('f_workStart'),teachYears:getVal('f_teachYears'),lastChangeTime:getVal('f_lastChangeTime'),retireRatio:getVal('f_retireRatio'),lifeSubsidy:getVal('f_lifeSubsidy'),extraRetire:getVal('f_extraRetire'),teachAllowance:getVal('f_teachAllowance'),other:getVal('f_other'),retirePersonType:getVal('f_retirePersonType'),retirePostSalary:getVal('f_retirePostSalary'),retireLevelSalary:getVal('f_retireLevelSalary'),retireLastChange:getVal('f_retireLastChange'),retirePostLevel:getVal('f_retirePostLevel'),politicalIssue:getVal('f_politicalIssue'),resumeRows:JSON.parse(JSON.stringify(resumeRows)),spouseRows:JSON.parse(JSON.stringify(spouseRows))};
+  if(!data.teacherName){showToast('请填写姓名','warning');return}if(!data.gender){showToast('请选择性别','warning');return}
+  if(!data.birthDate){showToast('请选择出生日期','warning');return}if(!data.retireDate){showToast('请选择退休日期','warning');return}
+  if(!data.idCard||!/^\d{17}[\dXx]$/.test(data.idCard)){showToast('身份证号格式不正确','warning');return}
+
+  // serialize materials
+  var mats={};ATTACH_MATERIALS.forEach(function(item){
+    var v=materialFiles[item];if(item===MULTI_FILE_MATERIAL){if(Array.isArray(v)&&v.length>0)mats[item]=v.map(function(f){return{name:f.name,size:f.size}})}
+    else{if(v)mats[item]={name:v.name,size:v.size}}
+  });data.materials=mats;
+
+  var all=loadRecords(),now=new Date(),ts=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+
+  if(editRecordId){
+    for(var i=0;i<all.length;i++){if(all[i].id===editRecordId){all[i]=Object.assign(all[i],data);all[i].status='pending_first';all[i].submitTime=ts;all[i].district=currentDistrict;all[i].rejectReason='';break}}
+    saveRecords(all);showToast('修改重提成功','success');setTimeout(function(){window.location.href='retire-list-school.html'},1200);return
+  }
+  var datePart=now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate());
+  var stored=JSON.parse(localStorage.getItem('retire_seq')||'{"date":"","seq":0}');
+  if(stored.date!==datePart){stored.date=datePart;stored.seq=0}stored.seq++;localStorage.setItem('retire_seq',JSON.stringify(stored));
+  var newId='RT'+datePart+pad3(stored.seq);
+  var rec=Object.assign({id:newId,schoolName:currentSchool,district:currentDistrict,status:'pending_first',submitTime:ts,rejectReason:''},data);
+  all.unshift(rec);saveRecords(all);
+  showToast('退休呈报已提交，等待审核','success');setTimeout(function(){window.location.href='retire-list-school.html'},1500)
+}
+
+/* ---------- edit mode ---------- */
+function loadForEdit(id){var all=loadRecords();for(var i=0;i<all.length;i++){if(all[i].id===id){editRecordId=id;window._editData=all[i];if(all[i].resumeRows)resumeRows=all[i].resumeRows;if(all[i].spouseRows)spouseRows=all[i].spouseRows;if(all[i].materials){var mats=all[i].materials;ATTACH_MATERIALS.forEach(function(item){var v=mats[item];if(item===MULTI_FILE_MATERIAL&&Array.isArray(v)){materialFiles[item]=v.map(function(f){return{name:f.name,size:f.size}})}else if(v&&!Array.isArray(v)){materialFiles[item]={name:v.name,size:v.size}}})}break}}}
+
+(function init(){
+  renderSidebarMenu('sidebarMenu',currentRole,'retire');
+  var p=new URLSearchParams(window.location.search);var id=p.get('id');
+  if(id)loadForEdit(id);
+  renderForm();
+})();
+</script>
+</body>
+</html>
