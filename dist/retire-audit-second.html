@@ -49,16 +49,34 @@ function renderAll(){
   var h='<div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <a href="retire-list-admin.html?role='+currentRole+'">退休呈报</a> &nbsp;/&nbsp; <span>二审审核</span></div>';
   h+='<div class="page-header"><div><h1>退休呈报二审 — '+escapeHtml(r.schoolName||'')+'</h1><div style="font-size:12px;color:var(--text-light);margin-top:4px">申请编号：'+escapeHtml(r.id)+' | 提交时间：'+escapeHtml(r.submitTime||'—')+'</div></div><span class="status-stamp '+(isDone?'approved':'pending_second')+'">'+(isDone?'已完成':'待二审')+'</span></div>';
 
-  // 基本信息摘要
+  // 基本信息
   h+='<div class="detail-card"><h3>基本信息</h3><div class="info-grid">';
-  h+=renderField('姓名',r.teacherName);h+=renderField('性别',r.gender);h+=renderField('出生日期',r.birthDate);h+=renderField('退休日期',r.retireDate);
-  h+=renderField('单位名称',r.schoolName);h+=renderField('籍贯',(r.nativeProvince||'')+(r.nativeCity||'')+(r.nativeDistrict||'')||r.native);h+=renderField('学历/文化程度',r.education);h+=renderField('政治面貌',r.politics);
+  h+=renderField('姓名',r.teacherName);h+=renderField('性别',r.gender);h+=renderField('出生日期',r.birthDate);h+=renderField('身份证号',r.idCard);
+  h+=renderField('退休日期',r.retireDate);h+=renderField('学历/文化程度',r.education);h+=renderField('政治面貌',r.politics);
+  h+=renderField('籍贯',(r.nativeProvince||'')+(r.nativeCity||'')+(r.nativeDistrict||'')||r.native);h+=renderField('单位名称',r.schoolName);
   h+='</div></div>';
 
-  // 岗位+退休费
-  h+='<div class="detail-card"><h3>岗位与退休费</h3><div class="info-grid">';
-  h+=renderField('人员类别',r.personType);h+=renderField('岗位',r.post);h+=renderField('薪级',r.salaryLevel);h+=renderField('退休费计发比例%',r.retireRatio);
-  h+=renderField('生活补贴',r.lifeSubsidy);h+=renderField('增加退休费',r.extraRetire);h+=renderField('教龄津贴',r.teachAllowance);h+=renderField('其他',r.other);
+  // 岗位信息
+  h+='<div class="detail-card"><h3>岗位信息</h3><div class="info-grid">';
+  h+=renderField('人员类别',r.personType);h+=renderField('岗位',r.post);h+=renderField('薪级',r.salaryLevel);
+  h+=renderField('岗位工资',r.postSalary);h+=renderField('薪级工资',r.levelSalary);h+=renderField('教护10%',r.teachSubsidy);
+  h+='</div></div>';
+
+  // 工作履历
+  h+='<div class="detail-card"><h3>工作履历</h3><div class="info-grid">';
+  h+=renderField('参加工作时间',r.workStart);h+=renderField('教护龄',r.teachYears);h+=renderField('最后一次升降岗位时间',r.lastChangeTime);
+  h+='</div></div>';
+
+  // 退休费计算
+  h+='<div class="detail-card"><h3>退休费计算</h3><div class="info-grid">';
+  h+=renderField('退休费计发比例%',r.retireRatio);h+=renderField('生活补贴',r.lifeSubsidy);h+=renderField('增加退休费',r.extraRetire);
+  h+=renderField('教龄津贴',r.teachAllowance);h+=renderField('其他',r.other);
+  h+='</div></div>';
+
+  // 退休时工资情况
+  h+='<div class="detail-card"><h3>退休时工资情况（退休当月）</h3><div class="info-grid">';
+  h+=renderField('人员类别',r.retirePersonType);h+=renderField('岗位工资',r.retirePostSalary);h+=renderField('薪级工资',r.retireLevelSalary);
+  h+=renderField('最后一次升降岗位时间',r.retireLastChange);h+=renderField('岗位（工资等级）',r.retirePostLevel);
   h+='</div></div>';
 
   // 人社结果（可编辑）
