@@ -108,6 +108,7 @@ var SALARY_LEVELS=[];for(var i=1;i<=65;i++)SALARY_LEVELS.push(i+'级（事业）
 var EDUCATION=['博士','硕士','本科','专科','高中','初中','职高','中专','技校','其他'];
 var POLITICS=['中共党员','中共预备党员','共青团员','民主党派','群众'];
 var ATTACH_MATERIALS=['退休审批表','档案年龄证明材料','其他佐证材料'];
+var DEMO_TEACHERS=[{name:'张美华',gender:'女',birthDate:'1971-05-15',idCard:'450203197105152345',education:'本科',politics:'中共党员',native:'广西柳州'},{name:'刘国强',gender:'男',birthDate:'1966-03-20',idCard:'450203196603202345',education:'硕士',politics:'中共党员',native:'广西桂林'},{name:'陈秀兰',gender:'女',birthDate:'1971-08-22',idCard:'450203197108223456',education:'本科',politics:'群众',native:'广西柳州'},{name:'赵志远',gender:'男',birthDate:'1966-01-10',idCard:'450203196601101234',education:'专科',politics:'中共党员',native:'广西南宁'},{name:'王秀英',gender:'女',birthDate:'1971-03-25',idCard:'450203197103254321',education:'本科',politics:'中共党员',native:'广西柳州'},{name:'李明远',gender:'男',birthDate:'1966-08-10',idCard:'450203196608101234',education:'硕士',politics:'中共党员',native:'广西北海'}];
 var MULTI_FILE_MATERIAL='其他佐证材料';
 var ALLOWED_EXTS=['.pdf','.jpg','.jpeg','.png','.bmp','.gif','.doc','.docx'];
 var MAX_FILE_SIZE=10*1024*1024;
@@ -148,9 +149,9 @@ function renderForm(){
 
   // 基本信息
   h+='<div class="form-card"><div class="form-card-title">基本信息</div><div class="form-grid">';
-  h+=fg('姓名','text','f_name');h+=fg('性别','select','f_gender','','<option value="">请选择</option><option value="男">男</option><option value="女">女</option>');
+  h+=fg('姓名','select','f_name','',DEMO_TEACHERS.map(function(o){return'<option value="'+o.name+'">'+o.name+'</option>'}).join(''),'','','onchange="onNameChange()"');h+=fg('性别','select','f_gender','','<option value="">请选择</option><option value="男">男</option><option value="女">女</option>');
   h+=fg('出生日期','date','f_birthDate');h+=fg('身份证号','text','f_idCard','','','18');
-  h+=fg('文化程度','select','f_education','',EDUCATION.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''));
+  h+=fg('学历/文化程度','select','f_education','',EDUCATION.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''));
   h+=fg('政治面貌','select','f_politics','',POLITICS.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join(''));
   h+=fg('籍贯','text','f_native');h+=fg('单位名称','text','f_schoolName',currentSchool,'','','readonly');
   h+=fg('退休日期','date','f_retireDate');h+=fg('年龄','calc','f_age','（自动计算）');
@@ -258,6 +259,7 @@ function fg(label,type,id,defVal,options,placeholder,maxlen,extra){defVal=defVal
   h+='</div>';return h}
 function setVal(id,v){var el=document.getElementById(id);if(el)el.value=v||''}
 function getVal(id){var el=document.getElementById(id);return el?el.value.trim():''}
+function onNameChange(){var n=getVal('f_name');var found=null;for(var i=0;i<DEMO_TEACHERS.length;i++){if(DEMO_TEACHERS[i].name===n){found=DEMO_TEACHERS[i];break}}if(found){setVal('f_gender',found.gender);setVal('f_birthDate',found.birthDate);setVal('f_idCard',found.idCard);setVal('f_education',found.education);setVal('f_politics',found.politics);setVal('f_native',found.native)}}
 function onPersonTypeChange(){var t=getVal('f_personType');var sel=document.getElementById('f_post');if(!sel)return;var opts=POST_OPTIONS_BY_TYPE[t]||[];sel.innerHTML='<option value="">请选择</option>'+opts.map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join('')}
 function updateCalculations(){
   var ps=parseFloat(getVal('f_postSalary'))||0,ls=parseFloat(getVal('f_levelSalary'))||0,ts=parseFloat(getVal('f_teachSubsidy'))||0;
