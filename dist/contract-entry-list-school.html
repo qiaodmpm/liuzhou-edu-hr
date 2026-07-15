@@ -584,11 +584,17 @@ function renderRowFileLabel(uid,type){
   var file=type==='labor'?rowLabor[uid]:rowFiles[uid];
   if(file){
     var short=file.name.length>8?file.name.substring(0,8)+'...':file.name;
-    var fn='<span class=\"row-file-name\" title=\"'+escapeHtml(file.name)+'\">'+escapeHtml(short)+'</span>';
-    var rm='<span class=\"row-file-remove\" onclick=\"event.stopPropagation();';
-    rm+=type==='labor'?'clearRowLabor(\\''+uid+'\\')':'clearRowFile(\\''+uid+'\\')';
-    rm+='\">×</span>';
-    lbl.innerHTML=fn+rm;
+    var fn=document.createElement('span');
+    fn.className='row-file-name';
+    fn.title=file.name;
+    fn.textContent=short;
+    var rm=document.createElement('span');
+    rm.className='row-file-remove';
+    rm.textContent='×';
+    rm.onclick=function(e){ e.stopPropagation(); if(type==='labor')clearRowLabor(uid);else clearRowFile(uid); };
+    lbl.textContent='';
+    lbl.appendChild(fn);
+    lbl.appendChild(rm);
     lbl.classList.add('has-file');
     lbl.title='点击重新上传';
   }else{
