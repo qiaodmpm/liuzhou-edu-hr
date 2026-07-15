@@ -122,6 +122,8 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
 .sub-table tr:last-child td { border-bottom:none; }
 .checklist-file-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; background:#fff; border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer; color:var(--primary); transition:var(--transition); }
 .checklist-file-chip:hover { border-color:var(--accent); }
+.school-search { padding:7px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; background:#fff; color:var(--text); min-width:200px; outline:none; }
+.school-search:focus { border-color:var(--accent); }
 .reject-box { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:14px; }
 .reject-box label { display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px; }
 .reject-box textarea { width:100%; min-height:64px; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; resize:vertical; color:var(--text); }
@@ -183,7 +185,11 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
   <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>编外教师管理</span> &nbsp;/&nbsp; <span>教师入职管理</span></div>
   <div class="page-header"><div><h1>教师入职管理</h1></div></div>
 
-  <div class="filter-bar" id="filterBar"></div>
+  <div class="toolbar">
+    <div class="filter-bar" id="filterBar"></div>
+    <input type="text" id="schoolSearch" class="school-search" placeholder="搜索单位名称..." oninput="onSchoolSearch()" list="schoolList" autocomplete="off">
+    <datalist id="schoolList"></datalist>
+  </div>
 
   <div id="recordList"></div>
 </main>
@@ -351,15 +357,14 @@ function renderFilters(records){
     b.onclick=function(){currentFilter=f.key;renderList();};
     fb.appendChild(b);
   });
-  // 学校 dropdown
+  // 学校 datalist
   var schools={}; records.forEach(function(r){schools[r.schoolName]=true;});
-  var sel=document.createElement('div'); sel.className='school-filter';
-  var opts='<option value="all">全部单位</option>';
-  Object.keys(schools).forEach(function(s){ opts+='<option value="'+escapeHtml(s)+'"'+(currentSchoolFilter===s?' selected':'')+'>'+escapeHtml(s)+'</option>'; });
-  sel.innerHTML='<select id="schoolSelect" onchange="onSchoolChange(this.value)">'+opts+'</select>';
-  fb.appendChild(sel);
+  var dl=document.getElementById('schoolList');
+  var h='';
+  Object.keys(schools).sort().forEach(function(s){ h+='<option value="'+escapeHtml(s)+'">'; });
+  dl.innerHTML=h;
 }
-function onSchoolChange(v){ currentSchoolFilter=v; renderList(); }
+function onSchoolSearch(){ currentSchoolFilter=(document.getElementById('schoolSearch').value||'').trim()||'all'; renderList(); }
 
 function renderList(){
   var records = scopedRecords();
@@ -367,7 +372,7 @@ function renderList(){
 
   var filtered = records.slice();
   if(currentFilter!=='all'){ filtered=filtered.filter(function(r){return r.status===currentFilter;}); }
-  if(currentSchoolFilter!=='all'){ filtered=filtered.filter(function(r){return r.schoolName===currentSchoolFilter;}); }
+  if(currentSchoolFilter!=='all'){ filtered=filtered.filter(function(r){return r.schoolName.indexOf(currentSchoolFilter)>=0;}); }
 
   var list=document.getElementById('recordList');
   if(filtered.length===0){

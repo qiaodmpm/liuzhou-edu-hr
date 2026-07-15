@@ -202,7 +202,6 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
   <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>编外教师管理</span> &nbsp;/&nbsp; <span>教师离职管理</span></div>
   <div class="page-header"><div><h1>教师离职管理</h1><div class="subtitle">合同制教师离职申报</div></div><button class="btn btn-primary" onclick="location.href='contract-exit-form.html'">+ 新建申报</button></div>
   <div class="list-toolbar">
-    <div class="filter-bar" id="filterBar"></div>
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input class="search-input" id="searchInput" placeholder="搜索申请编号…" oninput="onSearch(this.value)">
@@ -319,7 +318,6 @@ var DEMO_CONTRACT_STAFF = [
 var currentRole = 'school';
 var currentSchool = '柳州市第八中学';
 var currentDistrict = '鱼峰区';
-var currentFilter = 'all';
 var searchKw = '';
 var expandedMap = {};
 
@@ -416,26 +414,7 @@ function getExitTypeLabel(r){
 
 function renderList(){
   var records=loadRecords().filter(function(r){return r.schoolName===currentSchool;});
-  var counts={ all:records.length, pending:0, approved:0, rejected:0 };
-  records.forEach(function(r){ if(counts[r.status]!==undefined && r.status!=='all') counts[r.status]++; });
-
-  var filters=[
-    {key:'all',label:'全部('+counts.all+')'},
-    {key:'pending',label:'待审核('+counts.pending+')'},
-    {key:'approved',label:'已通过('+counts.approved+')'},
-    {key:'rejected',label:'已驳回('+counts.rejected+')'}
-  ];
-  var fb=document.getElementById('filterBar'); fb.innerHTML='';
-  filters.forEach(function(f){
-    var b=document.createElement('button');
-    b.className='filter-pill'+(currentFilter===f.key?' active':'');
-    b.textContent=f.label;
-    b.onclick=function(){currentFilter=f.key;renderList();};
-    fb.appendChild(b);
-  });
-
   var filtered=records;
-  if(currentFilter!=='all'){ filtered=filtered.filter(function(r){return r.status===currentFilter;}); }
   if(searchKw){ filtered=filtered.filter(function(r){return r.id.toLowerCase().indexOf(searchKw)>=0;}); }
 
   var list=document.getElementById('recordList');
@@ -730,7 +709,6 @@ function submitApplication(){
     timeline:[{time:t,action:'学校提交申报',operator:'王玉兰'}] };
   var all=loadRecords(); all.unshift(rec); saveRecords(all);
   closeNewModal();
-  currentFilter='all';
   showToast('离职申报已提交，等待主管部门审核','success');
   renderList();
 }
