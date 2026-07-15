@@ -203,10 +203,7 @@ body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: va
   <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>编外教师管理</span> &nbsp;/&nbsp; <span>教师入职管理</span></div>
   <div class="page-header"><div><h1>教师入职管理</h1><div class="subtitle">合同制教师入职申报</div></div><button class="btn btn-primary" onclick="location.href='contract-entry-form.html'">+ 新建申报</button></div>
   <div class="toolbar">
-    <div class="search-box">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="搜索申请编号..." oninput="renderList()">
-    </div>
+    <div class="filter-bar" id="filterBar"></div>
   </div>
   <div id="recordList"></div>
 </main>
@@ -253,6 +250,7 @@ var SIDEBAR = {
 var CURRENT_SCHOOL = '柳州市第八中学';
 var CURRENT_DISTRICT = '鱼峰区';
 var STATUS_TEXT = { pending:'待审核', approved:'已通过', rejected:'已驳回', draft:'草稿' };
+var currentFilter='all';
 var openRows = {};
 
 function escapeHtml(s){ if(s===undefined||s===null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -329,12 +327,21 @@ function switchRole(role){
 /* ---------- list ---------- */
 function renderList(){
   var records=loadRecords().filter(function(r){return r.schoolName===CURRENT_SCHOOL;});
+  var counts={all:records.length,pending:0,approved:0,rejected:0};
+  records.forEach(function(r){if(counts[r.status]!==undefined) counts[r.status]++;});
 
-  var kw=(document.getElementById('searchInput').value||'').trim().toLowerCase();
-  var filtered=records.filter(function(r){
-    if(kw && r.id.toLowerCase().indexOf(kw)<0) return false;
-    return true;
+  var filters=[{key:'all',label:'全部('+counts.all+')'},{key:'pending',label:'待审核('+counts.pending+')'},{key:'approved',label:'已通过('+counts.approved+')'},{key:'rejected',label:'已驳回('+counts.rejected+')'}];
+  var fb=document.getElementById('filterBar'); fb.innerHTML='';
+  filters.forEach(function(f){
+    var b=document.createElement('button');
+    b.className='filter-pill'+(currentFilter===f.key?' active':'');
+    b.textContent=f.label;
+    b.onclick=function(){currentFilter=f.key;renderList();};
+    fb.appendChild(b);
   });
+
+  var filtered=records;
+  if(currentFilter!=='all'){ filtered=filtered.filter(function(r){return r.status===currentFilter;}); }
 
   var list=document.getElementById('recordList');
   if(filtered.length===0){
