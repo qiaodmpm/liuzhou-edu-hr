@@ -194,6 +194,13 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
   .tree-panel { width: 100%; max-height: none; position: static; margin-bottom: 16px; padding: 4px 0; }
   .list-panel { padding-left: 0; }
 }
+/* Switch toggle */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.3s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+.switch input:checked + .slider { background-color: var(--primary); }
+.switch input:checked + .slider:before { transform: translateX(20px); }
 </style>
 </head>
 <body>
@@ -384,6 +391,14 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
             <label>邮编 <span class="required">*</span></label>
             <input type="text" id="fPostcode" placeholder="邮编">
           </div>
+          <div class="form-group" id="fgHighlandSchool">
+            <label>是否小高地学校</label>
+            <label class="switch" style="margin-top:4px">
+              <input type="checkbox" id="fHighlandSchool" onchange="this.setAttribute('data-checked', this.checked ? '1' : '0')">
+              <span class="slider"></span>
+            </label>
+            <span style="font-size:11px;color:var(--text-light);margin-top:2px">若选择是，该学校的岗位聘用汇总表中将启用小高地岗位统计</span>
+          </div>
         </div>
       </fieldset>
     </div>
@@ -443,7 +458,7 @@ function getDemoOrgs() {
   return [
     // ===== 市直属 =====
     { orgId:'gxlzh-00-001', orgName:'柳州市教育局', orgShortName:'市教育局', district:'市直属', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'副厅级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450200MB01234582', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区文惠路85号', phone:'0772-2810001', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-00-002', orgName:'柳州高级中学', orgShortName:'柳高', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234567', status:'active', schoolAdminId:'S002', schoolAdminName:'陈桂芝', districtAdminId:'', districtAdminName:'', address:'柳州市城中区东环大道268号', phone:'0772-2800111', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-10' },
+    { orgId:'gxlzh-00-002', orgName:'柳州高级中学', orgShortName:'柳高', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234567', status:'active', schoolAdminId:'S002', schoolAdminName:'陈桂芝', districtAdminId:'', districtAdminName:'', address:'柳州市城中区东环大道268号', phone:'0772-2800111', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-10', isHighlandSchool: true },
     { orgId:'gxlzh-00-003', orgName:'柳州市第一中学', orgShortName:'柳州一中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234568', status:'active', schoolAdminId:'S003', schoolAdminName:'吴敏', districtAdminId:'', districtAdminName:'', address:'柳州市鱼峰区荣军路16号', phone:'0772-3800001', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-08' },
     { orgId:'gxlzh-00-004', orgName:'柳州市第二中学', orgShortName:'柳州二中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234569', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区飞鹅路21号', phone:'0772-3800002', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-05' },
     { orgId:'gxlzh-00-005', orgName:'柳州市民族高中', orgShortName:'民族高中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区特色高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234570', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区北雀路45号', phone:'0772-3800003', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-05-20' },
@@ -452,7 +467,7 @@ function getDemoOrgs() {
     { orgId:'gxlzh-00-008', orgName:'柳州市第三中学', orgShortName:'柳州三中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234573', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区北站路19号', phone:'0772-3800006', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-03-28' },
     // ===== 鱼峰区 =====
     { orgId:'gxlzh-08-001', orgName:'鱼峰区教育局', orgShortName:'鱼峰教育局', district:'鱼峰区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450203MB01234585', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区蝴蝶山路1号', phone:'0772-3830007', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-08-002', orgName:'柳州市第八中学', orgShortName:'柳州八中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234574', status:'active', schoolAdminId:'S001', schoolAdminName:'王玉兰', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区东环大道120号', phone:'0772-3830001', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-12' },
+    { orgId:'gxlzh-08-002', orgName:'柳州市第八中学', orgShortName:'柳州八中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234574', status:'active', schoolAdminId:'S001', schoolAdminName:'王玉兰', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区东环大道120号', phone:'0772-3830001', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-12', isHighlandSchool: true },
     { orgId:'gxlzh-08-003', orgName:'柳州市第十三中学', orgShortName:'柳州十三中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234575', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区荣军路31号', phone:'0772-3830002', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-05-30' },
     { orgId:'gxlzh-08-004', orgName:'柳州市第二十五中学', orgShortName:'柳州二十五中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234576', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区屏山大道55号', phone:'0772-3830003', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-05-18' },
     { orgId:'gxlzh-08-005', orgName:'柳州市第六中学', orgShortName:'柳州六中', district:'鱼峰区', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234577', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区柳石路21号', phone:'0772-3830004', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-04-22' },
@@ -975,6 +990,7 @@ function renderOrgTable(orgs, title, isPending) {
   h += '<th style="width:150px;">单位名称</th>';
   h += '<th style="width:80px;">所属区域</th>';
   h += '<th style="width:90px;">组织类型</th>';
+  h += '<th style="width:70px;">小高地</th>';
   h += '<th style="width:90px;">单位管理员</th>';
   h += '<th style="width:90px;">更新时间</th>';
   h += '<th style="width:60px;">状态</th>';
@@ -982,7 +998,7 @@ function renderOrgTable(orgs, title, isPending) {
   h += '</tr></thead><tbody>';
 
   if (orgs.length === 0) {
-    h += '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-light);">暂无数据</td></tr>';
+    h += '<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--text-light);">暂无数据</td></tr>';
   }
 
   for (var i = 0; i < orgs.length; i++) {
@@ -1006,6 +1022,7 @@ function renderOrgTable(orgs, title, isPending) {
     h += '<td class="col-name">' + escHtml(o.orgName) + '</td>';
     h += '<td>' + escHtml(o.district) + '</td>';
     h += '<td>' + escHtml(o.orgType) + '</td>';
+    h += '<td>' + (o.isHighlandSchool ? '🏔️ 是' : '—') + '</td>';
     h += '<td>' + adminText + '</td>';
     var updateTime = o.updatedAt || '-';
     if (updateTime !== '-' && updateTime.length === 10) updateTime += ' 00:00:00';
@@ -1081,6 +1098,7 @@ function openAddModal() {
 
   // Clear form
   var fields = ['fOrgName','fOrgShortName','fCreditCode','fAddress','fPhone','fPostcode'];
+  document.getElementById('fHighlandSchool').checked = false;
   for (var i = 0; i < fields.length; i++) { document.getElementById(fields[i]).value = ''; }
   document.getElementById('fOrgType').value = '学校';
   document.getElementById('fSchoolType').value = '初中';
@@ -1133,6 +1151,8 @@ function openEditModal(orgId) {
   document.getElementById('fAddress').value = o.address || '';
   document.getElementById('fPhone').value = o.phone || '';
   document.getElementById('fPostcode').value = o.postcode || '';
+  document.getElementById('fHighlandSchool').checked = o.isHighlandSchool === true;
+  document.getElementById('fHighlandSchool').setAttribute('data-checked', o.isHighlandSchool ? '1' : '0');
 
   populateDistrictSelect(o.district || '');
   // District admin: lock district field
@@ -1280,6 +1300,7 @@ function saveOrg() {
         orgDirectory[j].address = document.getElementById('fAddress').value.trim();
         orgDirectory[j].phone = document.getElementById('fPhone').value.trim();
         orgDirectory[j].postcode = document.getElementById('fPostcode').value.trim();
+        orgDirectory[j].isHighlandSchool = document.getElementById('fHighlandSchool').checked;
         orgDirectory[j].schoolAdminId = schoolAdminId;
         orgDirectory[j].schoolAdminName = schoolAdminName;
         orgDirectory[j].updatedAt = dateStr;
@@ -1333,6 +1354,7 @@ function saveOrg() {
       address: document.getElementById('fAddress').value.trim(),
       phone: document.getElementById('fPhone').value.trim(),
       postcode: document.getElementById('fPostcode').value.trim(),
+      isHighlandSchool: document.getElementById('fHighlandSchool').checked,
       createdAt: dateStr,
       updatedAt: dateStr,
       reviewStatus: null

@@ -1076,6 +1076,20 @@ function getEmployedVal(schoolName, category, grade, subType) {
   return gd[subType] || 0;
 }
 
+function getHighlandCount(schoolName, grade) {
+  try {
+    var accounts = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    var count = 0;
+    for (var i = 0; i < accounts.length; i++) {
+      var a = accounts[i];
+      if (a.school === schoolName && a.isHighlandMember && a.highlandPostLevel === grade) {
+        count++;
+      }
+    }
+    return count;
+  } catch(e) { return 0; }
+}
+
 // ===== PROMOTION DELTA HELPERS =====
 var CN_LEVEL_TO_KEY = { '三级':'3','四级':'4','五级':'5','六级':'6','七级':'7','八级':'8','九级':'9','十级':'10','十一级':'11','十二级':'12','十三级':'13','一级':'1','二级':'2','普通工':'common' };
 var KEY_TO_CN_LEVEL = { '3':'三级','4':'四级','5':'五级','6':'六级','7':'七级','8':'八级','9':'九级','10':'十级','11':'十一级','12':'十二级','13':'十三级','1':'一级','2':'二级','common':'普通工' };
@@ -1146,8 +1160,8 @@ function computeSubmitChanges(schoolName, selected) {
 }
 
 function cellWithDelta(schoolName, cat, g, subKey, deltas) {
-  var current = getEmployedVal(schoolName, cat, g, subKey);
-  var d = deltas[cat] && deltas[cat][g] ? (deltas[cat][g][subKey] || 0) : 0;
+  var current = subKey === 'highland' ? getHighlandCount(schoolName, g) : getEmployedVal(schoolName, cat, g, subKey);
+  var d = subKey === 'highland' ? 0 : (deltas[cat] && deltas[cat][g] ? (deltas[cat][g][subKey] || 0) : 0);
   var after = current + d;
   if (d === 0) {
     var zc = current === 0 ? ' data-zero' : '';
@@ -1278,7 +1292,7 @@ function renderQuotaSummary(schoolName) {
       { sub: '控制数', key: 'control' },
       { sub: '超岗聘用数', key: 'over' }
     ];
-    if (sec.hasHighland) subRows.push({ sub: '小高地岗位', key: 'over' });
+    if (sec.hasHighland) subRows.push({ sub: '小高地岗位', key: 'highland' });
     var nRows = 2 + subRows.length;
     h += '<table class="summary-sec-table" style="width:100%;margin-bottom:12px;"><tbody>';
     // Header

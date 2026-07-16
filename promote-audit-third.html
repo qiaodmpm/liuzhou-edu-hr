@@ -945,6 +945,20 @@ function getEmployedVal(schoolName, category, grade, subType) {
   return gd[subType] || 0;
 }
 
+function getHighlandCount(schoolName, grade) {
+  try {
+    var accounts = JSON.parse(localStorage.getItem('teacher_accounts') || '[]');
+    var count = 0;
+    for (var i = 0; i < accounts.length; i++) {
+      var a = accounts[i];
+      if (a.school === schoolName && a.isHighlandMember && a.highlandPostLevel === grade) {
+        count++;
+      }
+    }
+    return count;
+  } catch(e) { return 0; }
+}
+
 // ===== SEED POST RECORDS =====
 function seedPostRecords() {
   if (localStorage.getItem('post_records')) return;
@@ -1073,8 +1087,8 @@ function computeSubmitChanges(schoolName, selected) {
 }
 
 function cellWithDelta(schoolName, cat, g, subKey, deltas) {
-  var current = getEmployedVal(schoolName, cat, g, subKey);
-  var d = deltas[cat] && deltas[cat][g] ? (deltas[cat][g][subKey] || 0) : 0;
+  var current = subKey === 'highland' ? getHighlandCount(schoolName, g) : getEmployedVal(schoolName, cat, g, subKey);
+  var d = subKey === 'highland' ? 0 : (deltas[cat] && deltas[cat][g] ? (deltas[cat][g][subKey] || 0) : 0);
   var after = current + d;
   if (d === 0) {
     var zc = current === 0 ? ' data-zero' : '';
@@ -1235,7 +1249,7 @@ function renderQuotaSummary(schoolName) {
       { sub: '控制数', key: 'control' },
       { sub: '超岗聘用数', key: 'over' }
     ];
-    if (sec.hasHighland) subRows.push({ sub: '小高地岗位', key: 'over' });
+    if (sec.hasHighland) subRows.push({ sub: '小高地岗位', key: 'highland' });
     var nRows = 2 + subRows.length;
     h += '<table class="summary-sec-table" style="width:100%;margin-bottom:12px;"><tbody>';
     h += '<tr><td class="sec-title" rowspan="' + nRows + '">' + sec.title + '</td>';

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小高地学校/成员标记 — 方案示意图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#F1F5F9;color:#1E293B;padding:40px;line-height:1.7}
+h1{text-align:center;font-size:22px;margin-bottom:6px}
+.subtitle{text-align:center;color:#64748B;font-size:13px;margin-bottom:32px}
+.section{max-width:1050px;margin:0 auto 36px;background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:28px 32px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.section h2{font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.section h2 .num{display:inline-flex;width:26px;height:26px;border-radius:50%;background:#1E40AF;color:#fff;font-size:13px;align-items:center;justify-content:center}
+
+/* ===== data flow diagram ===== */
+.flow-cols{display:flex;gap:20px;align-items:stretch}
+.flow-card{flex:1;border:2px solid #E2E8F0;border-radius:10px;padding:20px;position:relative}
+.flow-card h4{font-size:14px;margin-bottom:12px;text-align:center}
+.flow-card .ctx{font-size:11px;color:#94A3B8;text-align:center;margin-bottom:10px}
+.flow-card .tag-demo{display:inline-block;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
+.tag-yes{background:#D1FAE5;color:#065F46;border:2px solid #6EE7B7}
+.tag-no{background:#FEE2E2;color:#991B1B;border:2px solid #FECACA}
+.flow-arrow{position:absolute;right:-24px;top:50%;font-size:28px;color:#94A3B8;transform:translateY(-50%);z-index:1}
+.flow-card:last-child .flow-arrow{display:none}
+
+/* ===== before/after ===== */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.compare>div{padding:20px;border-radius:10px}
+.compare .bad{background:#FEF2F2;border:2px solid #FECACA}
+.compare .good{background:#F0FDF4;border:2px solid #BBF7D0}
+.compare h4{font-size:14px;margin-bottom:12px}
+.compare .bad h4{color:#991B1B}
+.compare .good h4{color:#166534}
+
+/* ===== table ===== */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#F8FAFC;padding:7px 8px;text-align:center;font-weight:600;font-size:11px;color:#64748B;border-bottom:2px solid #E2E8F0}
+td{padding:6px 8px;border-bottom:1px solid #E2E8F0;text-align:center}
+.highlight-row td{background:#F0FDF4;font-weight:500}
+.highlight-cell{background:#D1FAE5!important;color:#065F46;font-weight:700}
+.zero{color:#CBD5E1}
+.caption{font-size:10px;color:#94A3B8;text-align:center;margin-top:6px}
+.hl-new{background:#D1FAE5;color:#065F46;font-weight:600;padding:1px 5px;border-radius:3px;font-size:11px}
+
+/* ===== mock modal ===== */
+.mock-modal{border:2px solid #E2E8F0;border-radius:10px;overflow:hidden;max-width:500px;margin:0 auto}
+.mock-modal .mm-head{padding:10px 16px;background:#F8FAFC;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0}
+.mock-modal .mm-body{padding:16px}
+.mock-modal .mm-row{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:13px}
+.mock-modal .mm-row label{width:100px;font-size:12px;color:#64748B;text-align:right;flex-shrink:0}
+.mock-modal .mm-row .switch{position:relative;width:44px;height:24px}
+.mock-modal .mm-row .switch input{display:none}
+.mock-modal .mm-row .switch .slider{position:absolute;inset:0;background:#CBD5E1;border-radius:12px;cursor:pointer;transition:.2s}
+.mock-modal .mm-row .switch .slider::after{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.mock-modal .mm-row .switch input:checked+.slider{background:#10B981}
+.mock-modal .mm-row .switch input:checked+.slider::after{transform:translateX(20px)}
+
+/* ===== summary table ===== */
+.summary-table{overflow-x:auto}
+.summary-table table{min-width:700px;font-size:11px}
+.summary-table .sec-title{background:#F8FAFC;font-weight:700;font-size:13px;text-align:center;width:60px}
+.summary-table .row-label{text-align:left;font-weight:500;font-size:11px;color:#64748B}
+
+.card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.info-card{border:1px solid #E2E8F0;border-radius:8px;padding:16px}
+.info-card h5{font-size:13px;margin-bottom:8px}
+.info-card p,.info-card li{font-size:12px;color:#475569;line-height:1.8}
+.info-card ul{padding-left:18px}
+</style>
+</head>
+<body>
+
+<h1>🏔️ 小高地学校 / 小高地成员 标记方案</h1>
+<p class="subtitle">机构管理 + 账号管理 → 岗位聘用汇总表 · 示意图 · 2026-07-16</p>
+
+<!-- ===== 1. 数据流 ===== -->
+<div class="section">
+  <h2><span class="num">1</span> 数据流概览</h2>
+  <div class="flow-cols">
+    <div class="flow-card">
+      <div class="flow-arrow">→</div>
+      <h4>🏫 Step 1 · 机构管理</h4>
+      <div class="ctx">org-management.html</div>
+      <div style="text-align:center;padding:8px 0">给学校打标</div>
+      <div style="text-align:center">
+        <span class="tag-demo tag-yes">🏔️ 小高地学校</span>
+        &nbsp;或&nbsp;
+        <span class="tag-demo tag-no">非小高地学校</span>
+      </div>
+    </div>
+    <div class="flow-card">
+      <div class="flow-arrow">→</div>
+      <h4>👤 Step 2 · 账号管理</h4>
+      <div class="ctx">account-management.html</div>
+      <div style="text-align:center;padding:8px 0">给教师打标</div>
+      <div style="text-align:center">
+        <span class="tag-demo tag-yes">🏔️ 小高地成员</span>
+        &nbsp;或&nbsp;
+        <span class="tag-demo tag-no">非小高地成员</span>
+      </div>
+    </div>
+    <div class="flow-card">
+      <h4>📊 Step 3 · 聘用汇总表</h4>
+      <div class="ctx">promote-audit-* / post-audit-*</div>
+      <div style="text-align:center;padding:8px 0">自动归类统计</div>
+      <div style="text-align:center;font-size:12px;color:#64748B">
+        小高地成员 → 计入<br>
+        <b style="color:#065F46">专技 → 对应等级 → 小高地岗位</b><br>
+        非成员 → 计入普通编制列
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 2. 两个标记位 ===== -->
+<div class="section">
+  <h2><span class="num">2</span> 两处标记位（新增字段示意）</h2>
+
+  <div class="card-grid">
+    <div class="info-card">
+      <h5>🏫 机构管理 — 学校编辑弹框</h5>
+      <p>新增字段：<span class="hl-new">是否小高地学校</span></p>
+      <div class="mock-modal" style="margin-top:12px">
+        <div class="mm-head">编辑学校 — 柳州市第八中学</div>
+        <div class="mm-body">
+          <div class="mm-row"><label>学校名称</label><span>柳州市第八中学</span></div>
+          <div class="mm-row"><label>所属区县</label><span>鱼峰区</span></div>
+          <div class="mm-row"><label>学校类型</label><span>初中</span></div>
+          <div class="mm-row" style="background:#F0FDF4;padding:8px;border-radius:6px;margin:4px 0">
+            <label style="color:#065F46">是否小高地学校 ✨</label>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+            <span style="font-size:12px;color:#065F46;font-weight:600">是</span>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#94A3B8;margin-top:8px">数据存储：schools 数组中增加 <code>isHighlandSchool: true/false</code></p>
+    </div>
+
+    <div class="info-card">
+      <h5>👤 账号管理 — 教师编辑弹框</h5>
+      <p>新增字段：<span class="hl-new">是否小高地成员</span></p>
+      <div class="mock-modal" style="margin-top:12px">
+        <div class="mm-head">编辑教师 — 张美华</div>
+        <div class="mm-body">
+          <div class="mm-row"><label>姓名</label><span>张美华</span></div>
+          <div class="mm-row"><label>所属学校</label><span>柳州市第八中学</span></div>
+          <div class="mm-row"><label>岗位等级</label><span>专技七级</span></div>
+          <div class="mm-row" style="background:#F0FDF4;padding:8px;border-radius:6px;margin:4px 0">
+            <label style="color:#065F46">是否小高地成员 ✨</label>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+            <span style="font-size:12px;color:#065F46;font-weight:600">是</span>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#94A3B8;margin-top:8px">数据存储：teacher/account 对象中增加 <code>isHighlandMember: true/false</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 3. 汇总表变化 ===== -->
+<div class="section">
+  <h2><span class="num">3</span> 岗位聘用汇总表 — 变更前后对比（专技部分）</h2>
+
+  <div class="compare">
+    <div class="bad">
+      <h4>❌ 当前：小高地岗位行数据为空</h4>
+      <p style="font-size:12px;color:#991B1B;margin-bottom:12px">小高地行虽然存在，但无数据来源（POS_EMPLOYED_DATA 中 over 字段全为 0）</p>
+      <div class="summary-table">
+        <table>
+          <thead>
+            <tr><th rowspan="2" style="width:54px">专技</th><th></th><th>四级</th><th>五级</th><th>六级</th><th>七级</th><th>八级</th><th>九级</th><th>十级</th><th>十一级</th><th>十二级</th><th>十三级</th></tr>
+          </thead>
+          <tbody>
+            <tr><td></td><td class="row-label">核准岗位数</td><td>2</td><td>4</td><td>8</td><td>8</td><td>20</td><td>35</td><td>25</td><td>40</td><td>40</td><td>33</td></tr>
+            <tr><td></td><td class="row-label">实名编</td><td>1</td><td>3</td><td>6</td><td>7</td><td>16</td><td>28</td><td>20</td><td>32</td><td>30</td><td>25</td></tr>
+            <tr><td></td><td class="row-label">控制数</td><td>0</td><td>0</td><td>1</td><td>1</td><td>3</td><td>5</td><td>4</td><td>5</td><td>5</td><td>4</td></tr>
+            <tr><td></td><td class="row-label">超岗聘用数</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr style="background:#FFF7ED"><td></td><td class="row-label" style="color:#92400E">小高地岗位</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td><td class="zero">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">小高地行全空，无法区分哪些教师属于小高地成员</p>
+    </div>
+
+    <div class="good">
+      <h4>✅ 方案：小高地成员自动归类统计</h4>
+      <p style="font-size:12px;color:#166534;margin-bottom:12px">标记为小高地成员的教师，其聘用数据自动计入对应等级的小高地岗位行</p>
+      <div class="summary-table">
+        <table>
+          <thead>
+            <tr><th rowspan="2" style="width:54px">专技</th><th></th><th>四级</th><th>五级</th><th>六级</th><th>七级</th><th>八级</th><th>九级</th><th>十级</th><th>十一级</th><th>十二级</th><th>十三级</th></tr>
+          </thead>
+          <tbody>
+            <tr><td></td><td class="row-label">核准岗位数</td><td>2</td><td>4</td><td>8</td><td>8</td><td>20</td><td>35</td><td>25</td><td>40</td><td>40</td><td>33</td></tr>
+            <tr><td></td><td class="row-label">实名编</td><td>1</td><td>3</td><td>6</td><td>7</td><td>16</td><td>28</td><td>20</td><td>32</td><td>30</td><td>25</td></tr>
+            <tr><td></td><td class="row-label">控制数</td><td>0</td><td>0</td><td>1</td><td>1</td><td>3</td><td>5</td><td>4</td><td>5</td><td>5</td><td>4</td></tr>
+            <tr><td></td><td class="row-label">超岗聘用数</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr style="background:#F0FDF4">
+              <td></td><td class="row-label" style="color:#065F46;font-weight:700">小高地岗位</td>
+              <td>0</td><td class="highlight-cell">1</td><td class="highlight-cell">2</td><td class="highlight-cell">1</td>
+              <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption" style="color:#166534">示例：专技五级 1 人 + 六级 2 人 + 七级 1 人为小高地成员，已自动归入小高地行</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 4. 统计逻辑 ===== -->
+<div class="section">
+  <h2><span class="num">4</span> 统计逻辑</h2>
+
+  <div class="card-grid">
+    <div class="info-card">
+      <h5>📐 计数规则</h5>
+      <ul>
+        <li>遍历学校所有教师账号</li>
+        <li><b>isHighlandMember === true</b> 的教师 → 按岗位等级计入 <b>小高地岗位</b> 行</li>
+        <li><b>isHighlandMember === false</b> 的教师 → 按岗位等级 + 编制类型计入实名编/控制数行</li>
+        <li>小高地成员数 <b>不重复计入</b> 实名编/控制数行（人数不翻倍）</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h5>📋 示例数据解读</h5>
+      <p style="margin-bottom:6px">柳州市第八中学 专技七级 共 <b>8 人</b>：</p>
+      <table style="font-size:11px">
+        <tr><th style="text-align:left">教师</th><th>编制</th><th>小高地成员</th><th>计入行</th></tr>
+        <tr><td style="text-align:left">张美华</td><td>实名编</td><td style="color:#059669">是</td><td style="color:#059669">小高地岗位</td></tr>
+        <tr><td style="text-align:left">刘×6人</td><td>实名编</td><td>否</td><td>实名编</td></tr>
+        <tr><td style="text-align:left">王×1人</td><td>控制数</td><td>否</td><td>控制数</td></tr>
+        <tr style="background:#F8FAFC"><td style="text-align:left" colspan="2"><b>合计核实</b></td><td></td><td>实名编 6+1(小高地) + 控制数 1 = 8 ✓</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 5. 涉及页面 ===== -->
+<div class="section">
+  <h2><span class="num">5</span> 涉及页面与改动点</h2>
+  <table>
+    <thead><tr><th>#</th><th>页面</th><th>改动点</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>org-management.html</b></td><td>学校编辑弹框新增「是否小高地学校」开关；列表增加小高地标签列</td></tr>
+      <tr><td>2</td><td><b>account-management.html</b></td><td>教师编辑弹框新增「是否小高地成员」开关；列表增加筛选</td></tr>
+      <tr><td>3</td><td><b>promote-audit-third.html</b></td><td>岗位聘用汇总表 小高地行 → 根据成员标记实时统计。当前已有该行但无数据源</td></tr>
+      <tr><td>4</td><td><b>promote-audit-second.html</b></td><td>同上，同步小高地行统计逻辑</td></tr>
+      <tr><td>5</td><td><b>post-audit-first.html</b></td><td>岗位设置审核页汇总表同步</td></tr>
+      <tr><td>6</td><td><b>post-audit-second.html</b></td><td>岗位设置终审页汇总表同步</td></tr>
+      <tr><td>7</td><td><b>org-ledger-school.html</b></td><td>台账岗位结构表同步小高地统计</td></tr>
+      <tr><td>8</td><td><b>org-ledger-detail.html</b></td><td>台账详情页同步</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== 6. 汇总 ===== -->
+<div class="section">
+  <h2><span class="num">6</span> 方案总结</h2>
+  <table>
+    <thead><tr><th>维度</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><b>新增字段</b></td><td>2 个布尔字段：学校级 <code>isHighlandSchool</code> + 教师级 <code>isHighlandMember</code></td></tr>
+      <tr><td><b>字段维护</b></td><td>机构管理 维护学校标记（市/区管理员）；账号管理 维护成员标记（市/区管理员）</td></tr>
+      <tr><td><b>统计规则</b></td><td><code>isHighlandMember = true</code> → 不计入实名编/控制数行 → 单独计入小高地行</td></tr>
+      <tr><td><b>影响范围</b></td><td>2 个新增字段 + 汇总表统计逻辑（已有小高地行结构，只需补数据源）</td></tr>
+      <tr><td><b>向后兼容</b></td><td>默认 <code>false</code>，未打标的学校和教师行为完全不变</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p style="text-align:center;color:#94A3B8;font-size:11px;margin-top:24px">柳州教育人事管理平台 · 小高地标记方案示意图 · 2026-07-16 · 状态：待确认 · 未改动原型代码</p>
+
+</body>
+</html>
