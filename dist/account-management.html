@@ -736,8 +736,8 @@ function loadAccounts() {
       // 合同制 demo 账号（编外教师）
       { accountId: 'TEA20260701001', roles: ['teacher'], name: '徐小曼', idCard: '450201199608150009', phone: '', staffingType: '合同制', school: '柳州市第八中学', entryRecordId: 'CE20260701001', status: 'active', entryMethod: '单位自主实施招聘', contractStart: '2026-07-01', contractEnd: '2029-06-30', initialPassword: 'Edu@19960009', password: 'Edu@19960009', firstLogin: false, createdAt: '2026-07-01T09:00:00', updatedAt: '2026-07-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['CE20260701001'] },
       // 小高地成员 demo 账号
-      { accountId: 'TEA20260701002', roles: ['teacher'], name: '张美华', idCard: '450203197105152345', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260701002', status: 'active', entryMethod: '统一公开招聘', isHighlandMember: true, highlandPostLevel: '7', initialPassword: 'Edu@19712345', password: 'Edu@19712345', firstLogin: false, createdAt: '2026-07-10T09:20:00', updatedAt: '2026-07-10 09:20:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260701002'] },
-      { accountId: 'TEA20260701003', roles: ['teacher'], name: '刘国强', idCard: '450203196603202345', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260701003', status: 'active', entryMethod: '统一公开招聘', isHighlandMember: true, highlandPostLevel: '5', initialPassword: 'Edu@19662345', password: 'Edu@19662345', firstLogin: false, createdAt: '2026-07-05T10:30:00', updatedAt: '2026-07-05 10:30:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260701003'] }
+      { accountId: 'TEA20260701002', roles: ['teacher'], name: '张美华', idCard: '450203197105152345', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260701002', status: 'active', entryMethod: '统一公开招聘', isHighlandMember: true, postLevel: '专技七级', assignPosition: '语文教师', initialPassword: 'Edu@19712345', password: 'Edu@19712345', firstLogin: false, createdAt: '2026-07-10T09:20:00', updatedAt: '2026-07-10 09:20:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260701002'] },
+      { accountId: 'TEA20260701003', roles: ['teacher'], name: '刘国强', idCard: '450203196603202345', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260701003', status: 'active', entryMethod: '统一公开招聘', isHighlandMember: true, postLevel: '专技五级', assignPosition: '数学教师', initialPassword: 'Edu@19662345', password: 'Edu@19662345', firstLogin: false, createdAt: '2026-07-05T10:30:00', updatedAt: '2026-07-05 10:30:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260701003'] }
     ];
     localStorage.setItem('teacher_accounts', JSON.stringify(stored));
   }
@@ -1747,8 +1747,7 @@ function editAccount(accountId) {
     '<div class="form-group"><label>岗位等级</label><select id="editPostLevel"><option value="">—</option></select></div>' +
     '<div class="form-group"><label>岗位名称</label><input id="editAssignPosition" value="" placeholder="如：语文教师"></div>' +
     '<div class="form-group"><label>任职时间</label><input type="month" id="editAppointTime" value=""></div>' +
-    '<div class="form-group"><label>是否小高地成员</label><label class="switch" style="margin-top:4px"><input type="checkbox" id="fHighlandMember" onchange="document.getElementById(\'fgHighlandLevel\').style.display=this.checked?\'\':\'none\'"><span class="slider"></span></label><span style="font-size:11px;color:var(--text-light);margin-top:2px">若选择是，该教师在岗位聘用汇总表中将被统计到小高地岗位行</span></div>' +
-    '<div class="form-group" id="fgHighlandLevel" style="display:none"><label>小高地对应岗位等级</label><select id="fHighlandPostLevel"><option value="">请选择</option><option value="4">专技四级</option><option value="5">专技五级</option><option value="6">专技六级</option><option value="7">专技七级</option><option value="8">专技八级</option><option value="9">专技九级</option><option value="10">专技十级</option><option value="11">专技十一级</option><option value="12">专技十二级</option><option value="13">专技十三级</option></select></div>' +
+    '<div class="form-group" id="fgHighlandMember"><label>是否小高地成员</label><label class="switch" style="margin-top:4px"><input type="checkbox" id="fHighlandMember"><span class="slider"></span></label></div>' +
     (a.staffingType === '合同制' ? '<div class="form-group span-full"><label>合同期限</label><div style="font-size:12px;font-weight:500;padding:4px 0;color:var(--text-secondary);">' + (a.contractStart || '—') + ' ~ ' + (a.contractEnd || '—') + ' <span style="font-size:9px;color:var(--text-light);">（只读，变更请走续聘审批）</span></div></div>' : '') +
     '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;">联动：岗位类别改变时，岗位等级选项随之级联更新</div></fieldset>' +
 
@@ -1822,10 +1821,8 @@ function editAccount(accountId) {
     // Set isHighlandMember checkbox
     var hmEl = document.getElementById('fHighlandMember');
     if (hmEl) { hmEl.checked = a.isHighlandMember === true; }
-    var hlEl = document.getElementById('fHighlandPostLevel');
-    if (hlEl) { hlEl.value = a.highlandPostLevel || ''; }
-    var fgHl = document.getElementById('fgHighlandLevel');
-    if (fgHl) { fgHl.style.display = a.isHighlandMember ? '' : 'none'; }
+    var fgHm = document.getElementById('fgHighlandMember');
+    if (fgHm) { fgHm.style.display = (a.staffingType === '合同制') ? 'none' : ''; }
     // Trigger new field linkage
     onStaffingTypeChange_fill();
     // Cross-school fields — set values then trigger linkage
@@ -1960,6 +1957,9 @@ function onStaffingTypeChange_cross() {
   if (reqEm) {
     reqEm.innerHTML = showEntryMethod ? ' <span style="color:var(--danger);">*</span>' : '';
   }
+  // Hide 小高地成员 for 合同制
+  var fgHm = document.getElementById('fgHighlandMember');
+  if (fgHm) { fgHm.style.display = (stVal === '合同制') ? 'none' : ''; }
   // Trigger fill fields linkage
   onStaffingTypeChange_fill();
 }
@@ -2129,8 +2129,6 @@ function saveAccount(accountId) {
       // Save isHighlandMember
       var hmCb = document.getElementById('fHighlandMember');
       accounts[j].isHighlandMember = hmCb ? hmCb.checked : false;
-      var hlSel = document.getElementById('fHighlandPostLevel');
-      accounts[j].highlandPostLevel = hmCb && hmCb.checked && hlSel ? hlSel.value : '';
       var now = new Date();
       accounts[j].updatedAt = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
       break;
