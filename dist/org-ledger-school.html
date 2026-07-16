@@ -265,7 +265,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .bf-table td { padding: 4px 5px; border-bottom: 1px solid var(--border); text-align: center; }
 .bf-table td:first-child { text-align: left; padding-left: 8px; font-size: 11px; white-space: nowrap; }
 .bf-table input { width: 52px; padding: 3px 4px; font-size: 11px; border: 1px solid var(--border); border-radius: 4px; text-align: center; font-family: inherit; }
-.bf-table input.bf-edu, .bf-table input.bf-req { width: 110px; text-align: left; }
+.bf-table input.bf-eduReq, .bf-table input.bf-cond { width: 130px; text-align: left; }
 .bf-table input:focus { outline: none; border-color: var(--accent); }
 .bf-table .bf-unused { font-weight: 500; font-size: 11px; }
 .bf-sum-row { font-weight: 600; background: var(--gray-bg); }
@@ -1971,15 +1971,15 @@ function openPlanViewModal(track, planId) {
   if (ut) {
     h += '<h4 style="font-size:12px;color:var(--text-secondary);margin:12px 0 6px">使用类型分布</h4>';
     h += '<table style="width:100%;font-size:11px;border-collapse:collapse"><thead><tr style="background:var(--bg)">';
-    h += '<th style="padding:5px 8px;text-align:left">使用类型</th><th style="padding:5px 8px;text-align:left">学历</th><th style="padding:5px 8px;text-align:left">专业/从业资格条件</th><th style="padding:5px 8px">批复</th><th style="padding:5px 8px">已占用</th><th style="padding:5px 8px">已入编</th><th style="padding:5px 8px">未使用</th></tr></thead><tbody>';
+    h += '<th style="padding:5px 8px;text-align:left">使用类型</th><th style="padding:5px 8px;text-align:left">学历、专业（大类）、从业资格等</th><th style="padding:5px 8px;text-align:left">相关条件</th><th style="padding:5px 8px">批复</th><th style="padding:5px 8px">已占用</th><th style="padding:5px 8px">已入编</th><th style="padding:5px 8px">未使用</th></tr></thead><tbody>';
     for (var ti = 0; ti < BF_USE_TYPES.length; ti++) {
       var tk = BF_USE_TYPES[ti].key;
       var tr = ut[tk] || {};
       var tu = (tr.unused || 0) || ((tr.approved||0) - (tr.occupied||0) - (tr.enrolled||0));
       h += '<tr>';
       h += '<td style="padding:4px 8px">' + BF_USE_TYPES[ti].idx + ' ' + BF_USE_TYPES[ti].label + '</td>';
-      h += '<td style="padding:4px 8px">' + escapeHtml(tr.education || '—') + '</td>';
-      h += '<td style="padding:4px 8px">' + escapeHtml(tr.requirement || '—') + '</td>';
+      h += '<td style="padding:4px 8px">' + escapeHtml(tr.eduRequirement || '—') + '</td>';
+      h += '<td style="padding:4px 8px">' + escapeHtml(tr.conditions || '—') + '</td>';
       h += '<td style="padding:4px 8px;text-align:center">' + (tr.approved || 0) + '</td>';
       h += '<td style="padding:4px 8px;text-align:center">' + (tr.occupied || 0 || '—') + '</td>';
       h += '<td style="padding:4px 8px;text-align:center">' + (tr.enrolled || 0) + '</td>';
@@ -3470,8 +3470,8 @@ function renderBackfillUseTypes(prefillPlan, lockEnrolled) {
   var h = '<div class="bf-table-wrap">';
   h += '<table class="bf-table"><thead><tr>';
   h += '<th>使用类型</th>';
-  h += '<th>学历<span class="bf-tip-icon" onclick="showBfTooltip(event,\'education\')">ⓘ</span></th>';
-  h += '<th>专业（大类）/从业资格等条件<span class="bf-tip-icon" onclick="showBfTooltip(event,\'requirement\')">ⓘ</span></th>';
+  h += '<th>学历、专业（大类）、从业资格等<span class="bf-tip-icon" onclick="showBfTooltip(event,\'eduRequirement\')">ⓘ</span></th>';
+  h += '<th>相关条件<span class="bf-tip-icon" onclick="showBfTooltip(event,\'conditions\')">ⓘ</span></th>';
   h += '<th>批复<span class="bf-tip-icon" onclick="showBfTooltip(event,\'approved\')">ⓘ</span></th>';
   h += '<th>已占用<span class="bf-tip-icon" onclick="showBfTooltip(event,\'occupied\')">ⓘ</span></th>';
   h += '<th>已入编<span class="bf-tip-icon" onclick="showBfTooltip(event,\'enrolled\')">ⓘ</span></th>';
@@ -3483,8 +3483,8 @@ function renderBackfillUseTypes(prefillPlan, lockEnrolled) {
     var pf = prefillPlan && prefillPlan.useTypes ? (prefillPlan.useTypes[t.key] || {}) : {};
     h += '<tr>';
     h += '<td>' + t.idx + ' ' + t.label + '</td>';
-    h += '<td><input type="text" class="bf-edu" data-key="' + t.key + '" value="' + escapeHtml(pf.education || '') + '" placeholder="如：本科及以上"></td>';
-    h += '<td><input type="text" class="bf-req" data-key="' + t.key + '" value="' + escapeHtml(pf.requirement || '') + '" placeholder="如：数学类，高中教师资格证"></td>';
+    h += '<td><input type="text" class="bf-eduReq" data-key="' + t.key + '" value="' + escapeHtml(pf.eduRequirement || '') + '" placeholder="如：本科及以上，数学类，高中教师资格证"></td>';
+    h += '<td><input type="text" class="bf-cond" data-key="' + t.key + '" value="' + escapeHtml(pf.conditions || '') + '" placeholder="如：35周岁以下，2年教学经验"></td>';
     h += '<td><input type="number" class="bf-apv" data-key="' + t.key + '" min="0" value="' + (pf.approved || 0) + '" oninput="updateBfSums()"></td>';
     h += '<td><input type="number" class="bf-occ" data-key="' + t.key + '" min="0" value="' + (pf.occupied || 0) + '" oninput="updateBfSums()"></td>';
     h += '<td><input type="number" class="bf-enr" data-key="' + t.key + '" min="0" value="' + (pf.enrolled || 0) + '" oninput="updateBfSums()"' + (lockEnrolled && (pf.enrolled || 0) > 0 ? ' readonly style="background:#F1F5F9;color:var(--text-secondary);cursor:not-allowed" title="已有入编记录，不可修改"' : '') + '></td>';
@@ -3529,8 +3529,8 @@ function updateBfSums() {
 
 // ⓘ tooltip popup
 var BF_TOOLTIPS = {
-  education: { title:'学历要求', body:'该使用类型岗位的最低学历要求。<br><br>📋 举例：统一公开招聘中通常要求"本科及以上"，中高级人才招聘可能要求"硕士及以上"，引进高层次人才可能要求"博士"。<br><br>可不填，表示暂不限定学历。' },
-  requirement: { title:'专业/从业资格条件', body:'该使用类型岗位的专业大类、从业资格证等要求。<br><br>📋 举例：<br>• "数学类，高中教师资格证"<br>• "计算机科学与技术类，不限教师资格证"<br>• "汉语言文字学，高校教师资格证"<br><br>可不填，表示暂不限定条件。' },
+  eduRequirement: { title:'学历、专业（大类）、从业资格等', body:'该使用类型岗位的学历、专业大类及从业资格要求。<br><br>📋 举例：<br>• "本科及以上，数学类，高中教师资格证"<br>• "硕士及以上，计算机科学与技术类，不限教师资格证"<br>• "博士，汉语言文字学，高校教师资格证"<br><br>可不填，表示暂不限定。' },
+  conditions: { title:'相关条件', body:'该使用类型岗位的其他相关条件要求。<br><br>📋 举例：<br>• "35周岁以下"<br>• "具有2年以上相关教学经验"<br>• "中共党员优先"<br>• "需通过普通话二级甲等"<br><br>可不填，表示无额外条件。' },
   approved:  { title:'批复人数', body:'编办批复文件中批准的计划使用人数。<br><br>📋 举例：批复文件写"同意使用事业编制 5 名"→ 填 5。<br><br>规则：每行 ≥ 0，六行合计必须 > 0。' },
   occupied:  { title:'已占用人数', body:'已提交招聘申请或已定人选，但尚未完成入编手续的人数。含招聘途中和推迟办理的情况。名额已被"预订"，不能再给别人用。<br><br>📋 举例：批复 3 人，其中 1 人还在招聘/推迟中 → 填 1。<br><br>规则：0 ≤ 占用 ≤ 批复。' },
   enrolled:  { title:'已入编人数', body:'已通过线下入编流程、正式纳入编制名册的人数。这是已发生的确定历史数据。<br><br>📋 举例：批复 3 人，其中 2 人已完成入编 → 填 2。<br><br>规则：0 ≤ 入编 ≤ 批复 − 占用。' },
@@ -3614,8 +3614,8 @@ function confirmBackfill() {
   for (var i = 0; i < BF_USE_TYPES.length; i++) {
     var key = BF_USE_TYPES[i].key;
     useTypes[key] = {
-      education: (document.querySelector('.bf-edu[data-key="' + key + '"]').value || '').trim(),
-      requirement: (document.querySelector('.bf-req[data-key="' + key + '"]').value || '').trim(),
+      eduRequirement: (document.querySelector('.bf-eduReq[data-key="' + key + '"]').value || '').trim(),
+      conditions: (document.querySelector('.bf-cond[data-key="' + key + '"]').value || '').trim(),
       approved: parseInt(document.querySelector('.bf-apv[data-key="' + key + '"]').value) || 0,
       occupied: parseInt(document.querySelector('.bf-occ[data-key="' + key + '"]').value) || 0,
       enrolled: parseInt(document.querySelector('.bf-enr[data-key="' + key + '"]').value) || 0,
