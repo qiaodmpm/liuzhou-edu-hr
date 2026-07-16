@@ -1798,7 +1798,7 @@ function renderPlanTableHTML(track, plans, editable) {
     var toggleId = 'expired-toggle-' + track;
     h += '<tr class="plan-expired-toggle" onclick="toggleExpiredPlans(\'' + toggleId + '\',this)" style="cursor:pointer;background:var(--gray-bg)">';
     h += '<td colspan="' + (editable ? 9 : 8) + '" style="text-align:center;padding:8px;font-size:11px;color:var(--text-secondary)">';
-    h += '🔒 <span id="' + toggleId + '-label">含已到期 ' + expiredPlans.length + ' 条 ▸</span>';
+    h += '🔒 <span id="' + toggleId + '-label">含已过期/有占用 ' + expiredPlans.length + ' 条 ▸</span>';
     h += '</td></tr>';
 
     // Expired rows (hidden by default)
@@ -1872,7 +1872,8 @@ function renderPlanDetailBody(track) {
   // Split
   var activePlans = [], expiredPlans = [];
   for (var i = 0; i < filtered.length; i++) {
-    if (LPU.computePlanStatus(filtered[i]) === 'expired') {
+    var st = LPU.computePlanStatus(filtered[i]);
+    if (st === 'expired' || st === 'expiring_occupied') {
       expiredPlans.push(filtered[i]);
     } else {
       activePlans.push(filtered[i]);
@@ -1955,7 +1956,7 @@ function renderPlanDetailBody(track) {
       var toggleId = 'expired-toggle-detail-' + track;
       h += '<tr class="plan-expired-toggle" onclick="toggleExpiredPlans(\'' + toggleId + '\',this)" style="cursor:pointer;background:var(--gray-bg)">';
       h += '<td colspan="' + colSpan + '" style="text-align:center;padding:8px;font-size:11px;color:var(--text-secondary)">';
-      h += '🔒 <span id="' + toggleId + '-label">含已到期 ' + expiredPlans.length + ' 条 ▸</span>';
+      h += '🔒 <span id="' + toggleId + '-label">含已过期/有占用 ' + expiredPlans.length + ' 条 ▸</span>';
       h += '</td></tr>';
       h += '<tbody id="' + toggleId + '" style="display:none">';
       h += '<tr><td colspan="' + colSpan + '" style="padding:4px 8px;font-size:10px;color:var(--text-light);background:#FEF2F2">🔒 已到期计划，未使用名额不计入上方统计</td></tr>';
