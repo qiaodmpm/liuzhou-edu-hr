@@ -773,21 +773,30 @@ var TYPE_CONFIG = {
 function renderSidebar() {
   renderSidebarMenu('sidebarMenu', currentRole, 'staffing');
 }
+function updateUserInfo() {
+  var roleData = ROLES[currentRole]; if (!roleData) return;
+  var n = document.querySelector('.topnav-user span'); if (n) n.textContent = roleData.name;
+  var a = document.querySelector('.topnav-user .avatar'); if (a) a.textContent = roleData.short;
+}
 function sidebarClick(el, id) {
   if (arguments.length === 1) { id = el; el = null; }
+  if (id === 'staffing') { return; }
   if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
-  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
   if (id === 'entry') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
   if (id === 'exit') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
-  if (id === 'promote') { window.location.href = 'promote-list-school.html'; return; }
   if (id === 'postset') { window.location.href = 'post-list-school.html'; return; }
+  if (id === 'promote') { window.location.href = 'promote-list-school.html'; return; }
   if (id === 'recruit') { window.location.href = 'recruit-list-school.html'; return; }
-  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
-
-
-  if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
+  if (id === 'employ') { window.location.href = 'employ-list-school.html'; return; }
+  if (id === 'contract-entry') { window.location.href = 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { window.location.href = 'contract-exit-list-school.html'; return; }
+  if (id === 'retire') { window.location.href = 'retire-list-school.html'; return; }
+  if (id === 'ethics') { showToast('师德师风举报页面开发中', 'warning'); return; }
+  if (id === 'account') { window.location.href = 'account-management.html'; return; }
+  if (id === 'org') { window.location.href = 'org-management.html'; return; }
   if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
-  showToast('跳转至：' + (el.textContent || id));
+  showToast('跳转至：' + (el ? el.textContent : id), 'warning');
 }
 
 // ===== ROLE SWITCH =====
