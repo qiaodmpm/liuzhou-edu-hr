@@ -2014,9 +2014,25 @@ function openPlanViewModal(track, planId) {
   h += '<tr><td>未使用</td><td><strong>' + LPU.remainingCount(plan) + '</strong> 人</td></tr>';
   h += '<tr><td>有效期</td><td>' + (plan.validStart || '—') + ' ~ ' + (plan.validEnd || '—') + '</td></tr>';
   h += '<tr><td>状态</td><td><span class="plan-badge ' + (LPU.STATUS_CLASS[st]||'gray') + '">' + stLabel + '</span></td></tr>';
-  if (plan.notes) h += '<tr><td>备注</td><td>' + escapeHtml(plan.notes) + '</td></tr>';
-  if (plan.attachment && plan.attachment.name) {
-    h += '<tr><td>附件</td><td><a href="javascript:void(0)" onclick="downloadMockAttachment(\'' + escapeHtml(plan.id) + '\',\'' + escapeHtml(plan.attachment.name) + '\')" style="color:var(--accent)">📎 ' + escapeHtml(plan.attachment.name) + ' (' + formatFileSize(plan.attachment.size) + ')</a></td></tr>';
+  // 线上来源尝试从申报记录获取附件和备注
+  var showNotes = plan.notes || '', showAttach = plan.attachment;
+  if (plan.source === 'online' && (!showNotes || !showAttach)) {
+    try {
+      var subs = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+      for (var si = 0; si < subs.length; si++) {
+        if (subs[si].id === plan.sourceSubmissionId) {
+          if (!showNotes) showNotes = subs[si].notes || subs[si].remark || '';
+          if (!showAttach && subs[si].attachment) showAttach = subs[si].attachment;
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+  h += '<tr><td>备注</td><td>' + (showNotes ? escapeHtml(showNotes) : '—') + '</td></tr>';
+  if (showAttach && showAttach.name) {
+    h += '<tr><td>附件</td><td><a href="javascript:void(0)" onclick="downloadMockAttachment(\'' + escapeHtml(plan.id) + '\',\'' + escapeHtml(showAttach.name) + '\')" style="color:var(--accent)">📎 ' + escapeHtml(showAttach.name) + ' (' + formatFileSize(showAttach.size) + ')</a></td></tr>';
+  } else {
+    h += '<tr><td>附件</td><td style="color:var(--text-light)">—</td></tr>';
   }
   h += '</tbody></table>';
 
@@ -3057,7 +3073,9 @@ function backfillDemoPlans(allLedgers) {
       approvedCount: approved,
       usedCount: used,
       validStart: '2026-01-01', validEnd: validEnd || '2026-12-31',
-      useTypes: useTypes || null, createdBy: '系统', notes: ''
+      useTypes: useTypes || null, createdBy: '系统',
+      notes: '线上申报（' + batchId + '），通过编制使用申请流程审批生效',
+      attachment: { name: batchId + '_申报表.pdf', size: 245000 + Math.floor(Math.random() * 300000), type: 'application/pdf' }
     });
     return p;
   }
