@@ -350,11 +350,10 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
           </div>
           <div class="form-group" id="fgHighlandSchool">
             <label>是否小高地学校</label>
-            <label class="switch" style="margin-top:4px">
-              <input type="checkbox" id="fHighlandSchool" onchange="this.setAttribute('data-checked', this.checked ? '1' : '0')">
-              <span class="slider"></span>
-            </label>
-            <span style="font-size:11px;color:var(--text-light);margin-top:2px">若选择是，该学校的岗位聘用汇总表中将启用小高地岗位统计</span>
+            <select id="fHighlandSchool">
+              <option value="0">否</option>
+              <option value="1">是</option>
+            </select>
           </div>
           <div class="form-group span-full">
             <label>单位性质 <span class="required">*</span></label>
@@ -1105,7 +1104,7 @@ function openAddModal() {
 
   // Clear form
   var fields = ['fOrgName','fOrgShortName','fCreditCode','fAddress','fPhone','fPostcode'];
-  document.getElementById('fHighlandSchool').checked = false;
+  document.getElementById('fHighlandSchool').value = '0';
   for (var i = 0; i < fields.length; i++) { document.getElementById(fields[i]).value = ''; }
   document.getElementById('fOrgType').value = '学校';
   document.getElementById('fSchoolType').value = '初中';
@@ -1158,8 +1157,7 @@ function openEditModal(orgId) {
   document.getElementById('fAddress').value = o.address || '';
   document.getElementById('fPhone').value = o.phone || '';
   document.getElementById('fPostcode').value = o.postcode || '';
-  document.getElementById('fHighlandSchool').checked = o.isHighlandSchool === true;
-  document.getElementById('fHighlandSchool').setAttribute('data-checked', o.isHighlandSchool ? '1' : '0');
+  document.getElementById('fHighlandSchool').value = o.isHighlandSchool ? '1' : '0';
 
   populateDistrictSelect(o.district || '');
   // District admin: lock district field
@@ -1311,7 +1309,7 @@ function saveOrg() {
         orgDirectory[j].address = document.getElementById('fAddress').value.trim();
         orgDirectory[j].phone = document.getElementById('fPhone').value.trim();
         orgDirectory[j].postcode = document.getElementById('fPostcode').value.trim();
-        orgDirectory[j].isHighlandSchool = document.getElementById('fHighlandSchool').checked;
+        orgDirectory[j].isHighlandSchool = document.getElementById('fHighlandSchool').value === '1';
         orgDirectory[j].schoolAdminId = schoolAdminId;
         orgDirectory[j].schoolAdminName = schoolAdminName;
         orgDirectory[j].updatedAt = dateStr;
@@ -1365,7 +1363,7 @@ function saveOrg() {
       address: document.getElementById('fAddress').value.trim(),
       phone: document.getElementById('fPhone').value.trim(),
       postcode: document.getElementById('fPostcode').value.trim(),
-      isHighlandSchool: document.getElementById('fHighlandSchool').checked,
+      isHighlandSchool: document.getElementById('fHighlandSchool').value === '1',
       createdAt: dateStr,
       updatedAt: dateStr,
       reviewStatus: null
