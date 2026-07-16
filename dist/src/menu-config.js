@@ -62,7 +62,7 @@
     system: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'menuMgr', 'perm', 'log', 'announcement'],
     city: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'perm', 'log', 'announcement'],
     district: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'announcement'],
-    school: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'account', 'org', 'announcement'],
+    school: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'account', 'org', 'announcement'],
     teacher: []
   };
 

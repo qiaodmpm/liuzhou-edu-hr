@@ -112,6 +112,7 @@ function showToast(m,t){var e=document.createElement('div');e.className='toast '
 function toggleUserMenu(){document.getElementById('userDropdown').classList.toggle('show')}
 document.addEventListener('click',function(e){if(!e.target.closest('.topnav-user'))document.getElementById('userDropdown').classList.remove('show')})
 function loadRecords(){var s=localStorage.getItem('retire_records');try{return JSON.parse(s)||[]}catch(e){return[]}}
+function saveRecords(r){localStorage.setItem('retire_records',JSON.stringify(r))}
 function switchRole(role){if(role==='school'){window.location.href='retire-list-school.html';return}if(role==='city'||role==='district'){window.location.href='retire-list-admin.html?role='+role;return}}
 function updateRoleUI(){
   document.getElementById('userAvatar').textContent=currentRole==='city'?'张':currentRole==='district'?'李':'王';
@@ -121,8 +122,65 @@ function updateRoleUI(){
 function onSchoolSearch(){schoolFilter=(document.getElementById('schoolSearch').value||'').trim()||'all';renderList()}
 function scopeRecords(all){if(currentRole==='district')return all.filter(function(r){return r.district==='鱼峰区'});return all}
 function renderList(){
-  var records=scopeRecords(loadRecords());
-  if(records.length===0){var demos=[{id:'RT20260701001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'pending_first',submitTime:'2026-07-10 09:20',teacherName:'张美华',gender:'女',birthDate:'1971-05-15',retireDate:'2026-07-15',education:'本科',politics:'中共党员',workStart:'1991-09',teachYears:'35',personType:'03 事业单位专业技术人员'},{id:'RT20260703001',schoolName:'柳州高级中学',district:'市直属',status:'approved_first',submitTime:'2026-07-03 14:00',teacherName:'李明远',gender:'男',birthDate:'1966-08-10',retireDate:'2026-08-01',education:'硕士',politics:'中共党员',workStart:'1986-07',teachYears:'40',personType:'03 事业单位专业技术人员'},{id:'RT20260615001',schoolName:'鱼峰区实验小学',district:'鱼峰区',status:'rejected',submitTime:'2026-06-15 11:00',teacherName:'王秀英',gender:'女',birthDate:'1971-03-25',retireDate:'2026-07-01',education:'本科',politics:'群众',workStart:'1993-08',teachYears:'33',personType:'04 事业单位管理人员',rejectReason:'材料不齐全'},{id:'RT20260708001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'pending_second',submitTime:'2026-07-08 09:30',teacherName:'刘国强',gender:'男',birthDate:'1966-03-20',retireDate:'2026-07-01',education:'硕士',politics:'中共党员',workStart:'1988-07',teachYears:'38',personType:'03 事业单位专业技术人员'}];saveRecords(demos);records=scopeRecords(demos)}
+  var records=scopeRecords(loadRecords());var dataVersion=localStorage.getItem('retire_data_version')||'0';
+  if(records.length===0||dataVersion!=='2'){var demos=[
+      // Record from 柳州市第八中学
+      {id:'RT20260701001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'pending_first',submitTime:'2026-07-10 09:20',
+        teacherName:'张美华',gender:'女',birthDate:'1971-05-15',idCard:'450203197105152345',retireType:'正常',retireDate:'2026-07-15',
+        education:'本科',politics:'中共党员',nativeProvince:'广西',nativeCity:'柳州市',nativeDistrict:'城中区',
+        personType:'03 事业单位专业技术人员',post:'专技七级(事业) 227',salaryLevel:'32级（事业） 131',
+        postSalary:'2920',levelSalary:'1480',teachSubsidy:'440',
+        workStart:'1991-09-01',teachYears:'35',lastChangeTime:'2018-10-01',
+        retireRatio:'85',lifeSubsidy:'2350',extraRetire:'380',teachAllowance:'10',other:'120',
+        retirePersonType:'03 事业单位专业技术人员',retirePostSalary:'2920',retireLevelSalary:'1480',retireLastChange:'2018-10-01',retirePostLevel:'专技七级',
+        politicalIssue:'无',
+        resumeRows:[{start:'1991-09',end:'2005-08',org:'柳州市第八中学',position:'语文教师'},{start:'2005-09',end:'2026-07',org:'柳州市第八中学',position:'语文教研组长'}],
+        spouseRows:[{name:'李建国',gender:'男',birthDate:'1969-03-12',relation:'配偶',dept:'柳州市人民医院 医生'},{name:'李思怡',gender:'女',birthDate:'1997-08-20',relation:'长女',dept:'深圳腾讯科技有限公司 工程师'}]
+      },
+      // Record from 柳州高级中学 (市直属)
+      {id:'RT20260703001',schoolName:'柳州高级中学',district:'市直属',status:'approved_first',submitTime:'2026-07-03 14:00',
+        teacherName:'李明远',gender:'男',birthDate:'1966-08-10',idCard:'450203196608101234',retireType:'正常',retireDate:'2026-08-01',
+        education:'硕士',politics:'中共党员',nativeProvince:'广西',nativeCity:'北海市',nativeDistrict:'海城区',
+        personType:'03 事业单位专业技术人员',post:'专技四级(事业) 224',salaryLevel:'42级（事业） 141',
+        postSalary:'4270',levelSalary:'2160',teachSubsidy:'643',
+        workStart:'1986-07-01',teachYears:'40',lastChangeTime:'2012-03-01',
+        retireRatio:'90',lifeSubsidy:'3100',extraRetire:'480',teachAllowance:'10',other:'160',
+        retirePersonType:'03 事业单位专业技术人员',retirePostSalary:'4270',retireLevelSalary:'2160',retireLastChange:'2012-03-01',retirePostLevel:'专技四级',
+        politicalIssue:'无',
+        resumeRows:[{start:'1986-07',end:'2002-08',org:'柳州高级中学',position:'物理教师'},{start:'2002-09',end:'2026-08',org:'柳州高级中学',position:'物理教研组组长'}],
+        spouseRows:[{name:'张丽芳',gender:'女',birthDate:'1967-12-20',relation:'配偶',dept:'柳州市教育局 调研员'}],
+        firstReviewer:'张建国',firstReviewTime:'2026-07-04 10:00',firstOpinion:'材料齐全，符合退休条件，同意'
+      },
+      // Record from 鱼峰区实验小学
+      {id:'RT20260615001',schoolName:'鱼峰区实验小学',district:'鱼峰区',status:'rejected',submitTime:'2026-06-15 11:00',
+        teacherName:'黄丽华',gender:'女',birthDate:'1971-06-05',idCard:'450203197106052345',retireType:'提前',retireDate:'2026-07-01',
+        education:'本科',politics:'群众',nativeProvince:'广西',nativeCity:'柳州市',nativeDistrict:'柳南区',
+        personType:'04 事业单位管理人员',post:'管理七级(事业) 207',salaryLevel:'30级（事业） 129',
+        postSalary:'2620',levelSalary:'1380',teachSubsidy:'0',
+        workStart:'1993-08-01',teachYears:'33',lastChangeTime:'2016-06-01',
+        retireRatio:'85',lifeSubsidy:'2050',extraRetire:'330',teachAllowance:'0',other:'90',
+        retirePersonType:'04 事业单位管理人员',retirePostSalary:'2620',retireLevelSalary:'1380',retireLastChange:'2016-06-01',retirePostLevel:'管理七级',
+        politicalIssue:'无',
+        resumeRows:[{start:'1993-08',end:'2012-07',org:'鱼峰区实验小学',position:'办公室科员'},{start:'2012-08',end:'2026-06',org:'鱼峰区实验小学',position:'总务副主任'}],
+        spouseRows:[{name:'陈伟',gender:'男',birthDate:'1969-09-15',relation:'配偶',dept:'柳州市市场监督管理局 主任科员'}],
+        firstReviewer:'李振华',firstReviewTime:'2026-06-16 14:00',firstOpinion:'提前退休材料不完整，缺少医院诊断证明',rejectReason:'材料不齐全，请补充医院诊断证明'
+      },
+      // Record from 柳州市第八中学
+      {id:'RT20260708001',schoolName:'柳州市第八中学',district:'鱼峰区',status:'pending_second',submitTime:'2026-07-08 11:00',
+        teacherName:'王秀英',gender:'女',birthDate:'1971-03-25',idCard:'450203197103254321',retireType:'因病',retireDate:'2026-07-01',
+        education:'本科',politics:'中共党员',nativeProvince:'广西',nativeCity:'柳州市',nativeDistrict:'柳北区',
+        personType:'04 事业单位管理人员',post:'管理六级(事业) 206',salaryLevel:'32级（事业） 131',
+        postSalary:'2920',levelSalary:'1480',teachSubsidy:'0',
+        workStart:'1992-09-01',teachYears:'34',lastChangeTime:'2017-08-01',
+        retireRatio:'85',lifeSubsidy:'2300',extraRetire:'360',teachAllowance:'0',other:'110',
+        retirePersonType:'04 事业单位管理人员',retirePostSalary:'2920',retireLevelSalary:'1480',retireLastChange:'2017-08-01',retirePostLevel:'管理六级',
+        politicalIssue:'无',
+        resumeRows:[{start:'1992-09',end:'2008-02',org:'柳州市第一中学',position:'办公室科员'},{start:'2008-03',end:'2026-07',org:'柳州市第八中学',position:'办公室主任'}],
+        spouseRows:[{name:'张力',gender:'男',birthDate:'1969-12-08',relation:'配偶',dept:'柳州市人力资源和社会保障局 副局长'},{name:'张婷婷',gender:'女',birthDate:'1998-06-15',relation:'长女',dept:'北京大学 博士在读'}],
+        firstReviewer:'张建国',firstReviewTime:'2026-07-09 09:00',firstOpinion:'因病提前退休，医院证明齐全，同意',
+        hrResult:{level:'管理六级 206',docNumber:'柳人社退〔2026〕145号',retireType:'因病',retireDate:'2026-07-01',salaryStop:'2026-06',retireExecDate:'2026-07-01',remark:'因病提前退休'}
+      }
+    ];saveRecords(demos);records=scopeRecords(demos);localStorage.setItem('retire_data_version','2')}
   var counts={all:records.length,pending:0,approved:0,rejected:0};
   records.forEach(function(r){var k=getFilterKey(r.status);if(counts[k]!==undefined)counts[k]++;});
   var filters=[{key:'all',label:'全部('+counts.all+')'},{key:'pending',label:'待审核('+counts.pending+')'},{key:'approved',label:'已通过('+counts.approved+')'},{key:'rejected',label:'已驳回('+counts.rejected+')'}];
@@ -133,7 +191,7 @@ function renderList(){
   var dl=document.getElementById('schoolList');var schools={};scopeRecords(loadRecords()).forEach(function(r){schools[r.schoolName]=true});var dh='';Object.keys(schools).sort().forEach(function(s){dh+='<option value="'+escapeHtml(s)+'">'});dl.innerHTML=dh;
   var list=document.getElementById('recordList');
   if(records.length===0){list.innerHTML='<div class="list-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无退休申报记录</div></div></div>';return}
-  var h='<div class="list-card"><div class="table-scroll"><table class="list-table"><thead><tr><th>申请编号</th><th>单位名称</th><th>所属区县</th><th>教师姓名</th><th>性别</th><th>年龄</th><th>学历/文化程度/th><th>政治面貌</th><th>参加工作时间</th><th>教护龄</th><th>人员类别</th><th>提交时间</th><th>状态</th><th style="width:120px">操作</th></tr></thead><tbody>';
+  var h='<div class="list-card"><div class="table-scroll"><table class="list-table"><thead><tr><th>申请编号</th><th>单位名称</th><th>所属区县</th><th>教师姓名</th><th>性别</th><th>年龄</th><th>学历/文化程度</th><th>政治面貌</th><th>参加工作时间</th><th>教护龄</th><th>人员类别</th><th>提交时间</th><th>状态</th><th style="width:120px">操作</th></tr></thead><tbody>';
   records.forEach(function(r){
     var age=r.birthDate&&r.retireDate?function(bd,rd){var b=new Date(bd),re=new Date(rd);var a=re.getFullYear()-b.getFullYear();if(re.getMonth()<b.getMonth()||(re.getMonth()===b.getMonth()&&re.getDate()<b.getDate()))a--;return a+'岁'}(r.birthDate,r.retireDate):'—';
     var ptShort=r.personType?r.personType.substring(0,3):'—';
@@ -143,6 +201,26 @@ function renderList(){
     h+='<button class="btn btn-outline btn-sm" onclick="location.href=\'retire-detail.html?id='+r.id+'&role='+currentRole+'\'">查看</button></td></tr>';
   });
   h+='</tbody></table></div></div>';list.innerHTML=h
+}
+function sidebarClick(el,id){
+  if(arguments.length===1){id=el;el=null;}
+  if(id==='retire'){return;}
+  if(id==='workbench'){window.location.href='workbench.html';return;}
+  if(id==='ledger'){window.location.href='org-ledger-admin.html';return;}
+  if(id==='staffing'){window.location.href='staffing-application.html';return;}
+  if(id==='entry'){window.location.href='教师入编管理（主管单位视角）.html';return;}
+  if(id==='exit'){window.location.href='教师出编管理（主管单位视角）.html';return;}
+  if(id==='postset'){window.location.href='post-list-admin.html?role='+currentRole;return;}
+  if(id==='promote'){window.location.href='promote-list-admin.html?role='+currentRole;return;}
+  if(id==='recruit'){window.location.href='recruit-list-admin.html?role='+currentRole;return;}
+  if(id==='employ'){window.location.href='employ-list-admin.html?role='+currentRole;return;}
+  if(id==='contract-entry'){window.location.href='contract-entry-list-admin.html?role='+currentRole;return;}
+  if(id==='contract-exit'){window.location.href='contract-exit-list-admin.html?role='+currentRole;return;}
+  if(id==='ethics'){showToast('师德师风举报页面开发中');return;}
+  if(id==='account'){window.location.href='account-management.html';return;}
+  if(id==='org'){window.location.href='org-management.html';return;}
+  if(id==='announcement'){window.location.href='announcement-management.html';return;}
+  showToast('跳转至：'+(el?el.textContent:id));
 }
 (function init(){
   var p=new URLSearchParams(window.location.search);var r=p.get('role');if(r==='city'||r==='district')currentRole=r;
