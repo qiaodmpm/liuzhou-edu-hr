@@ -739,6 +739,60 @@ function init() {
   // Backfill demo plan records for schools without plans
   backfillDemoPlans(allLedgers);
 
+  // Enrich all plans with demo useTypes data (one-time migration)
+  var MIGRATE_USE_TYPES_KEY = 'org_ledger_useTypes_v2';
+  if (!localStorage.getItem(MIGRATE_USE_TYPES_KEY)) {
+    var DEMO_EDU_REQ = [
+      '本科及以上，数学类，高中教师资格证',
+      '本科及以上，中国语言文学类，高中教师资格证',
+      '本科及以上，英语语言文学类，高中教师资格证',
+      '本科及以上，物理学类，高中教师资格证',
+      '硕士及以上，计算机科学与技术类，高中教师资格证',
+      '本科及以上，化学类，高中教师资格证'
+    ];
+    var DEMO_CONDITIONS = [
+      '35周岁以下', '40周岁以下', '中共党员优先', '具有2年以上相关教学经验',
+      '需通过普通话二级甲等', '具有中级及以上职称'
+    ];
+    var _enriched = false;
+    Object.keys(allLedgers).forEach(function(k) {
+      var school = allLedgers[k];
+      ['careerPlans','controlPlans'].forEach(function(planKey) {
+        (school[planKey] || []).forEach(function(plan) {
+          if (!plan || !plan.useTypes) return;
+          var hasData = false;
+          Object.keys(plan.useTypes).forEach(function(tk) { if ((plan.useTypes[tk].approved || 0) > 0) hasData = true; });
+          if (hasData) return;
+          var total = plan.approvedCount || 0;
+          if (total <= 0) return;
+          var keys = Object.keys(plan.useTypes);
+          var fillKeys = [keys[0], keys[1]];
+          if (total >= 4) fillKeys.push(keys[2]);
+          if (total >= 6) fillKeys.push(keys[3]);
+          var used = 0;
+          fillKeys.forEach(function(tk, i) {
+            var share = i === fillKeys.length - 1 ? total - used : Math.floor(total / fillKeys.length) + (i < total % fillKeys.length ? 1 : 0);
+            if (share <= 0) share = 1;
+            used += share;
+            var enr = Math.floor(share * 0.4);
+            var occ = Math.floor(share * 0.3);
+            plan.useTypes[tk] = {
+              eduRequirement: DEMO_EDU_REQ[i % DEMO_EDU_REQ.length],
+              conditions: DEMO_CONDITIONS[i % DEMO_CONDITIONS.length],
+              approved: share,
+              occupied: occ,
+              enrolled: enr,
+              unused: share - occ - enr
+            };
+            LPU.refreshStatus(plan);
+            _enriched = true;
+          });
+        });
+      });
+    });
+    if (_enriched) { localStorage.setItem(MIGRATE_USE_TYPES_KEY, '1'); localStorage.setItem('org_ledger', JSON.stringify(allLedgers)); }
+  }
+
   // Migrate to plan records (new)
   try {
     var planMigrated = false;
@@ -3357,6 +3411,61 @@ function backfillDemoPlans(allLedgers) {
   }
 
   // ===== 同步聚合值 + 持久化 =====
+  // Enrich all plans with demo useTypes data
+  var DEMO_EDU_REQ = [
+    '本科及以上，数学类，高中教师资格证',
+    '本科及以上，中国语言文学类，高中教师资格证',
+    '本科及以上，英语语言文学类，高中教师资格证',
+    '本科及以上，物理学类，高中教师资格证',
+    '硕士及以上，计算机科学与技术类，高中教师资格证',
+    '本科及以上，化学类，高中教师资格证',
+    '硕士及以上，生物学类，高中教师资格证',
+    '本科及以上，历史学类，高中教师资格证'
+  ];
+  var DEMO_CONDITIONS = [
+    '35周岁以下', '40周岁以下', '中共党员优先', '具有2年以上相关教学经验',
+    '需通过普通话二级甲等', '', '具有中级及以上职称', '应届毕业生或2年经验'
+  ];
+  function enrichPlanUseTypes(plan) {
+    if (!plan || !plan.useTypes) return;
+    // Only enrich if all useTypes are empty (no approved values yet)
+    var hasData = false;
+    Object.keys(plan.useTypes).forEach(function(k) {
+      if ((plan.useTypes[k].approved || 0) > 0) hasData = true;
+    });
+    if (hasData) return;
+    var total = plan.approvedCount || 0;
+    if (total <= 0) return;
+    var keys = Object.keys(plan.useTypes);
+    var used = 0, enrolled = 0;
+    // Pick 1-3 types to fill
+    var fillKeys = [keys[0], keys[1]];
+    if (total >= 4) fillKeys.push(keys[2]);
+    if (total >= 6) fillKeys.push(keys[3]);
+    fillKeys.forEach(function(k, i) {
+      var share = i === fillKeys.length - 1 ? total - used : Math.floor(total / fillKeys.length) + (i < total % fillKeys.length ? 1 : 0);
+      if (share <= 0) share = 1;
+      used += share;
+      var enr = Math.floor(share * 0.4); // about 40% enrolled
+      var occ = Math.floor(share * 0.3); // about 30% occupied
+      var unu = share - enr - occ;        // remaining unused
+      plan.useTypes[k] = {
+        eduRequirement: DEMO_EDU_REQ[i % DEMO_EDU_REQ.length],
+        conditions: DEMO_CONDITIONS[i % DEMO_CONDITIONS.length],
+        approved: share,
+        occupied: occ,
+        enrolled: enr,
+        unused: unu
+      };
+      LPU.refreshStatus(plan);
+    });
+  }
+  Object.keys(allLedgers).forEach(function(k) {
+    var school = allLedgers[k];
+    (school.careerPlans || []).forEach(enrichPlanUseTypes);
+    (school.controlPlans || []).forEach(enrichPlanUseTypes);
+  });
+
   if (changed) {
     Object.keys(allLedgers).forEach(function(k) {
       if (allLedgers[k].careerPlans && allLedgers[k].careerPlans.length > 0) {
