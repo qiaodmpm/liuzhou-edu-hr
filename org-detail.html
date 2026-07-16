@@ -1446,6 +1446,13 @@ function initOrgInfoView() {
   var dir = [];
   if (stored) { try { dir = JSON.parse(stored); } catch(e) { dir = []; } }
 
+  // Backfill isHighlandSchool for existing orgs that don't have the field
+  var needsSave = false;
+  for (var bi = 0; bi < dir.length; bi++) {
+    if (dir[bi].isHighlandSchool === undefined) { dir[bi].isHighlandSchool = false; needsSave = true; }
+  }
+  if (needsSave) localStorage.setItem('org_directory', JSON.stringify(dir));
+
   // Find the org
   for (var i = 0; i < dir.length; i++) {
     if (dir[i].orgId === orgId) { orgInfo = JSON.parse(JSON.stringify(dir[i])); break; }
