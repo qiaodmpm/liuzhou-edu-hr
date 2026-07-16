@@ -3216,22 +3216,28 @@ function backfillDemoPlans(allLedgers) {
         LPU.refreshStatus(p); return p;
       })()
     ];
-    // Demo: 已过期但有占用的计划（验证 EXPIRING_OCCUPIED 状态）
+    changed = true;
+  }
+  // Demo expired plans — always add if missing (outside length===0 guard)
+  if (lb) {
+    lb.careerPlans = lb.careerPlans || [];
+    // 已过期但有占用的计划（验证 EXPIRING_OCCUPIED 状态）
     if (!lb.careerPlans.some(function(p) { return p.offlineDocNo === '柳编办[2025]03号'; })) {
       lb.careerPlans.push((function() {
         var p = makeOfflinePlan('C', '柳编办[2025]03号', 3, 3, 0, '2025-12-31', '线下批复，已过期，2人体检中待入编');
         p.occupiedCount = 2;
         LPU.refreshStatus(p); return p;
       })());
+      changed = true;
     }
-    // Demo: 已到期无占用计划（验证 EXPIRED 状态）
+    // 已到期无占用计划（验证 EXPIRED 状态）
     if (!lb.careerPlans.some(function(p) { return p.offlineDocNo === '柳编办[2024]03号'; })) {
       lb.careerPlans.push((function() {
         var p = makeOfflinePlan('C', '柳编办[2024]03号', 3, 3, 1, '2025-06-30', '线下批复，已过期，2个名额未使用已失效');
         LPU.refreshStatus(p); return p;
       })());
+      changed = true;
     }
-    changed = true;
   }
 
   // ===== 柳州市第二中学（线上 + 线下含占用）=====
