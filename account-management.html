@@ -338,6 +338,12 @@ tbody tr:hover { background: #FAFBFC; }
       <option value="support">支教</option>
       <option value="rotation">轮岗</option>
     </select>
+    <label>小高地成员</label>
+    <select class="filter-select" id="highlandFilter" onchange="renderAccounts()">
+      <option value="all">全部</option>
+      <option value="1">是</option>
+      <option value="0">否</option>
+    </select>
     <label id="districtFilterLabel">所属区域</label>
     <select class="filter-select" id="districtFilter" onchange="renderAccounts()">
       <option value="all">全部区域</option>
@@ -367,7 +373,7 @@ tbody tr:hover { background: #FAFBFC; }
             <th>所属角色</th>
             <th>所属单位</th>
             <th>跨校状态</th>
-            <th>小高地</th>
+            <th>是否小高地成员</th>
             <th>账号状态</th>
             <th>首次登录</th>
             <th>更新时间</th>
@@ -671,10 +677,29 @@ function loadAccounts() {
     // Contract dates (contract teachers only)
     if (stored[j].contractStart === undefined) { stored[j].contractStart = ''; backfilled = true; }
     if (stored[j].contractEnd === undefined) { stored[j].contractEnd = ''; backfilled = true; }
-    if (stored[j].isHighlandMember === undefined) { stored[j].isHighlandMember = false; backfilled = true; }
+    if (stored[j].isHighlandMember === undefined || localStorage.getItem('acct_highland_version') !== 'v1') { stored[j].isHighlandMember = false; backfilled = true; }
     if (!stored[j].updatedAt) { stored[j].updatedAt = stored[j].createdAt || stored[j].activatedAt || '2026-01-01 00:00:00'; backfilled = true; }
   }
   if (backfilled) localStorage.setItem('teacher_accounts', JSON.stringify(stored));
+  // Backfill known 小高地 members (runs once per version)
+  if (localStorage.getItem('acct_highland_version') !== 'v1') {
+    var HIGHLAND_MEMBERS = {
+      '450203197105152345': { isHighlandMember: true, postLevel: '专技七级', assignPosition: '语文教师' },
+      '450203196603202345': { isHighlandMember: true, postLevel: '专技五级', assignPosition: '数学教师' },
+      '450201198803201111': { isHighlandMember: true, postLevel: '专技六级', assignPosition: '物理教师' },
+      '450201197803152345': { isHighlandMember: true, postLevel: '专技四级', assignPosition: '化学教师' }
+    };
+    for (var hm = 0; hm < stored.length; hm++) {
+      var hmData = HIGHLAND_MEMBERS[stored[hm].idCard];
+      if (hmData) {
+        stored[hm].isHighlandMember = hmData.isHighlandMember;
+        if (!stored[hm].postLevel) stored[hm].postLevel = hmData.postLevel;
+        if (!stored[hm].assignPosition) stored[hm].assignPosition = hmData.assignPosition;
+      }
+    }
+    localStorage.setItem('acct_highland_version', 'v1');
+    localStorage.setItem('teacher_accounts', JSON.stringify(stored));
+  }
   // Seed cross-school demo data for specific accounts (runs once)
   var CROSS_SCHOOL_SEEDS = {
     '450201199001011234': { crossSchoolType: 'rotation', crossSchool: '柳州市第二中学', crossStartDate: '2026-02-01', crossEndDate: '2029-02-01' },
@@ -720,11 +745,11 @@ function loadAccounts() {
       { accountId: 'TEA20260601004', roles: ['teacher'], name: '李思思', idCard: '450201199105156788', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260511001', status: 'active', entryMethod: '统一公开招聘', crossSchoolType: 'support', crossSchool: '三江县民族中学', crossStartDate: '2025-09-01', crossEndDate: '2027-07-01', initialPassword: 'Edu@19916788', password: 'Edu@19916788', firstLogin: false, createdAt: '2026-05-11T10:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260511001'] },
       { accountId: 'TEA20260601005', roles: ['teacher'], name: '王明', idCard: '450201198912014567', phone: '', staffingType: '事业编', school: '柳州市第八中学', entryRecordId: 'RN20260511001', status: 'active', entryMethod: '单位自主实施招聘', crossSchoolType: 'rotation', crossSchool: '柳州市第一中学', crossStartDate: '2026-01-01', crossEndDate: '2028-12-31', initialPassword: 'Edu@19894567', password: 'Edu@19894567', firstLogin: false, createdAt: '2026-05-11T10:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260511001'] },
       { accountId: 'TEA20260601006', roles: ['teacher'], name: '赵志华', idCard: '450201199006151234', phone: '', staffingType: '控制数', school: '柳州铁一中学', entryRecordId: 'RN20260515001', status: 'disabled', statusReason: '教师出编冻结', disableType: 'exit', disableReason: '调动', disableDate: '2026-05-17', disableOperator: '周敏', entryMethod: '统一公开招聘', initialPassword: 'Edu@19901234', password: 'Edu@19901234', firstLogin: true, createdAt: '2026-05-15T14:00:00', updatedAt: '2026-05-17 10:00:00', activatedAt: '2026-05-17T10:00:00', exitRecords: ['OC20260601001'], entryRecords: ['RN20260515001'] },
-      { accountId: 'TEA20260601007', roles: ['teacher'], name: '周明远', idCard: '450201198803201111', phone: '', staffingType: '事业编', school: '柳州高级中学', entryRecordId: 'RN20260514001', status: 'active', entryMethod: '引进高层次人才', initialPassword: 'Edu@19881111', password: 'Edu@19881111', firstLogin: false, createdAt: '2026-05-14T09:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260514001'] },
+      { accountId: 'TEA20260601007', roles: ['teacher'], name: '周明远', idCard: '450201198803201111', phone: '', staffingType: '事业编', school: '柳州高级中学', entryRecordId: 'RN20260514001', status: 'active', entryMethod: '引进高层次人才', isHighlandMember: true, postLevel: '专技六级', assignPosition: '物理教师', initialPassword: 'Edu@19881111', password: 'Edu@19881111', firstLogin: false, createdAt: '2026-05-14T09:00:00', updatedAt: '2026-06-04 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260514001'] },
       { accountId: 'TEA20260601008', roles: ['teacher'], name: '陈晓霞', idCard: '450201199308201234', phone: '13612345678', staffingType: '控制数', school: '鱼峰区实验小学', entryRecordId: 'RN20260513001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@19931234', password: 'Edu@19931234', firstLogin: true, createdAt: '2026-05-13T08:15:00', updatedAt: '2026-05-14 09:00:00', activatedAt: '2026-05-14T09:00:00', exitRecords: [], entryRecords: ['RN20260513001'] },
       { accountId: 'TEA20260601009', roles: ['teacher'], name: '刘芳', idCard: '450201199410152345', phone: '13712345678', staffingType: '事业编', school: '城中区实验小学', entryRecordId: 'RN20260601001', status: 'active', entryMethod: '统一公开招聘', initialPassword: 'Edu@19942345', password: 'Edu@19942345', firstLogin: false, createdAt: '2026-06-01T09:00:00', updatedAt: '2026-06-01 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260601001'] },
       { accountId: 'TEA20260601010', roles: ['teacher'], name: '杨光', idCard: '450201199506152345', phone: '', staffingType: '事业编', school: '柳北区教育局', entryRecordId: 'RN20260602001', status: 'active', entryMethod: '调动', initialPassword: 'Edu@19952345', password: 'Edu@19952345', firstLogin: false, createdAt: '2026-06-02T09:00:00', updatedAt: '2026-06-02 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260602001'] },
-      { accountId: 'TEA20260601011', roles: ['teacher'], name: '孙建华', idCard: '450201197803152345', phone: '', staffingType: '事业编', school: '柳州高级中学', entryRecordId: 'RN20260514001', status: 'active', entryMethod: '引进高层次人才', initialPassword: 'Edu@19782345', password: 'Edu@19782345', firstLogin: false, importedFromOld: true, createdAt: '2026-06-15T08:30:00', updatedAt: '2026-06-15 08:30:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260514001'] },
+      { accountId: 'TEA20260601011', roles: ['teacher'], name: '孙建华', idCard: '450201197803152345', phone: '', staffingType: '事业编', school: '柳州高级中学', entryRecordId: 'RN20260514001', status: 'active', entryMethod: '引进高层次人才', isHighlandMember: true, postLevel: '专技四级', assignPosition: '化学教师', initialPassword: 'Edu@19782345', password: 'Edu@19782345', firstLogin: false, importedFromOld: true, createdAt: '2026-06-15T08:30:00', updatedAt: '2026-06-15 08:30:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260514001'] },
       // 控制数 demo 账号
       { accountId: 'TEA20260601012', roles: ['teacher'], name: '黄海燕', idCard: '450201199203100001', phone: '', staffingType: '控制数', school: '柳州市教育局', entryRecordId: 'RN20260605001', status: 'active', entryMethod: '单位自主实施招聘', initialPassword: 'Edu@19920001', password: 'Edu@19920001', firstLogin: false, createdAt: '2026-06-05T09:00:00', updatedAt: '2026-06-05 09:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260605001'] },
       { accountId: 'TEA20260601013', roles: ['teacher'], name: '何志强', idCard: '450201198807150002', phone: '', staffingType: '控制数', school: '柳州市教育局', entryRecordId: 'RN20260605002', status: 'active', entryMethod: '中高级人才招聘', initialPassword: 'Edu@19880002', password: 'Edu@19880002', firstLogin: false, createdAt: '2026-06-05T10:00:00', updatedAt: '2026-06-05 10:00:00', activatedAt: null, exitRecords: [], entryRecords: ['RN20260605002'] },
@@ -892,6 +917,13 @@ function renderAccounts() {
     filtered = filtered.filter(function(a) { return (a.crossSchoolType || 'normal') === crossSchoolFilter; });
   }
 
+  // Apply highland member filter
+  var highlandFilter = document.getElementById('highlandFilter').value;
+  if (highlandFilter !== 'all') {
+    var wantHighland = highlandFilter === '1';
+    filtered = filtered.filter(function(a) { return (a.isHighlandMember === true) === wantHighland; });
+  }
+
   // Stats — based on role-filtered data
   var total = filtered.length;
   var activeCount = filtered.filter(function(a) { return a.status === 'active'; }).length;
@@ -949,7 +981,7 @@ function renderAccounts() {
       '<td><span style="font-size:12px;">' + (roleLabels || '—') + '</span></td>' +
       '<td>' + (a.school || '—') + '</td>' +
       '<td>' + renderCrossSchoolCell(a) + '</td>' +
-      '<td>' + (a.isHighlandMember ? '🏔️ 是' : '<span style="color:var(--text-light);">—</span>') + '</td>' +
+      '<td>' + (a.isHighlandMember ? '是' : '否') + '</td>' +
       '<td><span class="status-tag ' + (statusClass[a.status] || '') + '">' + (statusMap[a.status] || a.status) + '</span></td>' +
       '<td><span class="status-tag ' + (loginClass[a.firstLogin] || '') + '">' + (loginMap[a.firstLogin] || '—') + '</span></td>' +
       '<td style="font-size:12px;color:var(--text-secondary);">' + (a.updatedAt || '—') + '</td>' +
@@ -1259,7 +1291,8 @@ function showCreateModal() {
     '<div class="form-group" id="fgCrCategory"><label>岗位类别<span id="reqCrCategory"></span></label><select id="crCategoryName" onchange="onCreateCategoryChange()"><option value="">—</option><option value="专业技术岗位">专业技术岗位</option><option value="管理岗位">管理岗位</option><option value="工勤技能岗位">工勤技能岗位</option></select></div>' +
     '<div class="form-group" id="fgCrLevel"><label>岗位等级<span id="reqCrLevel"></span></label><select id="crPostLevel"><option value="">—</option></select></div>' +
     '<div class="form-group"><label>岗位名称<span id="reqCrPosition"></span></label><input id="crAssignPosition" placeholder="如：语文教师"></div>' +
-    '<div class="form-group"><label>任职时间<span id="reqCrAppoint"></span></label><input type="month" id="crAppointTime"></div>' +
+    '<div class="form-group"><label>任职时间<span id="reqCrAppoint"></span></label><input type="date" id="crAppointTime"></div>' +
+    '<div class="form-group" id="fgCrHighlandMember"><label>是否小高地成员</label><select id="crHighlandMember"><option value="0">否</option><option value="1">是</option></select></div>' +
     '<div class="form-group" id="fgCrContractStart" style="display:none;"><label>合同开始日期<span id="reqCrContractStart"></span></label><input type="date" id="crContractStart"></div>' +
     '<div class="form-group" id="fgCrContractEnd" style="display:none;"><label>合同结束日期<span id="reqCrContractEnd"></span></label><input type="date" id="crContractEnd"></div>' +
     '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;" id="crPostHint"></div></fieldset>' +
@@ -1364,6 +1397,10 @@ function onCreateStaffingTypeChange() {
   document.getElementById('fgCrContractEnd').style.display = isContract ? '' : 'none';
   document.getElementById('reqCrContractStart').innerHTML = isContract ? ' <span style="color:var(--danger);">*</span>' : '';
   document.getElementById('reqCrContractEnd').innerHTML = isContract ? ' <span style="color:var(--danger);">*</span>' : '';
+
+  // 小高地成员隐藏 for 合同制
+  var crFgHm = document.getElementById('fgCrHighlandMember');
+  if (crFgHm) { crFgHm.style.display = isContract ? 'none' : ''; }
 
   // Hint
   var hintEl = document.getElementById('crPostHint');
@@ -1530,7 +1567,7 @@ function createAccount() {
     disableReason: '',
     disableDate: '',
     disableOperator: '',
-    isHighlandMember: false,
+    isHighlandMember: needsPostInfo ? ((document.getElementById('crHighlandMember') ? document.getElementById('crHighlandMember').value : '0') === '1') : false,
     initialPassword: initialPwd,
     password: initialPwd,
     firstLogin: true,
@@ -1746,8 +1783,8 @@ function editAccount(accountId) {
     '<div class="form-group"><label>岗位类别</label><select id="editCategoryName" onchange="updatePostLevelOptions()"><option value="">—</option><option value="专业技术岗位">专业技术岗位</option><option value="管理岗位">管理岗位</option><option value="工勤技能岗位">工勤技能岗位</option></select></div>' +
     '<div class="form-group"><label>岗位等级</label><select id="editPostLevel"><option value="">—</option></select></div>' +
     '<div class="form-group"><label>岗位名称</label><input id="editAssignPosition" value="" placeholder="如：语文教师"></div>' +
-    '<div class="form-group"><label>任职时间</label><input type="month" id="editAppointTime" value=""></div>' +
-    '<div class="form-group" id="fgHighlandMember"><label>是否小高地成员</label><label class="switch" style="margin-top:4px"><input type="checkbox" id="fHighlandMember"><span class="slider"></span></label></div>' +
+    '<div class="form-group"><label>任职时间</label><input type="date" id="editAppointTime" value=""></div>' +
+    '<div class="form-group" id="fgHighlandMember"><label>是否小高地成员</label><select id="fHighlandMember"><option value="0">否</option><option value="1">是</option></select></div>' +
     (a.staffingType === '合同制' ? '<div class="form-group span-full"><label>合同期限</label><div style="font-size:12px;font-weight:500;padding:4px 0;color:var(--text-secondary);">' + (a.contractStart || '—') + ' ~ ' + (a.contractEnd || '—') + ' <span style="font-size:9px;color:var(--text-light);">（只读，变更请走续聘审批）</span></div></div>' : '') +
     '</div><div style="font-size:9px;color:var(--text-light);margin-top:4px;">联动：岗位类别改变时，岗位等级选项随之级联更新</div></fieldset>' +
 
@@ -1818,9 +1855,9 @@ function editAccount(accountId) {
     setVal('editContractEnd', up.contractEnd || a.contractEnd || '');
     // 填充现任职务下拉选项
     populateTitleOptions(up.currentTitle || a.currentTitle || '');
-    // Set isHighlandMember checkbox
+    // Set isHighlandMember select
     var hmEl = document.getElementById('fHighlandMember');
-    if (hmEl) { hmEl.checked = a.isHighlandMember === true; }
+    if (hmEl) { hmEl.value = a.isHighlandMember === true ? '1' : '0'; }
     var fgHm = document.getElementById('fgHighlandMember');
     if (fgHm) { fgHm.style.display = (a.staffingType === '合同制') ? 'none' : ''; }
     // Trigger new field linkage
@@ -2127,8 +2164,8 @@ function saveAccount(accountId) {
         accounts[j].crossEndDate = csEnd;
       }
       // Save isHighlandMember
-      var hmCb = document.getElementById('fHighlandMember');
-      accounts[j].isHighlandMember = hmCb ? hmCb.checked : false;
+      var hmSel = document.getElementById('fHighlandMember');
+      accounts[j].isHighlandMember = hmSel ? hmSel.value === '1' : false;
       var now = new Date();
       accounts[j].updatedAt = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
       break;

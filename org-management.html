@@ -100,6 +100,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .filter-bar select, .filter-bar input { padding: 7px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; }
 .filter-bar input { width: 220px; }
+.filter-bar label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
 .filter-tabs { display: flex; gap: 4px; background: var(--gray-bg); border-radius: 8px; padding: 3px; margin-bottom: 16px; }
 .filter-tab { padding: 6px 16px; font-size: 12px; font-weight: 500; border-radius: 6px; cursor: pointer; transition: var(--transition); color: var(--text-secondary); background: transparent; border: none; font-family: inherit; }
 .filter-tab.active { background: #fff; color: var(--primary); box-shadow: var(--shadow-sm); }
@@ -271,8 +272,12 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
 
       <!-- Filter bar -->
       <div class="filter-bar" id="filterBar">
+        <label>搜索</label>
         <input type="text" id="searchInput" placeholder="搜索单位名称或编号..." oninput="renderList()">
+        <label>组织类型</label>
         <select id="typeFilter" onchange="renderList()"><option value="all">全部类型</option></select>
+        <label>是否小高地学校</label>
+        <select id="highlandFilter" onchange="renderList()"><option value="all">全部</option><option value="1">是</option><option value="0">否</option></select>
       </div>
 
       <!-- List -->
@@ -436,7 +441,7 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
 
 var REGION_CODE = { '柳城县':'01','鹿寨县':'02','融安县':'03','融水县':'04','三江县':'05','柳北区':'06','城中区':'07','鱼峰区':'08','柳南区':'09','柳江区':'10','市直属':'00' };
 
-var DISTRICTS = ['市直属','城中区','鱼峰区','柳南区','柳北区','柳江区','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县'];
+var DISTRICTS = ['市直属','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县','柳北区','城中区','鱼峰区','柳南区','柳江区'];
 
 var ORG_TYPES = ['学校','行政管理部门','局属二层机构'];
 var SCHOOL_TYPES = ['小学','初中','高中','完中','九年一贯制','十二年一贯制','中职','幼儿园','特殊教育','专门学校'];
@@ -456,42 +461,66 @@ var ADMIN_ACCOUNTS = [
 function getDemoOrgs() {
   return [
     // ===== 市直属 =====
+    // 01 行政管理部门
     { orgId:'gxlzh-00-001', orgName:'柳州市教育局', orgShortName:'市教育局', district:'市直属', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'副厅级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450200MB01234582', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区文惠路85号', phone:'0772-2810001', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // 02-24 市直属学校（按序号排列）
+    { orgId:'gxlzh-00-101', orgName:'柳州职业技术大学', orgShortName:'柳职大', district:'市直属', orgType:'学校', schoolType:'大学', schoolCategory:'职业本科', orgLevel:'正厅级', orgNature:'事业单位', unitType:'公益二类', fundType:'全额拨款', creditCode:'12450200MB01234601', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市鱼峰区官塘大道16号', phone:'0772-3156001', postcode:'545006', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-102', orgName:'柳州铁道职业技术学院', orgShortName:'柳铁职院', district:'市直属', orgType:'学校', schoolType:'高职', schoolCategory:'高职高专', orgLevel:'副厅级', orgNature:'事业单位', unitType:'公益二类', fundType:'全额拨款', creditCode:'12450200MB01234602', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市鱼峰区文苑路2号', phone:'0772-3698001', postcode:'545006', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-103', orgName:'柳州城市职业学院', orgShortName:'柳州城职院', district:'市直属', orgType:'学校', schoolType:'高职', schoolCategory:'高职高专', orgLevel:'副厅级', orgNature:'事业单位', unitType:'公益二类', fundType:'全额拨款', creditCode:'12450200MB01234603', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市鱼峰区官塘大道文苑路1号', phone:'0772-5331001', postcode:'545006', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-104', orgName:'柳州市第一职业技术学校', orgShortName:'柳州一职校', district:'市直属', orgType:'学校', schoolType:'中职', schoolCategory:'国家级示范中职', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益二类', fundType:'全额拨款', creditCode:'12450200MB01234604', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市鱼峰区官塘大道18号', phone:'0772-3712001', postcode:'545006', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-105', orgName:'柳州市第二职业技术学校', orgShortName:'柳州二职校', district:'市直属', orgType:'学校', schoolType:'中职', schoolCategory:'国家级示范中职', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益二类', fundType:'全额拨款', creditCode:'12450200MB01234605', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳东新区石冲路6号', phone:'0772-2608001', postcode:'545006', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-106', orgName:'柳州市交通学校', orgShortName:'柳州交校', district:'市直属', orgType:'学校', schoolType:'中职', schoolCategory:'自治区示范中职', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益二类', fundType:'全额拨款', creditCode:'12450200MB01234606', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区河西路25号', phone:'0772-3719001', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-107', orgName:'柳州市旅游学校', orgShortName:'柳州旅校', district:'市直属', orgType:'学校', schoolType:'中职', schoolCategory:'自治区示范中职', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益二类', fundType:'全额拨款', creditCode:'12450200MB01234607', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区东环大道120号', phone:'0772-2609001', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
     { orgId:'gxlzh-00-002', orgName:'柳州高级中学', orgShortName:'柳高', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234567', status:'active', schoolAdminId:'S002', schoolAdminName:'陈桂芝', districtAdminId:'', districtAdminName:'', address:'柳州市城中区东环大道268号', phone:'0772-2800111', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-10', isHighlandSchool: true },
+    { orgId:'gxlzh-00-006', orgName:'柳州铁一中学', orgShortName:'铁一中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234571', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区鹅山路11号', phone:'0772-3800004', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
     { orgId:'gxlzh-00-003', orgName:'柳州市第一中学', orgShortName:'柳州一中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234568', status:'active', schoolAdminId:'S003', schoolAdminName:'吴敏', districtAdminId:'', districtAdminName:'', address:'柳州市鱼峰区荣军路16号', phone:'0772-3800001', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-08' },
     { orgId:'gxlzh-00-004', orgName:'柳州市第二中学', orgShortName:'柳州二中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234569', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区飞鹅路21号', phone:'0772-3800002', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-05' },
-    { orgId:'gxlzh-00-005', orgName:'柳州市民族高中', orgShortName:'民族高中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区特色高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234570', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区北雀路45号', phone:'0772-3800003', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-05-20' },
-    { orgId:'gxlzh-00-006', orgName:'柳州铁一中学', orgShortName:'铁一中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'正处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234571', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区鹅山路11号', phone:'0772-3800004', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-00-007', orgName:'柳州市特色实验高中', orgShortName:'特色高中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区特色高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234572', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳东新区曙光大道88号', phone:'0772-3800005', postcode:'545006', createdAt:'2025-01-01', updatedAt:'2026-04-15' },
+    { orgId:'gxlzh-00-108', orgName:'柳州市铁二中学', orgShortName:'铁二中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234608', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区和平路4号', phone:'0772-3618001', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
     { orgId:'gxlzh-00-008', orgName:'柳州市第三中学', orgShortName:'柳州三中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234573', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区北站路19号', phone:'0772-3800006', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-03-28' },
-    // ===== 鱼峰区 =====
+    { orgId:'gxlzh-00-109', orgName:'柳州市第六中学', orgShortName:'柳州六中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234609', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市鱼峰区柳石路21号', phone:'0772-3830004', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-04-22' },
+    { orgId:'gxlzh-00-110', orgName:'柳州市第九中学', orgShortName:'柳州九中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234610', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区胜利路14号', phone:'0772-2512001', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-111', orgName:'柳州市钢一中学', orgShortName:'钢一中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234611', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区北雀路136号', phone:'0772-2310001', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-005', orgName:'柳州市民族高中', orgShortName:'民族高中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区特色高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234570', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区北雀路45号', phone:'0772-3800003', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-05-20' },
+    { orgId:'gxlzh-00-112', orgName:'柳州市柳江中学', orgShortName:'柳江中学', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'自治区示范高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234612', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳江区拉堡镇柳南路60号', phone:'0772-7212001', postcode:'545100', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-113', orgName:'柳州市柳江实验高中', orgShortName:'柳江实高', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234613', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳江区拉堡镇柳南路68号', phone:'0772-7213001', postcode:'545100', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-114', orgName:'柳州市特殊教育学校', orgShortName:'柳州特教', district:'市直属', orgType:'学校', schoolType:'特殊教育', schoolCategory:'特殊教育', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234614', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区和平路5号', phone:'0772-5391001', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-115', orgName:'柳州市第六十六中学', orgShortName:'柳州六十六中', district:'市直属', orgType:'学校', schoolType:'专门学校', schoolCategory:'专门学校', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234615', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区胜利路66号', phone:'0772-2518001', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-116', orgName:'柳州市中山中学', orgShortName:'中山中学', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'民办非企业', unitType:'', fundType:'自收自支', creditCode:'52450200MJN0123456', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区东环大道101号', phone:'0772-2623001', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-117', orgName:'柳州市柳邕高级中学', orgShortName:'柳邕高中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'民办非企业', unitType:'', fundType:'自收自支', creditCode:'52450200MJN0123457', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区柳邕路378号', phone:'0772-3256001', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-118', orgName:'柳州市新世纪高级中学有限公司', orgShortName:'新世纪高中', district:'市直属', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'企业', unitType:'', fundType:'自收自支', creditCode:'91450200MA01234567', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳东新区新柳大道99号', phone:'0772-5378001', postcode:'545006', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // 局属二层机构
+    { orgId:'gxlzh-00-009', orgName:'柳州市教育科学研究所', orgShortName:'市教科所', district:'市直属', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234593', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区文惠路60号', phone:'0772-2810002', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-010', orgName:'柳州市电化教育站', orgShortName:'市电教站', district:'市直属', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234594', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区东环大道100号', phone:'0772-2810003', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-00-011', orgName:'柳州市招生考试院', orgShortName:'市招生考试院', district:'市直属', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'副处级', orgNature:'参公事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234595', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区文惠路55号', phone:'0772-2810004', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 柳城县 (01) =====
+    { orgId:'gxlzh-01-001', orgName:'柳城县教育局', orgShortName:'柳城教育局', district:'柳城县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450222MB01234588', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳城县大埔镇文昌路1号', phone:'0772-7610001', postcode:'545200', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 鹿寨县 (02) =====
+    { orgId:'gxlzh-02-001', orgName:'鹿寨县教育局', orgShortName:'鹿寨教育局', district:'鹿寨县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450223MB01234589', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市鹿寨县鹿寨镇创业路1号', phone:'0772-6810001', postcode:'545600', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 融安县 (03) =====
+    { orgId:'gxlzh-03-001', orgName:'融安县教育局', orgShortName:'融安教育局', district:'融安县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450224MB01234590', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市融安县长安镇立新街1号', phone:'0772-8110001', postcode:'545400', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 融水苗族自治县 (04) =====
+    { orgId:'gxlzh-04-001', orgName:'融水苗族自治县教育局', orgShortName:'融水教育局', district:'融水苗族自治县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450225MB01234591', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市融水县融水镇寿星北路1号', phone:'0772-5120001', postcode:'545300', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 三江侗族自治县 (05) =====
+    { orgId:'gxlzh-05-001', orgName:'三江侗族自治县教育局', orgShortName:'三江教育局', district:'三江侗族自治县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450226MB01234592', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市三江县古宜镇侗乡大道1号', phone:'0772-8610001', postcode:'545500', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 柳北区 (06) =====
+    { orgId:'gxlzh-06-001', orgName:'柳北区教育局', orgShortName:'柳北教育局', district:'柳北区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450205MB01234583', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区胜利路12号', phone:'0772-2820001', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 城中区 (07) =====
+    { orgId:'gxlzh-07-001', orgName:'城中区教育局', orgShortName:'城中教育局', district:'城中区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450202MB01234584', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D002', districtAdminName:'韦芳', address:'柳州市城中区中山西路26号', phone:'0772-2850002', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-07-002', orgName:'城中区实验小学', orgShortName:'城中实小', district:'城中区', orgType:'学校', schoolType:'小学', schoolCategory:'小学', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234580', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D002', districtAdminName:'韦芳', address:'柳州市城中区中山西路32号', phone:'0772-2850001', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-10' },
+    // ===== 鱼峰区 (08) =====
     { orgId:'gxlzh-08-001', orgName:'鱼峰区教育局', orgShortName:'鱼峰教育局', district:'鱼峰区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450203MB01234585', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区蝴蝶山路1号', phone:'0772-3830007', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
     { orgId:'gxlzh-08-002', orgName:'柳州市第八中学', orgShortName:'柳州八中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234574', status:'active', schoolAdminId:'S001', schoolAdminName:'王玉兰', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区东环大道120号', phone:'0772-3830001', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-12', isHighlandSchool: true },
     { orgId:'gxlzh-08-003', orgName:'柳州市第十三中学', orgShortName:'柳州十三中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234575', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区荣军路31号', phone:'0772-3830002', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-05-30' },
     { orgId:'gxlzh-08-004', orgName:'柳州市第二十五中学', orgShortName:'柳州二十五中', district:'鱼峰区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234576', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区屏山大道55号', phone:'0772-3830003', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-05-18' },
-    { orgId:'gxlzh-08-005', orgName:'柳州市第六中学', orgShortName:'柳州六中', district:'鱼峰区', orgType:'学校', schoolType:'高中', schoolCategory:'普通高中', orgLevel:'副处级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234577', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区柳石路21号', phone:'0772-3830004', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-04-22' },
     { orgId:'gxlzh-08-006', orgName:'鱼峰区实验小学', orgShortName:'鱼峰实小', district:'鱼峰区', orgType:'学校', schoolType:'小学', schoolCategory:'小学', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234578', status:'active', schoolAdminId:'S004', schoolAdminName:'黄建平', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区蝴蝶山路18号', phone:'0772-3830005', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-15' },
     { orgId:'gxlzh-08-007', orgName:'鱼峰区机关幼儿园', orgShortName:'机关幼儿园', district:'鱼峰区', orgType:'学校', schoolType:'幼儿园', schoolCategory:'幼儿园', orgLevel:'副科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234579', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区东环大道60号', phone:'0772-3830006', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
     { orgId:'gxlzh-08-008', orgName:'鱼峰区教师发展中心', orgShortName:'鱼峰教师发展中心', district:'鱼峰区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'副科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450203MB01234597', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区蝴蝶山路3号', phone:'0772-3830009', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    // ===== 城中区 =====
-    { orgId:'gxlzh-07-001', orgName:'城中区教育局', orgShortName:'城中教育局', district:'城中区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450202MB01234584', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D002', districtAdminName:'韦芳', address:'柳州市城中区中山西路26号', phone:'0772-2850002', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-07-002', orgName:'城中区实验小学', orgShortName:'城中实小', district:'城中区', orgType:'学校', schoolType:'小学', schoolCategory:'小学', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234580', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D002', districtAdminName:'韦芳', address:'柳州市城中区中山西路32号', phone:'0772-2850001', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-10' },
-    // ===== 柳江区 =====
-    { orgId:'gxlzh-10-001', orgName:'柳江区教育局', orgShortName:'柳江教育局', district:'柳江区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450206MB01234587', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D003', districtAdminName:'刘强', address:'柳州市柳江区拉堡镇柳北路8号', phone:'0772-7260002', postcode:'545100', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-10-002', orgName:'柳江区实验中学', orgShortName:'柳江实中', district:'柳江区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234581', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D003', districtAdminName:'刘强', address:'柳州市柳江区拉堡镇柳北路12号', phone:'0772-7260001', postcode:'545100', createdAt:'2025-06-01', updatedAt:'2026-06-10' },
-    // ===== 其他区教育局 =====
-    { orgId:'gxlzh-06-001', orgName:'柳北区教育局', orgShortName:'柳北教育局', district:'柳北区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450205MB01234583', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳北区胜利路12号', phone:'0772-2820001', postcode:'545002', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-08-009', orgName:'鱼峰区教学研究室', orgShortName:'鱼峰教研室', district:'鱼峰区', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'副科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450203MB01234596', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区蝴蝶山路5号', phone:'0772-3830008', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    // ===== 柳南区 (09) =====
     { orgId:'gxlzh-09-001', orgName:'柳南区教育局', orgShortName:'柳南教育局', district:'柳南区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450204MB01234586', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳南区飞鹅路8号', phone:'0772-3800007', postcode:'545007', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-01-001', orgName:'柳城县教育局', orgShortName:'柳城教育局', district:'柳城县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450222MB01234588', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市柳城县大埔镇文昌路1号', phone:'0772-7610001', postcode:'545200', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-02-001', orgName:'鹿寨县教育局', orgShortName:'鹿寨教育局', district:'鹿寨县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450223MB01234589', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市鹿寨县鹿寨镇创业路1号', phone:'0772-6810001', postcode:'545600', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-03-001', orgName:'融安县教育局', orgShortName:'融安教育局', district:'融安县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450224MB01234590', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市融安县长安镇立新街1号', phone:'0772-8110001', postcode:'545400', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-04-001', orgName:'融水苗族自治县教育局', orgShortName:'融水教育局', district:'融水苗族自治县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450225MB01234591', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市融水县融水镇寿星北路1号', phone:'0772-5120001', postcode:'545300', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-05-001', orgName:'三江侗族自治县教育局', orgShortName:'三江教育局', district:'三江侗族自治县', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450226MB01234592', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市三江县古宜镇侗乡大道1号', phone:'0772-8610001', postcode:'545500', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    // ===== 局属二层机构 =====
-    { orgId:'gxlzh-00-009', orgName:'柳州市教育科学研究所', orgShortName:'市教科所', district:'市直属', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234593', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区文惠路60号', phone:'0772-2810002', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-00-010', orgName:'柳州市电化教育站', orgShortName:'市电教站', district:'市直属', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234594', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区东环大道100号', phone:'0772-2810003', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-00-011', orgName:'柳州市招生考试院', orgShortName:'市招生考试院', district:'市直属', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'副处级', orgNature:'参公事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234595', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'', districtAdminName:'', address:'柳州市城中区文惠路55号', phone:'0772-2810004', postcode:'545001', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
-    { orgId:'gxlzh-08-009', orgName:'鱼峰区教学研究室', orgShortName:'鱼峰教研室', district:'鱼峰区', orgType:'局属二层机构', schoolType:'', schoolCategory:'', orgLevel:'副科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450203MB01234596', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D001', districtAdminName:'李振华', address:'柳州市鱼峰区蝴蝶山路5号', phone:'0772-3830008', postcode:'545005', createdAt:'2025-01-01', updatedAt:'2026-06-01' }
+    // ===== 柳江区 (10) =====
+    { orgId:'gxlzh-10-001', orgName:'柳江区教育局', orgShortName:'柳江教育局', district:'柳江区', orgType:'行政管理部门', schoolType:'', schoolCategory:'', orgLevel:'正科级', orgNature:'机关单位', unitType:'', fundType:'全额拨款', creditCode:'11450206MB01234587', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D003', districtAdminName:'刘强', address:'柳州市柳江区拉堡镇柳北路8号', phone:'0772-7260002', postcode:'545100', createdAt:'2025-01-01', updatedAt:'2026-06-01' },
+    { orgId:'gxlzh-10-002', orgName:'柳江区实验中学', orgShortName:'柳江实中', district:'柳江区', orgType:'学校', schoolType:'初中', schoolCategory:'初中', orgLevel:'正科级', orgNature:'事业单位', unitType:'公益一类', fundType:'全额拨款', creditCode:'12450200MB01234581', status:'active', schoolAdminId:'', schoolAdminName:'', districtAdminId:'D003', districtAdminName:'刘强', address:'柳州市柳江区拉堡镇柳北路12号', phone:'0772-7260001', postcode:'545100', createdAt:'2025-06-01', updatedAt:'2026-06-10' }
   ];
 }
 
@@ -578,16 +607,27 @@ function init() {
       needsSave = true;
     }
   }
-  // Backfill isHighlandSchool for orgs without the field
+  // Backfill isHighlandSchool for orgs without the field / data version upgrade
+  var HIGHLAND_SCHOOLS = ['柳州高级中学', '柳州市第八中学'];
+  var highlandVersion = localStorage.getItem('org_highland_version');
   for (var hi = 0; hi < orgDirectory.length; hi++) {
-    if (orgDirectory[hi].isHighlandSchool === undefined) {
-      orgDirectory[hi].isHighlandSchool = false;
+    if (orgDirectory[hi].isHighlandSchool === undefined || highlandVersion !== 'v1') {
+      orgDirectory[hi].isHighlandSchool = HIGHLAND_SCHOOLS.indexOf(orgDirectory[hi].orgName) !== -1;
       needsSave = true;
     }
   }
+  if (highlandVersion !== 'v1') { localStorage.setItem('org_highland_version', 'v1'); }
   if (needsSave) { localStorage.setItem('org_directory', JSON.stringify(orgDirectory)); }
 
-  // Merge missing demo orgs (e.g.教育局, 二层机构 added later)
+  // Migrate: remove old 鱼峰区 柳州市第六中学 (now 市直属)
+  var orgDataVersion = localStorage.getItem('org_data_version');
+  if (orgDataVersion !== 'v2') {
+    orgDirectory = orgDirectory.filter(function(o) { return o.orgId !== 'gxlzh-08-005'; });
+    localStorage.setItem('org_data_version', 'v2');
+    localStorage.setItem('org_directory', JSON.stringify(orgDirectory));
+  }
+
+  // Merge missing demo orgs (e.g. new schools added later)
   if (mergeMissingDemoOrgs()) {
     localStorage.setItem('org_directory', JSON.stringify(orgDirectory));
   }
@@ -880,12 +920,13 @@ function setFilterStatus(s) {
 }
 
 function renderFilterBar() {
-  var h = '<input type="text" id="searchInput" placeholder="搜索单位名称或编号..." oninput="renderList()">';
-  h += '<select id="typeFilter" onchange="renderList()"><option value="all">全部类型</option>';
+  var h = '<label>搜索</label><input type="text" id="searchInput" placeholder="搜索单位名称或编号..." oninput="renderList()">';
+  h += '<label>组织类型</label><select id="typeFilter" onchange="renderList()"><option value="all">全部类型</option>';
   for (var j = 0; j < ORG_TYPES.length; j++) {
     h += '<option value="' + escHtml(ORG_TYPES[j]) + '">' + escHtml(ORG_TYPES[j]) + '</option>';
   }
   h += '</select>';
+  h += '<label>是否小高地学校</label><select id="highlandFilter" onchange="renderList()"><option value="all">全部</option><option value="1">是</option><option value="0">否</option></select>';
   document.getElementById('filterBar').innerHTML = h;
 }
 
@@ -945,6 +986,13 @@ function renderList() {
     dir = dir.filter(function(d) { return d.orgType === typeEl.value; });
   }
 
+  // Highland filter
+  var highlandEl = document.getElementById('highlandFilter');
+  if (highlandEl && highlandEl.value !== 'all') {
+    var wantHighland = highlandEl.value === '1';
+    dir = dir.filter(function(d) { return (d.isHighlandSchool === true) === wantHighland; });
+  }
+
   // Search
   var searchEl = document.getElementById('searchInput');
   if (searchEl) {
@@ -996,7 +1044,7 @@ function renderOrgTable(orgs, title, isPending) {
   h += '<th style="width:150px;">单位名称</th>';
   h += '<th style="width:80px;">所属区域</th>';
   h += '<th style="width:90px;">组织类型</th>';
-  h += '<th style="width:70px;">小高地</th>';
+  h += '<th style="width:100px;">是否小高地学校</th>';
   h += '<th style="width:90px;">单位管理员</th>';
   h += '<th style="width:90px;">更新时间</th>';
   h += '<th style="width:60px;">状态</th>';
@@ -1028,7 +1076,7 @@ function renderOrgTable(orgs, title, isPending) {
     h += '<td class="col-name">' + escHtml(o.orgName) + '</td>';
     h += '<td>' + escHtml(o.district) + '</td>';
     h += '<td>' + escHtml(o.orgType) + '</td>';
-    h += '<td>' + (o.isHighlandSchool ? '🏔️ 是' : '—') + '</td>';
+    h += '<td>' + (o.isHighlandSchool ? '是' : '否') + '</td>';
     h += '<td>' + adminText + '</td>';
     var updateTime = o.updatedAt || '-';
     if (updateTime !== '-' && updateTime.length === 10) updateTime += ' 00:00:00';

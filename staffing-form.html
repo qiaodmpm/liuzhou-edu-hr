@@ -277,6 +277,8 @@ body {
   cursor: pointer; text-align: center; transition: var(--transition); background: #fff;
 }
 .type-option:hover { border-color: var(--accent); }
+.type-option.locked { cursor: not-allowed; opacity: 0.65; }
+.type-option.locked:hover { border-color: var(--border); }
 .type-option.selected {
   border-color: var(--primary); background: var(--primary-light);
 }
@@ -818,14 +820,18 @@ function renderTypeSelector() {
   var html = '';
   types.forEach(function(t) {
     var isSelected = t.key === staffingType;
-    html += '<div class="type-option' + (isSelected ? ' selected' : '') + '" onclick="selectType(\'' + t.key + '\')">';
+    var lockedClass = isEditMode ? ' locked' : '';
+    var onclickAttr = isEditMode ? '' : ' onclick="selectType(\'' + t.key + '\')"';
+    html += '<div class="type-option' + (isSelected ? ' selected' : '') + lockedClass + '"' + onclickAttr + '>';
     html += '<div class="type-name">' + t.config.icon + ' ' + t.config.label + '</div>';
+    if (isEditMode) html += '<div style="font-size:10px;color:var(--text-light);margin-top:2px;">修改重提不可更改</div>';
     html += '</div>';
   });
   document.getElementById('typeSelector').innerHTML = html;
 }
 
 function selectType(type) {
+  if (isEditMode) return; // 修改重提不允许切换申报类型
   staffingType = type;
   renderTypeSelector();
   renderForm();
@@ -1156,8 +1162,33 @@ function submitForm() {
     }
   }
 
-  // Build submission payload
-  var submissionId = formId || ('S' + new Date().getFullYear() + '-A' + String(Math.floor(Math.random() * 1000)).padStart(3, '0'));
+  // Build submission payload — generate ID: S{B/A}{YYYY}-{region2}{batch3}-{school3}{J/K}{seq2}
+  var submissionId = formId;
+  if (!submissionId) {
+    // Lookup school orgId from org_directory
+    var schoolCode = '000';
+    try {
+      var orgDir = JSON.parse(localStorage.getItem('org_directory') || '[]');
+      for (var oi = 0; oi < orgDir.length; oi++) {
+        if (orgDir[oi].orgName === currentSchoolName) {
+          var parts = orgDir[oi].orgId.split('-');
+          schoolCode = (parts[parts.length - 1] || '000').slice(-3).padStart(3, '0');
+          break;
+        }
+      }
+    } catch(e) {}
+    var typeCode = staffingType === 'career' ? 'J' : 'K';
+    // Count existing submissions for batch+school+type to get seq
+    var seq = 1;
+    var existingSubs = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+    for (var si = 0; si < existingSubs.length; si++) {
+      var s = existingSubs[si];
+      if (s.batchId === formBatchId && s.orgName === currentSchoolName && s.staffingType === staffingType) {
+        seq++;
+      }
+    }
+    submissionId = 'S' + formBatchId + '-' + schoolCode + typeCode + String(seq).padStart(2, '0');
+  }
   var payload = {
     id: submissionId,
     batchId: formBatchId,
@@ -1173,6 +1204,12 @@ function submitForm() {
 
   // Track submission for duplicate check
   saveSubmissionRecord(formBatchId, staffingType, submissionId);
+  // Track in submissions list for ID sequencing
+  try {
+    var subsList = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+    subsList.push({ id: submissionId, batchId: formBatchId, orgName: currentSchoolName, staffingType: staffingType, submitDate: payload.submitDate });
+    localStorage.setItem('staffing_submissions', JSON.stringify(subsList));
+  } catch(e) {}
 
   // Save form data to localStorage for edit/reload
   var historyEntry = { time: payload.submitDate, action: isEditMode ? '修改重提' : '学校提交申报', detail: '使用' + (staffingType === 'career' ? '事业编制' : '控制数') + '合计' + totalApply + '名' };

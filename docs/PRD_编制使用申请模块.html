@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD — 编制使用申请模块 — 柳州教育人事管理平台</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F8FAFC; color: #1E293B; line-height: 1.7;
+    padding: 40px 0;
+  }
+  .doc {
+    max-width: 960px; margin: 0 auto; background: #fff;
+    border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 60px 80px;
+  }
+  h1 { font-size: 28px; font-weight: 700; color: #1E40AF; margin-bottom: 4px; }
+  .meta { font-size: 13px; color: #94A3B8; margin-bottom: 32px; border-bottom: 1px solid #E2E8F0; padding-bottom: 24px; }
+  h2 { font-size: 20px; font-weight: 700; color: #1E293B; margin: 36px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #E2E8F0; }
+  h3 { font-size: 16px; font-weight: 600; color: #1E40AF; margin: 24px 0 12px; }
+  h4 { font-size: 14px; font-weight: 600; color: #334155; margin: 16px 0 8px; }
+  p { margin-bottom: 12px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; }
+  th, td { padding: 8px 12px; text-align: left; border: 1px solid #E2E8F0; }
+  th { background: #F1F5F9; font-weight: 600; color: #475569; font-size: 12px; white-space: nowrap; }
+  td { vertical-align: top; }
+  code { background: #F1F5F9; padding: 1px 6px; border-radius: 4px; font-size: 12px; color: #1E40AF; font-family: 'SF Mono', 'Fira Code', monospace; }
+  pre { background: #1E293B; color: #E2E8F0; padding: 16px 20px; border-radius: 8px; font-size: 12px; overflow-x: auto; margin: 12px 0 20px; }
+  pre code { background: none; color: inherit; padding: 0; }
+  ul, ol { margin: 8px 0 16px 24px; font-size: 14px; }
+  li { margin-bottom: 4px; }
+  .callout {
+    border-left: 4px solid #3B82F6; background: #EFF6FF;
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 13px;
+  }
+  .callout-warn { border-left-color: #F59E0B; background: #FFFBEB; }
+  .callout-danger { border-left-color: #EF4444; background: #FEF2F2; }
+  .toc { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc h3 { margin-top: 0; }
+  .toc a { color: #1E40AF; text-decoration: none; font-size: 13px; }
+  .toc ul { margin-bottom: 0; }
+  .flow-box {
+    background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 16px 20px; margin: 12px 0; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+    white-space: pre; overflow-x: auto;
+  }
+  @media print { .doc { box-shadow: none; padding: 20px 40px; } }
+</style>
+</head>
+<body>
+<div class="doc">
+
+<h1>编制使用申请模块 — 产品需求文档</h1>
+<div class="meta">
+  版本：v6.0 &nbsp;|&nbsp; 更新日期：2026-07-21 &nbsp;|&nbsp; 父文档：PRD_柳州教育人事管理平台_总纲.md &nbsp;|&nbsp; 状态：已发布<br>
+  原型文件：staffing-application.html / staffing-form.html / staffing-detail.html / 审核编制使用申请页（主管单位视角）.html
+</div>
+
+<!-- TOC -->
+<div class="toc">
+<h3>目录</h3>
+<ol>
+  <li><a href="#s1">模块概述</a></li>
+  <li><a href="#s2">批次管理</a></li>
+  <li><a href="#s3">申请状态与流转</a></li>
+  <li><a href="#s4">页面清单与导航</a></li>
+  <li><a href="#s5">列表页详细设计（staffing-application.html）</a></li>
+  <li><a href="#s6">表单页详细设计（staffing-form.html）</a></li>
+  <li><a href="#s7">详情页详细设计（staffing-detail.html）</a></li>
+  <li><a href="#s8">审核页详细设计（主管单位视角）</a></li>
+  <li><a href="#s9">功能清单</a></li>
+  <li><a href="#s10">数据模型</a></li>
+  <li><a href="#s11">编制池联动机制</a></li>
+  <li><a href="#s12">附件上传通用规则</a></li>
+  <li><a href="#s13">附录</a></li>
+</ol>
+</div>
+
+<!-- ====== 1 ====== -->
+<h2 id="s1">1. 模块概述</h2>
+
+<h3>1.1 业务背景</h3>
+<p>学校在招聘教师或调动人员前，须向机构编制委员会办公室（编办）提交编制使用计划申请。编办线下审批通过后，学校方可使用编制名额。本模块实现申请、审核、编办确认的全流程线上化。</p>
+
+<h3>1.2 双轨说明</h3>
+<table>
+<tr><th>轨道</th><th>表单依据</th><th>编制类型</th><th>管理模式</th></tr>
+<tr><td>事业编</td><td>附件2（事业单位编制使用计划申报表）</td><td>实名制事业编制</td><td>核定编制数 − 实有在编人数 − 已批复计划数</td></tr>
+<tr><td>控制数</td><td>附件9（中小学聘用教师控制数使用计划申报表）</td><td>备案制聘用教师控制数</td><td>核定控制数 − 实有控制数人数 − 已批复控制数</td></tr>
+</table>
+
+<h3>1.3 使用类型（6 种）</h3>
+<table>
+<tr><th>编码</th><th>名称</th><th>适用编制类型</th></tr>
+<tr><td><code>publicRecruit</code></td><td>统一公开招聘</td><td>事业编 / 控制数</td></tr>
+<tr><td><code>selfRecruit</code></td><td>单位自主实施招聘</td><td>事业编 / 控制数</td></tr>
+<tr><td><code>talentMid</code></td><td>中高级人才招聘</td><td>事业编 / 控制数</td></tr>
+<tr><td><code>talentHigh</code></td><td>引进高层次人才</td><td>事业编 / 控制数</td></tr>
+<tr><td><code>transfer</code></td><td>调动</td><td>事业编 / 控制数</td></tr>
+<tr><td><code>other</code></td><td>其他</td><td>事业编 / 控制数</td></tr>
+</table>
+
+<h3>1.4 角色与权限</h3>
+<table>
+<tr><th>角色</th><th>权限范围</th><th>核心操作</th></tr>
+<tr><td>市管理员 (<code>city</code>)</td><td>全市数据查看；仅可审核市直属学校</td><td>批次管理、审核（一审+二审）、导出、查看全部</td></tr>
+<tr><td>区管理员 (<code>district</code>)</td><td>本区数据查看；仅可审核本区属学校</td><td>批次管理、审核（一审+二审）、导出</td></tr>
+<tr><td>校管理员 (<code>school</code>)</td><td>本校数据</td><td>新建申报、修改重提、提交编办确认、上传后续材料、导出</td></tr>
+<tr><td>教师 (<code>teacher</code>)</td><td>无权限</td><td>不可访问本模块</td></tr>
+<tr><td>系统管理员 (<code>admin</code>)</td><td>无权限</td><td>不可访问本模块（仅限系统配置功能）</td></tr>
+</table>
+
+<div class="callout">
+<strong>权限隔离规则：</strong> 市管理员只能审核市直属学校的申请，不能审核区属学校；区管理员只能审核本区属学校的申请。列表页操作按钮根据 <code>canApprove(orgName, district)</code> 动态显示/隐藏。
+</div>
+
+<!-- ====== 2 ====== -->
+<h2 id="s2">2. 批次管理</h2>
+
+<h3>2.1 批次类型</h3>
+<table>
+<tr><th>类型</th><th>标识</th><th>创建方式</th><th>提交限制</th><th>典型场景</th></tr>
+<tr><td><strong>定向批次</strong></td><td><code>B{year}-{seq}</code></td><td>市/区管理员手动创建</td><td>每校每种编制类型限 <strong>1 次</strong></td><td>年度集中申报</td></tr>
+<tr><td><strong>自主申报批次</strong></td><td><code>A{year}-{seq}</code></td><td>系统自动生成，全年存在</td><td><strong>不限次数</strong></td><td>紧急/零星需求</td><td>⏳ <strong>暂不支持</strong>，后续版本实现</td></tr>
+</table>
+
+<div class="callout-warn callout">
+<strong>⏳ 自主申报批次（AUTO）暂不支持：</strong>当前版本仅实现定向批次。AUTO 批次的自动创建、自动关闭、不限次数提交、绿色边框标识等能力将在后续版本中实现。以下规则为规划中的设计，当前原型中可忽略。
+</div>
+
+<h4>AUTO 批次规则（规划中，暂未实现）</h4>
+<table>
+<tr><th>规则</th><th>说明</th></tr>
+<tr><td>生命周期</td><td>每年 1 月 1 日系统自动生成，12 月 31 日自动关闭</td></tr>
+<tr><td>可见范围</td><td>市直属学校看到 AUTO 批次（发布单位：市教育局）；区属学校看到 AUTO 批次（发布单位：区教育局）</td></tr>
+<tr><td>重复提交</td><td>同一学校同一编制类型可多次提交，不限制次数</td></tr>
+<tr><td>视觉标识</td><td>AUTO 批次卡片左侧有绿色边框，区别于定向批次的蓝色边框</td></tr>
+</table>
+
+<h3>2.2 批次状态（3 种）</h3>
+<table>
+<tr><th>状态值</th><th>中文标签</th><th>含义</th><th>学校操作</th><th>主管操作</th></tr>
+<tr><td><code>pending</code></td><td>未开始</td><td>批次已创建但尚未到达申报开始时间</td><td>仅可查看，不可填报</td><td>可编辑、可删除</td></tr>
+<tr><td><code>active</code></td><td>进行中</td><td>批次处于开放申报窗口期</td><td>可申报、驳回可重提、导出</td><td>审核、编辑、手动关闭、导出</td></tr>
+<tr><td><code>closed</code></td><td>已结束</td><td>申报窗口已关闭</td><td>仅可查看历史记录</td><td>审核、导出、可编辑</td></tr>
+</table>
+
+<div class="flow-box">
+未开始(pending) ──(达到开始时间)──→ 进行中(active)
+                                        │
+                          ┌─────────────┤
+                          │ (到期自动)    │ (手动提前结束)
+                          ▼              ▼
+                     已结束(closed) ←───┘
+</div>
+
+<h3>2.3 批次创建</h3>
+<table>
+<tr><th>字段</th><th>输入类型</th><th>必填</th><th>说明</th></tr>
+<tr><td>批次名称</td><td>&lt;input type="text"&gt;</td><td>是</td><td>不能重复</td></tr>
+<tr><td>年度</td><td>&lt;select&gt;</td><td>是</td><td>创建后不可修改</td></tr>
+<tr><td>申报开始日期</td><td>&lt;input type="date"&gt;</td><td>是</td><td>从当天 00:00:00 开始</td></tr>
+<tr><td>申报截止日期</td><td>&lt;input type="date"&gt;</td><td>是</td><td>截止到当天 23:59:59；截止日 ≥ 开始日</td></tr>
+<tr><td>适用范围</td><td>&lt;select&gt;</td><td>是</td><td>全市 / 指定区 / 指定学校。市管理员可选"全市"，区管理员仅能选本区</td></tr>
+<tr><td>备注说明</td><td>&lt;textarea&gt;</td><td>否</td><td>最多 200 字</td></tr>
+</table>
+
+<h3>2.4 批次编辑（条件可编辑）</h3>
+<table>
+<tr><th>字段</th><th>批次状态</th><th>可编辑</th><th>说明</th></tr>
+<tr><td>批次名称</td><td>全部</td><td>✅</td><td>随时可改</td></tr>
+<tr><td>年度</td><td>全部</td><td>❌</td><td>创建后永久锁定</td></tr>
+<tr><td>申报开始日期</td><td>未开始</td><td>✅</td><td>申报开始后锁定</td></tr>
+<tr><td>申报开始日期</td><td>进行中 / 已结束</td><td>❌</td><td>申报已开始，不允许修改</td></tr>
+<tr><td>申报截止日期</td><td>未开始 / 进行中</td><td>✅</td><td></td></tr>
+<tr><td>申报截止日期</td><td>已结束</td><td>❌</td><td>批次已结束，不允许修改</td></tr>
+<tr><td>适用范围</td><td>全部</td><td>❌</td><td>创建后永久锁定</td></tr>
+<tr><td>备注说明</td><td>全部</td><td>✅</td><td>最多 200 字</td></tr>
+</table>
+
+<h3>2.5 批次卡片统计规则</h3>
+<p>批次卡片展示事业编 / 控制数的 <strong>已申报数 / 总数</strong>：</p>
+<ul>
+  <li><strong>已申报数</strong>：该批次下已提交申报的 <strong>去重学校数量</strong>（同一学校多次提交算 1 所）</li>
+  <li><strong>总数</strong>：该批次<strong>适用范围覆盖的学校总数</strong>（非提交数），由 <code>countSchoolsInScope(scope)</code> 计算</li>
+</ul>
+<p>如果批次选"全市"→ 总数 = 全市学校数；选"指定区"→ 总数 = 该区学校数；选"指定学校"→ 总数 = 选定学校数。</p>
+
+<h3>2.6 批次详情弹框</h3>
+<p>展示批次完整信息：编号、名称、年度、起止日期、适用范围、状态、备注说明（悬停 tooltip 展示全文）。</p>
+<p>事业编和控制数分别展示：已申报学校数 / 覆盖学校数、各状态（待一审/一审通过/待二审/已完成/一审驳回）的统计数。</p>
+
+<!-- ====== 3 ====== -->
+<h2 id="s3">3. 申请状态与流转</h2>
+
+<h3>3.1 状态枚举（5 种）</h3>
+<table>
+<tr><th>状态值</th><th>中文标签</th><th>印章颜色</th><th>含义</th></tr>
+<tr><td><code>submitted</code></td><td>待一审</td><td>黄色</td><td>学校已提交，等待主管单位初审</td></tr>
+<tr><td><code>first_approved</code></td><td>一审通过</td><td>绿色</td><td>主管单位初审通过，等待学校提交编办确认</td></tr>
+<tr><td><code>final_submitted</code></td><td>待二审</td><td>黄色</td><td>学校已提交编办批复文件，等待主管单位终审</td></tr>
+<tr><td><code>approved</code></td><td>已完成</td><td>绿色</td><td>编办确认完成，编制名额生效（终态）</td></tr>
+<tr><td><code>rejected</code></td><td>一审驳回</td><td>红色</td><td>申请被驳回，可修改重提</td></tr>
+</table>
+
+<div class="callout-warn callout">
+<strong>注意：</strong>本项目不支持"保存草稿"功能。表单提交后直接进入 <code>submitted</code> 状态 —— 不要添加"保存草稿"按钮或草稿状态。
+</div>
+
+<h3>3.2 状态流转图</h3>
+<div class="flow-box">
+学校提交 ──→ submitted (待一审)
+                │
+        ┌───────┤
+        │ 驳回  │ 一审通过
+        ▼       ▼
+    rejected   first_approved (一审通过)
+        │       │
+        │  学校上传编办文件 + 填写确认数
+        │       │
+        │       ▼
+        │  final_submitted (待二审)
+        │       │
+        │  ┌────┤
+        │  │驳回 │ 通过
+        │  ▼    ▼
+        └─→ rejected   approved (已完成·终态)
+         （修改重提）
+</div>
+
+<h3>3.3 各状态下角色操作矩阵</h3>
+<table>
+<tr><th>状态</th><th>校管理员</th><th>区/市管理员（有权限）</th></tr>
+<tr><td><code>submitted</code></td><td>查看</td><td>审核（一审通过 / 驳回）</td></tr>
+<tr><td><code>first_approved</code></td><td>查看、提交编办确认、导出</td><td>查看</td></tr>
+<tr><td><code>final_submitted</code></td><td>查看</td><td>审核（二审通过 / 驳回）</td></tr>
+<tr><td><code>approved</code></td><td>查看、导出、上传后续材料</td><td>查看、导出、下载汇总表</td></tr>
+<tr><td><code>rejected</code></td><td>查看、修改重提</td><td>查看</td></tr>
+</table>
+
+<!-- ====== 4 ====== -->
+<h2 id="s4">4. 页面清单与导航</h2>
+
+<table>
+<tr><th>页面</th><th>文件名</th><th>角色</th><th>功能</th></tr>
+<tr><td>申请列表页</td><td><code>staffing-application.html</code></td><td>市/区/校</td><td>批次管理、申请列表、审核操作、导出、状态筛选</td></tr>
+<tr><td>新建/编辑页</td><td><code>staffing-form.html</code></td><td>校</td><td>填写申请表单、上传附件、修改重提</td></tr>
+<tr><td>详情页</td><td><code>staffing-detail.html</code></td><td>市/区/校</td><td>查看申请全貌、进度、时间线、附件下载</td></tr>
+<tr><td>审核页</td><td><code>审核编制使用申请页（主管单位视角）.html</code></td><td>市/区</td><td>一审/二审审核操作（通过/驳回）、查看申请详情</td></tr>
+</table>
+
+<p><strong>导航关系：</strong></p>
+<ul>
+  <li>列表页 → 点击"新建申报" → 表单页（<code>?batchId=xxx&amp;staffingType=career|control</code>）</li>
+  <li>列表页 → 点击"查看"/申报编号 → 详情页（<code>?id=xxx</code>）</li>
+  <li>列表页 → 点击"审核" → 审核页（<code>?id=xxx&amp;role=city|district</code>）</li>
+  <li>列表页 → 点击"修改重提" → 表单页（<code>?id=xxx</code>，预填原数据）</li>
+  <li>详情页 | 审核页 → "返回列表"按钮 → 列表页</li>
+</ul>
+
+<!-- ====== 5 ====== -->
+<h2 id="s5">5. 列表页详细设计（staffing-application.html）</h2>
+
+<h3>5.1 页面布局</h3>
+<p>管理员（市/区）视图：左右两栏布局 —— 左侧批次列表 + 右侧申请列表。</p>
+<p>学校视图：左右两栏布局 —— 左侧批次卡片 + 右侧申请列表。</p>
+<p>页面标题"编制使用申请"，无副标题。</p>
+
+<h3>5.2 批次卡片区（左侧）</h3>
+<table>
+<tr><th>元素</th><th>说明</th></tr>
+<tr><td>年份筛选</td><td>下拉选择年份或"全部年份"，即时刷新批次列表</td></tr>
+<tr><td>新建批次按钮</td><td>仅市/区管理员可见。弹出创建批次的模态框</td></tr>
+<tr><td>批次卡片</td><td>包含：批次名称、编号、年度、发布单位、起止日期、适用范围、状态标签（进行中/未开始/已结束）</td></tr>
+<tr><td>卡片统计</td><td>事业编：已申报数/覆盖学校数；控制数：已申报数/覆盖学校数</td></tr>
+<tr><td>卡片操作</td><td>详情、编辑、关闭（进行中批次）/ 删除（未开始批次）。AUTO 批次无编辑/关闭按钮</td></tr>
+<tr><td>年度汇总</td><td>可切换"年度汇总模式"，多选批次后生成汇总统计并导出 CSV</td></tr>
+</table>
+
+<h3>5.3 申请列表区（右侧）</h3>
+
+<h4>5.3.1 筛选栏</h4>
+<table>
+<tr><th>筛选项</th><th>适用角色</th><th>类型</th><th>说明</th></tr>
+<tr><td>状态筛选</td><td>全部</td><td>标签按钮组</td><td>全部 / 待审核 / 已完成 / 已驳回。管理员额外有"未提交"</td></tr>
+<tr><td>申请单位</td><td>市/区管理员</td><td>可搜索下拉单选</td><td>支持模糊搜索（字符按顺序匹配），下拉列表显示匹配结果，选中后精确过滤</td></tr>
+<tr><td>编制类型</td><td>市/区管理员</td><td>&lt;select&gt;</td><td>全部 / 事业编 / 控制数。校管理员无此筛选项</td></tr>
+<tr><td>批次</td><td>校管理员</td><td>&lt;select&gt;</td><td>筛选当前角色可见的批次</td></tr>
+</table>
+
+<div class="callout">
+<strong>申请单位可搜索下拉组件：</strong>
+<ul>
+  <li>输入框可输入任意文字，实时模糊匹配单位名称（如输入"八中"可匹配"柳州市第八中学"）</li>
+  <li>匹配字符在列表中高亮显示（黄色背景 <code>&lt;mark&gt;</code>）</li>
+  <li>下拉列表第一行为"全部"选项</li>
+  <li>选中后输入框显示选中值，× 按钮可清除筛选</li>
+  <li>点击外部区域或按 Escape 键关闭下拉</li>
+  <li>切换批次/年份/角色时自动重置</li>
+</ul>
+</div>
+
+<h4>5.3.2 列表列定义（管理员视图 — 市/区）</h4>
+<table>
+<tr><th>#</th><th>列名</th><th>字段来源</th><th>说明</th></tr>
+<tr><td>1</td><td>申报编号</td><td><code>s.id</code></td><td>可点击跳转详情页</td></tr>
+<tr><td>2</td><td>批次</td><td><code>s.batchName</code></td><td></td></tr>
+<tr><td>3</td><td>编制类型</td><td><code>s.staffingType</code></td><td>事业编（蓝色）/ 控制数（紫色）标签</td></tr>
+<tr><td>4</td><td>申请单位</td><td><code>s.orgName</code></td><td></td></tr>
+<tr><td>5</td><td>所属区域</td><td><code>s.district</code></td><td></td></tr>
+<tr><td>6</td><td>核定编制数</td><td><code>s.totalStaff</code></td><td>事业编显示</td></tr>
+<tr><td>7</td><td>在编人数</td><td><code>s.currentStaff</code></td><td>事业编显示</td></tr>
+<tr><td>8</td><td>控制数</td><td><code>s.controlNum</code></td><td>控制数显示</td></tr>
+<tr><td>9</td><td>控制数实有</td><td><code>s.controlActual</code></td><td>控制数显示</td></tr>
+<tr><td>10</td><td>申请数</td><td>计算</td><td>useForms 各类型人数之和</td></tr>
+<tr><td>11-16</td><td>6 种使用类型</td><td><code>s.useForms[type]</code></td><td>统一公开招聘 / 自主实施招聘 / 中高级人才 / 引进高层次人才 / 调动 / 其他</td></tr>
+<tr><td>17</td><td>状态</td><td><code>s.status</code></td><td>状态标签（待一审/一审通过/待二审/已完成/一审驳回）</td></tr>
+<tr><td>18</td><td>提交时间</td><td><code>s.submitDate</code></td><td></td></tr>
+<tr><td>19</td><td>操作</td><td>—</td><td>见 §5.3.3 按钮矩阵</td></tr>
+</table>
+
+<h4>5.3.2a 列表列定义（学校视图）</h4>
+<table>
+<tr><th>#</th><th>列名</th><th>字段来源</th></tr>
+<tr><td>1</td><td>申报编号</td><td><code>s.id</code></td></tr>
+<tr><td>2</td><td>批次</td><td><code>s.batchName</code></td></tr>
+<tr><td>3</td><td>编制类型</td><td><code>s.staffingType</code></td></tr>
+<tr><td>4</td><td>核定编制数</td><td><code>s.totalStaff</code></td></tr>
+<tr><td>5</td><td>在编人数</td><td><code>s.currentStaff</code></td></tr>
+<tr><td>6</td><td>控制数</td><td><code>s.controlNum</code></td></tr>
+<tr><td>7</td><td>控制数实有</td><td><code>s.controlActual</code></td></tr>
+<tr><td>8</td><td>申请数</td><td>计算</td></tr>
+<tr><td>9-14</td><td>6 种使用类型</td><td><code>s.useForms[type]</code></td></tr>
+<tr><td>15</td><td>状态</td><td>标签</td></tr>
+<tr><td>16</td><td>提交时间</td><td><code>s.submitDate</code></td></tr>
+<tr><td>17</td><td>操作</td><td>见 §5.3.3a</td></tr>
+</table>
+
+<h4>5.3.3 管理员操作按钮矩阵</h4>
+<table>
+<tr><th>记录状态</th><th>当前角色 + 学校归属</th><th>可见按钮</th><th>说明</th></tr>
+<tr><td><code>submitted</code></td><td>市管理员 + 市直属</td><td>审核</td><td rowspan="2">跳转审核页</td></tr>
+<tr><td><code>submitted</code></td><td>区管理员 + 区属</td><td>审核</td></tr>
+<tr><td><code>submitted</code></td><td>市管理员 + 区属</td><td>查看</td><td>无审核权限</td></tr>
+<tr><td><code>first_approved</code></td><td>任意</td><td>查看</td><td>等待学校操作</td></tr>
+<tr><td><code>final_submitted</code></td><td>同 submitted 权限</td><td>审核</td><td>二审</td></tr>
+<tr><td><code>approved</code></td><td>任意</td><td>查看、导出</td><td></td></tr>
+<tr><td><code>rejected</code></td><td>任意</td><td>查看</td><td>等待学校修改</td></tr>
+</table>
+
+<h4>5.3.3a 学校操作按钮矩阵</h4>
+<table>
+<tr><th>记录状态</th><th>可见按钮</th></tr>
+<tr><td><code>submitted</code></td><td>查看</td></tr>
+<tr><td><code>first_approved</code></td><td>查看、提交编办确认、导出</td></tr>
+<tr><td><code>final_submitted</code></td><td>查看</td></tr>
+<tr><td><code>approved</code></td><td>查看、导出、上传后续材料</td></tr>
+<tr><td><code>rejected</code></td><td>查看、<span style="color:#EF4444;">修改重提</span></td></tr>
+</table>
+
+<h4>5.3.4 未提交学校视图（管理员专用）</h4>
+<p>管理员在状态筛选中选择"未提交"时，切换为该视图。显示该批次适用范围内尚未提交申报的学校列表。</p>
+<table>
+<tr><th>列</th><th>说明</th></tr>
+<tr><td>序号</td><td>前端生成</td></tr>
+<tr><td>学校名称</td><td>来自管辖学校列表减去已提交学校</td></tr>
+<tr><td>所属区域</td><td>市直属 / 鱼峰区</td></tr>
+<tr><td>最近提醒</td><td>YYYY-MM-DD HH:mm (第N次) 或 "—"</td></tr>
+<tr><td>状态</td><td>"待提交"灰色标签</td></tr>
+<tr><td>操作</td><td>"提醒申报"按钮 / "今日已提醒"（置灰）</td></tr>
+</table>
+
+<h4>5.3.5 缺失类型提示条（学校视图专用）</h4>
+<p>当学校在定向批次内只提交了一种编制类型（如只提交了事业编未提交控制数），列表顶部显示提示条：</p>
+<p style="background:#FFFBEB;padding:8px 12px;border-radius:6px;border:1px solid #FDE68A;">⚠ 您还未提交「控制数」的申报，请尽快补充。 <a href="#">[立即申报 →]</a></p>
+<p><strong>消失条件：</strong>两种编制类型均已提交，或批次已关闭。</p>
+
+<h4>5.3.6 分页</h4>
+<p>列表下方显示分页控件，每页默认 10 条。分页栏始终显示（即使只有 1 页），格式：◀ 1 2 3 … 10 ▶ 共 N 页 / M 条。</p>
+
+<h4>5.3.7 导出功能</h4>
+<ul>
+  <li><strong>单条导出：</strong>点击记录的"导出"链接 → 下载 CSV（UTF-8 BOM），格式按编制类型区分（附件2/附件9列头）</li>
+  <li><strong>批次汇总导出：</strong>点击"导出数据"按钮 → 下载该批次所有已提交申请的汇总 CSV</li>
+  <li><strong>年度汇总导出：</strong>进入年度汇总模式 → 勾选多个批次 → 生成汇总统计 → 导出</li>
+</ul>
+
+<h3>5.4 弹框清单</h3>
+<table>
+<tr><th>弹框</th><th>触发操作</th><th>角色</th></tr>
+<tr><td>新建批次</td><td>点击"新建批次"按钮</td><td>市/区管理员</td></tr>
+<tr><td>编辑批次</td><td>点击批次卡片"编辑"</td><td>市/区管理员</td></tr>
+<tr><td>批次详情</td><td>点击批次卡片"详情"或卡片主体</td><td>全部</td></tr>
+<tr><td>审核确认（通过/驳回）</td><td>点击"审核"按钮</td><td>市/区管理员</td></tr>
+<tr><td>编办确认提交</td><td>点击"提交编办确认"（<code>first_approved</code> 状态）</td><td>校管理员</td></tr>
+<tr><td>上传后续材料</td><td>点击"上传后续材料"（<code>approved</code> 状态）</td><td>校管理员</td></tr>
+<tr><td>计划明细查看</td><td>状态为已完成时</td><td>全部</td></tr>
+</table>
+
+<!-- ====== 6 ====== -->
+<h2 id="s6">6. 表单页详细设计（staffing-form.html）</h2>
+
+<h3>6.1 申报类型选择</h3>
+<p>页面顶部有两个大卡片：🏛 事业编（附件2）/ 📋 控制数（附件9），点击切换。</p>
+<p><strong>修改重提模式（<code>isEditMode = true</code>）：</strong>申报类型锁定，卡片半透明 + <code>cursor: not-allowed</code>，下方显示"修改重提不可更改"，点击无效。</p>
+
+<h3>6.2 单位信息（系统自动填充，全部只读）</h3>
+
+<h4>事业编</h4>
+<table>
+<tr><th>#</th><th>字段名</th><th>说明</th></tr>
+<tr><td>1</td><td>单位全称</td><td>从 SCHOOL_PROFILE 读取</td></tr>
+<tr><td>2</td><td>机构级别</td><td>如"正科级"</td></tr>
+<tr><td>3</td><td>单位性质</td><td>如"全额拨款事业单位"</td></tr>
+<tr><td>4</td><td>核定编制数</td><td></td></tr>
+<tr><td>5</td><td>实有在编人数</td><td></td></tr>
+<tr><td>6</td><td>已批复计划数</td><td>系统计算</td></tr>
+<tr><td>7</td><td>已使用计划数</td><td>系统计算</td></tr>
+<tr><td>8</td><td>未使用计划数</td><td>= 已批复 − 已使用</td></tr>
+<tr><td>9</td><td>可申请编制数</td><td>= max(0, 核定 − 实有 − 已批复 − 到期占用中)</td></tr>
+</table>
+
+<h4>控制数</h4>
+<table>
+<tr><th>#</th><th>字段名</th><th>说明</th></tr>
+<tr><td>1</td><td>单位全称</td><td>同上</td></tr>
+<tr><td>2</td><td>机构级别</td><td>同上</td></tr>
+<tr><td>3</td><td>单位性质</td><td>同上</td></tr>
+<tr><td>4</td><td>核定控制数</td><td></td></tr>
+<tr><td>5</td><td>实有控制数人数</td><td></td></tr>
+<tr><td>6</td><td>已批复控制数</td><td>系统计算</td></tr>
+<tr><td>7</td><td>已使用控制数</td><td>系统计算</td></tr>
+<tr><td>8</td><td>未使用控制数</td><td>= 已批复 − 已使用</td></tr>
+<tr><td>9</td><td>可申请控制数</td><td>= max(0, 核定 − 实有 − 已批复 − 到期占用中)</td></tr>
+</table>
+
+<h3>6.3 使用类型明细表（6 行）</h3>
+<table>
+<tr><th>列</th><th>字段</th><th>类型</th><th>必填</th><th>校验规则</th></tr>
+<tr><td>1</td><td>使用形式</td><td>只读文本</td><td>—</td><td>固定 6 种</td></tr>
+<tr><td>2</td><td>使用人数</td><td>&lt;input type="number"&gt;</td><td>否</td><td>≥ 0 整数；总额 > 0</td></tr>
+<tr><td>3</td><td>学历/专业/资格</td><td>&lt;input type="text"&gt;</td><td>条件必填</td><td>当人数 > 0 时必须填写</td></tr>
+<tr><td>4</td><td>相关条件</td><td>&lt;input type="text"&gt;</td><td>否</td><td></td></tr>
+<tr><td>5</td><td>备注</td><td>&lt;input type="text"&gt;</td><td>否</td><td></td></tr>
+</table>
+<p><strong>汇总行：</strong>实时计算 <code>SUM(num)</code>，显示在表格底部。</p>
+
+<h3>6.4 名额汇总栏（实时计算）</h3>
+<table>
+<tr><th>指标</th><th>说明</th><th>颜色</th></tr>
+<tr><td>可申请编制数 / 可申请控制数</td><td>系统计算</td><td>—</td></tr>
+<tr><td>本次申请合计</td><td>= SUM(使用人数)</td><td>—</td></tr>
+<tr><td>剩余</td><td>= 可用 − 申请</td><td>≥ 0 绿色 / &lt; 0 红色</td></tr>
+</table>
+<p>如果申请合计 > 可用数，提交按钮仍可点击但会显示红色警告。</p>
+
+<h3>6.5 附件上传</h3>
+<table>
+<tr><th>属性</th><th>说明</th></tr>
+<tr><td>支持格式</td><td>PDF / JPG / JPEG / PNG / DOC / DOCX / XLS / XLSX</td></tr>
+<tr><td>禁止格式</td><td>ZIP / RAR / 7Z / TAR / GZ / BZ2 / XZ / TGZ（压缩包）</td></tr>
+<tr><td>文件大小</td><td>≤ 10MB</td></tr>
+<tr><td>必填</td><td>是（必须上传才能提交）</td></tr>
+<tr><td>交互</td><td>支持拖拽上传 + 点击上传；可移除已选文件重新上传</td></tr>
+<tr><td>事业编标签</td><td>"附件2"</td></tr>
+<tr><td>控制数标签</td><td>"附件9"</td></tr>
+</table>
+
+<h3>6.6 提交流程</h3>
+<ol>
+  <li>选择编制类型 → 单位信息自动填充 → 填写使用类型明细 → 上传附件</li>
+  <li>点击"提交申报"</li>
+  <li>校验：① 申请合计 > 0；② 人数 > 0 的行已填学历；③ 附件已上传</li>
+  <li>通过 → 生成申请编号 → 状态设为 <code>submitted</code> → 存入 localStorage → toast 提示 → 跳转回列表</li>
+  <li>不通过 → toast 提示具体未通过项</li>
+</ol>
+
+<h3>6.7 修改重提模式</h3>
+<table>
+<tr><th>属性</th><th>说明</th></tr>
+<tr><td>触发条件</td><td>URL 带 <code>?id=xxx</code> 参数（<code>isEditMode = true</code>）</td></tr>
+<tr><td>数据预填</td><td>所有字段预填原申请数据（useForms 明细、附件状态等）</td></tr>
+<tr><td>编制类型</td><td><strong>锁定不可修改</strong>（卡片半透明 + 禁止点击 + 提示文字）</td></tr>
+<tr><td>其他字段</td><td>全部可编辑</td></tr>
+<tr><td>提交后</td><td>状态重置为 <code>submitted</code>，重新走一审流程；时间线追加 resubmit 事件</td></tr>
+</table>
+
+<!-- ====== 7 ====== -->
+<h2 id="s7">7. 详情页详细设计（staffing-detail.html）</h2>
+
+<h3>7.1 页面布局</h3>
+<p>左右两栏布局：</p>
+<ul>
+  <li><strong>左栏（主内容）：</strong>单位信息卡片 + 使用类型明细表 + 名额汇总 + 附件下载</li>
+  <li><strong>右栏（侧栏）：</strong>申报基本信息卡片（编号、单位、提交日期、申报类型等）+ 进度时间线</li>
+</ul>
+
+<h3>7.2 返回按钮</h3>
+<p>"← 返回列表"按钮位于面包屑下方、页面标题上方，左对齐。</p>
+
+<h3>7.3 标题栏</h3>
+<p>页面标题"申报详情 — [编号] "，右侧显示圆形印章戳（根据状态变色）。</p>
+
+<h3>7.4 申报基本信息卡片（右栏顶部）</h3>
+<table>
+<tr><th>字段</th><th>数据来源</th></tr>
+<tr><td>申报编号</td><td><code>s.id</code></td></tr>
+<tr><td>单位名称</td><td><code>s.orgName</code></td></tr>
+<tr><td>批次名称</td><td><code>s.batchName</code></td></tr>
+<tr><td>编制类型</td><td><code>s.staffingType</code> → 事业编 / 控制数</td></tr>
+<tr><td>提交日期</td><td><code>s.submitDate</code></td></tr>
+<tr><td>审核日期</td><td><code>s.approveDate</code></td></tr>
+<tr><td>当前状态</td><td><code>s.status</code> → 状态标签</td></tr>
+</table>
+
+<h3>7.5 单位信息（只读展示）</h3>
+<p>与表单页 §6.2 字段相同，全部只读展示。卡片式布局（<code>.form-card</code> / <code>.bi-grid</code> / <code>.bi-item</code> 模式）。</p>
+
+<h3>7.6 使用类型明细表</h3>
+<p>与表单页 §6.3 格式相同，仅展示人数 > 0 的行。<code>approved</code> 状态额外显示"编办确认数"列。</p>
+
+<h3>7.7 名额汇总</h3>
+<p>全部状态显示：核定数 / 实有人数 / 已批复计划数 / 已使用计划数 / 未使用计划数（含公式）/ 可申请编制数（含公式）。</p>
+<p><code>approved</code> 状态额外显示：学校申请数 → 编办确认数 → 剩余（三列对比）。</p>
+
+<h3>7.8 编制有效期（仅 <code>approved</code> 状态）</h3>
+<table>
+<tr><th>字段</th><th>说明</th></tr>
+<tr><td>有效期起始</td><td><code>validStart</code></td></tr>
+<tr><td>有效期截止</td><td><code>validEnd</code></td></tr>
+<tr><td>状态标签</td><td>有效期内（绿色）/ 即将到期 ≤30 天（黄色）/ 已过期（红色）</td></tr>
+</table>
+
+<h3>7.9 进度追踪器（5 步）</h3>
+<table>
+<tr><th>步骤</th><th>标签</th><th>状态判定</th></tr>
+<tr><td>1</td><td>学校提交</td><td>≥ submitted → done</td></tr>
+<tr><td>2</td><td>一审：材料审核</td><td>≥ first_approved → done；rejected 时标记为 rejected</td></tr>
+<tr><td>3</td><td>学校提交编办确认</td><td>≥ final_submitted → done</td></tr>
+<tr><td>4</td><td>二审：编办确认</td><td>approved → done；rejected 时标记为 rejected</td></tr>
+<tr><td>5</td><td>审核完成</td><td>approved → done</td></tr>
+</table>
+
+<h3>7.10 时间线（右侧栏）</h3>
+<table>
+<tr><th>事件类型</th><th>标题</th><th>颜色</th><th>说明</th></tr>
+<tr><td><code>submit</code></td><td>提交申报</td><td>蓝色</td><td>学校首次提交</td></tr>
+<tr><td><code>first_approve</code></td><td>一审通过</td><td>蓝色</td><td>主管单位审核通过</td></tr>
+<tr><td><code>reject</code></td><td>审核驳回</td><td>红色</td><td>含驳回原因红色背景框</td></tr>
+<tr><td><code>resubmit</code></td><td>重新提交</td><td>黄色</td><td>驳回后修改重提</td></tr>
+<tr><td><code>final_submit</code></td><td>学校提交编办文件</td><td>蓝色</td><td>学校上传编办批复文件</td></tr>
+<tr><td><code>approve</code></td><td>终审通过</td><td>绿色</td><td>编办确认通过</td></tr>
+<tr><td><code>upload</code></td><td>材料补传</td><td>蓝色</td><td>补充上传材料</td></tr>
+</table>
+<p>每条时间线含：时间（格式化到秒）、操作标题、操作人、描述、驳回原因（如有）。</p>
+
+<h3>7.11 数据一致性机制</h3>
+<p>详情页通过 <code>localStorage.staffing_submissions</code> 获取权威状态数据。加载记录时，优先用 localStorage 中的数据覆盖本地 mock 数据的 <code>status</code>、<code>schoolFinalConfirm</code>、<code>approveDate</code> 等字段，确保与列表页状态一致。</p>
+
+<!-- ====== 8 ====== -->
+<h2 id="s8">8. 审核页详细设计（主管单位视角）</h2>
+
+<h3>8.1 页面布局</h3>
+<p>与详情页相同的左右两栏布局：</p>
+<ul>
+  <li><strong>左栏：</strong>单位信息 + 使用类型明细表 + 名额汇总 + 附件</li>
+  <li><strong>右栏：</strong>申报基本信息卡片 + 审核操作按钮（通过/驳回）+ 审批时间线</li>
+</ul>
+
+<h3>8.2 标题栏</h3>
+<p>页面标题"编制使用申请审核"，右侧显示圆形印章戳（根据状态变色：待一审黄色、一审通过绿色、待二审黄色、已完成绿色、已驳回红色）。</p>
+
+<h3>8.3 印章戳样式</h3>
+<p>72px 圆形印章，虚线内边框，-8° 旋转。5 种颜色变体：</p>
+<table>
+<tr><th>状态</th><th>印章文字</th><th>颜色</th></tr>
+<tr><td><code>submitted</code></td><td>待一审</td><td>黄色</td></tr>
+<tr><td><code>first_approved</code></td><td>一审通过</td><td>绿色</td></tr>
+<tr><td><code>final_submitted</code></td><td>待二审</td><td>黄色</td></tr>
+<tr><td><code>approved</code></td><td>已完成</td><td>绿色</td></tr>
+<tr><td><code>rejected</code></td><td>已驳回</td><td>红色</td></tr>
+</table>
+
+<h3>8.4 审核操作</h3>
+<h4>一审（<code>submitted</code> 状态）</h4>
+<ul>
+  <li><strong>通过：</strong>确认弹框 → 确认 → 状态变为 <code>first_approved</code>，时间线追加 first_approve 事件</li>
+  <li><strong>驳回：</strong>驳回弹框（必填驳回原因 textarea） → 确认 → 状态变为 <code>rejected</code>，时间线追加 reject 事件（含驳回原因）</li>
+</ul>
+
+<h4>二审（<code>final_submitted</code> 状态）</h4>
+<ul>
+  <li><strong>通过：</strong>确认弹框 → 确认 → 状态变为 <code>approved</code>，时间线追加 approve 事件</li>
+  <li><strong>驳回：</strong>驳回弹框 → 状态变为 <code>rejected</code></li>
+</ul>
+
+<h4>权限隔离</h4>
+<p>审核按钮仅对有权限的用户显示（市管理员仅市直属、区管理员仅本区）。<code>first_approved</code> 和 <code>approved</code> 状态下不显示审核按钮。</p>
+
+<h3>8.5 数据一致性</h3>
+<p>审核页同样通过 <code>localStorage.staffing_submissions</code> 获取权威状态数据，确保与列表页状态一致。</p>
+
+<!-- ====== 9 ====== -->
+<h2 id="s9">9. 功能清单</h2>
+
+<table>
+<tr><th>编号</th><th>功能</th><th>优先级</th><th>角色</th><th>说明</th></tr>
+<tr><td>F01.01</td><td>创建批次</td><td>P0</td><td>市/区管理员</td><td>弹框填写 → 确认 → 批次列表刷新。名称不可重复、截止日 ≥ 开始日、适用范围按角色限定</td></tr>
+<tr><td>F01.02</td><td>编辑批次</td><td>P1</td><td>市/区管理员</td><td>条件可编辑（见 §2.4）。AUTO 批次不可编辑</td></tr>
+<tr><td>F01.03</td><td>关闭/删除批次</td><td>P1</td><td>市/区管理员</td><td>进行中 → 关闭（不可恢复）；未开始 → 删除</td></tr>
+<tr><td>F01.04</td><td>批次详情</td><td>P1</td><td>全部</td><td>弹框展示完整信息 + 统计</td></tr>
+<tr><td>F01.05</td><td>年份筛选</td><td>P1</td><td>全部</td><td>下拉选择年份或"全部年份"</td></tr>
+<tr><td>F02.01</td><td>新建申请</td><td>P0</td><td>校管理员</td><td>URL 带 batchId + staffingType，定向批次检查重复</td></tr>
+<tr><td>F02.02</td><td>单位信息自动填充</td><td>P0</td><td>校管理员</td><td>只读，按编制类型展示不同字段集</td></tr>
+<tr><td>F02.03</td><td>填写使用类型明细</td><td>P0</td><td>校管理员</td><td>6 行，人数 > 0 时学历必填；实时汇总</td></tr>
+<tr><td>F02.04</td><td>上传附件</td><td>P0</td><td>校管理员</td><td>拖拽/点击，格式+大小校验，禁止压缩包</td></tr>
+<tr><td>F02.05</td><td>提交申请</td><td>P0</td><td>校管理员</td><td>校验 → 生成编号 → 存 localStorage → 跳转</td></tr>
+<tr><td>F02.06</td><td>提交编办确认</td><td>P0</td><td>校管理员</td><td>填写确认数 + 有效期 + 上传批复文件 → 状态变为 final_submitted</td></tr>
+<tr><td>F02.07</td><td>修改重提</td><td>P0</td><td>校管理员</td><td>编制类型锁定，其他字段可改 → 状态重置为 submitted</td></tr>
+<tr><td>F02.08</td><td>上传后续材料</td><td>P1</td><td>校管理员</td><td>approved 状态下补充上传，不改变状态</td></tr>
+<tr><td>F03.01</td><td>一审通过</td><td>P0</td><td>市/区管理员</td><td>submitted → first_approved</td></tr>
+<tr><td>F03.02</td><td>一审驳回</td><td>P0</td><td>市/区管理员</td><td>submitted → rejected（必填驳回原因）</td></tr>
+<tr><td>F03.03</td><td>二审通过</td><td>P0</td><td>市/区管理员</td><td>final_submitted → approved（终态）</td></tr>
+<tr><td>F03.04</td><td>二审驳回</td><td>P0</td><td>市/区管理员</td><td>final_submitted → rejected（必填驳回原因）</td></tr>
+<tr><td>F04.01</td><td>提醒未提交学校</td><td>P2</td><td>市/区管理员</td><td>每天每校每批次限 1 次，持久化至 localStorage</td></tr>
+<tr><td>F05.01</td><td>单条导出 CSV</td><td>P1</td><td>全部</td><td>按编制类型区分列头格式</td></tr>
+<tr><td>F05.02</td><td>批次汇总导出</td><td>P1</td><td>市/区管理员</td><td>下载批次下所有申请汇总 CSV</td></tr>
+<tr><td>F05.03</td><td>年度汇总导出</td><td>P1</td><td>市/区管理员</td><td>多批次勾选 → 汇总统计 → 导出</td></tr>
+<tr><td>F06.01</td><td>下载批次汇总表</td><td>P1</td><td>市/区管理员</td><td>下载已完成申请的汇总 CSV</td></tr>
+<tr><td>F07.01</td><td>按状态筛选</td><td>P1</td><td>全部</td><td>标签按钮组切换，即时刷新</td></tr>
+<tr><td>F07.02</td><td>按编制类型筛选</td><td>P1</td><td>市/区管理员</td><td>全部/事业编/控制数</td></tr>
+<tr><td>F07.03</td><td>按申请单位筛选</td><td>P1</td><td>市/区管理员</td><td>可搜索下拉单选，支持模糊匹配</td></tr>
+<tr><td>F07.04</td><td>列表分页</td><td>P1</td><td>全部</td><td>每页 10 条，分页栏始终显示</td></tr>
+</table>
+
+<!-- ====== 10 ====== -->
+<h2 id="s10">10. 数据模型</h2>
+
+<h3>10.1 批次（Batch）</h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>必填</th><th>说明</th></tr>
+<tr><td><code>id</code></td><td>string</td><td>是</td><td>唯一标识。定向批次 <code>B{year}-{seq}</code>。AUTO 批次 <code>A{year}-{seq}</code>（暂不支持）</td></tr>
+<tr><td><code>year</code></td><td>string</td><td>是</td><td>年度</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>是</td><td>批次名称，不可重复</td></tr>
+<tr><td><code>type</code></td><td>string</td><td>是</td><td><code>directed</code>（定向） / <code>auto</code>（自主申报，暂不支持）</td></tr>
+<tr><td><code>status</code></td><td>string</td><td>是</td><td><code>pending</code>（未开始）/ <code>active</code>（进行中）/ <code>closed</code>（已结束）</td></tr>
+<tr><td><code>startDate</code></td><td>string</td><td>是</td><td>申报开始日期 YYYY-MM-DD</td></tr>
+<tr><td><code>deadline</code></td><td>string</td><td>是</td><td>申报截止日期 YYYY-MM-DD</td></tr>
+<tr><td><code>publishDate</code></td><td>string</td><td>否</td><td>发布日期</td></tr>
+<tr><td><code>scope</code></td><td>object</td><td>是</td><td><code>{ scopeType: 'all' | 'districts' | 'schools', scopeDistricts: [], scopeSchools: [] }</code></td></tr>
+<tr><td><code>district</code></td><td>string</td><td>否</td><td>发布单位所属区域（市直属 / 鱼峰区）</td></tr>
+<tr><td><code>notes</code></td><td>string</td><td>否</td><td>备注说明，最多 200 字</td></tr>
+</table>
+
+<h3>10.2 申请记录（Submission）</h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>必填</th><th>说明</th></tr>
+<tr><td><code>id</code></td><td>string</td><td>是</td><td>申请编号，格式 <code>SB{year}-{batchSeq}-{schoolSeq}{typeCode}{seq}</code></td></tr>
+<tr><td><code>batchId</code></td><td>string</td><td>是</td><td>关联批次 ID</td></tr>
+<tr><td><code>batchName</code></td><td>string</td><td>是</td><td>批次名称（冗余）</td></tr>
+<tr><td><code>orgName</code></td><td>string</td><td>是</td><td>单位全称</td></tr>
+<tr><td><code>district</code></td><td>string</td><td>是</td><td>所属区域</td></tr>
+<tr><td><code>staffingType</code></td><td>string</td><td>是</td><td><code>career</code>（事业编）/ <code>control</code>（控制数）</td></tr>
+<tr><td><code>status</code></td><td>string</td><td>是</td><td>见 §3.1（5 种状态）</td></tr>
+<tr><td><code>totalStaff</code></td><td>number</td><td>是</td><td>核定编制数</td></tr>
+<tr><td><code>currentStaff</code></td><td>number</td><td>是</td><td>实有在编人数</td></tr>
+<tr><td><code>unusedPlan</code></td><td>number</td><td>否</td><td>未使用计划数</td></tr>
+<tr><td><code>controlNum</code></td><td>number</td><td>否</td><td>核定控制数</td></tr>
+<tr><td><code>controlActual</code></td><td>number</td><td>否</td><td>实有控制数人数</td></tr>
+<tr><td><code>unusedControl</code></td><td>number</td><td>否</td><td>未使用控制数</td></tr>
+<tr><td><code>useForms</code></td><td>object</td><td>是</td><td>6 种使用类型明细 { typeKey: number }。列表页用对象格式，详情/审核页用数组格式</td></tr>
+<tr><td><code>attachment9</code></td><td>boolean</td><td>是</td><td>是否已上传附件</td></tr>
+<tr><td><code>attachment9Name</code></td><td>string</td><td>否</td><td>附件文件名</td></tr>
+<tr><td><code>followUp</code></td><td>boolean</td><td>否</td><td>是否有后续补充材料</td></tr>
+<tr><td><code>followUpName</code></td><td>string</td><td>否</td><td>后续材料文件名</td></tr>
+<tr><td><code>schoolFinalConfirm</code></td><td>object</td><td>否</td><td>学校编办确认信息 { details, document, validStart, validEnd, submitTime, submitter }</td></tr>
+<tr><td><code>submitDate</code></td><td>string</td><td>是</td><td>提交日期 YYYY-MM-DD</td></tr>
+<tr><td><code>approveDate</code></td><td>string</td><td>否</td><td>终审通过日期</td></tr>
+<tr><td><code>rejectReason</code></td><td>string</td><td>否</td><td>驳回原因</td></tr>
+<tr><td><code>history</code></td><td>array</td><td>否</td><td>操作时间线（详情/审核页使用）</td></tr>
+</table>
+
+<h3>10.3 历史记录（history[]）</h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>说明</th></tr>
+<tr><td><code>action</code></td><td>string</td><td><code>submit</code> / <code>first_approve</code> / <code>reject</code> / <code>resubmit</code> / <code>final_submit</code> / <code>approve</code> / <code>upload</code></td></tr>
+<tr><td><code>title</code></td><td>string</td><td>操作标题</td></tr>
+<tr><td><code>time</code></td><td>string</td><td>操作时间 YYYY-MM-DD HH:mm:ss</td></tr>
+<tr><td><code>desc</code></td><td>string</td><td>描述</td></tr>
+<tr><td><code>reason</code></td><td>string</td><td>驳回原因（仅 reject 操作）</td></tr>
+</table>
+
+<h3>10.4 提醒日志（staffing_reminders）</h3>
+<p>存储位置：localStorage key <code>staffing_reminders</code>。</p>
+<table>
+<tr><th>Key 格式</th><th>Value 结构</th></tr>
+<tr><td><code>{batchId}|{schoolName}</code></td><td><code>{ time: string, count: number }</code></td></tr>
+</table>
+
+<!-- ====== 11 ====== -->
+<h2 id="s11">11. 编制池联动机制</h2>
+
+<h3>11.1 概述</h3>
+<p>编制使用申请模块是编制生命周期的<strong>入口</strong>。申请通过后，批复的编制名额进入"编制可用池"，供教师入编、招聘岗位申请等下游模块关联和消耗。</p>
+
+<h3>11.2 联动数据流</h3>
+<div class="flow-box">
+编制使用申请 approved
+        │
+        ▼
+  ┌──────────────────────────────┐
+  │  编制可用池                     │
+  │  approvedPlan += 批复数        │
+  │  validStart / validEnd 写入    │
+  └──────────────────────────────┘
+        │
+        ├──→ 教师入编关联 ──→ usedPlan += 入编人数
+        │
+        ├──→ 招聘申请关联 ──→ pendingAudit += 申请人数（提交时）
+        │                   ──→ usedPlan += 终审通过人数
+        │
+        └──→ 教师出编通过 ──→ usedPlan −= 出编人数（释放）
+</div>
+
+<h3>11.3 关键计算</h3>
+<table>
+<tr><th>指标</th><th>公式</th><th>说明</th></tr>
+<tr><td>可用编制</td><td><code>approvedPlan − usedPlan − pendingAudit</code></td><td>入编/招聘模块的剩余名额上限</td></tr>
+<tr><td>已批复</td><td>编办确认的累计数</td><td>仅 approved 状态计入</td></tr>
+<tr><td>已使用</td><td>入编通过 + 招聘终审通过</td><td>实际占用</td></tr>
+<tr><td>在途</td><td>招聘申请待审核</td><td>临时占坑，驳回后释放</td></tr>
+</table>
+
+<h3>11.4 编制有效期对下游的影响</h3>
+<table>
+<tr><th>状态</th><th>下游行为</th></tr>
+<tr><td>有效期内</td><td>入编/招聘可正常关联此编制批次</td></tr>
+<tr><td>已过期</td><td>入编/招聘页面的批次下拉列表中不显示或标记"已过期"；不可选</td></tr>
+<tr><td>即将到期（≤30 天）</td><td>黄色警告标签，仍可选但提示</td></tr>
+</table>
+
+<!-- ====== 12 ====== -->
+<h2 id="s12">12. 附件上传通用规则</h2>
+<table>
+<tr><th>属性</th><th>说明</th></tr>
+<tr><td>支持格式</td><td>Word（.doc/.docx）、Excel（.xls/.xlsx）、PDF、图片（.jpg/.jpeg/.png/.gif）</td></tr>
+<tr><td>禁止格式</td><td>ZIP / RAR / 7Z / TAR / GZ / BZ2 / XZ / TGZ（压缩包）</td></tr>
+<tr><td>大小上限</td><td>10MB</td></tr>
+<tr><td>适用范围</td><td>编制使用申请、入编申请、出编申请等各类申请模块</td></tr>
+</table>
+
+<!-- ====== 13 ====== -->
+<h2 id="s13">13. 附录</h2>
+
+<h3>附录 A — localStorage 存储</h3>
+<table>
+<tr><th>Key</th><th>内容</th><th>读写时机</th></tr>
+<tr><td><code>staffing_submissions</code></td><td>所有申请记录数组（完整数据，详情/审核页的数据源）</td><td>页面初始化时写入；提交/审核/编办确认时更新</td></tr>
+<tr><td><code>staffing_reminders</code></td><td>提醒日志对象</td><td>提醒操作时写入</td></tr>
+</table>
+
+<h3>附录 B — 申请编号规则</h3>
+<div class="flow-box">
+SB{year}-{batchSeq}-{schoolSeq}{typeCode}{seq}
+
+SB    = 编制使用申请（定向批次）
+SA    = 编制使用申请（AUTO 自主申报批次，暂不支持）
+year  = 年度（4 位）
+batchSeq = 批次序号（5 位数字）
+schoolSeq = 学校序号（3 位数字）
+typeCode  = J（事业编） / K（控制数）
+seq   = 序号（2 位数字）
+
+示例：SB2026-00001-004J01 = 2026年度第一批，柳州市第八中学，事业编，第1份申请
+</div>
+
+<h3>附录 C — 修订记录</h3>
+<table>
+<tr><th>日期</th><th>版本</th><th>变更内容</th></tr>
+<tr><td>2026-06-11</td><td>v1.0</td><td>初始版本</td></tr>
+<tr><td>2026-06-11</td><td>v2.0</td><td>补充完整字段清单 + 功能详细说明</td></tr>
+<tr><td>2026-06-11</td><td>v3.0</td><td>AUTO批次规则、审核弹框、历史记录、未提交视图、缺失类型提示、后续材料上传、年度汇总、下载汇总表、编制池联动、审核按钮权限矩阵</td></tr>
+<tr><td>2026-06-11</td><td>v4.0</td><td>未提交视图优化（区域替代学校类型、新增状态列）、提醒逻辑 localStorage 持久化</td></tr>
+<tr><td>2026-06-11</td><td>v5.0</td><td>状态标签统一（待一审/一审通过/待二审/已完成/一审驳回），移除 reviewing 状态</td></tr>
+<tr><td>2026-07-21</td><td>v6.0</td><td>合并飞书 PRD：批次 3 状态（未开始/进行中/已结束）、批次编辑条件锁定、批次卡片统计规则（已申报数/覆盖学校数）；新增：列表页申请单位可搜索下拉、分页、详情/审核页数据一致性（localStorage）、审核页印章戳、修改重提编制类型锁定、日期时间提示、备注说明 200 字限制、返回按钮位置、无副标题</td></tr>
+</table>
+
+<p style="text-align:center;color:var(--text-light);margin-top:40px;font-size:12px;">— 文档结束 —</p>
+
+</div>
+</body>
+</html>

@@ -155,7 +155,6 @@ body {
   padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;
 }
 .status-badge.submitted { background: #EFF6FF; color: var(--primary); }
-.status-badge.reviewing { background: #FEF3C7; color: #D97706; }
 .status-badge.approved { background: #D1FAE5; color: #059669; }
 .status-badge.rejected { background: #FEE2E2; color: var(--danger); }
 	.status-badge.final_submitted { background: #FFF7ED; color: #EA580C; }
@@ -182,9 +181,6 @@ body {
 .status-seal.rejected {
   color: #DC2626; border-color: #DC2626; background: rgba(254,226,226,0.3);
 }
-.status-seal.reviewing {
-  color: #D97706; border-color: #D97706; background: rgba(254,243,199,0.3);
-}
 .status-seal.submitted {
   color: #1E40AF; border-color: #1E40AF; background: rgba(239,246,255,0.3);
 }
@@ -202,6 +198,14 @@ body {
 .detail-col-right { position: sticky; top: 80px; }
 .detail-col-right .card { padding: 24px 24px; }
 .detail-col-right .card-title { font-size: 14px; padding-bottom: 12px; margin-bottom: 16px; }
+
+/* Basic info card (right sidebar) */
+.form-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+.form-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.bi-grid { display: flex; flex-direction: column; gap: 12px; }
+.bi-item { font-size: 12px; }
+.bi-item .bi-lbl { color: var(--text-light); font-size: 11px; }
+.bi-item .bi-val { font-weight: 500; margin-top: 1px; font-size: 13px; color: var(--text); }
 
 /* Card */
 .card {
@@ -357,24 +361,6 @@ grid-column: 1 / -1;
 .btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
 .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
-/* Summary bar */
-.summary-bar {
-  display: flex; gap: 16px; margin-bottom: 20px;
-}
-.summary-item {
-  flex: 1; background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
-  padding: 16px 20px; display: flex; align-items: center; gap: 12px;
-}
-.summary-item .s-icon {
-  width: 40px; height: 40px; border-radius: 10px; display: flex;
-  align-items: center; justify-content: center; font-size: 18px;
-}
-.s-icon.blue { background: #EFF6FF; }
-.s-icon.green { background: #D1FAE5; }
-.s-icon.amber { background: #FEF3C7; }
-.summary-item .s-label { font-size: 11px; color: var(--text-light); }
-.summary-item .s-value { font-size: 16px; font-weight: 700; color: var(--text); }
-
 /* ===== MODAL ===== */
 .modal-overlay {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
@@ -484,49 +470,19 @@ grid-column: 1 / -1;
     <span>申报详情</span>
   </div>
 
+  <div style="margin-bottom:12px;">
+    <button class="btn btn-outline" onclick="window.location.href='staffing-application.html'">← 返回列表</button>
+  </div>
+
   <!-- Page Header -->
   <div class="page-header">
     <div>
       <h1 id="pageTitle">申报详情 — 加载中…</h1>
-      <div class="subtitle" id="headerSubtitle">申报编号：S2026-004 &nbsp;|&nbsp; 2026年度第一批 &nbsp;|&nbsp; 柳州市第八中学</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;">
       <div class="status-seal approved" id="headerSeal">
         <span class="seal-label">审核</span>
         <span class="seal-text">通过</span>
-      </div>
-      <button class="btn btn-outline" onclick="window.location.href='staffing-application.html'">← 返回列表</button>
-    </div>
-  </div>
-
-  <!-- Summary bar -->
-  <div class="summary-bar">
-    <div class="summary-item">
-      <div class="s-icon blue">📋</div>
-      <div>
-        <div class="s-label">申报编号</div>
-        <div class="s-value" id="sumId">S2026-004</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="s-icon green">🏫</div>
-      <div>
-        <div class="s-label">申报单位</div>
-        <div class="s-value" id="sumSchool">柳州市第八中学</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="s-icon amber">📅</div>
-      <div>
-        <div class="s-label">提交日期</div>
-        <div class="s-value" id="sumDate">2026-03-05</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="s-icon blue">📄</div>
-      <div>
-        <div class="s-label">申报类型</div>
-        <div class="s-value" id="sumFormType">附件9</div>
       </div>
     </div>
   </div>
@@ -582,8 +538,12 @@ grid-column: 1 / -1;
 
 	    </div><!-- /detail-col-left -->
 
-    <!-- Right: timeline -->
+    <!-- Right: basic info + timeline -->
     <div class="detail-col-right">
+      <div class="form-card" id="basicInfoCard">
+        <h3>申报基本信息</h3>
+        <div class="bi-grid" id="basicInfoGrid"></div>
+      </div>
       <div class="card">
         <div class="card-title">📜 申报履历</div>
         <div class="timeline" id="timeline"></div>
@@ -663,10 +623,10 @@ function switchRole(role) {
 // ===== DATA =====
 // Supports multiple detail views via URL param: ?id=S2026-004
 var urlParams = new URLSearchParams(window.location.search);
-var detailId = urlParams.get('id') || 'S2026-004';
+var detailId = urlParams.get('id') || 'SB2026-00001-004J01';
 
 var submissions = [
-  { id: 'S2026-001', batchName: '2026年度第一批', orgName: '柳州市第一中学', district: '市直属',
+  { id: 'SB2026-00001-001J01', batchName: '2026年度第一批', orgName: '柳州市第一中学', district: '市直属',
     staffingType: 'control', formName: '附件9',
     totalStaff: 120, currentStaff: 108, unusedPlan: 3, controlNum: 25, controlActual: 20, unusedControl: 2, controlApprovedPlan: 4, controlUsedPlan: 2, controlUnusedPlan: 2, controlAvailablePlan: 1,
     useForms: [
@@ -685,7 +645,7 @@ var submissions = [
       { action: 'approve', title: '审批通过', time: '2026-03-20 09:15', desc: '市管理员张建国审核通过。核定编制数120名，在编108人，同意使用控制数4名。' }
     ]
   },
-  { id: 'S2026-002', batchName: '2026年度第一批', orgName: '柳州市第二中学', district: '市直属',
+  { id: 'SB2026-00001-002J01', batchName: '2026年度第一批', orgName: '柳州市第二中学', district: '市直属',
     staffingType: 'control', formName: '附件9',
     totalStaff: 95, currentStaff: 88, unusedPlan: 2, controlNum: 18, controlActual: 15, unusedControl: 1, controlApprovedPlan: 3, controlUsedPlan: 2, controlUnusedPlan: 1, controlAvailablePlan: 0,
     useForms: [
@@ -705,7 +665,7 @@ var submissions = [
       { action: 'upload', title: '上传后续材料', time: '2026-04-05 08:12', desc: '上传了市委编办审批结果（线下环节材料）。' }
     ]
   },
-  { id: 'S2026-003', batchName: '2026年度第一批', orgName: '柳州高级中学', district: '市直属',
+  { id: 'SB2026-00001-003J01', batchName: '2026年度第一批', orgName: '柳州高级中学', district: '市直属',
     staffingType: 'control', formName: '附件9',
     totalStaff: 150, currentStaff: 142, unusedPlan: 0, controlNum: 30, controlActual: 26, unusedControl: 1, expiredOccupiedControlPlan: 1, controlApprovedPlan: 5, controlUsedPlan: 4, controlUnusedPlan: 1, controlAvailablePlan: -1,
     useForms: [
@@ -725,7 +685,7 @@ var submissions = [
       { action: 'first_approve', title: '一审通过', time: '2026-03-18 09:30', desc: '市管理员张建国一审通过。核定编制数150名，在编142人，同意使用控制数6名。待编办终审确认。' }
     ]
   },
-  { id: 'S2026-004', batchName: '2026年度第一批', orgName: '柳州市第八中学', district: '鱼峰区',
+  { id: 'SB2026-00001-004J01', batchName: '2026年度第一批', orgName: '柳州市第八中学', district: '鱼峰区',
     staffingType: 'control', formName: '附件9',
     totalStaff: 88, currentStaff: 80, unusedPlan: 1, controlNum: 16, controlActual: 14, unusedControl: 1, expiredOccupiedControlPlan: 1, controlApprovedPlan: 3, controlUsedPlan: 2, controlUnusedPlan: 1, controlAvailablePlan: -1,
     useForms: [
@@ -752,7 +712,7 @@ var submissions = [
       { action: 'final_confirm', title: '编办终审确认', time: '2026-03-25 14:30', desc: '区管理员李振华确认编办终审结果。编办核定最终通过 2 名（申请 2 名）。' }
     ]
   },
-  { id: 'S2026-005', batchName: '2026年度第一批', orgName: '鱼峰区实验小学', district: '鱼峰区',
+  { id: 'SB2026-00001-005J01', batchName: '2026年度第一批', orgName: '鱼峰区实验小学', district: '鱼峰区',
     staffingType: 'control', formName: '附件9',
     totalStaff: 60, currentStaff: 55, unusedPlan: 0, controlNum: 10, controlActual: 8, unusedControl: 1, controlApprovedPlan: 2, controlUsedPlan: 1, controlUnusedPlan: 1, controlAvailablePlan: 0,
     useForms: [
@@ -770,7 +730,7 @@ var submissions = [
       { action: 'submit', title: '提交申报', time: '2026-03-20 08:45', desc: '校管理员提交了编制使用申报，使用控制数合计2名。' }
     ]
   },
-  { id: 'S2026-006', batchName: '2026年度第一批', orgName: '柳州市民族高中', district: '市直属',
+  { id: 'SB2026-00001-006J01', batchName: '2026年度第一批', orgName: '柳州市民族高中', district: '市直属',
     staffingType: 'control', formName: '附件9',
     totalStaff: 72, currentStaff: 68, unusedPlan: 1, controlNum: 12, controlActual: 10, unusedControl: 0, controlApprovedPlan: 2, controlUsedPlan: 2, controlUnusedPlan: 0, controlAvailablePlan: 0,
     useForms: [
@@ -789,7 +749,7 @@ var submissions = [
       { action: 'reject', title: '审核退回', time: '2026-03-19 11:20', desc: '市管理员退回：剩余可用控制数计划数为0，不符合申报条件，本批次暂不批准。', reason: '无可用控制数计划数' }
     ]
   },
-  { id: 'S2026-007', batchName: '2026年度第二批', orgName: '柳州市第一中学', district: '市直属',
+  { id: 'SB2026-00002-001J01', batchName: '2026年度第二批', orgName: '柳州市第一中学', district: '市直属',
     staffingType: 'control', formName: '附件9',
     totalStaff: 120, currentStaff: 110, unusedPlan: 0, controlNum: 25, controlActual: 22, unusedControl: 0, controlApprovedPlan: 3, controlUsedPlan: 3, controlUnusedPlan: 0, controlAvailablePlan: 0,
     useForms: [
@@ -808,7 +768,7 @@ var submissions = [
     ]
   },
   // Career / 附件2 demo records
-  { id: 'S2026-008', batchName: '2026年度第一批', orgName: '柳州市第二中学', district: '市直属',
+  { id: 'SB2026-00001-002J02', batchName: '2026年度第一批', orgName: '柳州市第二中学', district: '市直属',
     staffingType: 'career', formName: '附件2',
     orgLevel: '正科级', orgNature: '全额拨款事业单位',
     totalStaff: 95, currentStaff: 88, unusedPlan: 2, expiredOccupiedPlan: 1,
@@ -829,7 +789,7 @@ var submissions = [
       { action: 'first_approve', title: '一审通过', time: '2026-03-24 14:30', desc: '市管理员张建国一审通过。核定事业编制数95名，在编88人，同意使用事业编制2名。' }
     ]
   },
-  { id: 'S2026-009', batchName: '2026年度第一批', orgName: '鱼峰区实验小学', district: '鱼峰区',
+  { id: 'SB2026-00001-005J02', batchName: '2026年度第一批', orgName: '鱼峰区实验小学', district: '鱼峰区',
     staffingType: 'career', formName: '附件2',
     orgLevel: '副科级', orgNature: '全额拨款事业单位',
     totalStaff: 60, currentStaff: 55, unusedPlan: 0,
@@ -871,54 +831,90 @@ var SCHOOL_DATA = {
 };
 
 function findById(id) {
+  var s = null;
   for (var i = 0; i < submissions.length; i++) {
-    if (submissions[i].id === id) return submissions[i];
+    if (submissions[i].id === id) { s = submissions[i]; break; }
   }
-  // Generate fallback for demo IDs not in the main submissions array
-  return generateFallback(id);
+  if (!s) {
+    // Generate fallback for demo IDs not in the main submissions array
+    s = generateFallback(id);
+  }
+  // Overlay status from localStorage (source of truth from list page)
+  if (s) {
+    try {
+      var stored = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+      for (var j = 0; j < stored.length; j++) {
+        if (stored[j].id === id) {
+          s.status = stored[j].status;
+          // Sync schoolFinalConfirm if present in stored data
+          if (stored[j].schoolFinalConfirm) s.schoolFinalConfirm = stored[j].schoolFinalConfirm;
+          // Sync approveDate if present
+          if (stored[j].approveDate) s.approveDate = stored[j].approveDate;
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+  return s;
 }
 
 function generateFallback(id) {
   if (!id) return null;
-  // Determine school from ID pattern
+  // Parse new ID format: SB{year}-{region}{batch}-{school}{type}{seq}
+  // e.g. SB2026-08001-004J01 → year=2026, batch=2026-08001, school=004, type=J, seq=01
+  // e.g. SA2026-08001-004J01 → auto batch
   var school, batchName, staffingType, status, submitDate;
-  // S2026-Cxx → career, S20xx-Dxx → district batch, S20xx-Axx → auto batch, others → control
-  if (id.indexOf('-C') >= 0) {
-    staffingType = 'career';
-    // Map C01→柳州市第一中学, C02→柳州高级中学, C03→柳州市第八中学, C04→柳州市民族高中, C05→柳州市第八中学, C06→柳州市第八中学
-    var careerSchools = ['柳州市第一中学','柳州高级中学','柳州市第八中学','柳州市民族高中','柳州市第八中学','柳州市第八中学'];
-    var idx = parseInt(id.split('-C')[1]) - 1;
-    school = careerSchools[idx] || '柳州市第八中学';
-    batchName = id.indexOf('D01') >= 0 ? '2026年度鱼峰区计划' : (id.indexOf('B2026-002') >= 0 ? '2026年度第二批' : '2026年度第一批');
-  } else if (id.indexOf('-D') >= 0) {
-    staffingType = 'control';
-    var dSchools = { 'D01':'柳州市第八中学','D02':'鱼峰区实验小学','D03':'柳州市第十三中学','D04':'柳州市第二十五中学','D05':'鱼峰区实验小学','D06':'柳州市第十三中学' };
-    school = dSchools[id.split('-D')[1]] || '柳州市第八中学';
-    batchName = id.indexOf('2025') >= 0 ? '2025年度鱼峰区计划' : (id.indexOf('D03') >= 0 && id.indexOf('2026') >= 0 && id > 'S2026-D04' ? '2026年度鱼峰区第二批' : '2026年度鱼峰区计划');
-  } else if (id.indexOf('-A') >= 0) {
-    staffingType = 'control';
-    school = '柳州市第八中学';
-    batchName = '2026年度自主申报';
-  } else if (id.indexOf('2025') >= 0) {
-    staffingType = 'control';
-    var s2025 = { 'S2025-001':'柳州市第一中学','S2025-002':'柳州市第二中学','S2025-003':'柳州高级中学','S2025-004':'鱼峰区实验小学' };
-    school = s2025[id] || '柳州市第八中学';
-    batchName = '2025年度补充批';
-  } else {
-    staffingType = 'control';
-    school = '柳州市第八中学';
-    batchName = '2026年度第一批';
-  }
+  var parts = id.split('-');
+  var isAuto = id.indexOf('SA') === 0;
+  var batchPart = parts[0].substring(2) + '-' + parts[1]; // e.g. "2026-08001"
+  var schoolTypeSeq = parts[2]; // e.g. "004J01"
+  var schoolCode = schoolTypeSeq.substring(0, 3);
+  var typeCode = schoolTypeSeq.charAt(3);
+  staffingType = typeCode === 'J' ? 'career' : 'control';
 
-  // Determine status and dates based on ID
-  var statusMap = {
-    'S2026-C01':'submitted','S2026-C02':'reviewing','S2026-C03':'first_approved','S2026-C04':'approved','S2026-C05':'rejected','S2026-C06':'submitted',
-    'S2025-001':'approved','S2025-002':'approved','S2025-003':'approved','S2025-004':'rejected',
-    'S2025-D01':'approved','S2025-D02':'approved',
-    'S2026-D01':'submitted','S2026-D02':'reviewing','S2026-D03':'first_approved','S2026-D04':'submitted','S2026-D05':'submitted','S2026-D06':'submitted',
-    'S2026-A01':'submitted','S2026-A02':'final_submitted','S2026-A03':'approved','S2026-A04':'rejected'
+  // School code map (demo)
+  var SCHOOL_MAP = {
+    '001': '柳州市第一中学', '002': '柳州市第二中学', '003': '柳州高级中学',
+    '004': '柳州市第八中学', '005': '鱼峰区实验小学', '006': '柳州市民族高中',
+    '007': '柳州市第十三中学', '008': '柳州市第二十五中学'
   };
-  status = statusMap[id] || 'submitted';
+  school = SCHOOL_MAP[schoolCode] || '柳州市第八中学';
+
+  // Batch name from ID
+  var BATCH_NAME_MAP = {
+    '2026-00001': '2026年度第一批', '2026-00002': '2026年度第二批',
+    '2026-08001': '2026年度鱼峰区计划', '2026-08002': '2026年度鱼峰区第二批', '2026-08003': '2026年度鱼峰区第三批',
+    '2025-00001': '2025年度补充批', '2025-08001': '2025年度鱼峰区计划'
+  };
+  batchName = (isAuto ? '2026年度自主申报（鱼峰区）' : BATCH_NAME_MAP[batchPart]) || '2026年度第一批';
+
+  // Status: check localStorage first (source of truth from list page), fall back to local map
+  status = null;
+  try {
+    var storedData = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
+    for (var si = 0; si < storedData.length; si++) {
+      if (storedData[si].id === id) { status = storedData[si].status; break; }
+    }
+  } catch(e) {}
+  if (!status) {
+    var statusMap = {
+      'SB2026-00001-001J01':'submitted','SB2026-00001-003J01':'submitted','SB2026-00001-004J01':'submitted',
+      'SB2026-00001-005J01':'submitted','SB2026-00001-006J01':'submitted',
+      'SB2026-00001-001K01':'submitted','SB2026-00001-004K01':'first_approved',
+      'SB2026-00001-003K01':'submitted','SB2026-00001-006K01':'approved',
+      'SB2026-00001-002J01':'submitted','SB2026-00001-002J02':'submitted','SB2026-00001-005J02':'first_approved',
+      'SB2026-00002-001J01':'submitted','SB2026-00002-004K01':'submitted',
+      'SB2025-00001-001J01':'approved','SB2025-00001-002J01':'approved','SB2025-00001-003J01':'approved','SB2025-00001-005J01':'rejected',
+      'SB2025-08001-004J01':'approved','SB2025-08001-005J01':'approved',
+      'SB2026-08001-004J01':'submitted','SB2026-08001-005J01':'submitted','SB2026-08001-007J01':'first_approved',
+      'SB2026-08001-008J01':'submitted','SB2026-08001-004K01':'rejected',
+      'SB2026-08002-005J01':'submitted','SB2026-08002-007J01':'submitted',
+      'SB2026-08003-004K01':'submitted',
+      'SA2026-08001-004J01':'submitted','SA2026-08001-004J02':'final_submitted',
+      'SA2026-08001-004K01':'approved','SA2026-08001-004K02':'rejected'
+    };
+    status = statusMap[id] || 'submitted';
+  }
 
   if (id.indexOf('2025') >= 0) {
     submitDate = '2025-11-' + (10 + Math.floor(Math.random() * 20));
@@ -943,9 +939,7 @@ function generateFallback(id) {
   var history = [
     { action:'submit', title:'提交申报', time:submitDate + ' 09:00:00', desc: school + '提交了编制使用申报，合计' + totalNums + '名。' }
   ];
-  if (status === 'reviewing') {
-    history.push({ action:'review', title:'进入审核', time:submitDate + ' 10:30:00', desc:'主管单位已接收申报，进入审核流程。' });
-  } else if (status === 'first_approved') {
+  if (status === 'first_approved') {
     history.push({ action:'first_approve', title:'一审通过', time:submitDate + ' 10:00:00', desc:'主管单位一审通过，待编办终审确认。' });
   } else if (status === 'final_submitted') {
     history.push({ action:'first_approve', title:'一审通过', time:submitDate + ' 10:00:00', desc:'主管单位一审通过。' });
@@ -1001,7 +995,6 @@ function generateFallback(id) {
 var s = findById(detailId);
 if (!s) {
   document.getElementById('pageTitle').textContent = '申报未找到';
-  document.getElementById('headerSubtitle').textContent = '无效的申报ID: ' + detailId;
 }
 
 if (s) {
@@ -1014,7 +1007,6 @@ var STATUS_CSS = { submitted: 'submitted', first_approved: 'first_approved', fin
 var detailTypeLabel = s.staffingType === 'career' ? '事业编' : '控制数';
 document.getElementById('pageTitle').textContent = '申报详情 — ' + detailTypeLabel;
 document.getElementById('pageMetaTitle').textContent = '申报详情 — ' + detailTypeLabel + ' — 柳州教育人事管理平台';
-document.getElementById('headerSubtitle').innerHTML = '申报编号：' + s.id + ' &nbsp;|&nbsp; ' + s.batchName + ' &nbsp;|&nbsp; ' + s.orgName;
 
 // Seal stamp
 var SEAL_MAP = {
@@ -1028,10 +1020,23 @@ var seal = SEAL_MAP[s.status] || SEAL_MAP['submitted'];
 document.getElementById('headerSeal').className = 'status-seal ' + seal.css;
 document.getElementById('headerSeal').querySelector('.seal-label').textContent = seal.label;
 document.getElementById('headerSeal').querySelector('.seal-text').textContent = seal.text;
-document.getElementById('sumId').textContent = s.id;
-document.getElementById('sumSchool').textContent = s.orgName;
-document.getElementById('sumDate').textContent = s.submitDate || '—';
-document.getElementById('sumFormType').textContent = s.staffingType === 'career' ? '事业编' : '控制数';
+// ===== RENDER BASIC INFO CARD =====
+function renderBasicInfoCard() {
+  var items = [
+    { lbl: '申报编号', val: s.id },
+    { lbl: '申报单位', val: s.orgName },
+    { lbl: '所属区域', val: s.district || '—' },
+    { lbl: '申报批次', val: s.batchName || '—' },
+    { lbl: '申报类型', val: s.staffingType === 'career' ? '事业编' : '控制数' },
+    { lbl: '提交日期', val: s.submitDate || '—' }
+  ];
+  var html = '';
+  for (var i = 0; i < items.length; i++) {
+    html += '<div class="bi-item"><span class="bi-lbl">' + items[i].lbl + '</span><span class="bi-val">' + items[i].val + '</span></div>';
+  }
+  document.getElementById('basicInfoGrid').innerHTML = html;
+}
+renderBasicInfoCard();
 
 // ===== RENDER APPLICATION INFO =====
 function renderUnitInfo() {
