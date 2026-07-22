@@ -2941,7 +2941,7 @@ function openExportModal(batchId, mode) {
 
   c += '</div>';
   // Pagination
-  c += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 0 0;" id="expPagination"></div>';
+  c += '<div class="pagination" id="expPagination"></div>';
   c += '</div>';
   c += '<div class="modal-footer"><span style="font-size:12px;color:var(--text-secondary);margin-right:auto;" id="expSelCount">已选 0 条</span><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doExportChecked(\'' + (batchId || '') + '\',\'' + mode + '\')">📥 导出选中</button></div>';
   openModal(c, 'modal-xwide');
@@ -3001,16 +3001,31 @@ function renderExportTable() {
   });
   tbody.innerHTML = h || '<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text-light);">无匹配数据</td></tr>';
 
-  // Render pagination
+  // Render pagination (project standard pattern)
   var pagEl = document.getElementById('expPagination');
   if (pagEl) {
-    var ph = '<span style="font-size:11px;color:var(--text-secondary);">共 ' + filtered.length + ' 条，' + totalPages + ' 页</span>';
-    ph += '<button onclick="window._expPage=1;renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page <= 1 ? 'disabled' : '') + '>«</button>';
-    ph += '<button onclick="window._expPage=' + (page - 1) + ';renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page <= 1 ? 'disabled' : '') + '>‹</button>';
-    ph += '<span style="font-size:11px;color:var(--text);">' + page + ' / ' + totalPages + '</span>';
-    ph += '<button onclick="window._expPage=' + (page + 1) + ';renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page >= totalPages ? 'disabled' : '') + '>›</button>';
-    ph += '<button onclick="window._expPage=' + totalPages + ';renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page >= totalPages ? 'disabled' : '') + '>»</button>';
-    pagEl.innerHTML = ph;
+    if (totalPages <= 1) { pagEl.innerHTML = ''; } else {
+      var ph = '';
+      ph += '<button ' + (page <= 1 ? 'disabled' : '') + ' onclick="window._expPage=' + (page - 1) + ';renderExportTable()">‹</button>';
+      var maxShow = 7;
+      var startP = Math.max(1, page - Math.floor(maxShow / 2));
+      var endP = Math.min(totalPages, startP + maxShow - 1);
+      if (endP - startP < maxShow - 1) startP = Math.max(1, endP - maxShow + 1);
+      if (startP > 1) {
+        ph += '<button onclick="window._expPage=1;renderExportTable()">1</button>';
+        if (startP > 2) ph += '<button disabled>…</button>';
+      }
+      for (var p = startP; p <= endP; p++) {
+        ph += '<button ' + (p === page ? 'class="active"' : '') + ' onclick="window._expPage=' + p + ';renderExportTable()">' + p + '</button>';
+      }
+      if (endP < totalPages) {
+        if (endP < totalPages - 1) ph += '<button disabled>…</button>';
+        ph += '<button onclick="window._expPage=' + totalPages + ';renderExportTable()">' + totalPages + '</button>';
+      }
+      ph += '<button ' + (page >= totalPages ? 'disabled' : '') + ' onclick="window._expPage=' + (page + 1) + ';renderExportTable()">›</button>';
+      ph += '<span class="page-info">共 ' + totalPages + ' 页</span>';
+      pagEl.innerHTML = ph;
+    }
   }
 
   document.getElementById('expSelectAll').checked = false;
