@@ -2925,7 +2925,6 @@ function openExportModal(batchId, mode) {
   c += '<option value="all">全部</option>';
   c += '<option value="submitted">待一审</option><option value="first_approved">一审通过</option><option value="final_submitted">待二审</option><option value="approved">已完成</option><option value="rejected">一审驳回</option>';
   c += '</select></div>';
-  c += '<div style="flex:1;text-align:right;"><span style="font-size:11px;color:var(--text-light);" id="expFilteredCount"></span></div>';
   c += '</div>';
 
   // Table
@@ -2941,6 +2940,9 @@ function openExportModal(batchId, mode) {
   c += '</tbody></table></div>';
 
   c += '</div>';
+  // Pagination
+  c += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 0 0;" id="expPagination"></div>';
+  c += '</div>';
   c += '<div class="modal-footer"><span style="font-size:12px;color:var(--text-secondary);margin-right:auto;" id="expSelCount">已选 0 条</span><button class="btn btn-cancel" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doExportChecked(\'' + (batchId || '') + '\',\'' + mode + '\')">📥 导出选中</button></div>';
   openModal(c, 'modal-xwide');
 
@@ -2948,6 +2950,8 @@ function openExportModal(batchId, mode) {
   window._expData = subs;
   window._expBatchId = batchId;
   window._expMode = mode;
+  window._expPage = 1;
+  window._expPageSize = 10;
   renderExportTable();
 }
 
@@ -2964,9 +2968,17 @@ function renderExportTable() {
     return true;
   });
 
+  // Pagination
+  var page = window._expPage || 1;
+  var pageSize = window._expPageSize || 10;
+  var totalPages = Math.ceil(filtered.length / pageSize) || 1;
+  if (page > totalPages) { page = totalPages; window._expPage = page; }
+  var start = (page - 1) * pageSize;
+  var pageData = filtered.slice(start, start + pageSize);
+
   var tbody = document.getElementById('expTableBody');
   var h = '';
-  filtered.forEach(function(s, idx) {
+  pageData.forEach(function(s, idx) {
     var useCount = s.useForms ? Object.values(s.useForms).reduce(function(a,b){return a+(b||0);},0) : 0;
     var totalStaff = s.totalStaff || '—';
     var currentStaff = s.currentStaff || '—';
@@ -2989,13 +3001,23 @@ function renderExportTable() {
   });
   tbody.innerHTML = h || '<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text-light);">无匹配数据</td></tr>';
 
+  // Render pagination
+  var pagEl = document.getElementById('expPagination');
+  if (pagEl) {
+    var ph = '<span style="font-size:11px;color:var(--text-secondary);">共 ' + filtered.length + ' 条，' + totalPages + ' 页</span>';
+    ph += '<button onclick="window._expPage=1;renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page <= 1 ? 'disabled' : '') + '>«</button>';
+    ph += '<button onclick="window._expPage=' + (page - 1) + ';renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page <= 1 ? 'disabled' : '') + '>‹</button>';
+    ph += '<span style="font-size:11px;color:var(--text);">' + page + ' / ' + totalPages + '</span>';
+    ph += '<button onclick="window._expPage=' + (page + 1) + ';renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page >= totalPages ? 'disabled' : '') + '>›</button>';
+    ph += '<button onclick="window._expPage=' + totalPages + ';renderExportTable()" style="padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;" ' + (page >= totalPages ? 'disabled' : '') + '>»</button>';
+    pagEl.innerHTML = ph;
+  }
+
   document.getElementById('expSelectAll').checked = false;
-  var fc = document.getElementById('expFilteredCount');
-  if (fc) fc.textContent = '显示 ' + filtered.length + ' 条';
   updateExportSelCount();
 }
 
-function filterExportTable() { renderExportTable(); }
+function filterExportTable() { window._expPage = 1; renderExportTable(); }
 
 function toggleExportSelectAll(cb) {
   var cbs = document.querySelectorAll('.exp-row-cb');
