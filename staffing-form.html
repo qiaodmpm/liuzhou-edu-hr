@@ -1016,25 +1016,47 @@ function renderForm() {
     var rightCol = document.createElement('div');
     rightCol.className = 'history-col';
     var formData = window._editFormData || {};
-    rightCol.innerHTML = '<div class="history-card"><div class="history-card-title">📜 申报履历</div><div class="timeline">' + buildTimelineHtml(formData.history || []) + '</div></div>';
+    rightCol.innerHTML = '<div class="history-card"><div class="history-card-title">📜 申报履历</div><div class="timeline">' + buildTimelineHtml(formData.history || [], formData) + '</div></div>';
     wrapper.appendChild(rightCol);
     mainEl.appendChild(wrapper);
   }
 }
 
-function buildTimelineHtml(hist) {
-  if (!hist || hist.length === 0) return '<div style="text-align:center;padding:20px;color:var(--text-light);font-size:12px;">暂无履历记录</div>';
+function buildTimelineHtml(hist, formData) {
+  // Auto-generate timeline from status if history is sparse
+  var items = [];
+  var fd = formData || {};
+  var schoolOp = fd.submitter || ROLES[currentRole].name;
+
+  // If we have rich history data, use it; otherwise auto-generate
+  if (hist && hist.length > 0) {
+    for (var hi = 0; hi < hist.length; hi++) {
+      var h = hist[hi];
+      items.push({ time: h.time || '', action: h.action || '', detail: h.detail || '' });
+    }
+  } else {
+    // Auto-generate from status
+    items.push({ time: fd.submitDate || '', action: '提交申报', detail: '提交了编制使用申报' });
+    if (fd.rejectReason) {
+      items.push({ time: fd.rejectTime || '', action: '一审驳回', detail: '原因：' + fd.rejectReason });
+    }
+  }
+
+  if (items.length === 0) return '<div style="text-align:center;padding:20px;color:var(--text-light);font-size:12px;">暂无履历记录</div>';
+  // Color map
+  var dotColorMap = { '提交申报': '#3B82F6', '一审驳回': '#EF4444', '修改重提': '#F59E0B', '一审通过': '#3B82F6', '提交编办确认': '#8B5CF6', '二审通过': '#10B981' };
   var hh = '';
-  for (var hi = 0; hi < hist.length; hi++) {
-    var h = hist[hi];
-    hh += '<div class="timeline-item"><div class="timeline-dot"></div>';
-    hh += '<div class="timeline-time">' + (h.time || '') + '</div>';
-    hh += '<div class="timeline-action">' + (h.action || '') + '</div>';
-    if (h.detail) hh += '<div class="timeline-detail">' + h.detail + '</div>';
+  for (var hi = 0; hi < items.length; hi++) {
+    var item = items[hi];
+    var color = dotColorMap[item.action] || '#3B82F6';
+    hh += '<div class="timeline-item"><div class="timeline-dot" style="background:' + color + ';"></div>';
+    hh += '<div class="timeline-time">' + (item.time || '') + '</div>';
+    hh += '<div class="timeline-action">' + (item.action || '') + '</div>';
+    hh += '<div class="timeline-detail">' + schoolOp + ' · ' + (item.detail || '') + '</div>';
     hh += '</div>';
   }
-  hh += '<div class="timeline-item"><div class="timeline-dot" style="background:var(--warning);"></div>';
-  hh += '<div class="timeline-action" style="color:var(--warning);">当前：修改重提中</div></div>';
+  hh += '<div class="timeline-item"><div class="timeline-dot" style="background:#F59E0B;"></div>';
+  hh += '<div class="timeline-action" style="color:#F59E0B;font-weight:600;">当前：修改重提中</div></div>';
   return hh;
 }
 
@@ -1230,7 +1252,7 @@ function submitForm() {
   // Track in submissions list for ID sequencing
   try {
     var subsList = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
-    subsList.push({ id: submissionId, batchId: formBatchId, orgName: currentSchoolName, staffingType: staffingType, submitDate: payload.submitDate });
+    subsList.push({ id: submissionId, batchId: formBatchId, orgName: currentSchoolName, staffingType: staffingType, submitDate: payload.submitDate, submitter: ROLES[currentRole].name });
     localStorage.setItem('staffing_submissions', JSON.stringify(subsList));
   } catch(e) {}
 
@@ -1240,7 +1262,7 @@ function submitForm() {
   var prev = JSON.parse(localStorage.getItem(key) || '{}');
   var hist = prev.history || [];
   hist.push(historyEntry);
-  localStorage.setItem(key, JSON.stringify({ useForms: USE_FORM_ROWS, submitDate: payload.submitDate, batchId: formBatchId, batchName: formBatchName, staffingType: staffingType, history: hist }));
+  localStorage.setItem(key, JSON.stringify({ useForms: USE_FORM_ROWS, submitDate: payload.submitDate, batchId: formBatchId, batchName: formBatchName, staffingType: staffingType, submitter: ROLES[currentRole].name, history: hist }));
 
   // Save attachment info to localStorage
   if (uploadedFile) {
