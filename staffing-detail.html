@@ -1042,42 +1042,49 @@ renderBasicInfoCard();
 function renderUnitInfo() {
   var h = '';
   var isCareer = s.staffingType === 'career';
+  // Use snapshot if available, fall back to legacy top-level fields
+  var snap = s.unitInfoSnapshot || s;
 
   // Unit name (full width)
   h += '<div class="info-item full-width">';
   h += '<div class="info-label">单位全称</div>';
-  h += '<div class="info-value">' + s.orgName + '</div>';
+  h += '<div class="info-value">' + (snap.orgName || s.orgName) + '</div>';
   h += '</div>';
 
   if (isCareer) {
-  // Career / 附件2: 8 fields + 1 placeholder for 3-col alignment
-  h += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || '—') + '</div></div>';
+  // Career / 附件2
+  h += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (snap.orgLevel || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (snap.orgNature || '—') + '</div></div>';
   h += '<div class="info-item-placeholder"></div>';
-  h += '<div class="info-item"><div class="info-label">事业编核定数</div><div class="info-value">' + (s.totalStaff || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">实有在编人数</div><div class="info-value">' + (s.currentStaff || '—') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">已批复计划数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (s.approvedPlan || '0') + ' <a onclick="openPlanDetailModal(\'career\')" style="font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none;" onmouseover="this.style.color=\'var(--primary)\';this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'var(--text-light)\';this.style.textDecoration=\'none\'">查看明细 ›</a>' + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">已使用计划数 ' + tipIconHtml('used') + '</div><div class="info-value">' + (s.usedPlan || '0') + '</div></div>';
-  h += '<div class="info-item"><div class="info-label">未使用计划数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (s.unusedPlan || '0') + '</div></div>';
-  if ((s.expiredOccupiedPlan || 0) > 0) h += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + s.expiredOccupiedPlan + ' 人</div></div>';
-  h += '<div class="info-item"><div class="info-label">可申请编制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.availablePlan || '0') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">事业编核定数</div><div class="info-value">' + (snap.totalStaff || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">实有在编人数</div><div class="info-value">' + (snap.currentStaff || '—') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">已批复计划数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (snap.approvedPlan || '0') + ' <a onclick="openPlanDetailModal(\'career\')" style="font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none;" onmouseover="this.style.color=\'var(--primary)\';this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'var(--text-light)\';this.style.textDecoration=\'none\'">查看明细 ›</a>' + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">已使用计划数 ' + tipIconHtml('used') + '</div><div class="info-value">' + (snap.usedPlan || '0') + '</div></div>';
+  h += '<div class="info-item"><div class="info-label">未使用计划数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (snap.unusedPlan || '0') + '</div></div>';
+  if ((snap.expiredOccupiedPlan || 0) > 0) h += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + snap.expiredOccupiedPlan + ' 人</div></div>';
+  h += '<div class="info-item"><div class="info-label">可申请编制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (snap.availablePlan || '0') + '</div></div>';
   } else {
-    // Control / 附件9: 9 items (1 full-width + 8 fields)
-    h += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + s.orgName + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.orgLevel || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || '—') + '</div></div>';
+    // Control / 附件9
+    h += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + (snap.orgName || s.orgName) + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (snap.orgLevel || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (snap.orgNature || '—') + '</div></div>';
     h += '<div class="info-item-placeholder"></div>';
-    h += '<div class="info-item"><div class="info-label">控制数核定数</div><div class="info-value">' + (s.controlNum || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">实有控制数人数</div><div class="info-value">' + (s.controlActual || '—') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">已批复控制数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (s.controlApprovedPlan || '0') + ' <a onclick="openPlanDetailModal(\'control\')" style="font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none;" onmouseover="this.style.color=\'var(--primary)\';this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'var(--text-light)\';this.style.textDecoration=\'none\'">查看明细 ›</a>' + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">已使用控制数 ' + tipIconHtml('used') + '</div><div class="info-value">' + (s.controlUsedPlan || '0') + '</div></div>';
-    h += '<div class="info-item"><div class="info-label">未使用控制数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (s.controlUnusedPlan || '0') + '</div></div>';
-    if ((s.expiredOccupiedControlPlan || 0) > 0) h += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + s.expiredOccupiedControlPlan + ' 人</div></div>';
-    h += '<div class="info-item"><div class="info-label">可申请控制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.controlAvailablePlan || '0') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">控制数核定数</div><div class="info-value">' + (snap.controlNum || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">实有控制数人数</div><div class="info-value">' + (snap.controlActual || '—') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">已批复控制数 ' + tipIconHtml('approved') + '</div><div class="info-value">' + (snap.controlApprovedPlan || '0') + ' <a onclick="openPlanDetailModal(\'control\')" style="font-size:12px;color:var(--text-light);cursor:pointer;margin-left:6px;text-decoration:none;" onmouseover="this.style.color=\'var(--primary)\';this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'var(--text-light)\';this.style.textDecoration=\'none\'">查看明细 ›</a>' + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">已使用控制数 ' + tipIconHtml('used') + '</div><div class="info-value">' + (snap.controlUsedPlan || '0') + '</div></div>';
+    h += '<div class="info-item"><div class="info-label">未使用控制数 ' + tipIconHtml('unused') + '</div><div class="info-value">' + (snap.controlUnusedPlan || '0') + '</div></div>';
+    if ((snap.expiredOccupiedControlPlan || 0) > 0) h += '<div class="info-item"><div class="info-label">到期占用中 ' + tipIconHtml('expiredOccupied') + '</div><div class="info-value" style="color:#C2410C;font-weight:500;">' + snap.expiredOccupiedControlPlan + ' 人</div></div>';
+    h += '<div class="info-item"><div class="info-label">可申请控制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (snap.controlAvailablePlan || '0') + '</div></div>';
   }
 
-  document.getElementById('unitInfoArea').innerHTML = h;
-}
+  // Snapshot timestamp badge
+    if (s.unitInfoSnapshot && s.unitInfoSnapshot.capturedAt) {
+	    h += '<div style="margin-top:12px;font-size:10px;color:var(--text-light);text-align:right;">📸 以上数据为申报时快照 · ' + s.unitInfoSnapshot.capturedAt + '</div>';
+	  }
+
+	  document.getElementById('unitInfoArea').innerHTML = h;
+	}
 renderUnitInfo();
 
 // ===== RENDER QUOTA SUMMARY =====

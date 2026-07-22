@@ -1189,6 +1189,28 @@ function submitForm() {
     }
     submissionId = 'S' + formBatchId + '-' + schoolCode + typeCode + String(seq).padStart(2, '0');
   }
+  // Capture unit info snapshot at submission time
+  var profile = SCHOOL_PROFILE[currentSchoolName] || {};
+  var unitInfoSnapshot = {
+    orgName: profile.orgName || currentSchoolName,
+    orgLevel: profile.orgLevel || '',
+    orgNature: profile.orgNature || '',
+    totalStaff: profile.totalStaff || 0,
+    currentStaff: profile.currentStaff || 0,
+    approvedPlan: profile.approvedPlan || 0,
+    usedPlan: profile.usedPlan || 0,
+    unusedPlan: profile.unusedPlan || 0,
+    availablePlan: profile.availablePlan || 0,
+    expiredOccupiedPlan: profile.expiredOccupiedPlan || 0,
+    controlNum: profile.controlNum || 0,
+    controlActual: profile.controlActual || 0,
+    controlApprovedPlan: profile.controlApprovedPlan || 0,
+    controlUsedPlan: profile.controlUsedPlan || 0,
+    controlUnusedPlan: profile.controlUnusedPlan || 0,
+    controlAvailablePlan: profile.controlAvailablePlan || 0,
+    expiredOccupiedControlPlan: profile.expiredOccupiedControlPlan || 0,
+    capturedAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
+  };
   var payload = {
     id: submissionId,
     batchId: formBatchId,
@@ -1196,7 +1218,8 @@ function submitForm() {
     staffingType: staffingType,
     useForms: {},
     status: 'submitted',
-    submitDate: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    submitDate: new Date().toISOString().replace('T', ' ').substring(0, 19),
+    unitInfoSnapshot: unitInfoSnapshot
   };
   USE_FORM_ROWS.forEach(function(row) {
     payload.useForms[row.code] = row.num;

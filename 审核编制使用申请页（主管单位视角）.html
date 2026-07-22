@@ -1238,6 +1238,26 @@ function handleReject() {
 function renderPage() {
   var mainContent = document.getElementById('mainContent');
   var s = app.schoolInfo;
+  // Overlay snapshot if available (source of truth for unit info)
+  var snap = app.unitInfoSnapshot;
+  var hasSnapshot = snap && snap.capturedAt;
+  if (hasSnapshot) {
+    s.fullName = snap.orgName || s.fullName;
+    s.institutionLevel = snap.orgLevel || s.institutionLevel;
+    s.orgNature = snap.orgNature || s.orgNature;
+    s.careerStaffQuota = snap.totalStaff || s.careerStaffQuota;
+    s.currentCareerStaff = snap.currentStaff || s.currentCareerStaff;
+    s.approvedPlan = snap.approvedPlan || s.approvedPlan;
+    s.usedPlan = snap.usedPlan || s.usedPlan;
+    s.unusedPlan = snap.unusedPlan || s.unusedPlan;
+    s.availablePlan = snap.availablePlan || s.availablePlan;
+    s.controlQuota = snap.controlNum || s.controlQuota;
+    s.currentControl = snap.controlActual || s.currentControl;
+    s.controlApprovedPlan = snap.controlApprovedPlan || s.controlApprovedPlan;
+    s.controlUsedPlan = snap.controlUsedPlan || s.controlUsedPlan;
+    s.controlUnusedPlan = snap.controlUnusedPlan || s.controlUnusedPlan;
+    s.controlAvailablePlan = snap.controlAvailablePlan || s.controlAvailablePlan;
+  }
   var totalApplyNum = 0;
   app.useForms.forEach(function(f) { totalApplyNum += f.num; });
 
@@ -1317,11 +1337,102 @@ function renderPage() {
     infoGridHtml += '<div class="info-item"><div class="info-label">可申请控制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.controlAvailablePlan || app.controlAvailablePlan || '0') + '</div></div>';
   }
   infoGridHtml += '</div>';
+  // Snapshot badge for card header
+  var snapBadge = hasSnapshot ? ' <span style="font-size:10px;font-weight:400;color:#3B82F6;background:#EFF6FF;padding:2px 8px;border-radius:4px;margin-left:8px;">申报时快照 ' + snap.capturedAt.slice(0,10) + '</span>' : '';
+
   var unitHtml =
     '<div class="card">' +
-      '<div class="card-header">单位信息</div>' +
+      '<div class="card-header">单位信息' + snapBadge + '</div>' +
       infoGridHtml +
     '</div>';
+
+  // Diff banner: compare snapshot with current ledger data
+  var diffBannerHtml = '';
+  if (hasSnapshot) {
+    // Get current ledger data (same source as form page)
+    var currentProfile = (function() {
+      try {
+        var orgDir = JSON.parse(localStorage.getItem('org_directory') || '[]');
+        var ledger = JSON.parse(localStorage.getItem('org_ledger_data') || '{}');
+        var schoolName = snap.orgName || app.schoolName || '';
+        // Try org_directory first
+        for (var oi = 0; oi < orgDir.length; oi++) {
+          if (orgDir[oi].orgName === schoolName && orgDir[oi].staffing) {
+            return orgDir[oi].staffing;
+          }
+        }
+        // Try org_ledger_data
+        if (ledger[schoolName]) return ledger[schoolName];
+      } catch(e) {}
+      return null;
+    })();
+
+    if (currentProfile) {
+      var isCareer = (app.staffingType || snap.staffingType) === 'career';
+      var diffs = [];
+      // Build comparison pairs based on staffing type
+      var compareFields = isCareer ? [
+        { label: '核定编制数', snapVal: Number(snap.totalStaff), currVal: Number(currentProfile.totalStaff || currentProfile.authStaff) },
+        { label: '实有在编人数', snapVal: Number(snap.currentStaff), currVal: Number(currentProfile.currentStaff) },
+        { label: '已批复计划数', snapVal: Number(snap.approvedPlan || 0), currVal: Number(currentProfile.approvedPlan || 0) },
+        { label: '已使用计划数', snapVal: Number(snap.usedPlan || 0), currVal: Number(currentProfile.usedPlan || 0) },
+        { label: '可申请编制数', snapVal: Number(snap.availablePlan || 0), currVal: Number(currentProfile.availablePlan || (currentProfile.totalStaff || currentProfile.authStaff) - (currentProfile.currentStaff || 0) - (currentProfile.approvedPlan || 0)) }
+      ] : [
+        { label: '核定控制数', snapVal: Number(snap.controlNum), currVal: Number(currentProfile.controlNum || currentProfile.controlQuota) },
+        { label: '实有控制数人数', snapVal: Number(snap.controlActual), currVal: Number(currentProfile.controlActual || currentProfile.currentControl) },
+        { label: '已批复控制数', snapVal: Number(snap.controlApprovedPlan || 0), currVal: Number(currentProfile.controlApprovedPlan || 0) },
+        { label: '已使用控制数', snapVal: Number(snap.controlUsedPlan || 0), currVal: Number(currentProfile.controlUsedPlan || 0) },
+        { label: '可申请控制数', snapVal: Number(snap.controlAvailablePlan || 0), currVal: Number(currentProfile.controlAvailablePlan || (currentProfile.controlNum || 0) - (currentProfile.controlActual || 0) - (currentProfile.controlApprovedPlan || 0)) }
+      ];
+
+      for (var di = 0; di < compareFields.length; di++) {
+        var cf = compareFields[di];
+        if (cf.snapVal !== cf.currVal && !isNaN(cf.snapVal) && !isNaN(cf.currVal)) {
+          diffs.push(cf);
+        }
+      }
+
+      if (diffs.length > 0) {
+        // Determine severity: check if available number changed below application count
+        var hasCritical = false;
+        if (isCareer && snap.availablePlan > 0 && currentProfile.availablePlan < totalApplyNum) hasCritical = true;
+        if (!isCareer && snap.controlAvailablePlan > 0 && (currentProfile.controlAvailablePlan || 0) < totalApplyNum) hasCritical = true;
+
+        var bannerStyle = hasCritical
+          ? 'background:#FFFBEB;border:1px solid #FDE68A;'
+          : 'background:#F8FAFC;border:1px solid #E2E8F0;';
+        var iconType = hasCritical ? '⚠' : 'ℹ';
+        var titleText = hasCritical
+          ? '单位信息在申报后发生了变化，请关注（当前台账 vs 申报时快照）'
+          : '台账发生非关键变更（不影响本次审核结论）';
+
+        diffBannerHtml = '<div style="' + bannerStyle + 'border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;">';
+        diffBannerHtml += '<div style="display:flex;align-items:flex-start;gap:8px;">';
+        diffBannerHtml += '<span style="font-size:16px;flex-shrink:0;">' + iconType + '</span>';
+        diffBannerHtml += '<div>';
+        diffBannerHtml += '<div style="font-weight:600;color:#92400E;margin-bottom:4px;">' + titleText + '</div>';
+        diffBannerHtml += '<div style="display:flex;gap:16px;flex-wrap:wrap;">';
+        for (var di2 = 0; di2 < diffs.length; di2++) {
+          var d = diffs[di2];
+          var up = d.currVal > d.snapVal;
+          var delta = Math.abs(d.currVal - d.snapVal);
+          diffBannerHtml += '<span style="font-size:11px;white-space:nowrap;">';
+          diffBannerHtml += '<span style="color:#92400E;">' + d.label + '</span> ';
+          diffBannerHtml += '<span style="color:#94A3B8;text-decoration:line-through;">' + d.snapVal + '</span>';
+          diffBannerHtml += '<span style="color:#94A3B8;margin:0 4px;">→</span>';
+          diffBannerHtml += '<span style="font-weight:600;color:' + (hasCritical ? '#D97706' : '#64748B') + ';">' + d.currVal + '（' + (up ? '↑' : '↓') + delta + '）</span>';
+          diffBannerHtml += '</span>';
+        }
+        diffBannerHtml += '</div>';
+        if (hasCritical) {
+          diffBannerHtml += '<div style="margin-top:6px;font-size:11px;color:#92400E;padding-top:6px;border-top:1px dashed #FDE68A;">💡 当前可申请数已小于学校申报数（' + totalApplyNum + '），但审核以申报时快照数据为准。建议关注此差异，如认为需学校重新申报可驳回。</div>';
+        } else {
+          diffBannerHtml += '<div style="margin-top:6px;font-size:11px;color:#64748B;padding-top:6px;border-top:1px dashed #E2E8F0;">💡 可申请数无变化，变更不影响本次审核。审核继续以快照数据为准。</div>';
+        }
+        diffBannerHtml += '</div></div></div>';
+      }
+    }
+  }
 
   // Form table - dynamic based on staffingType
   var formLabel = isCareer ? '中小学事业编制使用计划申报表（附件2）' : '聘用教师控制数使用申报表（附件9）';
@@ -1599,6 +1710,7 @@ function renderPage() {
       '<div class="main-col">' +
         progressHtml +
         unitHtml +
+        diffBannerHtml +
         quotaSummaryHtml +
         formTableHtml +
         materialsHtml +
