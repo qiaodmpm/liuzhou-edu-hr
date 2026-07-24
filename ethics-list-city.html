@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>师德师风举报管理 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.page-header-left h1 { font-size: 20px; font-weight: 700; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition); border: 1px solid transparent; font-family: inherit; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
+.btn-outline:hover { border-color: var(--primary); }
+.btn-danger { background: var(--danger); color: #fff; }
+
+/* Two-column */
+.two-col-row { display: flex; gap: 20px; align-items: flex-start; }
+.col-left { flex: 0 0 320px; min-width: 0; }
+.col-right { flex: 1; min-width: 0; }
+@media (max-width: 1400px) { .two-col-row { flex-direction: column; } .col-left { flex: none; width: 100%; } }
+
+/* Summary cards */
+.summary-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.summary-card { background: #fff; border-radius: var(--radius-lg); padding: 14px 16px; border: 1.5px solid var(--border); cursor: pointer; transition: var(--transition); display: flex; justify-content: space-between; align-items: center; }
+.summary-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.summary-card.active { border-color: var(--primary); background: var(--primary-light); }
+.summary-card .sc-label { font-size: 13px; color: var(--text-secondary); }
+.summary-card .sc-num { font-size: 20px; font-weight: 700; color: var(--primary); }
+
+/* Status filters */
+.status-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.status-fbtn { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--transition); border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-family: inherit; }
+.status-fbtn:hover { border-color: var(--accent); color: var(--primary); }
+.status-fbtn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Table */
+.table-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.list-table th { padding: 10px 12px; text-align: center; font-weight: 600; font-size: 11px; color: var(--text-secondary); background: #F8FAFC; border-bottom: 1px solid var(--border); }
+.list-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tr:hover { background: #FAFBFC; }
+.list-table .col-id { color: var(--primary); font-weight: 500; }
+.list-table .col-name { text-align: left; font-weight: 500; }
+.list-table .col-action { white-space: nowrap; }
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.status-badge.assign { background: #EFF6FF; color: var(--primary); }
+.status-badge.process { background: #FEF3C7; color: #92400E; }
+.status-badge.review { background: #FEF3C7; color: #92400E; }
+.status-badge.completed { background: #D1FAE5; color: #065F46; }
+.status-badge.rejected { background: #FEE2E2; color: #991B1B; }
+.type-tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.type-tag.direct { background: #E0E7FF; color: #3730A3; }
+.type-tag.district { background: #FEF3C7; color: #92400E; }
+.action-links { display: flex; gap: 8px; justify-content: center; }
+.action-link { font-size: 12px; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.action-link:hover { text-decoration: underline; }
+.action-link.warn { color: var(--danger); }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+.empty-state .empty-icon { font-size: 32px; margin-bottom: 8px; }
+.empty-state .empty-text { font-size: 13px; }
+
+.card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 20px 24px; margin-bottom: 16px; }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease; box-shadow: var(--shadow-lg); }
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.success { background: var(--success); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+.modal-wide { width: 680px !important; }
+.modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { cursor: pointer; color: var(--text-light); font-size: 20px; padding: 4px; border: none; background: none; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.modal-body .form-group { margin-bottom: 16px; }
+.modal-body .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+.modal-body .form-group input, .modal-body .form-group select, .modal-body .form-group textarea { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; outline: none; }
+.modal-body .form-group input:focus, .modal-body .form-group select:focus, .modal-body .form-group textarea:focus { border-color: var(--accent); }
+.modal-body .form-group textarea { resize: vertical; min-height: 80px; }
+.modal-body .form-row { display: flex; gap: 12px; }
+.modal-body .form-row .form-group { flex: 1; }
+.modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Dropdown button */
+.btn-dropdown { position: relative; display: inline-block; }
+.btn-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 50; min-width: 140px; overflow: hidden; }
+.btn-dropdown-menu.show { display: block; }
+.btn-dropdown-menu a { display: block; padding: 10px 16px; font-size: 13px; color: var(--text); cursor: pointer; text-decoration: none; transition: var(--transition); white-space: nowrap; }
+.btn-dropdown-menu a:hover { background: var(--primary-light); color: var(--primary); }
+
+/* District checkbox group */
+.district-chk-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.district-chk-group label { display: flex !important; align-items: center; gap: 4px; font-size: 12px !important; font-weight: 400 !important; cursor: pointer; }
+
+/* File upload */
+.file-upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: var(--transition); }
+.file-upload-zone:hover { border-color: var(--accent); background: var(--primary-light); }
+.file-upload-zone .fu-text { font-size: 13px; color: var(--text-secondary); }
+.file-list { margin-top: 8px; }
+.file-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; background: var(--bg); border-radius: 4px; margin-bottom: 4px; }
+.file-item .fi-remove { margin-left: auto; cursor: pointer; color: var(--danger); font-weight: 700; }
+
+/* Excel preview table */
+.excel-preview { max-height: 240px; overflow: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: 6px; }
+.excel-preview table { width: 100%; font-size: 11px; border-collapse: collapse; }
+.excel-preview th { background: #F8FAFC; padding: 6px 8px; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+.excel-preview td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge">3</span></div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar">张</div><span>张建国</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a></div>
+    </div>
+  </div>
+</nav>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn active" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span></button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg><span class="menu-label">收起菜单</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>师德师风举报</span>
+  </div>
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>师德师风举报</h1>
+    </div>
+    <div class="btn-dropdown">
+      <button class="btn btn-primary" onclick="toggleImportMenu()">+ 导入举报 ▾</button>
+      <div class="btn-dropdown-menu" id="importMenu">
+        <a onclick="showManualImportModal();document.getElementById('importMenu').classList.remove('show')">📝 手动录入</a>
+        <a onclick="showExcelImportModal();document.getElementById('importMenu').classList.remove('show')">📄 Excel导入</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col-row">
+    <div class="col-left" id="leftColumn"></div>
+    <div class="col-right" id="rightColumn"></div>
+  </div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script src="src/menu-config.js"></script>
+<script>
+window.onerror = function(msg, url, line, col, err) { var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick=\"location.reload()\" style=\"margin-top:8px;padding:6px 16px;cursor:pointer;\">重新加载</button>';document.body.prepend(d); };
+
+// ===== ICONS =====
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+};
+
+// ===== CONFIG =====
+var STATUS_MAP = { pending_assign:'待分配', pending_process:'待处理', pending_review:'待审批', completed:'已完成', rejected:'已驳回' };
+var SOURCE_OPTS = ['邮箱投诉','电话举报','信件举报','网络举报','其他'];
+var IDCARD_TYPE_OPTS = ['居民身份证','护照','其他'];
+var GENDER_OPTS = ['男','女'];
+var PERSON_TYPE_OPTS = ['专任教师','行政人员','教辅人员','工勤人员','其他'];
+var DISTRICT_LIST = ['市直属','鱼峰区','城中区','柳北区','柳南区','柳江区','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县'];
+var REGION_CODE = { '市直属':'01','柳城县':'02','鹿寨县':'03','融安县':'04','融水苗族自治县':'05','三江侗族自治县':'06','柳北区':'07','城中区':'08','鱼峰区':'09','柳南区':'10','柳江区':'11' };
+
+var currentRole = 'city';
+var currentStatusFilter = 'all';
+var currentDistrictFilter = 'all';
+var currentYearFilter = 'all';
+
+// Mock district-to-school mapping
+var DISTRICT_SCHOOL_MAP = {
+  '市直属': ['柳州高级中学','柳州市第一中学'],
+  '鱼峰区': ['柳州市第八中学','鱼峰区实验小学','柳州市第十四中学'],
+  '城中区': ['城中区实验中学'],
+  '柳北区': ['柳州市第二十六中学','柳北区第一小学'],
+  '柳南区': ['柳南区实验小学']
+};
+
+// ===== ROLES =====
+var ROLES = {
+  city: { name:'张建国', short:'市', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:3},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:5},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'},{id:'perm',label:'角色权限'},{id:'log',label:'操作日志'}]}]}},
+  district: { name:'李振华', short:'区', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请',badge:1},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:3},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  school: { name:'王玉兰', short:'校', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'},{id:'ledger',icon:'chart',label:'编制岗位台账'}], groups:[{name:'编制管理',items:[{id:'staffing',label:'编制使用申请'},{id:'entry',label:'入编申请'},{id:'exit',label:'教师出编管理'}]},{name:'岗位管理',items:[{id:'postset',label:'岗位设置申请'},{id:'promote',label:'岗位晋升申请',badge:2},{id:'recruit',label:'招聘岗位申请'}]},{name:'聘用管理',items:[{id:'employ',label:'聘用手续办理'}]},{name:'编外教师管理',items:[{id:'contract-entry',label:'教师入职管理'},{id:'contract-exit',label:'教师离职管理'}]},{name:'人事管理',items:[{id:'retire',label:'退休呈报'},{id:'ethics',label:'师德师风举报'}]},{name:'系统设置',items:[{id:'account',label:'账号管理'},{id:'org',label:'机构管理'}]}]}},
+  teacher: { name:'陈明辉', short:'师', sidebar:{ top:[{id:'workbench',icon:'home',label:'工作台'}], groups:[{name:'业务申请',items:[{id:'promote',label:'岗位晋升申请'},{id:'ethics',label:'师德师风举报'}]}]}}
+};
+
+// ===== DEMO DATA =====
+function now() {
+  var d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+}
+
+var DEMO_RECORDS = [
+  {
+    id: 'ET202608-01', source: '邮箱投诉', reportedName: '金先琴', reportedUnit: '柳州市第十四中学', complaintContent: '柳州市第十四中22级2班及8班，地理金先琴老师，1.上课时对不舒服趴在桌子上的同学掐脖子，2.言语侮辱人格，出言不逊，体罚学生，针对同学，让同学造成心理阴影，对同学心理健康造成伤害。',
+    unitName: '柳州市第十四中学', name: '金先琴', idCardType: '居民身份证', idCard: '450200000000000000', gender: '女', age: 45, personType: '专任教师',
+    district: '鱼峰区', isCityDirect: false,
+    status: 'pending_assign',
+    investigation: '', basis: '', penalty: '', accountability: '', isNotified: '', notificationScope: '', processingUnit: '',
+    deadline: '', assignTime: null, processSubmitTime: null,
+    reviewResult: null, reviewOpinion: '', reviewTime: null, rejectReason: '', rejectCount: 0,
+    attachments_import: [], attachments_process: [],
+    createTime: '2026-07-15 09:00:00',
+    timeline: [{ time: '2026-07-15 09:00:00', action: '市管理员录入举报', operator: '张建国' }]
+  },
+  {
+    id: 'ET202609-01', source: '电话举报', reportedName: 'XXX', reportedUnit: '柳州市第二十六中学', complaintContent: 'XXX担任柳州市第二十六中学(附小)四（2）班的班主任和语文教学工作，因2024年11月21日班上学生钟学生带零食吃被同学发现向其报告，XXX当着全班学生的面体罚钟学生，用手掌拍打、手指戳钟学生面部，语言过激，并让钟学生在接受其批评教育后当场鞠躬致谢，XXX将此过程录制成视频通过手机微信告知家长。2024年11月22日凌晨，家长将该视频转至朋友后发布到抖音，造成"今日头条"等平台转发，引发社会各媒体关注，影响恶劣。',
+    unitName: '柳州市第二十六中学', name: 'XXX', idCardType: '居民身份证', idCard: '450200000000000001', gender: '女', age: 52, personType: '专任教师',
+    district: '柳北区', isCityDirect: false,
+    status: 'pending_process', deadline: '2026-08-15',
+    investigation: '', basis: '', penalty: '', accountability: '', isNotified: '', notificationScope: '', processingUnit: '柳州市柳北区教育局',
+    assignTime: '2026-07-20 10:00:00', processSubmitTime: null,
+    reviewResult: null, reviewOpinion: '', reviewTime: null, rejectReason: '', rejectCount: 0,
+    attachments_import: [{ name:'举报原始邮件截图.png', size: 128000 }], attachments_process: [],
+    createTime: '2026-07-20 09:30:00',
+    timeline: [
+      { time: '2026-07-20 09:30:00', action: '市管理员录入举报', operator: '张建国' },
+      { time: '2026-07-20 10:00:00', action: '市管理员指派至柳北区', operator: '张建国', opinion: '限期15个工作日处理' }
+    ]
+  },
+  {
+    id: 'ET202607-01', source: '网络举报', reportedName: 'YYY', reportedUnit: '柳州高级中学', complaintContent: '反映柳州高级中学教师YYY存在违规补课行为，利用周末时间在校外培训机构兼职授课，并向学生推销教辅材料以牟取私利。',
+    unitName: '柳州高级中学', name: 'YYY', idCardType: '居民身份证', idCard: '450200000000000002', gender: '男', age: 38, personType: '专任教师',
+    district: '市直属', isCityDirect: true,
+    status: 'completed',
+    investigation: '经查，YYY在2026年3月至6月期间确存在校外兼职行为...', basis: '依据《中小学教师违反职业道德行为处理办法（2018年修订）》第四条...', penalty: '给予YYY警告处分，责令立即停止校外兼职...', accountability: '对学校分管领导进行约谈...', isNotified: '是', notificationScope: '在全市教育系统通报', processingUnit: '柳州市教育局',
+    deadline: '', assignTime: null, processSubmitTime: '2026-07-25 14:00:00',
+    reviewResult: null, reviewOpinion: '', reviewTime: null, rejectReason: '', rejectCount: 0,
+    attachments_import: [], attachments_process: [{ name:'处分决定书.pdf', size: 156000 }],
+    createTime: '2026-07-22 08:00:00',
+    timeline: [
+      { time: '2026-07-22 08:00:00', action: '市管理员录入举报', operator: '张建国' },
+      { time: '2026-07-25 14:00:00', action: '市管理员处理完成（市直属免审批）', operator: '张建国' }
+    ]
+  },
+  {
+    id: 'ET202610-01', source: '信件举报', reportedName: 'ZZZ', reportedUnit: '柳南区实验小学', complaintContent: '反映柳南区实验小学教师ZZZ存在歧视学生行为，多次在课堂上对成绩较差的学生进行言语贬低，要求家长带学生转学...',
+    unitName: '柳南区实验小学', name: 'ZZZ', idCardType: '居民身份证', idCard: '450200000000000003', gender: '女', age: 42, personType: '专任教师',
+    district: '柳南区', isCityDirect: false,
+    status: 'pending_review', deadline: '2026-08-20',
+    investigation: '经查，ZZZ在2025-2026学年第一学期确有不当言行...', basis: '依据《中华人民共和国教师法》第37条、《中小学教师职业道德规范》...', penalty: '对ZZZ进行诫勉谈话，记过处分，取消当年评优评先资格...', accountability: '对学校校长进行批评教育，责令学校加强师德师风建设...', isNotified: '否', notificationScope: '', processingUnit: '柳州市柳南区教育局',
+    assignTime: '2026-08-01 09:00:00', processSubmitTime: '2026-08-10 16:00:00',
+    reviewResult: null, reviewOpinion: '', reviewTime: null, rejectReason: '', rejectCount: 0,
+    attachments_import: [{ name:'举报信扫描件.pdf', size: 96000 }], attachments_process: [{ name:'处理情况说明.docx', size: 32000 }, { name:'诫勉谈话记录.pdf', size: 210000 }],
+    createTime: '2026-08-01 08:30:00',
+    timeline: [
+      { time: '2026-08-01 08:30:00', action: '市管理员录入举报', operator: '张建国' },
+      { time: '2026-08-01 09:00:00', action: '市管理员指派至柳南区', operator: '张建国', opinion: '限期15个工作日处理' },
+      { time: '2026-08-10 16:00:00', action: '柳南区管理员提交处理结果', operator: '李振华' }
+    ]
+  }
+];
+
+// ===== DATA PERSISTENCE =====
+function seedData() {
+  var s = localStorage.getItem('ethics_reports');
+  if (!s) { localStorage.setItem('ethics_reports', JSON.stringify(DEMO_RECORDS)); }
+}
+function loadReports() {
+  seedData();
+  var s = localStorage.getItem('ethics_reports');
+  if (s) { try { return JSON.parse(s); } catch(e) {} }
+  return [];
+}
+function saveReports(reports) {
+  localStorage.setItem('ethics_reports', JSON.stringify(reports));
+}
+
+// ===== HELPERS =====
+function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); if (!e.target.closest('.btn-dropdown')) document.getElementById('importMenu').classList.remove('show'); });
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function getStatusBadgeClass(status) {
+  if (status === 'pending_assign') return 'assign';
+  if (status === 'pending_process') return 'process';
+  if (status === 'pending_review') return 'review';
+  if (status === 'completed') return 'completed';
+  if (status === 'rejected') return 'rejected';
+  return '';
+}
+
+function getDistrictForSchool(schoolName) {
+  for (var d in DISTRICT_SCHOOL_MAP) {
+    if (DISTRICT_SCHOOL_MAP[d].indexOf(schoolName) >= 0) return d;
+  }
+  return '市直属';
+}
+
+function formatIdCard(idCard) {
+  if (!idCard || idCard.length < 8) return idCard;
+  return idCard.substring(0, 4) + '****' + idCard.substring(idCard.length - 3);
+}
+
+function closeModal() { var el = document.getElementById('modalOverlay'); if (el) el.remove(); }
+function openModal(content, widthClass) {
+  var html = '<div class="modal-overlay show" id="modalOverlay" onclick="if(event.target===this)closeModal()"><div class="modal' + (widthClass ? ' ' + widthClass : '') + '">' + content + '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function toggleImportMenu() {
+  document.getElementById('importMenu').classList.toggle('show');
+}
+
+function switchRole(role) {
+  if (role === 'district') { window.location.href = 'ethics-list-district.html'; return; }
+  if (role === 'school') { window.location.href = 'ethics-list-school.html'; return; }
+  if (role === 'teacher') { showToast('教师角色无法访问师德师风举报模块', 'warning'); return; }
+  currentRole = role;
+  renderSidebar();
+  renderPage();
+}
+
+// ===== SIDEBAR =====
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', currentRole, 'ethics');
+  var roleData = ROLES[currentRole];
+  document.querySelectorAll('.role-switch-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.role===currentRole); });
+  var n = document.querySelector('.topnav-user span'); if(n) n.textContent = roleData.name;
+  var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = roleData.short;
+}
+
+function sidebarClick(el, id) {
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i){i.classList.remove('active');}); el.classList.add('active'); }
+  if (id==='workbench') { window.location.href='workbench.html'; return; }
+  if (id==='staffing') { window.location.href='staffing-application.html'; return; }
+  if (id==='entry') { window.location.href='教师入编管理（学校管理员视角）.html'; return; }
+  if (id==='exit') { window.location.href='教师出编管理（学校管理员视角）.html'; return; }
+  if (id==='postset') { window.location.href='post-list-admin.html?role=' + currentRole; return; }
+  if (id==='promote') { window.location.href='promote-list-admin.html?role=' + currentRole; return; }
+  if (id==='recruit') { window.location.href='recruit-list-admin.html?role=' + currentRole; return; }
+  if (id==='employ') { window.location.href='employ-list-admin.html?role=' + currentRole; return; }
+  if (id === 'contract-entry') { var cr = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : currentRole; window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = (typeof currentUser!=='undefined' && currentUser) ? currentUser.role : currentRole; window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
+  if (id==='account') { window.location.href='account-management.html'; return; }
+  if (id==='ethics') return;
+  if (id === 'ledger') { var lr = (typeof currentUser!=='undefined'?currentUser.role:currentRole); window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
+  if (id === 'org') { window.location.href = 'org-management.html'; return; }
+  showToast('跳转至：' + id);
+}
+
+// ===== RENDER PAGE =====
+function renderPage() {
+  renderLeftColumn();
+  renderRightColumn();
+}
+
+// ===== LEFT COLUMN =====
+function renderLeftColumn() {
+  var reports = loadReports();
+  var years = []; var seenY = {};
+  reports.forEach(function(r) { var y = r.createTime.substring(0,4); if (!seenY[y]) { seenY[y]=true; years.push(y); } });
+  years.sort().reverse();
+
+  var stats = { total: reports.length, pending_assign: 0, pending_process: 0, pending_review: 0, completed: 0, rejected: 0 };
+  reports.forEach(function(r) { stats[r.status] = (stats[r.status]||0) + 1; });
+
+  var h = '';
+  // Year filter
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">';
+  h += '<span style="font-size:12px;color:var(--text-secondary);">年份：</span>';
+  h += '<select onchange="setYearFilter(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;">';
+  h += '<option value="all"' + (currentYearFilter==='all'?' selected':'') + '>全部</option>';
+  years.forEach(function(y) { h += '<option value="' + y + '"' + (currentYearFilter===y?' selected':'') + '>' + y + '年</option>'; });
+  h += '</select></div>';
+
+  // Summary cards
+  h += '<div class="summary-cards">';
+  var items = [
+    { key: 'all', label: '全部举报', num: stats.total },
+    { key: 'pending_assign', label: '待分配', num: stats.pending_assign },
+    { key: 'pending_process', label: '待处理', num: stats.pending_process },
+    { key: 'pending_review', label: '待审批', num: stats.pending_review },
+    { key: 'completed', label: '已完成', num: stats.completed },
+    { key: 'rejected', label: '已驳回', num: stats.rejected }
+  ];
+  items.forEach(function(it) {
+    h += '<div class="summary-card' + (currentStatusFilter===it.key?' active':'') + '" onclick="currentStatusFilter=\'' + it.key + '\';renderPage()">';
+    h += '<span class="sc-label">' + it.label + '</span><span class="sc-num">' + it.num + '</span></div>';
+  });
+  h += '</div>';
+
+  document.getElementById('leftColumn').innerHTML = h;
+}
+
+function setYearFilter(y) { currentYearFilter = y; renderPage(); }
+
+// ===== RIGHT COLUMN =====
+function renderRightColumn() {
+  var reports = loadReports();
+  if (currentYearFilter !== 'all') { reports = reports.filter(function(r) { return r.createTime.substring(0,4) === currentYearFilter; }); }
+  if (currentStatusFilter !== 'all') { reports = reports.filter(function(r) { return r.status === currentStatusFilter; }); }
+  if (currentDistrictFilter !== 'all') { reports = reports.filter(function(r) { return r.district === currentDistrictFilter; }); }
+
+  var h = '';
+  // District filter
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">';
+  h += '<span style="font-size:12px;color:var(--text-secondary);">区划：</span>';
+  h += '<select onchange="setDistrictFilter(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;">';
+  h += '<option value="all"' + (currentDistrictFilter==='all'?' selected':'') + '>全部区划</option>';
+  DISTRICT_LIST.forEach(function(d) { h += '<option value="' + d + '"' + (currentDistrictFilter===d?' selected':'') + '>' + d + '</option>'; });
+  h += '</select>';
+  h += '<span style="font-size:11px;color:var(--text-light);margin-left:8px;">共 ' + reports.length + ' 条</span></div>';
+
+  // Status filters
+  h += '<div class="status-filters">';
+  var filters = [
+    { key: 'all', label: '全部' }, { key: 'pending_assign', label: '待分配' }, { key: 'pending_process', label: '待处理' },
+    { key: 'pending_review', label: '待审批' }, { key: 'completed', label: '已完成' }, { key: 'rejected', label: '已驳回' }
+  ];
+  filters.forEach(function(f) {
+    h += '<button class="status-fbtn' + (currentStatusFilter===f.key?' active':'') + '" onclick="currentStatusFilter=\'' + f.key + '\';renderPage()">' + f.label + '</button>';
+  });
+  h += '</div>';
+
+  if (reports.length === 0) {
+    h += '<div class="table-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无举报记录</div></div></div>';
+    document.getElementById('rightColumn').innerHTML = h;
+    return;
+  }
+
+  h += '<div class="table-card"><div class="table-scroll"><table class="list-table"><thead><tr>';
+  h += '<th>编号</th><th>被举报人</th><th>单位名称</th><th>所属区划</th><th>线索来源</th><th>提交时间</th><th>状态</th><th>操作</th>';
+  h += '</tr></thead><tbody>';
+
+  reports.forEach(function(r) {
+    var statusCls = getStatusBadgeClass(r.status);
+    h += '<tr>';
+    h += '<td class="col-id">' + r.id + '</td>';
+    h += '<td class="col-name">' + r.name + '</td>';
+    h += '<td>' + r.unitName + '</td>';
+    h += '<td>' + (r.isCityDirect ? '<span class="type-tag direct">市直属</span>' : '<span class="type-tag district">'+r.district+'</span>') + '</td>';
+    h += '<td>' + r.source + '</td>';
+    h += '<td style="font-size:12px;">' + (r.createTime||'—') + '</td>';
+    h += '<td><span class="status-badge ' + statusCls + '">' + (STATUS_MAP[r.status]||r.status) + '</span></td>';
+    h += '<td class="col-action"><div class="action-links">';
+    h += '<a class="action-link" onclick="viewDetail(\'' + r.id + '\')">查看</a>';
+    if (r.status === 'pending_assign') {
+      h += '<a class="action-link" onclick="showAssignModal(\'' + r.id + '\')">指派</a>';
+    } else if (r.status === 'pending_review') {
+      h += '<a class="action-link" onclick="goReview(\'' + r.id + '\')">审批</a>';
+    }
+    if ((r.status === 'pending_assign' || r.status === 'pending_process') && !r.isCityDirect) {
+      // allow editing basic info
+    }
+    if (r.isCityDirect && r.status === 'pending_process') {
+      h += '<a class="action-link" onclick="goProcess(\'' + r.id + '\')">处理</a>';
+    }
+    h += '</div></td></tr>';
+  });
+
+  h += '</tbody></table></div></div>';
+  document.getElementById('rightColumn').innerHTML = h;
+}
+
+function setDistrictFilter(d) { currentDistrictFilter = d; renderRightColumn(); }
+
+function viewDetail(id) { window.location.href = 'ethics-detail.html?id=' + id; }
+function goReview(id) { window.location.href = 'ethics-review.html?id=' + id; }
+function goProcess(id) { window.location.href = 'ethics-process.html?id=' + id; }
+
+// ===== MANUAL IMPORT MODAL =====
+var _importForm = null;
+var _importFiles = [];
+
+function showManualImportModal() {
+  _importForm = {
+    source: '', reportedName: '', reportedUnit: '', complaintContent: '',
+    unitName: '', name: '', idCardType: '居民身份证', idCard: '', gender: '', age: '', personType: '',
+    isCityDirect: false, district: ''
+  };
+  _importFiles = [];
+
+  var c = '<div class="modal-header"><h3>手动录入举报</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  c += '<div class="modal-body">';
+
+  // Section 1: 举报信息
+  c += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">举报信息</div>';
+  c += '<div class="form-group"><label>线索来源 <span style="color:var(--danger);">*</span></label><select id="impSource" onchange="_importForm.source=this.value">';
+  c += '<option value="">请选择</option>';
+  SOURCE_OPTS.forEach(function(o) { c += '<option value="' + o + '">' + o + '</option>'; });
+  c += '</select></div>';
+  c += '<div class="form-group"><label>被举报人姓名 <span style="color:var(--danger);">*</span></label><input id="impReportedName" oninput="_importForm.reportedName=this.value" placeholder="被举报人姓名"></div>';
+  c += '<div class="form-group"><label>被举报单位 <span style="color:var(--danger);">*</span></label><input id="impReportedUnit" oninput="_importForm.reportedUnit=this.value;onImportUnitBlur()" placeholder="如：柳州市第十四中学" onblur="onImportUnitBlur()"></div>';
+  c += '<div class="form-group"><label>反映的主要问题 <span style="color:var(--danger);">*</span></label><textarea id="impComplaint" oninput="_importForm.complaintContent=this.value" placeholder="请详细描述举报反映的主要问题" rows="4"></textarea></div>';
+
+  // Section 2: 被举报人基本信息
+  c += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-top:16px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">被举报人基本信息</div>';
+  c += '<div class="form-group"><label>单位名称 <span style="color:var(--danger);">*</span></label><input id="impUnitName" oninput="_importForm.unitName=this.value;onImportUnitBlur()" placeholder="如：柳州市第十四中学" onblur="onImportUnitBlur()"></div>';
+  c += '<div class="form-row"><div class="form-group"><label>姓名 <span style="color:var(--danger);">*</span></label><input id="impName" oninput="_importForm.name=this.value"></div>';
+  c += '<div class="form-group"><label>身份证件类型 <span style="color:var(--danger);">*</span></label><select id="impIdCardType" onchange="_importForm.idCardType=this.value">';
+  IDCARD_TYPE_OPTS.forEach(function(o) { c += '<option value="' + o + '"' + (o==='居民身份证'?' selected':'') + '>' + o + '</option>'; });
+  c += '</select></div></div>';
+  c += '<div class="form-group"><label>身份证号 <span style="color:var(--danger);">*</span></label><input id="impIdCard" oninput="_importForm.idCard=this.value" placeholder="18位身份证号" maxlength="18"></div>';
+  c += '<div class="form-row"><div class="form-group"><label>性别 <span style="color:var(--danger);">*</span></label><select id="impGender" onchange="_importForm.gender=this.value"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select></div>';
+  c += '<div class="form-group"><label>年龄 <span style="color:var(--danger);">*</span></label><input id="impAge" type="number" oninput="_importForm.age=parseInt(this.value)||\'\'" placeholder="年龄" min="18" max="100"></div></div>';
+  c += '<div class="form-group"><label>人员类别 <span style="color:var(--danger);">*</span></label><select id="impPersonType" onchange="_importForm.personType=this.value"><option value="">请选择</option>';
+  PERSON_TYPE_OPTS.forEach(function(o) { c += '<option value="' + o + '">' + o + '</option>'; });
+  c += '</select></div>';
+
+  // District auto-detection
+  c += '<div class="form-group"><label>所属区划</label><input id="impDistrict" value="" disabled style="background:#F8FAFC;color:var(--text-secondary);"></div>';
+  c += '<div style="font-size:11px;color:var(--text-light);">✏️ 区划根据单位名称自动匹配，若匹配失败请手动选择</div>';
+
+  // Attachments
+  c += '<div class="form-group" style="margin-top:12px;"><label>附件（选填）</label>';
+  c += '<div class="file-upload-zone" onclick="document.getElementById(\'impFileInput\').click()"><div class="fu-text">📎 点击上传举报相关附件</div></div>';
+  c += '<input type="file" id="impFileInput" style="display:none;" multiple onchange="handleImportFiles(this)">';
+  c += '<div class="file-list" id="impFileList"></div></div>';
+
+  c += '</div>';
+  c += '<div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="submitManualImport()">确认录入</button></div>';
+  openModal(c, 'modal-wide');
+}
+
+function onImportUnitBlur() {
+  var unitName = document.getElementById('impUnitName') ? document.getElementById('impUnitName').value : (_importForm.unitName || '');
+  if (!unitName) return;
+  var dist = getDistrictForSchool(unitName);
+  _importForm.district = dist;
+  _importForm.isCityDirect = (dist === '市直属');
+  var distEl = document.getElementById('impDistrict');
+  if (distEl) distEl.value = dist;
+}
+
+function handleImportFiles(input) {
+  if (!input.files) return;
+  for (var i = 0; i < input.files.length; i++) {
+    _importFiles.push({ name: input.files[i].name, size: input.files[i].size });
+  }
+  renderImportFileList();
+}
+function renderImportFileList() {
+  var h = '';
+  _importFiles.forEach(function(f, i) {
+    h += '<div class="file-item"><span>📄 ' + f.name + '</span><span style="color:var(--text-light);font-size:11px;">(' + Math.round(f.size/1024) + 'KB)</span><span class="fi-remove" onclick="_importFiles.splice(' + i + ',1);renderImportFileList()">×</span></div>';
+  });
+  document.getElementById('impFileList').innerHTML = h;
+}
+
+function submitManualImport() {
+  // Read all form values
+  _importForm.source = document.getElementById('impSource').value;
+  _importForm.reportedName = document.getElementById('impReportedName').value.trim();
+  _importForm.reportedUnit = document.getElementById('impReportedUnit').value.trim();
+  _importForm.complaintContent = document.getElementById('impComplaint').value.trim();
+  _importForm.unitName = document.getElementById('impUnitName').value.trim();
+  _importForm.name = document.getElementById('impName').value.trim();
+  _importForm.idCard = document.getElementById('impIdCard').value.trim();
+  _importForm.gender = document.getElementById('impGender').value;
+  _importForm.age = parseInt(document.getElementById('impAge').value) || '';
+  _importForm.personType = document.getElementById('impPersonType').value;
+
+  // Validation
+  if (!_importForm.source) { showToast('请选择线索来源', 'warning'); return; }
+  if (!_importForm.reportedName) { showToast('请填写被举报人姓名', 'warning'); return; }
+  if (!_importForm.reportedUnit) { showToast('请填写被举报单位', 'warning'); return; }
+  if (!_importForm.complaintContent) { showToast('请填写反映的主要问题', 'warning'); return; }
+  if (!_importForm.unitName) { showToast('请填写单位名称', 'warning'); return; }
+  if (!_importForm.name) { showToast('请填写姓名', 'warning'); return; }
+  if (!_importForm.idCard || _importForm.idCard.length !== 18 || !/^\d{17}[\dXx]$/.test(_importForm.idCard)) { showToast('身份证号格式错误', 'warning'); return; }
+  if (!_importForm.gender) { showToast('请选择性别', 'warning'); return; }
+  if (!_importForm.age || _importForm.age < 18) { showToast('请填写有效年龄', 'warning'); return; }
+  if (!_importForm.personType) { showToast('请选择人员类别', 'warning'); return; }
+
+  var district = _importForm.district || getDistrictForSchool(_importForm.unitName);
+  var isCityDirect = (district === '市直属');
+  var region = REGION_CODE[district] || '00';
+  var year = new Date().getFullYear().toString();
+
+  var reports = loadReports();
+  var maxSeq = 0;
+  var prefix = 'ET' + year + region + '-';
+  reports.forEach(function(r) {
+    if (r.id.indexOf(prefix) === 0) { var seq = parseInt(r.id.split('-').pop(), 10); if (seq > maxSeq) maxSeq = seq; }
+  });
+
+  var newReport = {
+    id: prefix + String(maxSeq + 1).padStart(2, '0'),
+    source: _importForm.source,
+    reportedName: _importForm.reportedName,
+    reportedUnit: _importForm.reportedUnit,
+    complaintContent: _importForm.complaintContent,
+    unitName: _importForm.unitName,
+    name: _importForm.name,
+    idCardType: _importForm.idCardType,
+    idCard: _importForm.idCard,
+    gender: _importForm.gender,
+    age: _importForm.age,
+    personType: _importForm.personType,
+    district: district,
+    isCityDirect: isCityDirect,
+    status: isCityDirect ? 'pending_process' : 'pending_assign',
+    investigation: '', basis: '', penalty: '', accountability: '', isNotified: '', notificationScope: '', processingUnit: isCityDirect ? '柳州市教育局' : '',
+    deadline: '', assignTime: null, processSubmitTime: null,
+    reviewResult: null, reviewOpinion: '', reviewTime: null, rejectReason: '', rejectCount: 0,
+    attachments_import: _importFiles.slice(),
+    attachments_process: [],
+    createTime: now(),
+    timeline: [{ time: now(), action: '市管理员录入举报', operator: '张建国' }]
+  };
+
+  reports.push(newReport);
+  saveReports(reports);
+  closeModal();
+  showToast('举报录入成功 · ' + newReport.id, 'success');
+  renderPage();
+}
+
+// ===== EXCEL IMPORT MODAL =====
+var _excelData = [];
+
+function showExcelImportModal() {
+  _excelData = [];
+  var c = '<div class="modal-header"><h3>Excel 导入举报</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  c += '<div class="modal-body">';
+  c += '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">请上传包含以下列的 Excel 文件：<b>线索来源、被举报人/单位、反映的主要问题</b></p>';
+  c += '<div class="file-upload-zone" onclick="document.getElementById(\'excelFileInput\').click()"><div class="fu-text">📄 点击选择 Excel 文件（.xlsx / .csv）</div></div>';
+  c += '<input type="file" id="excelFileInput" style="display:none;" accept=".xlsx,.csv" onchange="handleExcelFile(this)">';
+
+  c += '<div id="excelPreviewArea"></div>';
+  c += '</div>';
+  c += '<div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" id="btnConfirmImport" onclick="confirmExcelImport()" disabled>确认导入</button></div>';
+  openModal(c, 'modal-wide');
+}
+
+function handleExcelFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  // Demo: parse filename and simulate Excel data
+  // In production, would use SheetJS/xlsx library
+  _excelData = [
+    { source: '邮箱投诉', reportedName: '金先琴', reportedUnit: '柳州市第十四中学', complaintContent: '上课时对不舒服趴在桌子上的同学掐脖子，言语侮辱人格，体罚学生...' },
+    { source: '电话举报', reportedName: 'AAA', reportedUnit: '柳州市第八中学', complaintContent: '违规收取学生家长红包，金额累计超2000元...' }
+  ];
+  renderExcelPreview();
+  document.getElementById('btnConfirmImport').disabled = false;
+  showToast('文件解析成功，共 ' + _excelData.length + ' 条记录', 'success');
+}
+
+function renderExcelPreview() {
+  if (!_excelData.length) return;
+  var h = '<div style="margin-top:12px;font-size:12px;color:var(--text-secondary);">预览（' + _excelData.length + ' 条）：</div>';
+  h += '<div class="excel-preview"><table><thead><tr><th>线索来源</th><th>被举报人</th><th>被举报单位</th><th>反映的主要问题</th></tr></thead><tbody>';
+  _excelData.forEach(function(row) {
+    h += '<tr><td>' + row.source + '</td><td>' + row.reportedName + '</td><td>' + row.reportedUnit + '</td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;">' + (row.complaintContent||'').substring(0,50) + '...</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  document.getElementById('excelPreviewArea').innerHTML = h;
+}
+
+function confirmExcelImport() {
+  if (!_excelData.length) return;
+  var reports = loadReports();
+  var count = 0;
+  _excelData.forEach(function(row) {
+    var district = getDistrictForSchool(row.reportedUnit);
+    var isCityDirect = (district === '市直属');
+    var region = REGION_CODE[district] || '00';
+    var year = new Date().getFullYear().toString();
+    var prefix = 'ET' + year + region + '-';
+    var maxSeq = 0;
+    reports.forEach(function(r) { if (r.id.indexOf(prefix) === 0) { var seq = parseInt(r.id.split('-').pop(), 10); if (seq > maxSeq) maxSeq = seq; } });
+    reports.push({
+      id: prefix + String(maxSeq + 1).padStart(2, '0'),
+      source: row.source || '其他',
+      reportedName: row.reportedName || '',
+      reportedUnit: row.reportedUnit || '',
+      complaintContent: row.complaintContent || '',
+      unitName: row.reportedUnit || '',
+      name: row.reportedName || '',
+      idCardType: '居民身份证', idCard: '', gender: '', age: null, personType: '',
+      district: district, isCityDirect: isCityDirect,
+      status: isCityDirect ? 'pending_process' : 'pending_assign',
+      investigation: '', basis: '', penalty: '', accountability: '', isNotified: '', notificationScope: '', processingUnit: isCityDirect ? '柳州市教育局' : '',
+      deadline: '', assignTime: null, processSubmitTime: null,
+      reviewResult: null, reviewOpinion: '', reviewTime: null, rejectReason: '', rejectCount: 0,
+      attachments_import: [], attachments_process: [],
+      createTime: now(),
+      timeline: [{ time: now(), action: '市管理员Excel导入举报', operator: '张建国' }]
+    });
+    count++;
+  });
+  saveReports(reports);
+  closeModal();
+  showToast('成功导入 ' + count + ' 条举报记录', 'success');
+  renderPage();
+}
+
+// ===== ASSIGN MODAL =====
+function showAssignModal(id) {
+  var reports = loadReports();
+  var r = reports.find(function(x) { return x.id === id; });
+  if (!r) return;
+
+  var c = '<div class="modal-header"><h3>指派举报</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
+  c += '<div class="modal-body">';
+  c += '<p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">' + r.id + ' · ' + r.name + ' · ' + r.unitName + '</p>';
+  c += '<div class="form-group"><label>所属区划</label><input value="' + r.district + '" disabled style="background:#F8FAFC;color:var(--text-secondary);"></div>';
+  c += '<div class="form-group"><label>指派至区管理员</label><select id="assignDistrict">';
+  DISTRICT_LIST.forEach(function(d) { c += '<option value="' + d + '"' + (d===r.district?' selected':'') + '>' + d + '</option>'; });
+  c += '</select></div>';
+  c += '<div class="form-group"><label>处理截止日期 <span style="color:var(--danger);">*</span></label><input type="date" id="assignDeadline" required>';
+  c += '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">建议15个工作日</div></div>';
+  c += '<div class="form-group"><label>备注</label><textarea id="assignNote" placeholder="指派备注（选填）"></textarea></div>';
+  c += '</div>';
+  c += '<div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmAssign(\'' + id + '\')">确认指派</button></div>';
+  openModal(c);
+}
+
+function confirmAssign(id) {
+  var reports = loadReports();
+  var r = reports.find(function(x) { return x.id === id; });
+  if (!r) return;
+  var deadline = document.getElementById('assignDeadline').value;
+  var note = document.getElementById('assignNote').value.trim();
+  if (!deadline) { showToast('请选择处理截止日期', 'warning'); return; }
+
+  r.district = document.getElementById('assignDistrict').value;
+  r.isCityDirect = (r.district === '市直属');
+  r.deadline = deadline;
+  r.status = 'pending_process';
+  r.assignTime = now();
+  r.timeline.push({ time: now(), action: '市管理员指派至' + r.district + '区管理员', operator: '张建国', opinion: note || '限期处理' });
+  saveReports(reports);
+  closeModal();
+  showToast('指派成功', 'success');
+  renderPage();
+}
+
+// ===== INIT =====
+function init() {
+  renderSidebar();
+  renderPage();
+}
+init();
+</script>
+</body>
+</html>

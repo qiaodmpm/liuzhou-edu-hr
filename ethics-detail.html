@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>举报详情 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.page-header-left h1 { font-size: 20px; font-weight: 700; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition); border: 1px solid transparent; font-family: inherit; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
+.btn-outline:hover { border-color: var(--primary); }
+
+/* Seal */
+.detail-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 20px; }
+.detail-header h1 { font-size: 20px; font-weight: 700; }
+.status-seal { display: flex; align-items: center; justify-content: center; width: 100px; height: 100px; border-radius: 50%; font-size: 16px; font-weight: 700; flex-shrink: 0; border: 3px solid; }
+.status-seal.assign { color: var(--primary); border-color: var(--primary); background: var(--primary-light); }
+.status-seal.process { color: #92400E; border-color: var(--warning); background: #FEF3C7; }
+.status-seal.review { color: #92400E; border-color: var(--warning); background: #FEF3C7; }
+.status-seal.completed { color: #065F46; border-color: var(--success); background: #D1FAE5; }
+.status-seal.rejected { color: #991B1B; border-color: var(--danger); background: #FEE2E2; }
+
+/* Fieldset */
+.detail-fieldset { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; }
+.detail-fieldset legend { font-size: 13px; font-weight: 600; color: var(--primary); padding: 0 8px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 20px; }
+.detail-grid.col2 { grid-template-columns: 1fr 1fr; }
+.detail-item { display: flex; flex-direction: column; gap: 2px; }
+.detail-item.span-2 { grid-column: span 2; }
+.detail-item.span-3 { grid-column: 1 / -1; }
+.detail-label { font-size: 11px; color: var(--text-light); }
+.detail-value { font-size: 13px; color: var(--text); font-weight: 500; }
+.detail-value.text-block { white-space: pre-wrap; line-height: 1.7; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.tl-item { position: relative; padding: 8px 0 16px; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-dot { position: absolute; left: -20px; top: 11px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 0 0 2px var(--accent); }
+.tl-time { font-size: 11px; color: var(--text-light); }
+.tl-action { font-size: 13px; color: var(--text); font-weight: 500; }
+.tl-opinion { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* File item */
+.file-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; background: var(--bg); border-radius: 4px; margin-bottom: 4px; }
+.file-item a { color: var(--primary); text-decoration: none; }
+.file-item a:hover { text-decoration: underline; }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease; box-shadow: var(--shadow-lg); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left"><div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div><span class="topnav-title">柳州教育人事管理平台</span></div>
+  <div class="topnav-right"><div class="topnav-bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge">3</span></div><div class="topnav-user" onclick="toggleUserMenu()"><div class="avatar">张</div><span>张建国</span><div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a></div></div></div>
+</nav>
+
+<aside class="sidebar" id="sidebar"><div class="sidebar-menu" id="sidebarMenu"></div></aside>
+
+<main class="main">
+  <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span id="breadcrumbBack"></span> &nbsp;/&nbsp; <span>举报详情</span></div>
+  <div id="contentArea"></div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script src="src/menu-config.js"></script>
+<script>
+window.onerror = function(msg, url, line, col, err) { var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')';document.body.prepend(d); };
+
+var STATUS_MAP = { pending_assign:'待分配', pending_process:'待处理', pending_review:'待审批', completed:'已完成', rejected:'已驳回' };
+var SEAL_CLASS = { pending_assign:'assign', pending_process:'process', pending_review:'review', completed:'completed', rejected:'rejected' };
+
+var currentRole = 'city';
+var recordId = null;
+
+function getRole() {
+  var cu = null;
+  try { cu = JSON.parse(localStorage.getItem('currentUser')); } catch(e) {}
+  if (cu && cu.role) return cu.role;
+  var params = new URLSearchParams(window.location.search);
+  return params.get('role') || 'city';
+}
+
+function getListUrl() {
+  var r = currentRole;
+  if (r === 'city') return 'ethics-list-city.html';
+  if (r === 'district') return 'ethics-list-district.html';
+  return 'ethics-list-school.html';
+}
+
+function loadRecord(id) {
+  var s = localStorage.getItem('ethics_reports');
+  if (!s) return null;
+  try { var all = JSON.parse(s); return all.find(function(x) { return x.id === id; }); } catch(e) { return null; }
+}
+
+function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', currentRole, 'ethics');
+  var cu = null;
+  try { cu = JSON.parse(localStorage.getItem('currentUser')); } catch(e) {}
+  if (cu) { var n = document.querySelector('.topnav-user span'); if(n) n.textContent = cu.name; var a = document.querySelector('.topnav-user .avatar'); if(a) a.textContent = cu.name.charAt(0); }
+}
+
+function renderPage() {
+  recordId = new URLSearchParams(window.location.search).get('id');
+  if (!recordId) { document.getElementById('contentArea').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">未指定举报记录</div></div>'; return; }
+  var r = loadRecord(recordId);
+  if (!r) { document.getElementById('contentArea').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">举报记录不存在</div></div>'; return; }
+
+  document.getElementById('breadcrumbBack').innerHTML = '<a href="' + getListUrl() + '">师德师风举报</a>';
+  document.title = r.name + ' — 师德师风举报详情';
+
+  var sealCls = SEAL_CLASS[r.status] || '';
+  var h = '';
+  h += '<div class="detail-header"><h1>举报详情 · ' + r.id + '</h1><div class="status-seal ' + sealCls + '">' + (STATUS_MAP[r.status]||r.status) + '</div></div>';
+
+  // 举报信息
+  h += '<fieldset class="detail-fieldset"><legend>举报信息</legend><div class="detail-grid col2">';
+  h += item('线索来源', r.source);
+  h += item('被举报人姓名', r.reportedName);
+  h += item('被举报单位', r.reportedUnit);
+  h += item('反映的主要问题', null, true);
+  h += item('', r.complaintContent, true);
+  h += '</div></fieldset>';
+
+  // 被举报人基本信息
+  h += '<fieldset class="detail-fieldset"><legend>被举报人基本信息</legend><div class="detail-grid">';
+  h += item('单位名称', r.unitName);
+  h += item('姓名', r.name);
+  h += item('身份证件类型', r.idCardType);
+  h += item('身份证号', r.idCard);
+  h += item('性别', r.gender);
+  h += item('年龄', r.age);
+  h += item('人员类别', r.personType);
+  h += item('所属区划', r.isCityDirect ? '市直属' : r.district);
+  h += '</div></fieldset>';
+
+  // 处理结果
+  if (r.investigation) {
+    h += '<fieldset class="detail-fieldset"><legend>处理结果</legend><div class="detail-grid col2">';
+    h += item('查明的基本情况', r.investigation, true);
+    h += item('处理依据', r.basis, true);
+    h += item('对本人的处理', r.penalty, true);
+    h += item('对相关责任人的追责情况', r.accountability, true);
+    h += item('是否通报', r.isNotified);
+    if (r.isNotified === '是') h += item('以何种形式、在何范围通报', r.notificationScope, true);
+    h += item('创建单位', r.processingUnit);
+    h += '</div></fieldset>';
+  }
+
+  // 附件
+  if ((r.attachments_import && r.attachments_import.length) || (r.attachments_process && r.attachments_process.length)) {
+    h += '<fieldset class="detail-fieldset"><legend>附件</legend>';
+    if (r.attachments_import && r.attachments_import.length) {
+      h += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">📎 举报附件</div>';
+      r.attachments_import.forEach(function(f) { h += '<div class="file-item">📄 ' + f.name + ' <span style="color:var(--text-light);font-size:11px;">(' + Math.round(f.size/1024) + 'KB)</span></div>'; });
+    }
+    if (r.attachments_process && r.attachments_process.length) {
+      h += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;margin-top:12px;">📎 处理结果附件</div>';
+      r.attachments_process.forEach(function(f) { h += '<div class="file-item">📄 ' + f.name + ' <span style="color:var(--text-light);font-size:11px;">(' + Math.round(f.size/1024) + 'KB)</span></div>'; });
+    }
+    h += '</fieldset>';
+  }
+
+  // 操作时间线
+  if (r.timeline && r.timeline.length) {
+    h += '<fieldset class="detail-fieldset"><legend>操作记录</legend><div class="timeline">';
+    r.timeline.forEach(function(t) {
+      h += '<div class="tl-item"><div class="tl-dot"></div>';
+      h += '<div class="tl-time">' + t.time + '</div>';
+      h += '<div class="tl-action">' + t.action + ' — ' + t.operator + '</div>';
+      if (t.opinion) h += '<div class="tl-opinion">' + t.opinion + '</div>';
+      h += '</div>';
+    });
+    h += '</div></fieldset>';
+  }
+
+  document.getElementById('contentArea').innerHTML = h;
+}
+
+function item(label, value, fullWidth) {
+  if (!label && fullWidth) return '<div class="detail-item span-2"><div class="detail-value text-block">' + escapeHtml(value || '—') + '</div></div>';
+  if (fullWidth) return '<div class="detail-item span-2"><div class="detail-label">' + label + '</div><div class="detail-value text-block">' + escapeHtml(value || '—') + '</div></div>';
+  return '<div class="detail-item"><div class="detail-label">' + label + '</div><div class="detail-value">' + escapeHtml(String(value || '—')) + '</div></div>';
+}
+
+function init() {
+  currentRole = getRole();
+  renderSidebar();
+  renderPage();
+}
+init();
+</script>
+</body>
+</html>
