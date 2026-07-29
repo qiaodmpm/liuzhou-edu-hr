@@ -490,8 +490,7 @@ function renderList() {
     // Include schools without ledger data
     var existingNames = {};
     filteredLedgers = filteredLedgers.filter(function(d) { existingNames[d.schoolName]=true; return !d.submittedAt; });
-    if (filterDistrict === 'all' || filterDistrict === '') {
-      REGISTERED_SCHOOLS.forEach(function(s) {
+    REGISTERED_SCHOOLS.forEach(function(s) {
         if (!existingNames[s]) {
           var region = '';
           // Infer district from demo data or school name
@@ -505,7 +504,6 @@ function renderList() {
           }
         }
       });
-    }
   }
   if (filterDistrict !== 'all') {
     filteredLedgers = filteredLedgers.filter(function(d) { return d.district === filterDistrict; });
@@ -552,7 +550,6 @@ function renderList() {
     h += '</tr></thead><tbody>';
     var today = new Date().toISOString().split('T')[0];
     pageData.forEach(function(d, idx) {
-      var isNew = d.status === 'none';
       var remindedToday = d.lastRemindDate === today;
       h += '<tr>';
       h += '<td style="color:var(--text-light);">' + (startIdxI + idx + 1) + '</td>';
@@ -562,12 +559,10 @@ function renderList() {
       h += '<td style="text-align:center;">' + escapeHtml(d.district) + '</td>';
       h += '<td style="text-align:center;font-size:12px;color:var(--text-secondary);">' + (d.lastRemindDate ? d.lastRemindDate.substring(5) : '—') + '</td>';
       h += '<td class="col-action"><div class="action-links">';
-      if (isNew) {
-        h += '<a class="action-link" onclick="remindSchool(\'' + d.schoolName + '\')">提醒建立</a>';
-      } else if (remindedToday) {
+      if (remindedToday) {
         h += '<span class="action-link" style="color:var(--text-light);cursor:default;text-decoration:none;">已提醒</span>';
       } else {
-        h += '<a class="action-link" onclick="remindSchool(\'' + d.schoolName + '\')">提醒提交</a>';
+        h += '<a class="action-link" onclick="remindSchool(\'' + d.schoolName + '\')">提醒建立</a>';
       }
       h += '</div></td>';
       h += '</tr>';
@@ -659,7 +654,23 @@ function remindSchool(schoolName) {
   var today = new Date().toISOString().split('T')[0];
   var d = allLedgers[schoolName];
   if (!d) {
+    // 学校尚未建立台账，创建最小记录以持久化提醒状态
+    var region = '';
+    if (schoolName.indexOf('鱼峰区')>=0) region='鱼峰区';
+    else if (schoolName.indexOf('城中区')>=0) region='城中区';
+    else if (schoolName.indexOf('柳江区')>=0) region='柳江区';
+    else if (schoolName.indexOf('柳州市')>=0 || schoolName.indexOf('柳州')>=0) region='市直属';
+    allLedgers[schoolName] = {
+      schoolName: schoolName, district: region, status: 'pending',
+      submittedAt: '', reviewedAt: '', reviewedBy: '', returnReason: '',
+      careerQuota: 0, careerActual: 0, careerApprovedPlan: 0, careerUsedPlan: 0,
+      controlQuota: 0, controlActual: 0, controlApprovedPlan: 0, controlUsedPlan: 0,
+      lastRemindDate: today, updatedAt: today, updatedBy: currentUser.name
+    };
+    ensureSchoolIds();
+    saveLedgers();
     showToast('已提醒 ' + schoolName + ' 建立台账', 'success');
+    renderList();
     return;
   }
   if (d.lastRemindDate === today) {
@@ -668,7 +679,7 @@ function remindSchool(schoolName) {
   }
   d.lastRemindDate = today;
   saveLedgers();
-  showToast('已提醒 ' + schoolName + ' 提交台账', 'success');
+  showToast('已提醒 ' + schoolName + ' 建立台账', 'success');
   renderList();
 }
 
