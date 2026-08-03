@@ -233,6 +233,7 @@ function getOrgInfo(schoolName) {
 var filterStatus = 'all';
 var filterDistrict = 'all';
 var searchText = '';
+var highlandFilter = 'all';
 var currentPage = 1;
 var pageSize = 10;
 
@@ -298,6 +299,14 @@ function mergeDemoData() {
     // Backfill returnReason for existing pending schools
     else if (demos[k].returnReason && !allLedgers[k].returnReason && allLedgers[k].status === 'pending') {
       allLedgers[k].returnReason = demos[k].returnReason;
+      changed = true;
+    }
+  });
+  // Backfill isHighlandSchool from org data
+  var HIGHLANDS = ['柳州市第一中学','柳州市第八中学','鱼峰区实验小学','柳州市民族高中'];
+  Object.keys(allLedgers).forEach(function(k) {
+    if (allLedgers[k].isHighlandSchool === undefined) {
+      allLedgers[k].isHighlandSchool = HIGHLANDS.indexOf(k) !== -1;
       changed = true;
     }
   });
@@ -500,7 +509,7 @@ function renderList() {
           else if (s.indexOf('柳州市')>=0) region='市直属';
           else if (s.indexOf('柳州')>=0) region='市直属';
           if (filterDistrict==='all' || filterDistrict===region || filterDistrict==='') {
-            filteredLedgers.push({ schoolName:s, district:region, schoolId:'', submittedAt:'', lastRemindDate:'', status:'none', careerQuota:0,careerActual:0,controlQuota:0,controlActual:0,careerApprovedPlan:0,careerUsedPlan:0,controlApprovedPlan:0,controlUsedPlan:0,schoolType:'',orgLevel:'',authLeader:0,actualLeader:0,actualOtherLeader:0 });
+            filteredLedgers.push({ schoolName:s, district:region, schoolId:'', submittedAt:'', lastRemindDate:'', status:'none',isHighlandSchool:false, careerQuota:0,careerActual:0,controlQuota:0,controlActual:0,careerApprovedPlan:0,careerUsedPlan:0,controlApprovedPlan:0,controlUsedPlan:0,schoolType:'',orgLevel:'',authLeader:0,actualLeader:0,actualOtherLeader:0 });
           }
         }
       });
@@ -511,6 +520,11 @@ function renderList() {
   if (searchText) {
     var st = searchText.toLowerCase();
     filteredLedgers = filteredLedgers.filter(function(d) { return d.schoolName.toLowerCase().indexOf(st) >= 0; });
+  }
+
+  if (highlandFilter !== 'all') {
+    var wantHighland = highlandFilter === '1';
+    filteredLedgers = filteredLedgers.filter(function(d) { return (d.isHighlandSchool === true) === wantHighland; });
   }
 
   var h = '';
@@ -539,6 +553,8 @@ function renderList() {
     h += '<div class="school-filter"><span>区域：</span><select onchange="filterDistrict=this.value;currentPage=1;renderList()"><option value="all"' + (filterDistrict==='all'?' selected':'') + '>全部区域</option><option value="市直属"' + (filterDistrict==='市直属'?' selected':'') + '>市直属</option><option value="鱼峰区"' + (filterDistrict==='鱼峰区'?' selected':'') + '>鱼峰区</option><option value="城中区"' + (filterDistrict==='城中区'?' selected':'') + '>城中区</option></select></div>';
   }
   h += '<input placeholder="搜索学校..." value="' + escapeHtml(searchText) + '" oninput="searchText=this.value;currentPage=1;renderList()">';
+  h += '<select onchange="highlandFilter=this.value;currentPage=1;renderList()" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:#fff;"><option value="all">是否小高地学校</option><option value="1"' + (highlandFilter==='1'?' selected':'') + '>是</option><option value="0"' + (highlandFilter==='0'?' selected':'') + '>否</option></select>';
+
   h += '</div>';
   h += '<div class="table-scroll">';
   h += '<table class="list-table">';
@@ -570,7 +586,7 @@ function renderList() {
   } else {
     // Standard 13-column table
     h += '<thead><tr>';
-    h += '<th>序号</th><th>单位编号</th><th>单位名称</th><th>所属区域</th><th>学校类型</th><th>单位级别</th>';
+    h += '<th>序号</th><th>单位编号</th><th>单位名称</th><th>所属区域</th><th>学校类型</th><th>单位级别</th><th>是否小高地学校</th>';
     h += '<th>事业编核定数</th><th>实有在编人数</th><th>控制数核定数</th><th>实有控制数人数</th><th>岗位总量</th>';
     h += '<th>提交时间</th><th>状态</th><th>操作</th>';
     h += '</tr></thead><tbody>';
@@ -593,6 +609,7 @@ function renderList() {
     h += '<td>' + escapeHtml(d.district) + '</td>';
     h += '<td>' + escapeHtml(oi2 ? oi2.schoolType : d.schoolType) + '</td>';
     h += '<td>' + escapeHtml(oi2 ? oi2.orgLevel : d.orgLevel) + '</td>';
+    h += '<td>' + (d.isHighlandSchool ? '是' : '否') + '</td>';
     h += '<td class="col-num">' + d.careerQuota + '</td>';
     h += '<td class="col-num">' + d.careerActual + '</td>';
     h += '<td class="col-num">' + d.controlQuota + '</td>';

@@ -119,9 +119,11 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 <script src="src/menu-config.js"></script>
 <script>
 window.onerror = function(msg, url, line, col, err) { var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')';document.body.prepend(d); };
-var STATUS_MAP = { pending_assign:'待分配', pending_process:'待处理', pending_review:'待审批', completed:'已完成', rejected:'已驳回' };
+var STATUS_MAP = { pending_assign:'待分配', pending_process:'待处理', pending_review:'待审核', completed:'已完成', rejected:'已驳回' };
 var currentRole = 'district';
 var currentFilter = 'all';
+var currentPage = 1;
+var pageSize = 10;
 function getStatusBadgeClass(s) {
   if (s==='pending_assign') return 'assign'; if (s==='pending_process') return 'process';
   if (s==='pending_review') return 'review'; if (s==='completed') return 'completed'; if (s==='rejected') return 'rejected'; return '';
@@ -148,15 +150,22 @@ function sidebarClick(el, id) {
   else showToast('跳转至：'+id);
 }
 function renderPage() {
-  var reports = loadReports();
-  if (currentFilter !== 'all') reports = reports.filter(function(r) { return r.status === currentFilter; });
-  var h = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="font-size:12px;color:var(--text-secondary);">共 ' + reports.length + ' 条</span></div>';
+  var allReports = loadReports();
+  if (currentFilter !== 'all') allReports = allReports.filter(function(r) { return r.status === currentFilter; });
+
+  var h = '';
   h += '<div class="status-filters">';
-  [{k:'all',l:'全部'},{k:'pending_process',l:'待处理'},{k:'pending_review',l:'待审批'},{k:'completed',l:'已完成'},{k:'rejected',l:'已驳回'}].forEach(function(f) {
-    h += '<button class="status-fbtn'+(currentFilter===f.k?' active':'')+'" onclick="currentFilter=\''+f.k+'\';renderPage()">'+f.l+'</button>';
+  [{k:'all',l:'全部'},{k:'pending_process',l:'待处理'},{k:'pending_review',l:'待审核'},{k:'completed',l:'已完成'},{k:'rejected',l:'已驳回'}].forEach(function(f) {
+    h += '<button class="status-fbtn'+(currentFilter===f.k?' active':'')+'" onclick="currentFilter=\''+f.k+'\';currentPage=1;renderPage()">'+f.l+'</button>';
   });
+  h += '<span style="font-size:11px;color:var(--text-light);margin-left:12px;">共 ' + allReports.length + ' 条</span>';
   h += '</div>';
-  if (!reports.length) { h += '<div class="table-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无举报记录</div></div></div>'; document.getElementById('contentArea').innerHTML = h; return; }
+  if (!allReports.length) { h += '<div class="table-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无举报记录</div></div></div>'; document.getElementById('contentArea').innerHTML = h; return; }
+
+  var totalPages = Math.ceil(allReports.length / pageSize);
+  if (currentPage > totalPages) currentPage = 1;
+  var reports = allReports.slice((currentPage-1)*pageSize, currentPage*pageSize);
+
   h += '<div class="table-card"><div class="table-scroll"><table class="list-table"><thead><tr>';
   h += '<th>编号</th><th>被举报人</th><th>单位名称</th><th>线索来源</th><th>截止日期</th><th>状态</th><th>操作</th>';
   h += '</tr></thead><tbody>';
@@ -169,7 +178,21 @@ function renderPage() {
     if (r.status==='rejected') h += '<a class="action-link warn" onclick="goProcess(\''+r.id+'\')">重新处理</a>';
     h += '</div></td></tr>';
   });
-  h += '</tbody></table></div></div>';
+  h += '</tbody></table></div>';
+
+  if (totalPages > 1) {
+    h += '<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 0;">';
+    h += '<button onclick="currentPage=1;renderPage()" '+(currentPage<=1?'disabled style="opacity:0.4;cursor:default;"':'')+'class="btn-outline" style="padding:4px 10px;font-size:12px;">首页</button>';
+    h += '<button onclick="currentPage--;renderPage()" '+(currentPage<=1?'disabled style="opacity:0.4;cursor:default;"':'')+'class="btn-outline" style="padding:4px 10px;font-size:12px;">上一页</button>';
+    for (var pi=1; pi<=totalPages; pi++) {
+      h += pi===currentPage ? '<span style="padding:4px 10px;font-size:12px;background:var(--primary);color:#fff;border-radius:4px;font-weight:600;">'+pi+'</span>' : '<button onclick="currentPage='+pi+';renderPage()" class="btn-outline" style="padding:4px 10px;font-size:12px;">'+pi+'</button>';
+    }
+    h += '<button onclick="currentPage++;renderPage()" '+(currentPage>=totalPages?'disabled style="opacity:0.4;cursor:default;"':'')+'class="btn-outline" style="padding:4px 10px;font-size:12px;">下一页</button>';
+    h += '<button onclick="currentPage=totalPages;renderPage()" '+(currentPage>=totalPages?'disabled style="opacity:0.4;cursor:default;"':'')+'class="btn-outline" style="padding:4px 10px;font-size:12px;">末页</button>';
+    h += '<span style="font-size:11px;color:var(--text-light);margin-left:8px;">第 '+currentPage+' / '+totalPages+' 页</span></div>';
+  }
+
+  h += '</div>';
   document.getElementById('contentArea').innerHTML = h;
 }
 function viewDetail(id) { window.location.href = 'ethics-detail.html?id='+id+'&role=district'; }

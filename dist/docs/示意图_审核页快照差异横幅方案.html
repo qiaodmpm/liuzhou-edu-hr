@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>示意图 — 审核页快照+差异横幅方案 — 编制使用申请</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #F1F5F9; color: #1E293B; line-height: 1.6; padding: 40px;
+}
+.page {
+  max-width: 1100px; margin: 0 auto; background: #fff;
+  border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.topbar {
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  color: #fff; padding: 14px 24px; border-radius: 12px 12px 0 0;
+  font-size: 15px; font-weight: 600;
+}
+.title-bar {
+  padding: 20px 28px 0; display: flex; align-items: center; justify-content: space-between;
+}
+.title-bar h1 { font-size: 18px; }
+.seal {
+  width: 72px; height: 72px; border: 3px solid #D97706; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #D97706; transform: rotate(-8deg);
+  border-style: dashed; line-height: 1.3; text-align: center;
+  flex-shrink: 0;
+}
+.main-layout {
+  display: flex; gap: 24px; padding: 20px 28px 28px;
+}
+.col-left { flex: 1; min-width: 0; }
+.col-right { width: 340px; flex-shrink: 0; }
+
+/* Card */
+.card {
+  background: #fff; border: 1px solid #E2E8F0; border-radius: 10px;
+  padding: 20px; margin-bottom: 20px;
+}
+.card-header {
+  font-size: 14px; font-weight: 600; color: #1E293B;
+  padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0;
+  display: flex; align-items: center; gap: 8px;
+}
+.snapshot-badge {
+  font-size: 10px; font-weight: 400; color: #3B82F6; background: #EFF6FF;
+  padding: 2px 8px; border-radius: 4px; margin-left: 8px;
+}
+
+/* Unit info grid */
+.unit-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px;
+}
+.unit-item { display: flex; flex-direction: column; }
+.unit-label { font-size: 11px; color: #94A3B8; margin-bottom: 2px; }
+.unit-value { font-size: 14px; font-weight: 500; color: #1E293B; }
+.unit-formula { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+
+/* Diff banner */
+.diff-banner {
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px;
+  padding: 10px 14px; margin-top: -8px; margin-bottom: 20px; font-size: 12px;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.diff-banner .warn-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.diff-banner .banner-title { font-weight: 600; color: #92400E; margin-bottom: 4px; }
+.diff-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px; }
+.diff-item { font-size: 11px; white-space: nowrap; }
+.diff-item .label { color: #92400E; }
+.diff-item .old { color: #94A3B8; text-decoration: line-through; }
+.diff-item .arrow { color: #94A3B8; margin: 0 4px; }
+.diff-item .new { font-weight: 600; }
+.diff-item .new.warn { color: #D97706; }
+.diff-item .new.ok { color: #10B981; }
+.diff-footer { margin-top: 6px; font-size: 11px; color: #92400E; padding-top: 6px; border-top: 1px dashed #FDE68A; }
+.diff-banner.minimal {
+  background: #F8FAFC; border-color: #E2E8F0;
+}
+.diff-banner.minimal .banner-title { color: #64748B; }
+.diff-banner.minimal .diff-footer { color: #64748B; border-top-color: #E2E8F0; }
+.diff-banner.minimal .diff-item .new { color: #64748B; }
+
+/* No diff state */
+.diff-none {
+  background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px;
+  padding: 8px 14px; margin-top: -8px; margin-bottom: 20px; font-size: 12px;
+  display: flex; align-items: center; gap: 6px; color: #166534;
+}
+
+/* Table */
+table.detail { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.detail th {
+  padding: 6px 8px; text-align: left; border: 1px solid #E2E8F0;
+  background: #F8FAFC; font-weight: 600; color: #64748B;
+}
+table.detail td { padding: 6px 8px; border: 1px solid #E2E8F0; }
+
+/* Actions */
+.actions { display: flex; gap: 10px; margin-top: 16px; }
+.btn {
+  flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; border: none; text-align: center;
+}
+.btn-approve { background: #10B981; color: #fff; }
+.btn-reject { background: #EF4444; color: #fff; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px;
+  width: 2px; background: #E2E8F0;
+}
+.tl-item { position: relative; margin-bottom: 18px; }
+.tl-dot {
+  position: absolute; left: -20px; top: 4px;
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.tl-dot.blue { background: #3B82F6; }
+.tl-title { font-size: 13px; font-weight: 600; }
+.tl-time { font-size: 11px; color: #94A3B8; margin-bottom: 2px; }
+
+/* Info row in right panel */
+.info-row { font-size: 13px; line-height: 2; }
+.info-row .label { color: #94A3B8; }
+.status-tag {
+  background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Page heading */
+.page-heading {
+  font-size: 16px; font-weight: 600; color: #1E40AF; margin-bottom: 8px;
+  padding: 24px 28px 0;
+}
+.page-subhead {
+  font-size: 12px; color: #94A3B8; padding: 0 28px 16px;
+  border-bottom: 1px solid #F1F5F9; margin-bottom: 0;
+}
+
+/* Divider between sections */
+.section-divider {
+  height: 1px; background: #F1F5F9; margin: 20px 0;
+  position: relative;
+}
+.section-divider::before {
+  content: '▼ 三种场景对比'; position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); background: #fff; padding: 0 16px;
+  font-size: 11px; color: #94A3B8;
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- SCENARIO A: Data Changed (warning)            -->
+<!-- ============================================ -->
+<div class="page-heading">场景 A：台账数据发生变化（有差异警告）</div>
+<div class="page-subhead">核定编制数从 88 → 85，可申请数从 3 → 1。审核以快照为准，差异仅作提示。</div>
+
+<div class="page" style="margin-bottom: 60px;">
+  <div class="topbar">编制使用申请审核 — 柳州教育人事管理平台</div>
+  <div class="title-bar">
+    <h1>编制使用申请审核 — SB2026-00001-004J01</h1>
+    <div class="seal">待<br>一审</div>
+  </div>
+  <div class="main-layout">
+    <div class="col-left">
+
+      <!-- UNIT INFO CARD (snapshot-based, same as current) -->
+      <div class="card">
+        <div class="card-header">
+          📋 单位信息 <span class="snapshot-badge">申报时快照 2026-03-05</span>
+        </div>
+        <div class="unit-grid">
+          <div class="unit-item">
+            <span class="unit-label">核定编制数</span>
+            <span class="unit-value">88 名</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">实有在编人数</span>
+            <span class="unit-value">80 人</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">已批复计划数</span>
+            <span class="unit-value">5 名</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">未使用计划数</span>
+            <span class="unit-value">3 名</span>
+            <span class="unit-formula">= 5 − 2（已使用）</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">可申请编制数</span>
+            <span class="unit-value" style="color:#1E40AF;font-weight:600;">3 名</span>
+            <span class="unit-formula">= max(0, 88 − 80 − 5)</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">机构级别</span>
+            <span class="unit-value">正科级</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">单位性质</span>
+            <span class="unit-value">全额拨款事业单位</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">所属区域</span>
+            <span class="unit-value">鱼峰区</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIFF BANNER: appears only when data changed -->
+      <div class="diff-banner">
+        <span class="warn-icon">⚠</span>
+        <div>
+          <div class="banner-title">单位信息在申报后发生了变化（当前台账 vs 申报时快照）</div>
+          <div class="diff-row">
+            <span class="diff-item">
+              <span class="label">核定编制数</span>
+              <span class="old">88</span><span class="arrow">→</span><span class="new warn">85 名（↓3）</span>
+            </span>
+            <span class="diff-item">
+              <span class="label">已批复计划数</span>
+              <span class="old">5</span><span class="arrow">→</span><span class="new warn">8 名（↑3）</span>
+            </span>
+            <span class="diff-item">
+              <span class="label">可申请编制数</span>
+              <span class="old">3</span><span class="arrow">→</span><span class="new warn">1 名（↓2）</span>
+            </span>
+          </div>
+          <div class="diff-footer">
+            💡 当前可申请数（1）已小于学校申报数（2），但审核以申报时快照数据为准。建议关注此差异，如认为需学校重新申报可驳回。
+          </div>
+        </div>
+      </div>
+
+      <!-- USE FORM TABLE (unchanged) -->
+      <div class="card">
+        <div class="card-header">📝 使用类型明细（本次申请合计：2 名）</div>
+        <table class="detail">
+          <tr><th>使用形式</th><th style="text-align:center;">人数</th><th>学历/专业/资格</th><th>相关条件</th></tr>
+          <tr><td>统一公开招聘</td><td style="text-align:center;">1</td><td>本科，数学类，高中教师资格证</td><td>35周岁以下</td></tr>
+          <tr><td>单位自主实施招聘</td><td style="text-align:center;">1</td><td>本科，语文类，高中教师资格证</td><td>40周岁以下</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="col-right">
+      <div class="card">
+        <div class="card-header">📌 申报基本信息</div>
+        <div class="info-row">
+          <div><span class="label">申报编号：</span>SB2026-00001-004J01</div>
+          <div><span class="label">单位名称：</span>柳州市第八中学</div>
+          <div><span class="label">批次名称：</span>2026年度第一批</div>
+          <div><span class="label">编制类型：</span><span style="color:#1E40AF;">事业编</span></div>
+          <div><span class="label">提交日期：</span>2026-03-05</div>
+          <div><span class="label">当前状态：</span><span class="status-tag">待一审</span></div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-approve">✓ 一审通过</button>
+          <button class="btn btn-reject">✗ 驳回</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">📅 审批时间线</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot blue"></div>
+            <div class="tl-title">学校提交申报</div>
+            <div class="tl-time">2026-03-05 14:22:00</div>
+            <div style="font-size:12px;color:#64748B;">王玉兰提交了编制使用申报，使用事业编制合计2名。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================================ -->
+<!-- SCENARIO B: Data Unchanged (no banner)       -->
+<!-- ============================================ -->
+<div class="page-heading">场景 B：台账数据无变化（无差异横幅）</div>
+<div class="page-subhead">申报后台账未发生任何变更，单位信息卡片与当前设计完全一致，不显示额外横幅。</div>
+
+<div class="page" style="margin-bottom: 60px;">
+  <div class="topbar">编制使用申请审核 — 柳州教育人事管理平台</div>
+  <div class="title-bar">
+    <h1>编制使用申请审核 — SB2026-00001-002J01</h1>
+    <div class="seal" style="border-color:#10B981;color:#10B981;">一审<br>通过</div>
+  </div>
+  <div class="main-layout">
+    <div class="col-left">
+
+      <!-- UNIT INFO CARD -->
+      <div class="card">
+        <div class="card-header">
+          📋 单位信息 <span class="snapshot-badge">申报时快照 2026-03-10</span>
+        </div>
+        <div class="unit-grid">
+          <div class="unit-item">
+            <span class="unit-label">核定编制数</span>
+            <span class="unit-value">95 名</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">实有在编人数</span>
+            <span class="unit-value">88 人</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">已批复计划数</span>
+            <span class="unit-value">4 名</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">未使用计划数</span>
+            <span class="unit-value">2 名</span>
+            <span class="unit-formula">= 4 − 2（已使用）</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">可申请编制数</span>
+            <span class="unit-value" style="color:#1E40AF;font-weight:600;">3 名</span>
+            <span class="unit-formula">= max(0, 95 − 88 − 4)</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">机构级别</span>
+            <span class="unit-value">正科级</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">单位性质</span>
+            <span class="unit-value">全额拨款事业单位</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">所属区域</span>
+            <span class="unit-value">市直属</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NO DIFF: subtle green confirmation -->
+      <div class="diff-none">
+        ✅ 当前台账数据与申报时一致，无变更。
+      </div>
+
+      <!-- USE FORM TABLE -->
+      <div class="card">
+        <div class="card-header">📝 使用类型明细（本次申请合计：3 名）</div>
+        <table class="detail">
+          <tr><th>使用形式</th><th style="text-align:center;">人数</th><th>学历/专业/资格</th><th>相关条件</th></tr>
+          <tr><td>统一公开招聘</td><td style="text-align:center;">2</td><td>本科，数学类，高中教师资格证</td><td>35周岁以下</td></tr>
+          <tr><td>单位自主实施招聘</td><td style="text-align:center;">1</td><td>本科，物理类，高中教师资格证</td><td>40周岁以下</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="card">
+        <div class="card-header">📌 申报基本信息</div>
+        <div class="info-row">
+          <div><span class="label">申报编号：</span>SB2026-00001-002J01</div>
+          <div><span class="label">单位名称：</span>柳州市第二中学</div>
+          <div><span class="label">批次名称：</span>2026年度第一批</div>
+          <div><span class="label">编制类型：</span><span style="color:#1E40AF;">事业编</span></div>
+          <div><span class="label">提交日期：</span>2026-03-10</div>
+          <div><span class="label">当前状态：</span><span class="status-tag">一审通过</span></div>
+        </div>
+        <!-- No action buttons for first_approved status -->
+      </div>
+      <div class="card">
+        <div class="card-header">📅 审批时间线</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot blue"></div>
+            <div class="tl-title">学校提交申报</div>
+            <div class="tl-time">2026-03-10 16:30:00</div>
+            <div style="font-size:12px;color:#64748B;">校管理员提交了编制使用申报，使用事业编制合计3名。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot green"></div>
+            <div class="tl-title">一审通过</div>
+            <div class="tl-time">2026-03-12 09:15:00</div>
+            <div style="font-size:12px;color:#64748B;">市管理员张建国审核通过。等待学校提交编办确认。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================================ -->
+<!-- SCENARIO C: Minor change (1 field only)      -->
+<!-- ============================================ -->
+<div class="page-heading">场景 C：仅个别字段微调（低优先级提示）</div>
+<div class="page-subhead">仅已使用计划数从 2 → 4（其他申请通过导致），可申请数无变化，不影响审核。横幅降级为灰色。</div>
+
+<div class="page">
+  <div class="topbar">编制使用申请审核 — 柳州教育人事管理平台</div>
+  <div class="title-bar">
+    <h1>编制使用申请审核 — SB2026-08001-005J01</h1>
+    <div class="seal" style="border-color:#D97706;color:#D97706;">待<br>一审</div>
+  </div>
+  <div class="main-layout">
+    <div class="col-left">
+
+      <!-- UNIT INFO CARD -->
+      <div class="card">
+        <div class="card-header">
+          📋 单位信息 <span class="snapshot-badge">申报时快照 2026-03-25</span>
+        </div>
+        <div class="unit-grid">
+          <div class="unit-item">
+            <span class="unit-label">核定控制数</span>
+            <span class="unit-value">10 名</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">实有控制数人数</span>
+            <span class="unit-value">8 人</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">已批复控制数</span>
+            <span class="unit-value">2 名</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">已使用控制数</span>
+            <span class="unit-value">2 名</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">未使用控制数</span>
+            <span class="unit-value">0 名</span>
+            <span class="unit-formula">= 2 − 2</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">可申请控制数</span>
+            <span class="unit-value" style="color:#1E40AF;font-weight:600;">1 名</span>
+            <span class="unit-formula">= max(0, 10 − 8 − 2)</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">机构级别</span>
+            <span class="unit-value">副科级</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">单位性质</span>
+            <span class="unit-value">全额拨款事业单位</span>
+          </div>
+          <div class="unit-item">
+            <span class="unit-label">所属区域</span>
+            <span class="unit-value">鱼峰区</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIFF BANNER: minor changes only, gray style -->
+      <div class="diff-banner minimal">
+        <span class="warn-icon">ℹ</span>
+        <div>
+          <div class="banner-title">台账发生非关键变更（不影响本次审核结论）</div>
+          <div class="diff-row">
+            <span class="diff-item">
+              <span class="label">已使用控制数</span>
+              <span class="old">2</span><span class="arrow">→</span><span class="new">4 名</span>
+            </span>
+            <span class="diff-item">
+              <span class="label">未使用控制数</span>
+              <span class="old">0</span><span class="arrow">→</span><span class="new">−2 名</span>
+            </span>
+          </div>
+          <div class="diff-footer">
+            💡 可申请数无变化，变更不影响本次审核。审核继续以快照数据为准。
+          </div>
+        </div>
+      </div>
+
+      <!-- USE FORM TABLE -->
+      <div class="card">
+        <div class="card-header">📝 使用类型明细（本次申请合计：1 名）</div>
+        <table class="detail">
+          <tr><th>使用形式</th><th style="text-align:center;">人数</th><th>学历/专业/资格</th><th>相关条件</th></tr>
+          <tr><td>单位自主实施招聘</td><td style="text-align:center;">1</td><td>本科，英语类，高中教师资格证</td><td>35周岁以下</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="card">
+        <div class="card-header">📌 申报基本信息</div>
+        <div class="info-row">
+          <div><span class="label">申报编号：</span>SB2026-08001-005J01</div>
+          <div><span class="label">单位名称：</span>鱼峰区实验小学</div>
+          <div><span class="label">批次名称：</span>2026年度鱼峰区计划</div>
+          <div><span class="label">编制类型：</span><span style="color:#0E3EC0;">控制数</span></div>
+          <div><span class="label">提交日期：</span>2026-03-25</div>
+          <div><span class="label">当前状态：</span><span class="status-tag">待一审</span></div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-approve">✓ 一审通过</button>
+          <button class="btn btn-reject">✗ 驳回</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">📅 审批时间线</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot blue"></div>
+            <div class="tl-title">学校提交申报</div>
+            <div class="tl-time">2026-03-25 10:15:00</div>
+            <div style="font-size:12px;color:#64748B;">校管理员提交了控制数使用申报，合计1名。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

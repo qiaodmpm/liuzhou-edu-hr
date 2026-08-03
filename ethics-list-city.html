@@ -232,10 +232,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
     </div>
   </div>
 
-  <div class="two-col-row">
-    <div class="col-left" id="leftColumn"></div>
-    <div class="col-right" id="rightColumn"></div>
-  </div>
+  <div id="contentArea"></div>
 </main>
 
 <div id="toastContainer"></div>
@@ -266,7 +263,7 @@ var ICONS = {
 };
 
 // ===== CONFIG =====
-var STATUS_MAP = { pending_assign:'待分配', pending_process:'待处理', pending_review:'待审批', completed:'已完成', rejected:'已驳回' };
+var STATUS_MAP = { pending_assign:'待分配', pending_process:'待处理', pending_review:'待审核', completed:'已完成', rejected:'已驳回' };
 var SOURCE_OPTS = ['邮箱投诉','电话举报','信件举报','网络举报','其他'];
 var IDCARD_TYPE_OPTS = ['居民身份证','护照','其他'];
 var GENDER_OPTS = ['男','女'];
@@ -278,6 +275,8 @@ var currentRole = 'city';
 var currentStatusFilter = 'all';
 var currentDistrictFilter = 'all';
 var currentYearFilter = 'all';
+var currentPage = 1;
+var pageSize = 10;
 
 // Mock district-to-school mapping
 var DISTRICT_SCHOOL_MAP = {
@@ -454,91 +453,64 @@ function sidebarClick(el, id) {
   showToast('跳转至：' + id);
 }
 
+function setYearFilter(y) { currentYearFilter = y; renderPage(); }
+function setDistrictFilter(d) { currentDistrictFilter = d; renderPage(); }
+
 // ===== RENDER PAGE =====
 function renderPage() {
-  renderLeftColumn();
-  renderRightColumn();
-}
-
-// ===== LEFT COLUMN =====
-function renderLeftColumn() {
-  var reports = loadReports();
-  var years = []; var seenY = {};
-  reports.forEach(function(r) { var y = r.createTime.substring(0,4); if (!seenY[y]) { seenY[y]=true; years.push(y); } });
-  years.sort().reverse();
-
-  var stats = { total: reports.length, pending_assign: 0, pending_process: 0, pending_review: 0, completed: 0, rejected: 0 };
-  reports.forEach(function(r) { stats[r.status] = (stats[r.status]||0) + 1; });
-
-  var h = '';
-  // Year filter
-  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">';
-  h += '<span style="font-size:12px;color:var(--text-secondary);">年份：</span>';
-  h += '<select onchange="setYearFilter(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;">';
-  h += '<option value="all"' + (currentYearFilter==='all'?' selected':'') + '>全部</option>';
-  years.forEach(function(y) { h += '<option value="' + y + '"' + (currentYearFilter===y?' selected':'') + '>' + y + '年</option>'; });
-  h += '</select></div>';
-
-  // Summary cards
-  h += '<div class="summary-cards">';
-  var items = [
-    { key: 'all', label: '全部举报', num: stats.total },
-    { key: 'pending_assign', label: '待分配', num: stats.pending_assign },
-    { key: 'pending_process', label: '待处理', num: stats.pending_process },
-    { key: 'pending_review', label: '待审批', num: stats.pending_review },
-    { key: 'completed', label: '已完成', num: stats.completed },
-    { key: 'rejected', label: '已驳回', num: stats.rejected }
-  ];
-  items.forEach(function(it) {
-    h += '<div class="summary-card' + (currentStatusFilter===it.key?' active':'') + '" onclick="currentStatusFilter=\'' + it.key + '\';renderPage()">';
-    h += '<span class="sc-label">' + it.label + '</span><span class="sc-num">' + it.num + '</span></div>';
-  });
-  h += '</div>';
-
-  document.getElementById('leftColumn').innerHTML = h;
-}
-
-function setYearFilter(y) { currentYearFilter = y; renderPage(); }
-
-// ===== RIGHT COLUMN =====
-function renderRightColumn() {
   var reports = loadReports();
   if (currentYearFilter !== 'all') { reports = reports.filter(function(r) { return r.createTime.substring(0,4) === currentYearFilter; }); }
   if (currentStatusFilter !== 'all') { reports = reports.filter(function(r) { return r.status === currentStatusFilter; }); }
   if (currentDistrictFilter !== 'all') { reports = reports.filter(function(r) { return r.district === currentDistrictFilter; }); }
 
+  var years = []; var seenY = {};
+  loadReports().forEach(function(r) { var y = r.createTime.substring(0,4); if (!seenY[y]) { seenY[y]=true; years.push(y); } });
+  years.sort().reverse();
+
   var h = '';
-  // District filter
-  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">';
-  h += '<span style="font-size:12px;color:var(--text-secondary);">区划：</span>';
+  // Filter row
+  h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">';
+  h += '<span style="font-size:12px;color:var(--text-secondary);">年份：</span>';
+  h += '<select onchange="setYearFilter(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;">';
+  h += '<option value="all"' + (currentYearFilter==='all'?' selected':'') + '>全部</option>';
+  years.forEach(function(y) { h += '<option value="' + y + '"' + (currentYearFilter===y?' selected':'') + '>' + y + '年</option>'; });
+  h += '</select>';
+  h += '<span style="font-size:12px;color:var(--text-secondary);margin-left:8px;">区划：</span>';
   h += '<select onchange="setDistrictFilter(this.value)" style="padding:4px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;">';
   h += '<option value="all"' + (currentDistrictFilter==='all'?' selected':'') + '>全部区划</option>';
   DISTRICT_LIST.forEach(function(d) { h += '<option value="' + d + '"' + (currentDistrictFilter===d?' selected':'') + '>' + d + '</option>'; });
   h += '</select>';
-  h += '<span style="font-size:11px;color:var(--text-light);margin-left:8px;">共 ' + reports.length + ' 条</span></div>';
+  h += '</select></div>';
 
   // Status filters
   h += '<div class="status-filters">';
   var filters = [
     { key: 'all', label: '全部' }, { key: 'pending_assign', label: '待分配' }, { key: 'pending_process', label: '待处理' },
-    { key: 'pending_review', label: '待审批' }, { key: 'completed', label: '已完成' }, { key: 'rejected', label: '已驳回' }
+    { key: 'pending_review', label: '待审核' }, { key: 'completed', label: '已完成' }, { key: 'rejected', label: '已驳回' }
   ];
   filters.forEach(function(f) {
-    h += '<button class="status-fbtn' + (currentStatusFilter===f.key?' active':'') + '" onclick="currentStatusFilter=\'' + f.key + '\';renderPage()">' + f.label + '</button>';
+    h += '<button class="status-fbtn' + (currentStatusFilter===f.key?' active':'') + '" onclick="currentStatusFilter=\'' + f.key + '\';currentPage=1;renderPage()">' + f.label + '</button>';
   });
+  h += '<span style="font-size:11px;color:var(--text-light);margin-left:12px;">共 ' + reports.length + ' 条</span>';
   h += '</div>';
 
   if (reports.length === 0) {
     h += '<div class="table-card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无举报记录</div></div></div>';
-    document.getElementById('rightColumn').innerHTML = h;
+    document.getElementById('contentArea').innerHTML = h;
     return;
   }
+
+  // Pagination
+  var totalPages = Math.ceil(reports.length / pageSize);
+  if (currentPage > totalPages) currentPage = 1;
+  var startIdx = (currentPage - 1) * pageSize;
+  var pageReports = reports.slice(startIdx, startIdx + pageSize);
 
   h += '<div class="table-card"><div class="table-scroll"><table class="list-table"><thead><tr>';
   h += '<th>编号</th><th>被举报人</th><th>单位名称</th><th>所属区划</th><th>线索来源</th><th>提交时间</th><th>状态</th><th>操作</th>';
   h += '</tr></thead><tbody>';
 
-  reports.forEach(function(r) {
+  pageReports.forEach(function(r) {
     var statusCls = getStatusBadgeClass(r.status);
     h += '<tr>';
     h += '<td class="col-id">' + r.id + '</td>';
@@ -553,10 +525,7 @@ function renderRightColumn() {
     if (r.status === 'pending_assign') {
       h += '<a class="action-link" onclick="showAssignModal(\'' + r.id + '\')">指派</a>';
     } else if (r.status === 'pending_review') {
-      h += '<a class="action-link" onclick="goReview(\'' + r.id + '\')">审批</a>';
-    }
-    if ((r.status === 'pending_assign' || r.status === 'pending_process') && !r.isCityDirect) {
-      // allow editing basic info
+      h += '<a class="action-link" onclick="goReview(\'' + r.id + '\')">审核</a>';
     }
     if (r.isCityDirect && r.status === 'pending_process') {
       h += '<a class="action-link" onclick="goProcess(\'' + r.id + '\')">处理</a>';
@@ -564,8 +533,28 @@ function renderRightColumn() {
     h += '</div></td></tr>';
   });
 
-  h += '</tbody></table></div></div>';
-  document.getElementById('rightColumn').innerHTML = h;
+  h += '</tbody></table></div>';
+
+  // Pagination bar
+  if (totalPages > 1) {
+    h += '<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 0;">';
+    h += '<button onclick="currentPage=1;renderPage()" ' + (currentPage<=1?'disabled style="opacity:0.4;cursor:default;"':'') + 'class="btn-outline" style="padding:4px 10px;font-size:12px;">首页</button>';
+    h += '<button onclick="currentPage--;renderPage()" ' + (currentPage<=1?'disabled style="opacity:0.4;cursor:default;"':'') + 'class="btn-outline" style="padding:4px 10px;font-size:12px;">上一页</button>';
+    for (var pi = 1; pi <= totalPages; pi++) {
+      if (pi === currentPage) {
+        h += '<span style="padding:4px 10px;font-size:12px;background:var(--primary);color:#fff;border-radius:4px;font-weight:600;">' + pi + '</span>';
+      } else {
+        h += '<button onclick="currentPage=' + pi + ';renderPage()" class="btn-outline" style="padding:4px 10px;font-size:12px;">' + pi + '</button>';
+      }
+    }
+    h += '<button onclick="currentPage++;renderPage()" ' + (currentPage>=totalPages?'disabled style="opacity:0.4;cursor:default;"':'') + 'class="btn-outline" style="padding:4px 10px;font-size:12px;">下一页</button>';
+    h += '<button onclick="currentPage=totalPages;renderPage()" ' + (currentPage>=totalPages?'disabled style="opacity:0.4;cursor:default;"':'') + 'class="btn-outline" style="padding:4px 10px;font-size:12px;">末页</button>';
+    h += '<span style="font-size:11px;color:var(--text-light);margin-left:8px;">第 ' + currentPage + ' / ' + totalPages + ' 页</span>';
+    h += '</div>';
+  }
+
+  h += '</div>';
+  document.getElementById('contentArea').innerHTML = h;
 }
 
 function setDistrictFilter(d) { currentDistrictFilter = d; renderRightColumn(); }
