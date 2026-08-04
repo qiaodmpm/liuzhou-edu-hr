@@ -1,382 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>菜单管理 — 柳州教育人事管理平台</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
-* { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
-  --accent: #3B82F6; --primary-bright: #2563EB;
-  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
-  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
-  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
-  --radius: 8px; --radius-lg: 12px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --sidebar-w: 240px;
-}
-body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-/* Top Nav */
-.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
-.topnav-left { display: flex; align-items: center; gap: 14px; }
-.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.topnav-logo svg { width: 24px; height: 24px; }
-.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
-.topnav-right { display: flex; align-items: center; gap: 18px; }
-.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
-.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
-.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
-.topnav-user:hover { background: rgba(255,255,255,0.1); }
-.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
-.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
-.user-dropdown.show { display: block; }
-.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
-.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
-.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
-.user-dropdown .logout { color: var(--danger); }
-/* Sidebar */
-.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
-.sidebar-menu { flex: 1; padding: 8px 0; }
-.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
-.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
-.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
-.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
-.menu-item.active .menu-icon { opacity: 1; }
-.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); margin-top: auto; }
-.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
-.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
-.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
-.sidebar.collapsed { width: 64px; }
-.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group { display: none; }
-.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
-.sidebar.collapsed .menu-icon { margin-right: 0; }
-.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
-.sidebar.collapsed .role-switcher { display: none; }
-.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
-.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
-.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
-.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
-.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
-.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
-.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.role-switch-dot.system { background: #EF4444; }
-.role-switch-dot.city { background: #3B82F6; }
-.role-switch-dot.district { background: #F59E0B; }
-.role-switch-dot.school { background: #10B981; }
-.role-switch-dot.teacher { background: #A78BFA; }
-/* Main */
-.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
-.sidebar.collapsed ~ .main { margin-left: 64px; }
-.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
-.breadcrumb a { color: var(--text-light); text-decoration: none; }
-.breadcrumb a:hover { color: var(--primary); }
-.breadcrumb span { color: var(--text-secondary); }
-.page-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
-.page-header h1 { font-size: 20px; font-weight: 700; }
-.page-header .subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-/* Buttons */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
-.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-.btn-primary:hover { background: var(--primary-dark); }
-.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
-.btn-outline:hover { background: var(--gray-bg); }
-.btn-sm { padding: 4px 12px; font-size: 12px; }
-.btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
-.btn-xs-primary { background: var(--primary); color: #fff; }
-.btn-xs-primary:hover { background: var(--primary-dark); }
-.btn-xs-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
-.btn-xs-outline:hover { background: var(--gray-bg); }
-.btn-xs-danger { background: #fff; color: var(--danger); border: 1px solid var(--danger); }
-.btn-xs-danger:hover { background: #FEF2F2; }
-.btn-icon { width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-family: inherit; transition: var(--transition); }
-.btn-icon:hover { background: var(--gray-bg); }
-.btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
-/* Group card */
-.group-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden; }
-.group-card-header { display: flex; align-items: center; padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid var(--border); gap: 8px; }
-.group-card-header .group-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
-.group-card-header .group-name.top-level { color: var(--text-secondary); font-style: italic; }
-.group-card-body { padding: 0; }
-.menu-row { display: flex; align-items: center; padding: 8px 16px; border-bottom: 1px solid #F1F5F9; gap: 10px; transition: var(--transition); }
-.menu-row:last-child { border-bottom: none; }
-.menu-row:hover { background: #FAFBFC; }
-.menu-row.disabled { background: #F8FAFC; }
-.menu-row.disabled .menu-row-label { color: var(--text-light); text-decoration: line-through; opacity: 0.5; }
-.menu-seq { width: 24px; text-align: center; font-size: 12px; color: var(--text-light); flex-shrink: 0; font-weight: 500; }
-.menu-row-label { flex: 1; font-size: 13px; font-weight: 500; }
-.menu-row-icon { font-size: 11px; color: var(--text-light); width: 60px; flex-shrink: 0; }
-.menu-row-icon-svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-secondary); }
-.menu-row.disabled .menu-row-icon-svg { opacity: 0.4; }
-.menu-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
-/* Modal */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center; }
-.modal-overlay.show { display: flex; }
-.modal { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 90%; animation: modalIn 0.2s ease; }
-@keyframes modalIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
-.modal-header h3 { font-size: 16px; font-weight: 600; }
-.modal-close { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; font-size: 18px; cursor: pointer; color: var(--text-light); transition: var(--transition); display: flex; align-items: center; justify-content: center; }
-.modal-close:hover { background: var(--gray-bg); color: var(--text); }
-.modal-body { padding: 16px 24px; max-height: 60vh; overflow-y: auto; }
-.modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 0 24px 20px; }
-/* Form */
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
-.form-group label .required { color: var(--danger); margin-left: 2px; }
-.form-group input, .form-group select { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; }
-.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
-.form-row { display: flex; gap: 16px; }
-.form-row .form-group { flex: 1; }
-/* Icon picker */
-.icon-picker { display: flex; flex-wrap: wrap; gap: 6px; }
-.icon-option { width: 56px; padding: 6px 4px; border: 1.5px solid var(--border); border-radius: 6px; cursor: pointer; text-align: center; font-size: 11px; transition: var(--transition); background: #fff; }
-.icon-option:hover { border-color: var(--accent); background: var(--primary-light); }
-.icon-option.selected { border-color: var(--primary); background: var(--primary-light); font-weight: 500; }
-.icon-option .icon-svg { display: block; margin: 0 auto 2px; width: 20px; height: 20px; color: var(--text-secondary); }
-.icon-option.selected .icon-svg { color: var(--primary); }
-/* Confirm modal */
-.confirm-msg { font-size: 14px; color: var(--text-secondary); }
-.confirm-sub { font-size: 12px; color: var(--text-light); margin-top: 6px; }
-/* Toast */
-.toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; font-weight: 500; opacity: 0; transform: translateY(-10px); transition: var(--transition); pointer-events: none; }
-.toast.show { opacity: 1; transform: translateY(0); }
-.toast.success { background: var(--success); }
-.toast.warning { background: var(--warning); }
-.toast.error { background: var(--danger); }
-/* Footer bar */
-.footer-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
-</style>
-</head>
-<body>
 
-<!-- Top Nav -->
-<nav class="topnav">
-  <div class="topnav-left">
-    <div class="topnav-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-    </div>
-    <span class="topnav-title">柳州教育人事管理平台</span>
-  </div>
-  <div class="topnav-right">
-    <div class="topnav-bell" onclick="showToast('暂无新消息','warning')">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span class="badge">0</span>
-    </div>
-    <div class="topnav-user" onclick="toggleUserMenu()">
-      <div class="avatar" id="userAvatar">赵</div>
-      <span id="userName">赵建国</span>
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="user-dropdown" id="userDropdown">
-        <a href="personal-center.html">个人中心</a>
-        <div class="divider"></div>
-        <a class="logout" href="index.html" onclick="localStorage.removeItem('currentUser')">退出登录</a>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-menu" id="sidebarMenu"></div>
-  <div class="sidebar-bottom">
-    <div class="sidebar-toggle" onclick="toggleSidebar()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      <span>收起菜单</span>
-    </div>
-  </div>
-  <div class="role-switcher">
-    <div class="role-switcher-label">切换演示角色</div>
-    <div class="role-switcher-options" id="roleBtns"></div>
-  </div>
-</aside>
-
-<!-- Main -->
-<div class="main" id="mainContent">
-  <div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; 系统设置 &nbsp;/&nbsp; <span>菜单管理</span></div>
-  <div class="page-header">
-    <div>
-      <h1>菜单管理</h1>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="resetToDefault()">↺ 重置为默认</button>
-      <button class="btn btn-outline btn-sm" onclick="openAddMenuModal()">+ 新增菜单</button>
-      <button class="btn btn-outline btn-sm" id="saveBtn" onclick="saveConfig()" disabled>✓ 已保存</button>
-    </div>
-  </div>
-  <div id="menuGroups"></div>
-  <div class="footer-bar">
-    <button class="btn btn-outline btn-sm" onclick="openAddGroupModal()">+ 新增分组</button>
-    <span style="font-size:12px;color:var(--text-light);" id="menuCount"></span>
-  </div>
-</div>
-
-<!-- Add/Edit Menu Modal -->
-<div class="modal-overlay" id="menuModal">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-header">
-      <h3 id="menuModalTitle">新增菜单</h3>
-      <button class="modal-close" onclick="closeMenuModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group">
-          <label>菜单名称 <span class="required">*</span></label>
-          <input type="text" id="fLabel" placeholder="如：荣誉申请">
-        </div>
-        <div class="form-group">
-          <label>菜单标识 <span class="required">*</span></label>
-          <input type="text" id="fId" placeholder="如：honor" readonly disabled style="background:#F8FAFC;">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>所属分组</label>
-          <select id="fGroup"></select>
-        </div>
-        <div class="form-group">
-          <label>排序号</label>
-          <input type="number" id="fOrder" placeholder="自动分配" min="1" max="999">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>路由地址</label>
-        <input type="text" id="fRoute" placeholder="如：honor-form.html（留空使用默认映射）">
-      </div>
-      <div class="form-group">
-        <label>图标</label>
-        <div class="icon-picker" id="iconPicker"></div>
-        <input type="hidden" id="fIcon" value="file">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeMenuModal()">取消</button>
-      <button class="btn btn-primary" id="menuSaveBtn" onclick="saveMenuItem()">确认</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Group Modal -->
-<div class="modal-overlay" id="groupModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <h3>新增分组</h3>
-      <button class="modal-close" onclick="closeGroupModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>分组名称 <span class="required">*</span></label>
-        <input type="text" id="fGroupName" placeholder="如：荣誉管理">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeGroupModal()">取消</button>
-      <button class="btn btn-primary" onclick="addGroup()">确认新增</button>
-    </div>
-  </div>
-</div>
-
-<!-- Status Toggle Confirm Modal -->
-<div class="modal-overlay" id="statusModal">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <h3 id="statusModalTitle">确认停用</h3>
-      <button class="modal-close" onclick="closeStatusModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="confirm-msg" id="statusModalMsg"></p>
-      <p class="confirm-sub">停用后菜单将在所有角色侧边栏中隐藏。</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeStatusModal()">取消</button>
-      <button class="btn btn-primary" id="statusConfirmBtn" onclick="confirmToggleStatus()">确认</button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Group Confirm Modal -->
-<div class="modal-overlay" id="deleteGroupModal">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <h3>确认删除分组</h3>
-      <button class="modal-close" onclick="closeDeleteGroupModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="confirm-msg">确定删除分组「<strong id="deleteGroupTargetLabel"></strong>」？</p>
-      <p class="confirm-sub" id="deleteGroupSubMsg">组内所有菜单将一并删除，此操作不可恢复。</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeDeleteGroupModal()">取消</button>
-      <button class="btn btn-xs-danger" style="padding:8px 18px;font-size:13px;" onclick="confirmDeleteGroup()">确认删除</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Group Modal -->
-<div class="modal-overlay" id="editGroupModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <h3>编辑分组名称</h3>
-      <button class="modal-close" onclick="closeEditGroupModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>分组名称 <span class="required">*</span></label>
-        <input type="text" id="fEditGroupName" placeholder="分组名称">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeEditGroupModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveEditGroup()">确认保存</button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Confirm Modal -->
-<div class="modal-overlay" id="deleteModal">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <h3>确认删除</h3>
-      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="confirm-msg">确定删除菜单「<strong id="deleteTargetLabel"></strong>」？</p>
-      <p class="confirm-sub">删除后不可恢复。</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeDeleteModal()">取消</button>
-      <button class="btn btn-xs-danger" style="padding:8px 18px;font-size:13px;" id="deleteConfirmBtn" onclick="confirmDeleteMenu()">确认删除</button>
-    </div>
-  </div>
-</div>
-
-<!-- Reset Confirm Modal -->
-<div class="modal-overlay" id="resetModal">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <h3>确认重置</h3>
-      <button class="modal-close" onclick="closeResetModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="confirm-msg">确定将所有菜单恢复为默认配置？</p>
-      <p class="confirm-sub">当前已做的修改将全部丢失。</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeResetModal()">取消</button>
-      <button class="btn btn-xs-danger" style="padding:8px 18px;font-size:13px;" onclick="confirmReset()">确认重置</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
-<script src="src/menu-config.js"></script>
-<script src="src/logger.js"></script>
-<script>
 // ========== ICONS ==========
 var ICON_DEFS = {
   home: 'home', chart: 'chart', users: 'users', 'user-plus': 'userp',
@@ -1073,14 +695,7 @@ function saveConfig() {
 }
 
 // ========== SIDEBAR ==========
-function renderSidebar() {
-  renderSidebarMenu('sidebarMenu', 'system', 'menuMgr');
-}
 
-function sidebarClick(id) {
-  if (id !== 'menuMgr' && isDirty()) {
-    if (!confirm('您有未保存的修改，确定离开吗？')) return;
-  }
   var ROUTES = {
     account: 'account-management.html', org: 'org-management.html',
     perm: 'perm-management.html', log: 'log-management.html', menuMgr: 'menu-management.html', announcement: 'announcement-management.html',
@@ -1091,10 +706,8 @@ function sidebarClick(id) {
 }
 
 // ========== UTILS ==========
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
 function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
 
-function renderRoleSwitcher() {
   var ROLES = {
     system:   { label:'系统管理员', name:'赵建国' },
     city:     { label:'市管理员', name:'张建国' },
@@ -1116,23 +729,6 @@ function renderRoleSwitcher() {
   document.getElementById('roleBtns').innerHTML = html;
 }
 
-function switchRole(role) {
-  if (role === currentUser.role) return;
-  if (role === 'system') {
-    localStorage.setItem('currentUser', JSON.stringify({ role: 'system', name: '赵建国', id: '13807720000' }));
-    window.location.href = 'account-management.html';
-    return;
-  }
-  var district = role === 'district' ? '鱼峰区' : '';
-  localStorage.setItem('currentUser', JSON.stringify({
-    role: role,
-    name: role === 'city' ? '张建国' : role === 'district' ? '李振华' : role === 'school' ? '王玉兰' : '陈明辉',
-    id: role === 'city' ? 'C001' : role === 'district' ? 'D001' : role === 'school' ? 'S001' : 'T001',
-    district: district,
-    schoolName: role === 'school' ? '柳州市第八中学' : ''
-  }));
-  window.location.href = 'workbench.html';
-}
 
 function showToast(msg, type) {
   var t = document.getElementById('toast');
@@ -1149,11 +745,6 @@ function init() {
   if (raw) { try { currentUser = JSON.parse(raw); } catch(e) {} }
   if (!currentUser || !currentUser.role) { currentUser = { role: 'system', name: '赵建国', id: '13807720000' }; }
 
-  document.getElementById('userName').textContent = currentUser.name || '赵建国';
-  document.getElementById('userAvatar').textContent = (currentUser.name || '赵')[0];
-  renderSidebar();
-  renderRoleSwitcher();
-
   if (currentUser.role !== 'system') {
     document.getElementById('mainContent').innerHTML =
       '<div class="breadcrumb"><a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>菜单管理</span></div>' +
@@ -1164,8 +755,6 @@ function init() {
 
   document.getElementById('userName').textContent = currentUser.name || '赵建国';
   document.getElementById('userAvatar').textContent = (currentUser.name || '赵')[0];
-  renderSidebar();
-  renderRoleSwitcher();
   loadConfig();
   renderIconPicker(); // Prepare icon picker
   renderAll();
@@ -1188,6 +777,3 @@ document.addEventListener('click', function(e) {
 });
 
 init();
-</script>
-</body>
-</html>

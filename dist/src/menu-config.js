@@ -59,7 +59,7 @@
 
   // ===== 默认角色权限 =====
   var DEFAULT_ROLE_PERMS = {
-    system: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'menuMgr', 'perm', 'log', 'announcement'],
+    system: ['account', 'org', 'menuMgr', 'perm', 'log', 'announcement'],
     city: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'perm', 'log', 'announcement'],
     district: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'announcement'],
     school: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'account', 'org', 'announcement'],
@@ -135,31 +135,45 @@
     return ids;
   }
 
-  function getRolePermittedMenuIds(role) {
-    try {
-      var raw = localStorage.getItem('role_permissions');
-      if (raw) {
-        var perms = JSON.parse(raw);
-        // Direct match by role key (system, city, district, school, teacher)
-        if (perms[role] && perms[role].permissions && Array.isArray(perms[role].permissions)) {
-          return ensureAnnouncementPerm(role, ensureContractPerms(role, perms[role].permissions));
-        }
-        // Fallback: try matching by label
-        var labelMap = { '系统管理员':'system','市管理员':'city','区管理员':'district','校管理员':'school','教师':'teacher' };
-        for (var key in perms) {
-          if (perms[key].label && labelMap[perms[key].label] === role && perms[key].permissions) {
-            return ensureAnnouncementPerm(role, ensureContractPerms(role, perms[key].permissions));
+  	  function getRolePermittedMenuIds(role) {
+	    try {
+	      var raw = localStorage.getItem('role_permissions');
+	      if (raw) {
+	        var perms = JSON.parse(raw);
+	        var ids = null;
+	        // Direct match by role key (system, city, district, school, teacher)
+	        if (perms[role] && perms[role].permissions && Array.isArray(perms[role].permissions)) {
+	          ids = perms[role].permissions.slice();
+	        } else {
+	          // Fallback: try matching by label
+	          var labelMap = { '系统管理员':'system','市管理员':'city','区管理员':'district','校管理员':'school','教师':'teacher' };
+	          for (var key in perms) {
+	            if (perms[key].label && labelMap[perms[key].label] === role && perms[key].permissions) {
+	              ids = perms[key].permissions.slice();
+	              break;
+	            }
+	          }
+	        }
+	        if (ids) {
+	          // Expand granular permissions to menu-level: 'staffing.查看列表' → add 'staffing'
+	          for (var i = 0; i < ids.length; i++) {
+	            var dotIdx = ids[i].indexOf('.');
+	            if (dotIdx !== -1) {
+	              var menuId = ids[i].substring(0, dotIdx);
+	              if (ids.indexOf(menuId) === -1) ids.push(menuId);
+	            }
+	          }
+	                    // System role: force system-settings-only menus
+          if (role === "system") {
+            var sysOnly = ["account","org","menuMgr","perm","log"];
+            ids = ids.filter(function(id) { return sysOnly.indexOf(id) !== -1; });
           }
-        }
-      }
-    } catch (e) {}
-    return ensureAnnouncementPerm(role, ensureContractPerms(role, (DEFAULT_ROLE_PERMS[role] || []).slice()));
-  }
-
-  /**
-   * 获取当前角色的菜单列表（按 groupOrder 分组、按 order 排序）
-   */
-  function getMenusForRole(role) {
+          return ensureAnnouncementPerm(role, ensureContractPerms(role, ids));
+	        }
+	      }
+	    } catch (e) {}
+	    return ensureAnnouncementPerm(role, ensureContractPerms(role, (DEFAULT_ROLE_PERMS[role] || []).slice()));
+	  }function getMenusForRole(role) {
     var cfg = getMenuConfig();
     var permittedIds = getRolePermittedMenuIds(role);
     var permittedSet = {};
@@ -198,6 +212,7 @@
 
     var result = getMenusForRole(role);
     var menus = result.menus;
+
 
     // If extraItems provided, prepend to menus
     if (extraItems) {
