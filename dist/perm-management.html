@@ -161,7 +161,7 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
   <div class="breadcrumb"><a href="workbench.html">首页</a> / <span>系统设置</span> / <span>角色权限</span></div>
   <div class="page-header"><h1>角色权限管理</h1><button class="btn btn-primary btn-sm" onclick="openAddRole()">+ 新增角色</button></div>
   <div class="card"><div class="table-scroll"><table class="list-table">
-    <thead><tr><th style="width:50px;">序号</th><th style="text-align:left;">角色名称</th><th>描述</th><th style="width:80px;">用户数</th><th style="width:80px;">状态</th><th style="width:280px;">操作</th></tr></thead>
+    <thead><tr><th style="width:50px;">序号</th><th style="text-align:left;">角色名称</th><th style="width:100px;">角色类型</th><th>描述</th><th style="width:80px;">用户数</th><th style="width:80px;">状态</th><th style="width:280px;">操作</th></tr></thead>
     <tbody id="roleTableBody"></tbody>
   </table></div></div>
 </div>
@@ -173,8 +173,8 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
     <div class="modal-body">
       <div id="roleNameGroup" class="form-group"><label>角色名称 <span class="required">*</span></label><input id="fRoleName" placeholder="例：区管理员"></div>
       <div id="roleNameReadonly" class="form-group" style="display:none;"><label>角色名称</label><div style="font-size:13px;font-weight:600;padding:8px 0;color:var(--text);" id="roleNameDisplay"></div></div>
-      <div class="form-group"><label>角色标识 <span class="required">*</span></label><input id="fRoleId" placeholder="英文标识，例：district" disabled style="background:#F8FAFC;"></div>
-      <div id="roleDescGroup" class="form-group"><label>描述</label><input id="fRoleDesc" placeholder="角色职责描述"></div>
+      <div class="form-group"><label>角色类型 <span class="required">*</span></label><select id="fRoleId"><option value="">请选择角色类型</option><option value="system">系统管理员</option><option value="city">市管理员</option><option value="district">区管理员</option><option value="school">校管理员</option><option value="teacher">教师</option></select></div>
+      <div id="roleDescGroup" class="form-group"><label>描述</label><textarea id="fRoleDesc" placeholder="角色职责描述（最多200字）" maxlength="200" rows="3"></textarea></div>
       <fieldset><legend>模块权限</legend><div id="permCheckboxes" style="max-height:50vh;overflow-y:auto;"></div></fieldset>
       <fieldset><legend>数据权限</legend><div class="form-group"><label>数据范围</label><select id="fDataScope"><option value="all">全平台</option><option value="city">全市</option><option value="district">本区</option><option value="school">本校</option><option value="self">本人</option></select></div></fieldset>
     </div>
@@ -191,7 +191,7 @@ fieldset legend { font-size: 12px; font-weight: 600; color: var(--primary); padd
     <div class="modal-header"><h3 id="editInfoModalTitle">编辑角色</h3><button class="modal-close" onclick="closeEditInfoModal()">✕</button></div>
     <div class="modal-body">
       <div class="form-group"><label>角色名称 <span class="required">*</span></label><input id="fEditRoleName" placeholder="角色名称"></div>
-      <div class="form-group"><label>描述</label><input id="fEditRoleDesc" placeholder="角色职责描述"></div>
+      <div class="form-group"><label>描述</label><textarea id="fEditRoleDesc" placeholder="角色职责描述（最多200字）" maxlength="200" rows="3"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeEditInfoModal()">取消</button>
@@ -260,6 +260,7 @@ document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-
 var DEFAULT_ROLES = {
   // ── 系统管理员：系统设置模块全部权限 ──
   system: {
+    roleType: 'system',
     label: '系统管理员',
     description: '平台最高权限，管理系统配置',
     status: 'active',
@@ -271,6 +272,7 @@ var DEFAULT_ROLES = {
 
   // ── 市管理员：全市业务审核 + 入编只读（CLAUDE.md: city admin read-only for entry）──
   city: {
+    roleType: 'city',
     label: '市管理员',
     description: '全市教育人事业务管理',
     status: 'active',
@@ -295,6 +297,7 @@ var DEFAULT_ROLES = {
 
   // ── 区管理员：本区业务初审 ──
   district: {
+    roleType: 'district',
     label: '区管理员',
     description: '本区教育人事业务管理',
     status: 'active',
@@ -319,6 +322,7 @@ var DEFAULT_ROLES = {
 
   // ── 校管理员：本校业务申报 ──
   school: {
+    roleType: 'school',
     label: '校管理员',
     description: '本校教育人事业务管理',
     status: 'active',
@@ -344,6 +348,7 @@ var DEFAULT_ROLES = {
 
   // ── 教师：个人业务申请 ──
   teacher: {
+    roleType: 'teacher',
     label: '教师',
     description: '个人业务申请',
     status: 'active',
@@ -366,7 +371,7 @@ function loadRoles() {
         if (Array.isArray(stored[k])) {
           var labelMap = { system:'系统管理员', city:'市管理员', district:'区管理员', school:'校管理员', teacher:'教师' };
           var descMap = { system:'平台最高权限，管理系统配置', city:'全市教育人事业务管理', district:'本区教育人事业务管理', school:'本校教育人事业务管理', teacher:'个人业务申请' };
-          stored[k] = { label: labelMap[k] || k, description: descMap[k] || '', status: 'active', permissions: stored[k] };
+          stored[k] = { roleType: k, label: labelMap[k] || k, description: descMap[k] || '', status: 'active', permissions: stored[k] };
           needsMigration = true;
         }
       });
@@ -428,6 +433,9 @@ function renderRoleList() {
     html += '<tr>';
     html += '<td>' + (idx + 1) + '</td>';
     html += '<td class="col-name">' + (r.label || rid) + '</td>';
+    var typeLabelMap = { system:'系统管理员', city:'市管理员', district:'区管理员', school:'校管理员', teacher:'教师' };
+    var roleTypeLabel = typeLabelMap[rid] || (r.roleType || '自定义');
+    html += '<td>' + roleTypeLabel + '</td>';
     html += '<td style="font-size:12px;color:var(--text-secondary);">' + (r.description || '—') + '</td>';
     html += '<td>' + userCount + ' 人</td>';
     html += '<td><span class="status-tag ' + statusCls + '">' + statusText + '</span></td>';
@@ -460,6 +468,7 @@ function openAddRole() {
   document.getElementById('fRoleName').value = '';
   document.getElementById('fRoleId').value = '';
   document.getElementById('fRoleId').disabled = false;
+  document.getElementById('fRoleId').parentElement.style.display = '';
   document.getElementById('fRoleDesc').value = '';
   editPerms = {};
   renderPermCheckboxes([]);
@@ -481,6 +490,7 @@ function openEditRole(rid) {
   document.getElementById('roleDescGroup').style.display = 'none';
   document.getElementById('fRoleId').value = rid;
   document.getElementById('fRoleId').disabled = true;
+  document.getElementById('fRoleId').parentElement.style.display = 'none';
   editPerms = {};
   (r.permissions || []).forEach(function(p) { editPerms[p] = true; });
   renderPermCheckboxes(r.permissions || []);
@@ -643,18 +653,13 @@ function saveRole() {
   // 权限编辑模式（名称只读）：从已有角色数据中读取名称
   var name;
   if (editingRoleId && roles[editingRoleId]) {
-    name = roles[editingRoleId].label; // 使用原有名称
+    name = roles[editingRoleId].label;
+    rid = editingRoleId;
   } else {
     name = document.getElementById('fRoleName').value.trim();
     if (!name) { showToast('请输入角色名称', 'warning'); return; }
-  }
-  if (!editingRoleId && !rid) { showToast('请输入角色标识', 'warning'); return; }
-  if (!editingRoleId) {
-    // Auto-generate id from name
-    var idMap = { '系统管理员':'system','市管理员':'city','区管理员':'district','校管理员':'school','教师':'teacher' };
-    rid = rid || idMap[name] || name.toLowerCase().replace(/[^a-z]/g,'');
-  } else {
-    rid = editingRoleId;
+    rid = document.getElementById('fRoleId').value;
+    if (!rid) { showToast('请选择角色类型', 'warning'); return; }
   }
   if (!editingRoleId && roles[rid]) { showToast('角色标识已存在', 'warning'); return; }
   var perms = [];
@@ -672,6 +677,7 @@ function saveRole() {
     return !menuChecked[parentId]; // keep button only if parent menu is NOT checked
   });
   roles[rid] = {
+    roleType: rid,
     label: name,
     description: document.getElementById('fRoleDesc').value.trim(),
     status: roles[rid] ? roles[rid].status : 'active',
