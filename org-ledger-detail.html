@@ -811,6 +811,19 @@ function init() {
       if (pr.migrated) { localStorage.setItem('org_ledger', JSON.stringify(allLedgers)); }
     }
   } catch(e) { console.error('plan migration error:', e); }
+  // Backfill activeSnapshot for active ledgers
+  var snapMigrated = false;
+  Object.keys(allLedgers).forEach(function(k) {
+    var l = allLedgers[k];
+    if (l && l.status === 'active' && l.submittedAt && !l.activeSnapshot) {
+      l.activeSnapshot = JSON.parse(JSON.stringify(l));
+      delete l.activeSnapshot.activeSnapshot;
+      l.activeSnapshot.status = 'active';
+      l.activeSnapshot.returnReason = '';
+      snapMigrated = true;
+    }
+  });
+  if (snapMigrated) { localStorage.setItem('org_ledger', JSON.stringify(allLedgers)); }
   ledger = allLedgers[schoolName];
   if (!ledger) {
     document.getElementById('detailContent').innerHTML = '<div class="form-card"><div style="text-align:center;padding:40px;color:var(--text-light);">未找到「' + escapeHtml(schoolName) + '」的台账数据</div></div>';
@@ -887,7 +900,7 @@ function backfillChangeLog() {
       time: ledger.submittedAt + ' 00:00:00',
       operator: '王玉兰',
       changes: [],
-      planChanges: { added: [], removed: [] },
+      planChanges: { added: [], removed: [], edited: [] },
       reason: '',
       _legacy: true
     }];
@@ -955,7 +968,7 @@ function backfillChangeLog() {
         operator: '王玉兰',
         action: '提交申报',
         changes: [],
-        planChanges: { added: [], removed: [] },
+        planChanges: { added: [], removed: [], edited: [] },
         reason: '',
         _legacy: true
       });
@@ -1240,6 +1253,14 @@ function closeApproveModal() {
 }
 
 function approveLedger() {
+  // Save current data as active snapshot for school admin version toggle
+  ledger.activeSnapshot = JSON.parse(JSON.stringify(ledger));
+  // Clean up snapshot's own metadata so it renders as a clean version
+  if (ledger.activeSnapshot) {
+    delete ledger.activeSnapshot.activeSnapshot;
+    ledger.activeSnapshot.status = 'active';
+    ledger.activeSnapshot.returnReason = '';
+  }
   ledger.status = 'active';
   ledger.reviewedAt = new Date().toISOString().split('T')[0];
   ledger.reviewedBy = currentUser.name || '管理员';
@@ -1329,26 +1350,30 @@ function renderChangeLog() {
       // Expandable changes for submit entries — look up submissionLog for full diff
       if (entry.type === 'submit') {
         var ch = entry.changes || [];
-        var pc = entry.planChanges || { added: [], removed: [] };
+        var pc = entry.planChanges || { added: [], removed: [], edited: [] };
+        var pcEdited = pc.edited || [];
         // If entry has no changes, try to find matching submissionLog entry
-        if (ch.length === 0 && pc.added.length === 0 && pc.removed.length === 0 && ledger.submissionLog) {
+        if (ch.length === 0 && pc.added.length === 0 && pc.removed.length === 0 && pcEdited.length === 0 && ledger.submissionLog) {
           for (var sli2 = 0; sli2 < ledger.submissionLog.length; sli2++) {
             if (ledger.submissionLog[sli2].time === entry.time) {
               ch = ledger.submissionLog[sli2].changes || [];
-              pc = ledger.submissionLog[sli2].planChanges || { added: [], removed: [] };
+              pc = ledger.submissionLog[sli2].planChanges || { added: [], removed: [], edited: [] };
+              pcEdited = pc.edited || [];
               if (ledger.submissionLog[sli2].reason && !entry.reason) entry.reason = ledger.submissionLog[sli2].reason;
               if (ledger.submissionLog[sli2].attachment && !entry.attachment) entry.attachment = ledger.submissionLog[sli2].attachment;
               break;
             }
           }
         }
-        if (!entry._legacy && (ch.length > 0 || pc.added.length > 0 || pc.removed.length > 0)) {
+        if (!entry._legacy && (ch.length > 0 || pc.added.length > 0 || pc.removed.length > 0 || pcEdited.length > 0)) {
+          var totalItems = ch.length + pc.added.length + pc.removed.length + pcEdited.length;
           var chId = 'chg-' + Math.random().toString(36).slice(2,8);
-          h += '<div class="tl-changes" style="cursor:pointer;color:var(--accent);font-size:11px;" onclick="var el=document.getElementById(\'' + chId + '\');el.style.display=el.style.display===\'none\'?\'\':\'none\';this.textContent=el.style.display===\'none\'?\'▸ 变更明细 (' + (ch.length + pc.added.length + pc.removed.length) + ' 项)\':\'▾ 收起明细\';">▸ 变更明细 (' + (ch.length + pc.added.length + pc.removed.length) + ' 项)</div>';
+          h += '<div class="tl-changes" style="cursor:pointer;color:var(--accent);font-size:11px;" onclick="var el=document.getElementById(\'' + chId + '\');el.style.display=el.style.display===\'none\'?\'\':\'none\';this.textContent=el.style.display===\'none\'?\'▸ 变更明细 (' + totalItems + ' 项)\':\'▾ 收起明细\';">▸ 变更明细 (' + totalItems + ' 项)</div>';
           h += '<div id="' + chId + '" style="display:none;background:#F8FAFC;border-radius:4px;padding:8px 12px;font-size:11px;line-height:1.8;margin-top:4px;">';
           ch.forEach(function(c) {
             h += '<div>▪ ' + escapeHtml(c.label) + '：' + c.old + ' → <b>' + c.new + '</b>' + (c.old === 0 ? ' <span style="font-size:10px;color:var(--text-light);">（新增）</span>' : '') + '</div>';
           });
+          pcEdited.forEach(function(p) { h += '<div>▪ 编外补录变更：' + escapeHtml(p.docNo) + ' ' + p.oldCount + ' → <b>' + p.newCount + '</b> 人</div>'; });
           pc.added.forEach(function(p) { h += '<div>▪ 新增线下补录：' + escapeHtml(p.docNo) + ' <b>' + p.count + '</b> 人</div>'; });
           pc.removed.forEach(function(p) { h += '<div style="color:var(--danger);">▪ 删除线下补录：' + escapeHtml(p.docNo) + ' ' + p.count + ' 人</div>'; });
           h += '</div>';
