@@ -1055,19 +1055,36 @@ function showToast(message, callback) {
 
 // ==================== REVIEW ACTIONS ====================
 function handleApprove() {
-  // 一审：材料审核通过，进入待二审确认状态
-  var now = new Date().toISOString().slice(0, 19).replace('T', ' ');
-  var operatorName = ROLES[currentRole].name;
-  app.status = 'first_approved';
-  app.firstApproveTime = now;
-  app.rejectReason = null;
-  app.timeline.push({
-    time: now, operator: operatorName, action: '一审通过',
-    opinion: '材料齐全，同意申报', result: '一审通过'
-  });
-  showToast('一审已通过，请进行二审确认', function() {
-    renderPage();
-  });
+  // 一审：材料审核通过，先弹出确认弹框
+  var modalHtml =
+    '<div class="modal-overlay" id="approveModal">' +
+      '<div class="modal-container">' +
+        '<h3>确认通过</h3>' +
+        '<p style="font-size:13px;color:var(--text-secondary);margin:16px 0;">确认该申请材料齐全，一审通过后将进入"待学校提交编办确认"阶段。</p>' +
+        '<div class="modal-buttons">' +
+          '<button class="btn-cancel" id="cancelApprove">取消</button>' +
+          '<button class="btn-confirm-danger" id="confirmApprove" style="background:#10B981;border-color:#10B981;">确认通过</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.getElementById('approveModal').classList.add('show');
+  document.getElementById('cancelApprove').onclick = function() { document.getElementById('approveModal').remove(); };
+  document.getElementById('confirmApprove').onclick = function() {
+    document.getElementById('approveModal').remove();
+    var now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    var operatorName = ROLES[currentRole].name;
+    app.status = 'first_approved';
+    app.firstApproveTime = now;
+    app.rejectReason = null;
+    app.timeline.push({
+      time: now, operator: operatorName, action: '一审通过',
+      opinion: '材料齐全，同意申报', result: '一审通过'
+    });
+    showToast('一审已通过，请进行二审确认', function() {
+      renderPage();
+    });
+  };
 }
 
 function handleFinalConfirm() {
@@ -1352,7 +1369,7 @@ function renderPage() {
   var infoGridHtml = '<div class="step1-fields-grid">';
   if (isCareer) {
     // Career / 附件2: 9 items (1 full-width + 8 fields, with placeholder for 3-col alignment)
-    infoGridHtml += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + s.fullName + '</div></div>';
+    infoGridHtml += '<div class="info-item full-width"><div class="info-label">单位名称</div><div class="info-value">' + s.fullName + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.institutionLevel || app.orgLevel || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || app.orgNature || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item info-item-placeholder"></div>';
@@ -1365,7 +1382,7 @@ function renderPage() {
     infoGridHtml += '<div class="info-item"><div class="info-label">可申请编制数 ' + tipIconHtml('available') + '</div><div class="info-value">' + (s.availablePlan || app.availablePlan || 0) + '</div></div>';
   } else {
     // Control / 附件9: 9 items (1 full-width + 8 fields)
-    infoGridHtml += '<div class="info-item full-width"><div class="info-label">单位全称</div><div class="info-value">' + s.fullName + '</div></div>';
+    infoGridHtml += '<div class="info-item full-width"><div class="info-label">单位名称</div><div class="info-value">' + s.fullName + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">单位级别</div><div class="info-value">' + (s.institutionLevel || app.orgLevel || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item"><div class="info-label">单位性质</div><div class="info-value">' + (s.orgNature || app.orgNature || '—') + '</div></div>';
     infoGridHtml += '<div class="info-item info-item-placeholder"></div>';
@@ -1730,7 +1747,7 @@ function renderPage() {
       '<h3>申报基本信息</h3>' +
       '<div class="bi-grid">' +
         '<div class="bi-item"><span class="bi-lbl">申报编号：</span><span class="bi-val">' + app.id + '</span></div>' +
-        '<div class="bi-item"><span class="bi-lbl">申报单位：</span><span class="bi-val">' + app.schoolName + '</span></div>' +
+        '<div class="bi-item"><span class="bi-lbl">单位名称：</span><span class="bi-val">' + app.schoolName + '</span></div>' +
         '<div class="bi-item"><span class="bi-lbl">所属区域：</span><span class="bi-val">' + (app.district || '—') + '</span></div>' +
         '<div class="bi-item"><span class="bi-lbl">申报批次：</span><span class="bi-val">' + (app.batchName || '—') + '</span></div>' +
         '<div class="bi-item"><span class="bi-lbl">编制类型：</span><span class="bi-val">' + (app.staffingType === 'career' ? '事业编' : '控制数') + '</span></div>' +

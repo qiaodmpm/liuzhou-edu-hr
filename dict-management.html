@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>字典管理 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 240px;
+}
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+}
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-user { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+.user-dropdown .divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-dropdown .logout { color: var(--danger); }
+
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; transition: width var(--transition); }
+.sidebar-menu { padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.7); text-decoration: none; border-left: 3px solid transparent; transition: var(--transition); }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-label { white-space: nowrap; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+
+/* Role switcher */
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+.role-switch-dot.system { background: #64748B; }
+
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px 28px; min-height: calc(100vh - 56px); }
+
+/* Page header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.page-header h1 { font-size: 20px; font-weight: 700; }
+
+/* Master-detail layout */
+.master-detail { display: flex; gap: 0; height: calc(100vh - 200px); min-height: 600px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+
+/* Left panel: Dict type list */
+.dict-type-panel { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: #FAFBFC; }
+.dict-type-header { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.dict-type-header h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+.dict-type-search { position: relative; }
+.dict-type-search input { width: 100%; padding: 7px 12px; padding-right: 32px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; outline: none; background: #fff; }
+.dict-type-search input:focus { border-color: var(--accent); }
+.dict-type-search .search-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 14px; pointer-events: none; }
+.dict-type-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+.dict-type-group { margin-bottom: 2px; }
+.dict-type-group-name { padding: 8px 16px 4px; font-size: 11px; color: var(--text-light); letter-spacing: 1px; font-weight: 600; text-transform: uppercase; }
+.dict-type-item { display: flex; align-items: center; padding: 8px 12px 8px 20px; cursor: pointer; font-size: 13px; color: var(--text); transition: var(--transition); gap: 6px; border-left: 3px solid transparent; }
+.dict-type-item:hover { background: var(--primary-light); }
+.dict-type-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; border-left-color: var(--primary); }
+.dict-type-item .type-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dict-type-item .type-delete { display: none; flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; border: none; background: transparent; cursor: pointer; color: var(--text-light); font-size: 14px; line-height: 22px; text-align: center; transition: var(--transition); }
+.dict-type-item .type-edit { display: none; flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; border: none; background: transparent; cursor: pointer; color: var(--text-light); font-size: 13px; line-height: 22px; text-align: center; transition: var(--transition); }
+.dict-type-item:hover .type-delete { display: inline-block; }
+.dict-type-item:hover .type-edit { display: inline-block; }
+.dict-type-item .type-delete:hover { background: #FEF2F2; color: var(--danger); }
+.dict-type-item .type-edit:hover { background: var(--primary-light); color: var(--primary); }
+.dict-type-item .type-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: #E2E8F0; color: var(--text-secondary); flex-shrink: 0; }
+.dict-type-footer { padding: 10px 16px; border-top: 1px solid var(--border); }
+.dict-type-footer .btn-add-type { width: 100%; padding: 7px 0; font-size: 12px; border: 1px dashed var(--border); border-radius: 6px; background: transparent; cursor: pointer; color: var(--text-secondary); font-family: inherit; transition: var(--transition); }
+.dict-type-footer .btn-add-type:hover { border-color: var(--accent); color: var(--accent); background: var(--primary-light); }
+
+/* Right panel: Dict items */
+.dict-item-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.dict-item-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.dict-item-header .item-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.dict-item-header .item-title .select-mode-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.select-mode-tag.single { background: #DBEAFE; color: #1E40AF; }
+.select-mode-tag.multi { background: #FEF3C7; color: #92400E; }
+.dict-item-table-wrap { flex: 1; overflow-y: auto; padding: 0; }
+.dict-item-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.dict-item-table thead th { background: #F8FAFC; padding: 10px 12px; text-align: center; font-weight: 600; font-size: 12px; color: var(--text-secondary); border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+.dict-item-table tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: center; }
+.dict-item-table tbody tr:last-child td { border-bottom: none; }
+.dict-item-table tbody tr:hover { background: #FAFBFC; }
+.dict-item-table .col-seq { width: 48px; }
+.dict-item-table .col-code { width: 110px; }
+.dict-item-table .col-name { text-align: left; }
+.dict-item-table .col-selectMode { width: 68px; }
+.dict-item-table .col-status { width: 56px; }
+.dict-item-table .col-updated { width: 120px; }
+.dict-item-table .col-actions { width: 168px; }
+
+/* Sort & action icon buttons (matching menu-management style) */
+.btn-icon { width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-family: inherit; transition: var(--transition); vertical-align: middle; }
+.btn-icon:hover { background: var(--gray-bg); color: var(--text); }
+.btn-icon:disabled { opacity: 0.25; cursor: not-allowed; }
+.btn-icon.danger:hover { background: #FEF2F2; color: var(--danger); border-color: var(--danger); }
+
+/* Item action buttons group */
+.item-actions { display: inline-flex; align-items: center; gap: 3px; flex-wrap: nowrap; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state .text { font-size: 14px; }
+.empty-hint { font-size: 12px; color: var(--text-light); margin-top: 6px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-sm { padding: 5px 14px; font-size: 12px; }
+.btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.btn-xs-primary { background: var(--primary); color: #fff; }
+.btn-xs-primary:hover { background: var(--primary-dark); }
+.btn-xs-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-xs-outline:hover { background: var(--gray-bg); }
+.btn-xs-danger { background: #fff; color: var(--danger); border: 1px solid var(--danger); }
+.btn-xs-danger:hover { background: #FEF2F2; }
+
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.modal-container { background: #fff; border-radius: var(--radius-lg); width: 540px; max-width: 90%; max-height: 85vh; overflow-y: auto; padding: 24px; box-shadow: var(--shadow-lg); }
+.modal-container h3 { margin-bottom: 16px; font-size: 16px; font-weight: 600; }
+.modal-container .form-group { margin-bottom: 14px; }
+.modal-container .form-group label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; color: var(--text); }
+.modal-container .form-group input,
+.modal-container .form-group select { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; outline: none; }
+.modal-container .form-group input:focus,
+.modal-container .form-group select:focus { border-color: var(--accent); }
+.modal-container .form-group textarea { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; outline: none; resize: vertical; }
+.modal-container .form-group textarea:focus { border-color: var(--accent); }
+.modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+.btn-cancel { background: var(--gray-bg); border: none; padding: 8px 20px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-family: inherit; transition: var(--transition); }
+.btn-cancel:hover { background: #E2E8F0; }
+.btn-confirm { color: #fff; border: none; padding: 8px 20px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600; transition: var(--transition); }
+.btn-confirm.primary { background: var(--primary); }
+.btn-confirm.primary:hover { background: var(--primary-dark); }
+.btn-confirm.danger { background: var(--danger); }
+.btn-confirm.danger:hover { background: #DC2626; }
+.btn-confirm.warning { background: var(--warning); }
+.btn-confirm.warning:hover { background: #D97706; }
+
+/* Toast */
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 28px; border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 500; z-index: 9999; animation: toastIn 0.3s ease, toastOut 0.3s ease 1.8s forwards; box-shadow: var(--shadow-lg); }
+.toast.success { background: var(--success); }
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.error { background: var(--danger); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* Confirm dialog */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1100; display: flex; align-items: center; justify-content: center; }
+.confirm-dialog { background: #fff; border-radius: var(--radius-lg); padding: 28px; text-align: center; box-shadow: var(--shadow-lg); width: 400px; max-width: 90%; }
+.confirm-dialog .confirm-icon { font-size: 44px; margin-bottom: 12px; }
+.confirm-dialog .confirm-msg { font-size: 15px; margin-bottom: 6px; font-weight: 500; }
+.confirm-dialog .confirm-sub { font-size: 12px; color: var(--text-light); margin-bottom: 20px; }
+.confirm-dialog .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+/* No access page */
+.no-access { text-align: center; padding: 80px 20px; }
+.no-access .na-icon { font-size: 64px; margin-bottom: 16px; }
+.no-access h2 { font-size: 18px; margin-bottom: 8px; }
+.no-access p { font-size: 13px; color: var(--text-light); }
+
+/* Selected type header row for editing select mode inline */
+.select-mode-editor { display: inline-flex; align-items: center; gap: 6px; }
+.select-mode-editor select { padding: 4px 8px; font-size: 12px; border: 1px solid var(--accent); border-radius: 4px; font-family: inherit; outline: none; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .dict-type-panel { width: 250px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <span class="avatar" id="userAvatar">管</span>
+      <span id="userName">管理员</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="personal-center.html">👤 个人中心</a>
+        <a href="personal-center.html">🔑 修改密码</a>
+        <div class="divider"></div>
+        <a href="index.html" class="logout">🚪 退出登录</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher" id="roleSwitcher"></div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <span>收起侧边栏</span>
+    </div>
+  </div>
+</aside>
+
+<div class="main" id="mainContent">
+  <div class="breadcrumb" style="font-size:12px;color:var(--text-light);margin-bottom:16px;"><a href="workbench.html" style="color:var(--text-light);text-decoration:none;">首页</a> / <span style="color:var(--text-secondary);">系统设置</span> / <span style="color:var(--text-secondary);">字典管理</span></div>
+  <div class="page-header">
+    <h1>📖 字典管理</h1>
+  </div>
+
+  <!-- Master-Detail Layout -->
+  <div class="master-detail">
+    <!-- Left: Dict Type List -->
+    <div class="dict-type-panel">
+      <div class="dict-type-header">
+        <h3>字典类型</h3>
+        <div class="dict-type-search">
+          <input type="text" id="typeSearchInput" placeholder="搜索字典类型..." oninput="renderDictTypeList()">
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+      <div class="dict-type-list" id="dictTypeList"></div>
+      <div class="dict-type-footer">
+        <button class="btn-add-type" onclick="openAddTypeModal()">+ 新增字典类型</button>
+      </div>
+    </div>
+
+    <!-- Right: Dict Items -->
+    <div class="dict-item-panel" id="dictItemPanel">
+      <div class="dict-item-header" id="dictItemHeader">
+        <div class="item-title">
+          <span id="currentTypeName">请选择字典类型</span>
+          <span class="select-mode-tag single" id="currentSelectMode" style="display:none;"></span>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btnAddItem" onclick="openAddItemModal()" style="display:none;">+ 新增字典项</button>
+      </div>
+      <div class="dict-item-table-wrap" id="dictItemContent">
+        <div class="empty-state">
+          <div class="icon">📂</div>
+          <div class="text">请在左侧选择一个字典类型</div>
+          <div class="empty-hint">选择后可查看和管理该类型的字典项</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Dict Type Modal -->
+<div class="modal-overlay" id="addTypeModalOverlay" style="display:none;">
+  <div class="modal-container">
+    <h3 id="addTypeModalTitle">新增字典类型</h3>
+      <input type="hidden" id="editTypeCode" value="">
+    <div class="form-group">
+      <label>所属分组 <span style="color:var(--danger);">*</span></label>
+      <select id="addTypeGroup">
+        <option value="机构与编制">机构与编制</option>
+        <option value="入编与出编">入编与出编</option>
+        <option value="岗位设置">岗位设置</option>
+        <option value="岗位晋升">岗位晋升</option>
+        <option value="退休呈报">退休呈报</option>
+        <option value="师德师风">师德师风</option>
+        <option value="系统配置">系统配置</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>字典类型编码 <span style="color:var(--danger);">*</span></label>
+      <input type="text" id="addTypeCode" placeholder="英文编码，如 orgLevel">
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px;">用于系统内部标识，建议使用英文驼峰命名</div>
+    </div>
+    <div class="form-group">
+      <label>字典类型名称 <span style="color:var(--danger);">*</span></label>
+      <input type="text" id="addTypeName" placeholder="中文名称，如 单位级别">
+    </div>
+    <div class="form-group">
+      <label>选择模式</label>
+      <select id="addTypeSelectMode">
+        <option value="single">单选</option>
+        <option value="multi">多选</option>
+      </select>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeAddTypeModal()">取消</button>
+      <button class="btn-confirm primary" id="addTypeBtn" onclick="saveNewDictType()">确认新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Dict Item Modal -->
+<div class="modal-overlay" id="itemModalOverlay" style="display:none;">
+  <div class="modal-container">
+    <h3 id="itemModalTitle">新增字典项</h3>
+    <input type="hidden" id="itemEditId" value="">
+    <div class="form-group">
+      <label>字典项编码 <span style="color:var(--danger);">*</span></label>
+      <input type="text" id="itemCode" placeholder="英文编码，如 futingji">
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px;">用于系统内部值存储，建议英文小写</div>
+    </div>
+    <div class="form-group">
+      <label>字典项名称 <span style="color:var(--danger);">*</span></label>
+      <input type="text" id="itemName" placeholder="显示名称，如 副厅级">
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeItemModal()">取消</button>
+      <button class="btn-confirm primary" onclick="saveDictItem()">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmOverlay" style="display:none;">
+  <div class="confirm-dialog">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="btn-confirm danger" id="confirmBtn" onclick="executeConfirm()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<script src="src/menu-config.js"></script>
+<script src="src/logger.js"></script>
+<script>
+// ===== USER =====
+var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+var currentRole = 'system'; // Dict management is system-only
+
+// ===== PERMISSION CHECK =====
+if (currentUser.role !== 'system' && !(currentUser.roles && currentUser.roles.indexOf('system') !== -1)) {
+  document.getElementById('mainContent').innerHTML =
+    '<div class="breadcrumb" style="font-size:12px;color:var(--text-light);margin-bottom:16px;"><a href="workbench.html" style="color:var(--text-light);text-decoration:none;">首页</a> / <span style="color:var(--text-secondary);">字典管理</span></div>' +
+    '<div class="no-access">' +
+    '<div class="na-icon">🔒</div>' +
+    '<h2>您无权访问字典管理</h2>' +
+    '<p>仅系统管理员可配置字典数据</p>' +
+    '</div>';
+}
+
+// ===== SIDEBAR =====
+function renderSidebar() {
+  renderSidebarMenu('sidebarMenu', 'system', 'dict');
+  renderRoleSwitcher();
+}
+
+function renderRoleSwitcher() {
+  var sw = document.getElementById('roleSwitcher');
+  if (!sw) return;
+  var roles = [
+    { key: 'system', label: '系统管理员', dot: 'system' },
+    { key: 'city', label: '市管理员', dot: 'city' },
+    { key: 'district', label: '区管理员', dot: 'district' },
+    { key: 'school', label: '校管理员', dot: 'school' },
+    { key: 'teacher', label: '教 师', dot: 'teacher' }
+  ];
+  sw.innerHTML = '<div class="role-switcher-label">切换演示角色</div>' +
+    '<div class="role-switcher-options">' +
+    roles.map(function(r) {
+      return '<button class="role-switch-btn' + (r.key === currentRole ? ' active' : '') + '" onclick="switchRole(\'' + r.key + '\')"><span class="role-switch-dot ' + r.dot + '"></span><span class="role-switcher-name">' + r.label + '</span></button>';
+    }).join('') +
+    '</div>';
+}
+
+function switchRole(role) {
+  if (role === currentRole) return;
+  var userMap = {
+    system:  { role: 'system',  name: '赵建国', id: '13807720000', school: '柳州教育人事管理平台' },
+    city:    { role: 'city',    name: '张建国', id: '13807720001', school: '柳州市教育局' },
+    district:{ role: 'district',name: '李振华', id: '13807720002', school: '鱼峰区教育局' },
+    school:  { role: 'school',  name: '王玉兰', id: '13807720003', school: '柳州市第八中学' },
+    teacher: { role: 'teacher', name: '陈明辉', id: '13807720004', school: '柳州市第八中学' }
+  };
+  if (userMap[role]) {
+    localStorage.setItem('currentUser', JSON.stringify(userMap[role]));
+  }
+  window.location.href = 'dict-management.html';
+}
+function sidebarClick(elOrId, idOrUndefined) {
+  var id = arguments.length === 1 ? elOrId : idOrUndefined;
+  var el = arguments.length === 1 ? null : elOrId;
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'account') { window.location.href = 'account-management.html'; return; }
+  if (id === 'org') { window.location.href = 'org-management.html'; return; }
+  if (id === 'perm') { window.location.href = 'perm-management.html'; return; }
+  if (id === 'menuMgr') { window.location.href = 'menu-management.html'; return; }
+  if (id === 'log') { window.location.href = 'log-management.html'; return; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+  if (id === 'dict') { return; }
+  showToast('导航到: 字典管理');
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+// ===== TOPNAV =====
+function toggleUserMenu() {
+  document.getElementById('userDropdown').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('userDropdown');
+  if (dd.classList.contains('show') && !e.target.closest('.topnav-user')) {
+    dd.classList.remove('show');
+  }
+});
+
+// Update user display
+(function() {
+  var u = currentUser;
+  if (u.name) {
+    document.getElementById('userName').textContent = u.name;
+    document.getElementById('userAvatar').textContent = u.name.charAt(0);
+  }
+})();
+
+// ===== DICT DATA =====
+// Dictionary structure: { typeCode: { name, group, selectMode, items: [{code, name, sort, status, updatedAt}] } }
+var DICT = {
+  // ── Group: 机构与编制 ──
+  orgLevel: {
+    name: '单位级别', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'futingji', name: '副厅级', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'zhengchuji', name: '正处级', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'fuchuji', name: '副处级', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'zhengkeji', name: '正科级', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'fukeji', name: '副科级', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'weidingji', name: '其他未定级', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  fundType: {
+    name: '经费类型', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'full_fund', name: '全额拨款', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'partial_fund', name: '差额拨款', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'self_fund', name: '自收自支', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  fundSource: {
+    name: '经费来源', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'finance_full', name: '财政全额拨款', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'finance_partial', name: '财政差额拨款', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'self_raised', name: '自收自支', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  orgType: {
+    name: '组织类型', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'school', name: '学校', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'admin_dept', name: '行政管理部门', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'secondary_org', name: '局属二层机构', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  schoolType: {
+    name: '学校类型', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'primary', name: '小学', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'junior', name: '初中', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'senior', name: '高中', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'complete', name: '完中', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'nine_year', name: '九年一贯制', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'twelve_year', name: '十二年一贯制', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'vocational', name: '中职', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'kindergarten', name: '幼儿园', sort: 8, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'special_edu', name: '特殊教育', sort: 9, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'specialized', name: '专门学校', sort: 10, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  orgNature: {
+    name: '单位性质', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'institution', name: '事业单位', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'ref_institution', name: '参公事业单位', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'gov_org', name: '机关单位', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other', name: '其他', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  unitType: {
+    name: '单位类型', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'welfare_1', name: '公益一类', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'welfare_2', name: '公益二类', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'admin_dept', name: '行政部门', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  schoolCategory: {
+    name: '岗位设置分类', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'demo_senior', name: '自治区示范高中', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'special_senior', name: '自治区特色高中', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'regular_senior', name: '普通高中', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'junior_high', name: '初中', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'primary', name: '小学', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'kindergarten', name: '幼儿园', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'regular_institution', name: '普通事业单位', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  highlandSchool: {
+    name: '是否小高地学校', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: '1', name: '是', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '0', name: '否', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  orgStatus: {
+    name: '机构状态', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'active', name: '正常', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'disabled', name: '已停用', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'pending', name: '待审核', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  disableType: {
+    name: '停用类型', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'exit', name: '出编冻结', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'violation', name: '违规禁用', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'manual', name: '手动停用', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other', name: '其他', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  staffingType: {
+    name: '编制类型', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: 'career', name: '事业编', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'control', name: '控制数', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'contract', name: '合同制', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  district: {
+    name: '所属区域', group: '机构与编制', selectMode: 'single',
+    items: [
+      { code: '450200', name: '市直属', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450202', name: '城中区', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450203', name: '鱼峰区', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450204', name: '柳南区', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450205', name: '柳北区', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450206', name: '柳江区', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450222', name: '柳城县', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450223', name: '鹿寨县', sort: 8, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450224', name: '融安县', sort: 9, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450225', name: '融水苗族自治县', sort: 10, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: '450226', name: '三江侗族自治县', sort: 11, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+
+  // ── Group: 入编与出编 ──
+  entryMethod: {
+    name: '入编方式', group: '入编与出编', selectMode: 'single',
+    items: [
+      { code: 'public_recruit', name: '统一公开招聘', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'self_recruit', name: '单位自主实施招聘', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'senior_recruit', name: '中高级人才招聘', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'talent_import', name: '引进高层次人才', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'transfer', name: '调动', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other_entry', name: '其他', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  careerExitForm: {
+    name: '出编方式-事业编', group: '入编与出编', selectMode: 'single',
+    items: [
+      { code: 'transfer_out', name: '调动', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'retire', name: '退休', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'resign', name: '辞职', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'dismiss', name: '辞退', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'terminate', name: '解除聘用合同', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'expel', name: '开除', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'death_employed', name: '在职人员亡故', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'death_retired', name: '离退休人员亡故核减', sort: 8, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  controlExitForm: {
+    name: '出编方式-控制数', group: '入编与出编', selectMode: 'single',
+    items: [
+      { code: 'transfer_out', name: '调动', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'resign', name: '辞职', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'dismiss', name: '辞退', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'terminate', name: '解除聘用合同', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other_exit', name: '其他', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+
+  // ── Group: 岗位设置 ──
+  postCategory: {
+    name: '岗位类别', group: '岗位设置', selectMode: 'single',
+    items: [
+      { code: 'mgmt', name: '管理岗位', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'prof', name: '专技岗位', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'labor', name: '工勤技能岗位', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  // ── Group: 岗位晋升 ──
+  promoteType: {
+    name: '晋升类型', group: '岗位晋升', selectMode: 'single',
+    items: [
+      { code: 'mgmt_promote', name: '管理岗位晋升', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'prof_promote', name: '专技岗位晋升', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'labor_promote', name: '工勤技能岗位晋升', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  title: {
+    name: '职称', group: '岗位晋升', selectMode: 'single',
+    items: [
+      { code: 'none', name: '无职称', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'senior_teacher_a', name: '正高级教师', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'senior_teacher', name: '高级教师', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mid_teacher_1', name: '一级教师', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mid_teacher_2', name: '二级教师', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mid_teacher_3', name: '三级教师', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'professor', name: '教授', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'assoc_prof', name: '副教授', sort: 8, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'senior_lecturer', name: '高级讲师', sort: 9, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'lecturer', name: '讲师', sort: 10, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'assist_lecturer', name: '助理讲师', sort: 11, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'teacher_staff', name: '教员', sort: 12, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'senior_prac_inst', name: '高级实习指导教师', sort: 13, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mid_prac_inst_1', name: '一级实习指导教师', sort: 14, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mid_prac_inst_2', name: '二级实习指导教师', sort: 15, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mid_prac_inst_3', name: '三级实习指导教师', sort: 16, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'senior_caregiver', name: '高级保育员', sort: 17, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mid_caregiver', name: '中级保育员', sort: 18, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'junior_caregiver', name: '初级保育员', sort: 19, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'special_teacher', name: '特级教师', sort: 20, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  education: {
+    name: '学历', group: '岗位晋升', selectMode: 'single',
+    items: [
+      { code: 'doctor', name: '博士研究生', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'master', name: '硕士研究生', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'bachelor', name: '大学本科', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'associate', name: '大学专科', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'technical', name: '中专', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'highschool', name: '高中', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'junior_below', name: '初中及以下', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  politics: {
+    name: '政治面貌', group: '岗位晋升', selectMode: 'single',
+    items: [
+      { code: 'cpc_member', name: '中共党员', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'cpc_probationary', name: '中共预备党员', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'cpc_yl', name: '共青团员', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'masses', name: '群众', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'democratic', name: '民主党派', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+
+  // ── Group: 退休呈报 ──
+  salaryLevel: {
+    name: '工资级别（薪级）', group: '退休呈报', selectMode: 'single',
+    items: (function() {
+      var levels = [];
+      for (var i = 1; i <= 65; i++) {
+        levels.push({ code: 'salary_' + i, name: i + '级', sort: i, status: 'enabled', updatedAt: '2025-06-15 09:30:00' });
+      }
+      return levels;
+    })()
+  },
+  retireType: {
+    name: '退休类型', group: '退休呈报', selectMode: 'single',
+    items: [
+      { code: 'normal', name: '正常', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'illness', name: '因病', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'early', name: '提前', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'extended_end', name: '延长期满', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+
+  // ── Group: 师德师风 ──
+  complaintSource: {
+    name: '投诉来源', group: '师德师风', selectMode: 'single',
+    items: [
+      { code: 'email', name: '邮箱投诉', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'phone', name: '电话举报', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'letter', name: '信件举报', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'online', name: '网络举报', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other', name: '其他', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  idCardType: {
+    name: '证件类型', group: '师德师风', selectMode: 'single',
+    items: [
+      { code: 'id_card', name: '居民身份证', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'passport', name: '护照', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other_id', name: '其他', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  personType: {
+    name: '被举报人类型', group: '师德师风', selectMode: 'single',
+    items: [
+      { code: 'full_teacher', name: '专任教师', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'admin_staff', name: '行政人员', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'support_staff', name: '教辅人员', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'worker', name: '工勤人员', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other_person', name: '其他', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+
+  // ── Group: 系统配置 ──
+  dataScope: {
+    name: '数据权限范围', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'all', name: '全平台', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'city', name: '全市', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'district', name: '本区', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'school', name: '本校', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'self', name: '本人', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  announceScope: {
+    name: '公告可见范围', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'system', name: '全平台', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'city', name: '全市', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'district', name: '本区', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'school', name: '本校', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  announceStatus: {
+    name: '公告状态', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'active', name: '生效中', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'scheduled', name: '定时待发', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'expired', name: '已过期', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  logType: {
+    name: '日志类型', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'security', name: '安全日志', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'operation', name: '操作日志', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'audit', name: '审计日志', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  actionType: {
+    name: '操作类型', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'login', name: '登录', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'logout', name: '登出', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'create', name: '新增', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'update', name: '修改', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'delete', name: '删除', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'submit', name: '提交', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'approve', name: '审核通过', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'reject', name: '审核驳回', sort: 8, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'revoke', name: '撤回', sort: 9, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'disable', name: '停用', sort: 10, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'enable', name: '启用', sort: 11, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'reset_pwd', name: '重置密码', sort: 12, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'export', name: '导出', sort: 13, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  opResult: {
+    name: '操作结果', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'success', name: '成功', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'failure', name: '失败', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  moduleType: {
+    name: '功能模块', group: '系统配置', selectMode: 'multi',
+    items: [
+      { code: 'org', name: '机构管理', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'account', name: '账号管理', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'perm', name: '角色权限', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'menu', name: '菜单管理', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'log', name: '操作日志', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'system', name: '系统设置', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'staffing', name: '编制使用申请', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'entry', name: '教师入编', sort: 8, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'exit', name: '教师出编', sort: 9, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'promote', name: '岗位晋升', sort: 10, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'post', name: '岗位设置', sort: 11, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'recruit', name: '招聘', sort: 12, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'employ', name: '聘用手续', sort: 13, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'retire', name: '退休呈报', sort: 14, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'salary', name: '工资核定', sort: 15, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'ethics', name: '师德师风举报', sort: 16, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'honor', name: '荣誉申请', sort: 17, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  role: {
+    name: '角色', group: '系统配置', selectMode: 'multi',
+    items: [
+      { code: 'system', name: '系统管理员', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'city', name: '市管理员', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'district', name: '区管理员', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'school', name: '校管理员', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'teacher', name: '教师', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  gender: {
+    name: '性别', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'male', name: '男', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'female', name: '女', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  accountStatus: {
+    name: '账号状态', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'active', name: '启用', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'disabled', name: '停用', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  certType: {
+    name: '资格证类型', group: '系统配置', selectMode: 'multi',
+    items: [
+      { code: 'teach_cert', name: '教师资格证', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mandarin', name: '普通话等级证', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'title_cert', name: '职称证', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'honor_cert', name: '荣誉证书', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'edu_cert', name: '学历学位证书', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'other_cert', name: '其他', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  certStatus: {
+    name: '资格证状态', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'valid', name: '有效', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'expired', name: '过期', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'revoked', name: '注销', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  },
+  chineseLevel: {
+    name: '普通话等级', group: '系统配置', selectMode: 'single',
+    items: [
+      { code: 'putonghua_1a', name: '普通话一级甲等', sort: 1, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'putonghua_1b', name: '普通话一级乙等', sort: 2, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'putonghua_2a', name: '普通话二级甲等', sort: 3, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'putonghua_2b', name: '普通话二级乙等', sort: 4, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'putonghua_3a', name: '普通话三级甲等', sort: 5, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'putonghua_3b', name: '普通话三级乙等', sort: 6, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_3', name: 'HSK三级', sort: 7, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_4', name: 'HSK四级', sort: 8, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_5', name: 'HSK五级', sort: 9, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_6', name: 'HSK六级', sort: 10, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_7', name: 'HSK七级', sort: 11, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_8', name: 'HSK八级', sort: 12, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_9', name: 'HSK九级', sort: 13, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_10', name: 'HSK十级', sort: 14, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'hsk_11', name: 'HSK十一级', sort: 15, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_4a', name: 'MHK四级甲等', sort: 16, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_4b', name: 'MHK四级乙等', sort: 17, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_3a', name: 'MHK三级甲等', sort: 18, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_3b', name: 'MHK三级乙等', sort: 19, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_2a', name: 'MHK二级甲等', sort: 20, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_2b', name: 'MHK二级乙等', sort: 21, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_1a', name: 'MHK一级甲等', sort: 22, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'mhk_1b', name: 'MHK一级乙等', sort: 23, status: 'enabled', updatedAt: '2025-06-15 09:30:00' },
+      { code: 'untested', name: '未测试', sort: 24, status: 'enabled', updatedAt: '2025-06-15 09:30:00' }
+    ]
+  }
+};
+
+// Persist dict data in localStorage
+function loadDict() {
+  try {
+    var saved = localStorage.getItem('sys_dict_data');
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      // Remove renamed/legacy keys
+      delete parsed['publicWelfareType'];
+      delete parsed['controlType'];
+      delete parsed['personnelType'];
+      delete parsed['mgmtPostLevel'];
+      delete parsed['profPostLevel'];
+      delete parsed['laborPostLevel'];
+      delete parsed['recruitMethod'];
+      delete parsed['publishTiming'];
+      delete parsed['yesNo'];
+      // Merge with default to ensure new types are available
+      for (var key in DICT) {
+        if (!parsed[key]) parsed[key] = DICT[key];
+      }
+      DICT = parsed;
+    }
+  } catch(e) {}
+}
+function saveDict() {
+  try {
+    localStorage.setItem('sys_dict_data', JSON.stringify(DICT));
+  } catch(e) {}
+}
+loadDict();
+
+// ===== STATE =====
+var GROUP_ORDER = ['机构与编制', '入编与出编', '岗位设置', '岗位晋升', '退休呈报', '师德师风', '系统配置'];
+var selectedTypeCode = null;
+
+// ===== DICT TYPE LIST (LEFT PANEL) =====
+function getFilteredTypes() {
+  var q = (document.getElementById('typeSearchInput').value || '').trim().toLowerCase();
+  var types = [];
+  for (var code in DICT) {
+    var dt = DICT[code];
+    if (!q || dt.name.toLowerCase().indexOf(q) !== -1 || code.toLowerCase().indexOf(q) !== -1) {
+      types.push({ code: code, name: dt.name, group: dt.group, selectMode: dt.selectMode, itemCount: dt.items.length });
+    }
+  }
+  return types;
+}
+
+function renderDictTypeList() {
+  var types = getFilteredTypes();
+  var container = document.getElementById('dictTypeList');
+
+  // Group types
+  var grouped = {};
+  var ungrouped = [];
+  for (var i = 0; i < types.length; i++) {
+    var t = types[i];
+    var g = t.group || '其他';
+    if (GROUP_ORDER.indexOf(g) === -1) { ungrouped.push(t); }
+    else {
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push(t);
+    }
+  }
+
+  var html = '';
+  for (var gi = 0; gi < GROUP_ORDER.length; gi++) {
+    var gname = GROUP_ORDER[gi];
+    var groupTypes = grouped[gname];
+    if (!groupTypes || !groupTypes.length) continue;
+    html += '<div class="dict-type-group"><div class="dict-type-group-name">' + escHtml(gname) + '</div>';
+    for (var ti = 0; ti < groupTypes.length; ti++) {
+      var dt = groupTypes[ti];
+      var activeCls = dt.code === selectedTypeCode ? ' active' : '';
+      html += '<div class="dict-type-item' + activeCls + '" onclick="selectDictType(\'' + dt.code + '\')">';
+      html += '<span class="type-name">' + escHtml(dt.name) + '</span>';
+      html += '<span class="type-badge">' + dt.itemCount + '项</span>';
+      html += '<button class="type-edit" title="编辑字典类型" onclick="event.stopPropagation();openEditTypeModal(\'' + dt.code + '\')">✎</button>';
+      html += '<button class="type-delete" title="删除字典类型" onclick="event.stopPropagation();confirmDeleteType(\'' + dt.code + '\')">✕</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  // Ungrouped items
+  if (ungrouped.length) {
+    html += '<div class="dict-type-group"><div class="dict-type-group-name">其他</div>';
+    for (var ui = 0; ui < ungrouped.length; ui++) {
+      var ut = ungrouped[ui];
+      var uactive = ut.code === selectedTypeCode ? ' active' : '';
+      html += '<div class="dict-type-item' + uactive + '" onclick="selectDictType(\'' + ut.code + '\')">';
+      html += '<span class="type-name">' + escHtml(ut.name) + '</span>';
+      html += '<span class="type-badge">' + ut.itemCount + '项</span>';
+      html += '<button class="type-edit" title="编辑字典类型" onclick="event.stopPropagation();openEditTypeModal(\'' + ut.code + '\')">✎</button>';
+      html += '<button class="type-delete" title="删除字典类型" onclick="event.stopPropagation();confirmDeleteType(\'' + ut.code + '\')">✕</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  if (!html) {
+    html = '<div class="empty-state" style="padding:40px 16px;"><div class="text" style="font-size:13px;">未找到匹配的字典类型</div></div>';
+  }
+  container.innerHTML = html;
+}
+
+function selectDictType(code) {
+  selectedTypeCode = code;
+  renderDictTypeList();
+  renderDictItems();
+}
+
+// ===== DICT ITEMS (RIGHT PANEL) =====
+function renderDictItems() {
+  var header = document.getElementById('dictItemHeader');
+  var content = document.getElementById('dictItemContent');
+  var typeName = document.getElementById('currentTypeName');
+  var modeTag = document.getElementById('currentSelectMode');
+  var btnAdd = document.getElementById('btnAddItem');
+
+  if (!selectedTypeCode || !DICT[selectedTypeCode]) {
+    typeName.textContent = '请选择字典类型';
+    modeTag.style.display = 'none';
+    btnAdd.style.display = 'none';
+    content.innerHTML = '<div class="empty-state"><div class="icon">📂</div><div class="text">请在左侧选择一个字典类型</div><div class="empty-hint">选择后可查看和管理该类型的字典项</div></div>';
+    return;
+  }
+
+  var dt = DICT[selectedTypeCode];
+  typeName.textContent = dt.name;
+  var mode = dt.selectMode || 'single';
+  modeTag.style.display = 'inline-block';
+  modeTag.textContent = mode === 'multi' ? '多选' : '单选';
+  modeTag.className = 'select-mode-tag ' + (mode === 'multi' ? 'multi' : 'single');
+  btnAdd.style.display = 'inline-flex';
+
+  var items = dt.items || [];
+  if (!items.length) {
+    content.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div class="text">暂无字典项</div><div class="empty-hint">点击"新增字典项"添加数据</div></div>';
+    return;
+  }
+
+  // Sort by sort order
+  items.sort(function(a, b) { return (a.sort || 0) - (b.sort || 0); });
+
+  var html = '<table class="dict-item-table"><thead><tr>';
+  html += '<th class="col-seq">序号</th>';
+  html += '<th class="col-name">名称</th>';
+  html += '<th class="col-code">编码</th>';
+  html += '<th class="col-selectMode">选择模式</th>';
+  html += '<th class="col-status">状态</th>';
+  html += '<th class="col-updated">更新时间</th>';
+  html += '<th class="col-actions">操作</th>';
+  html += '</tr></thead><tbody>';
+
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    var isFirst = i === 0;
+    var isLast = i === items.length - 1;
+    var enabled = item.status === 'enabled';
+    html += '<tr>';
+    // Sequence number
+    html += '<td class="col-seq" style="color:var(--text-light);">' + (i + 1) + '</td>';
+    // Name
+    html += '<td class="col-name">' + escHtml(item.name) + '</td>';
+    // Code
+    html += '<td class="col-code" style="font-family:monospace;font-size:12px;">' + escHtml(item.code) + '</td>';
+    // SelectMode
+    html += '<td class="col-selectMode"><span class="select-mode-tag ' + (mode === 'multi' ? 'multi' : 'single') + '" style="font-size:10px;">' + (mode === 'multi' ? '多选' : '单选') + '</span></td>';
+    // Status badge
+    html += '<td class="col-status"><span style="font-size:11px;color:' + (enabled ? 'var(--success)' : 'var(--text-light)') + ';">' + (enabled ? '启用' : '停用') + '</span></td>';
+    // Updated
+    html += '<td class="col-updated" style="font-size:11px;color:var(--text-light);">' + escHtml(item.updatedAt || '—') + '</td>';
+    // Actions: sort arrows + enable/disable + edit + delete
+    html += '<td class="col-actions"><div class="item-actions">';
+    html += '<button class="btn-icon" ' + (isFirst ? 'disabled' : '') + ' onclick="moveItem(\'' + selectedTypeCode + '\',\'' + item.code + '\',-1)" title="上移">↑</button>';
+    html += '<button class="btn-icon" ' + (isLast ? 'disabled' : '') + ' onclick="moveItem(\'' + selectedTypeCode + '\',\'' + item.code + '\',1)" title="下移">↓</button>';
+    html += '<button class="btn-icon" onclick="toggleItemStatus(\'' + selectedTypeCode + '\',\'' + item.code + '\')" title="' + (enabled ? '停用' : '启用') + '">' + (enabled ? '⏸' : '▶') + '</button>';
+    html += '<button class="btn-icon" onclick="openEditItemModal(\'' + selectedTypeCode + '\',\'' + item.code + '\')" title="编辑">✎</button>';
+    html += '<button class="btn-icon danger" onclick="confirmDeleteItem(\'' + selectedTypeCode + '\',\'' + item.code + '\')" title="删除">✕</button>';
+    html += '</div></td>';
+    html += '</tr>';
+  }
+
+  html += '</tbody></table>';
+  content.innerHTML = html;
+}
+
+// ===== ITEM OPERATIONS =====
+function moveItem(typeCode, itemCode, direction) {
+  var items = DICT[typeCode].items;
+  var idx = -1;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].code === itemCode) { idx = i; break; }
+  }
+  if (idx === -1) return;
+  var targetIdx = idx + direction;
+  if (targetIdx < 0 || targetIdx >= items.length) return;
+
+  // Swap
+  var tmp = items[idx].sort;
+  items[idx].sort = items[targetIdx].sort;
+  items[targetIdx].sort = tmp;
+
+  // Re-sort items
+  items.sort(function(a, b) { return (a.sort || 0) - (b.sort || 0); });
+  // Re-assign sort numbers
+  for (var j = 0; j < items.length; j++) {
+    items[j].sort = j + 1;
+  }
+
+  saveDict();
+  renderDictItems();
+  renderDictTypeList();
+}
+
+var pendingToggleItem = null; // { typeCode, itemCode, name, newStatus }
+function toggleItemStatus(typeCode, itemCode) {
+  var items = DICT[typeCode].items;
+  var item = null;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].code === itemCode) { item = items[i]; break; }
+  }
+  if (!item) return;
+  var newStatus = item.status === 'enabled' ? 'disabled' : 'enabled';
+  var actionText = newStatus === 'enabled' ? '启用' : '停用';
+  pendingToggleItem = { typeCode: typeCode, itemCode: itemCode, name: item.name, newStatus: newStatus };
+  document.getElementById('confirmIcon').textContent = '⚠️';
+  document.getElementById('confirmMsg').textContent = '确认' + actionText + '字典项「' + item.name + '」？';
+  document.getElementById('confirmSub').textContent = actionText + '后该字典项在业务模块中将' + (newStatus === 'enabled' ? '恢复可见' : '不可见');
+  document.getElementById('confirmBtn').textContent = '确认' + actionText;
+  document.getElementById('confirmBtn').className = newStatus === 'enabled' ? 'btn-confirm primary' : 'btn-confirm warning';
+  document.getElementById('confirmOverlay').style.display = 'flex';
+}
+
+// ===== DELETE DICT ITEM =====
+var pendingDeleteItem = null; // { typeCode, itemCode }
+function confirmDeleteItem(typeCode, itemCode) {
+  var item = null;
+  var items = DICT[typeCode].items;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].code === itemCode) { item = items[i]; break; }
+  }
+  if (!item) return;
+  pendingDeleteItem = { typeCode: typeCode, itemCode: itemCode, name: item.name };
+  document.getElementById('confirmIcon').textContent = '⚠️';
+  document.getElementById('confirmMsg').textContent = '确认删除字典项「' + item.name + '」？';
+  document.getElementById('confirmSub').textContent = '此操作不可恢复';
+  document.getElementById('confirmBtn').textContent = '确认删除';
+  document.getElementById('confirmBtn').className = 'btn-confirm danger';
+  document.getElementById('confirmOverlay').style.display = 'flex';
+}
+
+function openAddItemModal() {
+  if (!selectedTypeCode) { showToast('请先选择字典类型', 'warning'); return; }
+  document.getElementById('itemModalTitle').textContent = '新增字典项 — ' + DICT[selectedTypeCode].name;
+  document.getElementById('itemEditId').value = '';
+  document.getElementById('itemCode').value = '';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemCode').disabled = false;
+  document.getElementById('itemModalOverlay').style.display = 'flex';
+  setTimeout(function() { document.getElementById('itemCode').focus(); }, 100);
+}
+
+function openEditItemModal(typeCode, itemCode) {
+  var items = DICT[typeCode].items;
+  var item = null;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].code === itemCode) { item = items[i]; break; }
+  }
+  if (!item) return;
+  document.getElementById('itemModalTitle').textContent = '编辑字典项 — ' + DICT[typeCode].name;
+  document.getElementById('itemEditId').value = typeCode + '|||' + itemCode;
+  document.getElementById('itemCode').value = item.code;
+  document.getElementById('itemCode').disabled = true; // Code is immutable once created
+  document.getElementById('itemName').value = item.name;
+  document.getElementById('itemModalOverlay').style.display = 'flex';
+  setTimeout(function() { document.getElementById('itemName').focus(); }, 100);
+}
+
+function closeItemModal() {
+  document.getElementById('itemModalOverlay').style.display = 'none';
+}
+
+function saveDictItem() {
+  var editId = document.getElementById('itemEditId').value;
+  var code = (document.getElementById('itemCode').value || '').trim();
+  var name = (document.getElementById('itemName').value || '').trim();
+
+  if (!code) { showToast('请输入字典项编码', 'warning'); return; }
+  if (!name) { showToast('请输入字典项名称', 'warning'); return; }
+  if (!selectedTypeCode) { showToast('请先选择字典类型', 'warning'); return; }
+
+  var items = DICT[selectedTypeCode].items;
+
+  if (editId) {
+    // Edit existing
+    var parts = editId.split('|||');
+    var oldCode = parts[1];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].code === oldCode) {
+        items[i].name = name;
+        items[i].updatedAt = now();
+        break;
+      }
+    }
+    showToast('字典项已更新', 'success');
+  } else {
+    // New item
+    // Check duplicate code
+    for (var j = 0; j < items.length; j++) {
+      if (items[j].code === code) { showToast('编码 ' + code + ' 已存在', 'warning'); return; }
+    }
+    items.push({
+      code: code,
+      name: name,
+      sort: items.length + 1,
+      status: 'enabled',
+      updatedAt: now()
+    });
+    showToast('字典项已新增', 'success');
+  }
+
+  saveDict();
+  closeItemModal();
+  renderDictItems();
+  renderDictTypeList();
+}
+
+// ===== DICT TYPE OPERATIONS =====
+function openAddTypeModal() {
+  document.getElementById('editTypeCode').value = '';
+  document.getElementById('addTypeCode').value = '';
+  document.getElementById('addTypeName').value = '';
+  document.getElementById('addTypeSelectMode').value = 'single';
+  document.getElementById('addTypeModalTitle').textContent = '新增字典类型';
+  document.getElementById('addTypeBtn').textContent = '确认新增';
+  document.getElementById('addTypeCode').disabled = false;
+  document.getElementById('addTypeModalOverlay').style.display = 'flex';
+  setTimeout(function() { document.getElementById('addTypeName').focus(); }, 100);
+}
+
+function openEditTypeModal(code) {
+  var dt = DICT[code];
+  if (!dt) return;
+  document.getElementById('editTypeCode').value = code;
+  document.getElementById('addTypeCode').value = code;
+  document.getElementById('addTypeCode').disabled = true; // Cannot change code when editing
+  document.getElementById('addTypeName').value = dt.name;
+  document.getElementById('addTypeGroup').value = dt.group || '系统配置';
+  document.getElementById('addTypeSelectMode').value = dt.selectMode || 'single';
+  document.getElementById('addTypeModalTitle').textContent = '编辑字典类型';
+  document.getElementById('addTypeBtn').textContent = '保存修改';
+  document.getElementById('addTypeModalOverlay').style.display = 'flex';
+  setTimeout(function() { document.getElementById('addTypeName').focus(); }, 100);
+}
+
+function closeAddTypeModal() {
+  document.getElementById('editTypeCode').value = '';
+  document.getElementById('addTypeCode').disabled = false;
+  document.getElementById('addTypeModalOverlay').style.display = 'none';
+}
+
+function saveNewDictType() {
+  var editCode = document.getElementById('editTypeCode').value.trim();
+  var code = (document.getElementById('addTypeCode').value || '').trim();
+  var name = (document.getElementById('addTypeName').value || '').trim();
+  var group = document.getElementById('addTypeGroup').value;
+  var selectMode = document.getElementById('addTypeSelectMode').value;
+
+  if (!code) { showToast('请输入字典类型编码', 'warning'); return; }
+  if (!name) { showToast('请输入字典类型名称', 'warning'); return; }
+
+  // Editing existing type
+  if (editCode) {
+    // code cannot change (input is disabled), just update other fields
+    DICT[editCode].name = name;
+    DICT[editCode].group = group;
+    DICT[editCode].selectMode = selectMode;
+    saveDict();
+    closeAddTypeModal();
+    renderDictTypeList();
+    renderDictItems();
+    showToast('字典类型"' + name + '"已更新', 'success');
+    return;
+  }
+
+  // Adding new type
+  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(code)) { showToast('编码需以字母开头，仅包含英文/数字/下划线', 'warning'); return; }
+  if (DICT[code]) { showToast('编码 ' + code + ' 已存在', 'warning'); return; }
+
+  DICT[code] = {
+    name: name,
+    group: group,
+    selectMode: selectMode,
+    items: []
+  };
+
+  saveDict();
+  closeAddTypeModal();
+  selectedTypeCode = code;
+  renderDictTypeList();
+  renderDictItems();
+  showToast('字典类型"' + name + '"已新增', 'success');
+}
+
+var pendingDeleteType = null;
+function confirmDeleteType(code) {
+  pendingDeleteType = code;
+  var dt = DICT[code];
+  if (!dt) return;
+  document.getElementById('confirmIcon').textContent = '⚠️';
+  document.getElementById('confirmMsg').textContent = '确认删除字典类型「' + dt.name + '」？';
+  document.getElementById('confirmSub').textContent = '该类型下的 ' + dt.items.length + ' 个字典项也将一并删除，此操作不可恢复';
+  document.getElementById('confirmOverlay').style.display = 'flex';
+}
+
+function closeConfirm() {
+  pendingDeleteType = null;
+  pendingDeleteItem = null;
+  pendingToggleItem = null;
+  document.getElementById('confirmOverlay').style.display = 'none';
+}
+
+function executeConfirm() {
+  // Handle dict item status toggle
+  if (pendingToggleItem) {
+    var tt = pendingToggleItem;
+    var items = DICT[tt.typeCode].items;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].code === tt.itemCode) {
+        items[i].status = tt.newStatus;
+        items[i].updatedAt = now();
+        break;
+      }
+    }
+    saveDict();
+    pendingToggleItem = null;
+    document.getElementById('confirmOverlay').style.display = 'none';
+    renderDictItems();
+    showToast('字典项「' + tt.name + '」已' + (tt.newStatus === 'enabled' ? '启用' : '停用'), 'success');
+    return;
+  }
+  // Handle dict item deletion
+  if (pendingDeleteItem) {
+    var typeCode = pendingDeleteItem.typeCode;
+    var itemCode = pendingDeleteItem.itemCode;
+    var itemName = pendingDeleteItem.name;
+    var items = DICT[typeCode].items;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].code === itemCode) { items.splice(i, 1); break; }
+    }
+    saveDict();
+    pendingDeleteItem = null;
+    document.getElementById('confirmOverlay').style.display = 'none';
+    renderDictTypeList();
+    renderDictItems();
+    showToast('字典项"' + itemName + '"已删除', 'success');
+    return;
+  }
+  // Handle dict type deletion
+  if (pendingDeleteType) {
+    var name = DICT[pendingDeleteType] ? DICT[pendingDeleteType].name : pendingDeleteType;
+    delete DICT[pendingDeleteType];
+    saveDict();
+    if (selectedTypeCode === pendingDeleteType) {
+      selectedTypeCode = null;
+    }
+    pendingDeleteType = null;
+    document.getElementById('confirmOverlay').style.display = 'none';
+    renderDictTypeList();
+    renderDictItems();
+    showToast('字典类型"' + name + '"已删除', 'success');
+    return;
+  }
+}
+
+// ===== UTILITIES =====
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function now() {
+  var d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0') + ' ' +
+    String(d.getHours()).padStart(2, '0') + ':' +
+    String(d.getMinutes()).padStart(2, '0') + ':' +
+    String(d.getSeconds()).padStart(2, '0');
+}
+
+function showToast(msg, type) {
+  type = type || 'success';
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 2200);
+}
+
+// ===== KEYBOARD SUPPORT =====
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('addTypeModalOverlay').style.display === 'flex') closeAddTypeModal();
+    if (document.getElementById('itemModalOverlay').style.display === 'flex') closeItemModal();
+    if (document.getElementById('confirmOverlay').style.display === 'flex') closeConfirm();
+  }
+});
+
+// Close modals on overlay click
+document.getElementById('addTypeModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAddTypeModal();
+});
+document.getElementById('itemModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeItemModal();
+});
+document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirm();
+});
+
+// ===== INIT =====
+renderSidebar();
+renderDictTypeList();
+renderDictItems();
+
+// Select first dict type by default
+var types = getFilteredTypes();
+if (types.length > 0 && !selectedTypeCode) {
+  selectDictType(types[0].code);
+}
+
+// Update topnav user display
+if (currentUser.name) {
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
+}
+
+// Hide close-sidebar toggle if not system
+if (currentUser.role !== 'system') {
+  var sbToggle = document.querySelector('.sidebar-toggle');
+  if (sbToggle) sbToggle.style.display = 'none';
+}
+
+window.onerror = function(msg, url, line, col, err) {
+  var errDiv = document.createElement('div');
+  errDiv.style.cssText = 'position:fixed;bottom:8px;left:8px;right:8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 16px;font-size:12px;font-family:monospace;z-index:9999;max-height:120px;overflow-y:auto;white-space:pre-wrap;color:#991B1B;';
+  errDiv.textContent = '[DictMgmt Error] ' + (msg || '') + '\n' + (url || '') + ':' + (line || '') + ':' + (col || '') + '\n' + (err && err.stack ? err.stack : '');
+  document.body.appendChild(errDiv);
+  setTimeout(function() { if (errDiv.parentNode) errDiv.parentNode.removeChild(errDiv); }, 15000);
+  return false;
+};
+</script>
+</body>
+</html>

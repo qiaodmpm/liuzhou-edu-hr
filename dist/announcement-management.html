@@ -135,7 +135,6 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .status-tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap; }
 .status-tag.active { background: #D1FAE5; color: #065F46; }
 .status-tag.scheduled { background: #FEF3C7; color: #92400E; }
-.status-tag.expired { background: #F1F5F9; color: #94A3B8; }
 
 /* Pagination */
 .pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; flex-wrap: wrap; }
@@ -284,9 +283,8 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
   <!-- Filter tabs -->
   <div class="tabs" id="filterTabs">
     <button class="tab active" data-filter="all" onclick="setFilter('all', this)">全部消息</button>
-    <button class="tab" data-filter="active" onclick="setFilter('active', this)">生效中</button>
+    <button class="tab" data-filter="active" onclick="setFilter('active', this)">已发布</button>
     <button class="tab" data-filter="scheduled" id="tabScheduled" style="display:none;" onclick="setFilter('scheduled', this)">定时待发</button>
-    <button class="tab" data-filter="expired" onclick="setFilter('expired', this)">已过期</button>
   </div>
 
   <!-- Filter bar -->
@@ -409,7 +407,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
           <option value="true">是</option>
         </select>
       </div>
-      <div class="hint" style="font-size:11px;color:var(--text-light);">※ 截止时间默认为（定时）发布时间 + 30 天，到期自动标记为「已过期」。</div>
+
       <input type="hidden" id="annEditId" value="">
     </div>
     <div class="modal-footer">
@@ -522,6 +520,7 @@ function sidebarClick(id) {
     menuMgr: 'menu-management.html',
     perm: 'perm-management.html',
     log: 'log-management.html',
+    dict: 'dict-management.html',
     announcement: 'announcement-management.html'
   };
   var dest = ROUTES[id];
@@ -557,8 +556,8 @@ var currentPage = 1;
 
 var SCOPE_LABELS = { system: '全平台', city: '全市', district: '本区', school: '本校' };
 var SCOPE_CLASS = { system: 'all', city: 'city', district: 'district', school: 'school' };
-var STATUS_LABELS = { active: '生效中', scheduled: '定时待发', expired: '已过期' };
-var STATUS_CLASS = { active: 'active', scheduled: 'scheduled', expired: 'expired' };
+var STATUS_LABELS = { active: '已发布', scheduled: '定时待发' };
+var STATUS_CLASS = { active: 'active', scheduled: 'scheduled' };
 
 function getAnnouncements() {
   try {
@@ -572,20 +571,17 @@ function saveAnnouncements(list) {
 }
 
 // ========== SEED DEMO DATA ==========
+var ANNOUNCEMENT_SEED_VERSION = 2; // bump to re-seed
 function seedDemoData() {
   var existing = getAnnouncements();
-  if (existing.length > 0) return;
+  var seedVer = localStorage.getItem('announcements_seed_version');
+  if (existing.length > 0 && String(seedVer) === String(ANNOUNCEMENT_SEED_VERSION)) return;
 
   var now = new Date();
   function dt(daysAgo, hour) {
     var d = new Date(now);
     d.setDate(d.getDate() - daysAgo);
     d.setHours(hour || 9, 0, 0, 0);
-    return d.toISOString().replace('T', ' ').substring(0, 16);
-  }
-  function exp(daysLater) {
-    var d = new Date(now);
-    d.setDate(d.getDate() + daysLater);
     return d.toISOString().replace('T', ' ').substring(0, 16);
   }
 
@@ -595,7 +591,7 @@ function seedDemoData() {
       content: '<p><b>各用户：</b></p><p>平台计划于<b>2026年7月12日（周六）凌晨2:00-6:00</b>进行系统升级维护，届时暂停使用，请提前做好工作安排。</p><p>如有疑问请联系系统管理员。</p>',
       source: '系统管理员', publisherId: '13807720000', publisherName: '赵建国', publisherRole: 'system',
       scope: 'system', scopeOrgId: '', publisherOrgId: '',
-      isPinned: true, publishTime: dt(0, 8), expireTime: exp(30), status: 'active',
+      isPinned: true, publishTime: dt(0, 8), status: 'active',
       attachments: []
     },
     {
@@ -603,7 +599,7 @@ function seedDemoData() {
       content: '<p><b>各区教育局、各市属学校：</b></p><ol><li>本次招聘计划共设岗位 <b style="color:#1E40AF;">1,200</b> 个，其中事业编 <b style="color:#1E40AF;">800</b> 个、控制数 <b style="color:#1E40AF;">400</b> 个。</li><li>各校请于<span style="background:#FEF3C7;">2026年7月31日前</span>提交岗位需求申报表。</li><li>详细岗位信息参见附件。</li></ol>',
       source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city',
       scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200',
-      isPinned: true, publishTime: dt(1, 10), expireTime: exp(29), status: 'active',
+      isPinned: true, publishTime: dt(1, 10), status: 'active',
       attachments: [
         { name: '2026年度公开招聘岗位一览表.xlsx', size: '2.3 MB' },
         { name: '岗位申报表模板.docx', size: '1.1 MB' },
@@ -615,7 +611,7 @@ function seedDemoData() {
       content: '<p>城中区各学校：</p><p>请于<b>7月15日前</b>提交教师岗位调整申报材料，逾期不再受理。</p>',
       source: '城中区教育局', publisherId: '13807720002', publisherName: '李振华', publisherRole: 'district',
       scope: 'district', scopeOrgId: '450202', publisherOrgId: '450202',
-      isPinned: false, publishTime: dt(2, 9), expireTime: exp(28), status: 'active',
+      isPinned: false, publishTime: dt(2, 9), status: 'active',
       attachments: []
     },
     {
@@ -623,7 +619,7 @@ function seedDemoData() {
       content: '<p>各位教师：</p><p>2026年暑假值班安排如下，请各位教师按时到岗。</p>',
       source: '柳江中学', publisherId: '13807720003', publisherName: '王玉兰', publisherRole: 'school',
       scope: 'school', scopeOrgId: '450202001', publisherOrgId: '450202001',
-      isPinned: false, publishTime: dt(3, 11), expireTime: exp(27), status: 'active',
+      isPinned: false, publishTime: dt(3, 11), status: 'active',
       attachments: [{ name: '暑假值班表.xlsx', size: '0.5 MB' }]
     },
     {
@@ -631,7 +627,7 @@ function seedDemoData() {
       content: '<p>各区教育局：</p><p>根据自治区最新文件精神，对我市中小学岗位设置比例进行调整。</p>',
       source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city',
       scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200',
-      isPinned: false, publishTime: dt(30, 8), expireTime: dt(-1, 0), status: 'expired',
+      isPinned: false, publishTime: dt(30, 8), status: 'active',
       attachments: []
     },
     {
@@ -639,12 +635,37 @@ function seedDemoData() {
       content: '<p><b>各区教育局、各中小学：</b></p><p>现将2026年秋季学期开学工作安排通知如下：</p><ol><li>教师返校时间：2026年8月25日</li><li>学生报到时间：2026年8月30日-31日</li><li>正式上课时间：2026年9月1日</li></ol>',
       source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city',
       scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200',
-      isPinned: false, publishTime: dt(-6, 9), expireTime: dt(38, 0), status: 'scheduled',
+      isPinned: false, publishTime: dt(-6, 9), status: 'scheduled',
       attachments: [{ name: '秋季学期校历.pdf', size: '3.2 MB' }]
+    },
+    {
+      id: 'ann_007', title: '关于开展2026年度教师资格定期注册工作的通知',
+      content: '<p><b>各区教育局、各中小学：</b></p><p>根据教育部《中小学教师资格定期注册暂行办法》，现将2026年度教师资格定期注册工作安排如下：</p><ol><li>注册对象：全市公办中小学在编在岗教师</li><li>网上申报时间：2026年9月1日-9月15日</li><li>现场确认时间：2026年9月16日-9月30日</li></ol><p>请各单位提前做好组织工作，确保通知到每一位教师。</p>',
+      source: '市教育局', publisherId: '13807720001', publisherName: '张建国', publisherRole: 'city',
+      scope: 'city', scopeOrgId: '450200', publisherOrgId: '450200',
+      isPinned: false, publishTime: dt(-3, 8), status: 'scheduled',
+      attachments: [{ name: '教师资格定期注册操作手册.pdf', size: '4.1 MB' }]
+    },
+    {
+      id: 'ann_008', title: '城中区中小学教师职称评审材料提交通知',
+      content: '<p>城中区各学校：</p><p>2026年度教师职称评审工作即将启动，请各校于<span style="background:#FEF3C7;">9月20日前</span>完成参评教师材料初审并提交至区教育局。评审条件及材料清单参见附件。</p>',
+      source: '城中区教育局', publisherId: '13807720002', publisherName: '李振华', publisherRole: 'district',
+      scope: 'district', scopeOrgId: '450202', publisherOrgId: '450202',
+      isPinned: false, publishTime: dt(-7, 10), status: 'scheduled',
+      attachments: [{ name: '职称评审材料清单.xlsx', size: '1.8 MB' }, { name: '评审条件说明.pdf', size: '2.5 MB' }]
+    },
+    {
+      id: 'ann_009', title: '柳江中学新教师入职培训安排',
+      content: '<p>各位新入职教师：</p><p>欢迎加入柳江中学！学校定于<b>8月28日-8月30日</b>举行为期三天的新教师入职培训，内容包括学校规章制度、教学常规、班主任工作等。请准时参加，具体日程详见附件。</p>',
+      source: '柳江中学', publisherId: '13807720003', publisherName: '王玉兰', publisherRole: 'school',
+      scope: 'school', scopeOrgId: '450202001', publisherOrgId: '450202001',
+      isPinned: true, publishTime: dt(-5, 8), status: 'scheduled',
+      attachments: [{ name: '新教师培训日程表.pdf', size: '1.2 MB' }]
     }
   ];
 
   saveAnnouncements(demos);
+  localStorage.setItem('announcements_seed_version', String(ANNOUNCEMENT_SEED_VERSION));
 }
 seedDemoData();
 
@@ -670,22 +691,23 @@ function canOperate(ann) {
 function loadAnnouncements() {
   var all = getAnnouncements();
 
-  // Check for scheduled announcements that should now be active
+  // Data migration: convert legacy 'expired' status to 'active', remove expireTime
   var now = new Date();
   var changed = false;
   for (var i = 0; i < all.length; i++) {
+    if (all[i].status === 'expired') {
+      all[i].status = 'active';
+      changed = true;
+    }
+    if (all[i].expireTime !== undefined) {
+      delete all[i].expireTime;
+      changed = true;
+    }
     if (all[i].status === 'scheduled') {
       var schedTime = new Date(all[i].publishTime.replace(' ', 'T'));
       if (schedTime <= now) {
         all[i].status = 'active';
         all[i].publishTime = schedTime.toISOString().replace('T', ' ').substring(0, 16);
-        changed = true;
-      }
-    }
-    if (all[i].status === 'active') {
-      var expTime = new Date(all[i].expireTime.replace(' ', 'T'));
-      if (expTime <= now) {
-        all[i].status = 'expired';
         changed = true;
       }
     }
@@ -716,7 +738,7 @@ function loadAnnouncements() {
   if (!filtered.length) {
     document.getElementById('annTableBody').innerHTML = '';
     document.getElementById('emptyState').style.display = '';
-    document.getElementById('emptyStateText').textContent = currentFilter === 'scheduled' ? '暂无定时待发公告' : (currentFilter === 'expired' ? '暂无已过期公告' : '暂无公告');
+    document.getElementById('emptyStateText').textContent = currentFilter === 'scheduled' ? '暂无定时待发公告' : '暂无公告';
     document.getElementById('pagination').innerHTML = '';
     return;
   }
@@ -734,8 +756,8 @@ function loadAnnouncements() {
     var a = pageData[i];
     var scopeLabel = SCOPE_LABELS[a.scope] || a.scope;
     var scopeCls = SCOPE_CLASS[a.scope] || 'city';
-    var statusLabel = STATUS_LABELS[a.status] || a.status;
-    var statusCls = STATUS_CLASS[a.status] || 'active';
+    var statusLabel = STATUS_LABELS[a.status] || '未知';
+    var statusCls = STATUS_CLASS[a.status] || '';
     var timeStr = a.publishTime ? a.publishTime.substring(0, 10) + ' ' + a.publishTime.substring(11, 16) : '';
     var attachBadge = a.attachments && a.attachments.length > 0 ? ' 📎' + a.attachments.length : '';
     var canOp = canOperate(a);
@@ -748,10 +770,7 @@ function loadAnnouncements() {
     html += '<td class="col-time">' + timeStr + '</td>';
     html += '<td onclick="event.stopPropagation();">';
     if (canOp) {
-      // 已过期公告不允许编辑，仅可删除
-      if (a.status !== 'expired') {
-        html += '<button class="btn-xs btn-xs-outline" onclick="openEditModal(\'' + a.id + '\')">编辑</button> ';
-      }
+      html += '<button class="btn-xs btn-xs-outline" onclick="openEditModal(\'' + a.id + '\')">编辑</button> ';
       html += '<button class="btn-xs btn-xs-danger" onclick="openDeleteModal(\'' + a.id + '\')">删除</button>';
     } else {
       html += '<span class="btn-xs btn-xs-ghost">无权操作</span>';
@@ -988,7 +1007,7 @@ function updateSchedHint() {
   var date = document.getElementById('schedDate').value;
   var time = document.getElementById('schedTime').value || '09:00';
   if (date) {
-    document.getElementById('schedHint').textContent = '公告将于 ' + date + ' ' + time + ' 自动发布，届时状态由「定时待发」变更为「生效中」。';
+    document.getElementById('schedHint').textContent = '公告将于 ' + date + ' ' + time + ' 自动发布，届时状态由「定时待发」变更为「已发布」。';
   }
 }
 
@@ -1004,7 +1023,7 @@ function submitAnnouncement() {
 
   var publishType = document.getElementById('annPublishType').value;
   var now = new Date();
-  var publishTime, status, expireTime;
+  var publishTime, status;
 
   if (publishType === 'scheduled') {
     var sDate = document.getElementById('schedDate').value;
@@ -1012,16 +1031,9 @@ function submitAnnouncement() {
     if (!sDate) { showToast('请选择定时发布日期', 'warning'); return; }
     publishTime = sDate + ' ' + sTime;
     status = 'scheduled';
-    var schedDt = new Date(sDate + 'T' + sTime);
-    var expDt = new Date(schedDt);
-    expDt.setDate(expDt.getDate() + 30);
-    expireTime = expDt.toISOString().replace('T', ' ').substring(0, 16);
   } else {
     publishTime = now.toISOString().replace('T', ' ').substring(0, 16);
     status = 'active';
-    var expDt2 = new Date(now);
-    expDt2.setDate(expDt2.getDate() + 30);
-    expireTime = expDt2.toISOString().replace('T', ' ').substring(0, 16);
   }
 
   var isPinned = document.getElementById('annPinned').value === 'true';
@@ -1035,7 +1047,6 @@ function submitAnnouncement() {
         all[i].isPinned = isPinned;
         if (all[i].status !== 'active' || publishType === 'scheduled') {
           all[i].publishTime = publishTime;
-          all[i].expireTime = expireTime;
           all[i].status = status;
         }
         break;
@@ -1057,7 +1068,6 @@ function submitAnnouncement() {
       publisherOrgId: userOrg.orgId || '',
       isPinned: isPinned,
       publishTime: publishTime,
-      expireTime: expireTime,
       status: status,
       attachments: pendingFiles.slice()
     };

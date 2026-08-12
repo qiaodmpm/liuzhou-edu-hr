@@ -1326,7 +1326,7 @@ function renderLaborTable() {
 function renderAttachments() {
   var r = currentRecord;
   var atts = r.attachments || [];
-  if (atts.length === 0) return '';
+  if (atts.length === 0 && !r.hrApprovalAttachment) return '';
 
   var h = '<div class="card"><div class="card-header">附件材料</div><div class="card-body">';
   atts.forEach(function(a) {
@@ -1337,6 +1337,14 @@ function renderAttachments() {
     h += '<button class="btn btn-outline btn-sm" style="margin-left:4px;" onclick="showToast(\'下载：' + escapeHtml(a.name) + '（模拟）\')">下载</button>';
     h += '</div>';
   });
+  if (r.hrApprovalAttachment) {
+    h += '<div class="attachment-item" style="border-left:3px solid var(--success)">';
+    h += '<span class="att-name">📄 ' + escapeHtml(r.hrApprovalAttachment.name) + '</span>';
+    h += '<span class="att-size">' + formatSize(r.hrApprovalAttachment.size) + '</span>';
+    h += '<button class="btn btn-outline btn-sm" onclick="showToast(\'预览：' + escapeHtml(r.hrApprovalAttachment.name) + '（模拟）\')">预览</button>';
+    h += '<button class="btn btn-outline btn-sm" style="margin-left:4px;" onclick="showToast(\'下载：' + escapeHtml(r.hrApprovalAttachment.name) + '（模拟）\')">下载</button>';
+    h += '</div>';
+  }
   h += '</div></div>';
   return h;
 }

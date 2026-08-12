@@ -2810,7 +2810,7 @@ function downloadMockFile(subId, type) {
   var sub = SUBMISSIONS.find(function(s) { return s.id === subId; });
   var fileName = subId + '_' + (type === 'attachment' ? (sub && sub.staffingType === 'career' ? '附件2' : '附件9') : '编办确认材料') + '.txt';
   var content = '这是 ' + subId + ' 的' + (type === 'attachment' ? '附件' : '编办确认材料') + '文件（模拟下载）\n';
-  content += '申报单位：' + (sub ? sub.orgName : '—') + '\n';
+  content += '单位名称：' + (sub ? sub.orgName : '—') + '\n';
   content += '生成时间：' + new Date().toISOString().slice(0, 19).replace('T', ' ') + '\n';
   var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   var url = URL.createObjectURL(blob);
@@ -2834,7 +2834,7 @@ function exportSingleRecord(id) {
 
   if (s.staffingType === 'career') {
     // 事业编 — 附件2 格式
-    var csv = '﻿申报编号,单位名称,核定编制数,实有在编人数,未使用计划数,申请总数,调动,公开招聘,自主招聘,中高级人才招聘,引进高层次人才,其他,状态,提交时间\n';
+    var csv = '﻿申报编号,单位名称,事业编核定数,实有在编人数,未使用计划数,申请总数,调动,公开招聘,自主招聘,中高级人才招聘,引进高层次人才,其他,状态,提交时间\n';
     csv += [
       s.id,
       s.orgName,
@@ -2932,8 +2932,8 @@ function openExportModal(batchId, mode) {
   c += '<table style="font-size:12px;min-width:1000px;">';
   c += '<thead><tr style="background:#F8FAFC;">';
   c += '<th style="width:32px;text-align:center;"><input type="checkbox" id="expSelectAll" onchange="toggleExportSelectAll(this)" style="cursor:pointer;"></th>';
-  c += '<th>申报编号</th><th>编制类型</th><th>申请单位</th><th>所属区域</th>';
-  c += '<th style="text-align:right;">核定编制数</th><th style="text-align:right;">实有在编人数</th>';
+  c += '<th>申报编号</th><th>编制类型</th><th>单位名称</th><th>所属区域</th>';
+  c += '<th style="text-align:right;">事业编核定数</th><th style="text-align:right;">实有在编人数</th>';
   c += '<th style="text-align:right;">控制数核定数</th><th style="text-align:right;">实有控制数人数</th>';
   c += '<th style="text-align:right;">申请数</th><th>状态</th><th>提交时间</th>';
   c += '</tr></thead><tbody id="expTableBody">';
@@ -3059,7 +3059,7 @@ function doExportChecked(batchId, mode) {
 
   var subs = SUBMISSIONS.filter(function(s) { return ids.indexOf(s.id) !== -1; });
 
-  var csv = '﻿申报编号,编制类型,申请单位,所属区域,核定编制数,实有在编人数,控制数核定数,实有控制数人数,申请数,状态,提交时间\n';
+  var csv = '﻿申报编号,编制类型,单位名称,所属区域,事业编核定数,实有在编人数,控制数核定数,实有控制数人数,申请数,状态,提交时间\n';
   subs.forEach(function(s) {
     var useCount = s.useForms ? Object.values(s.useForms).reduce(function(a,b){return a+(b||0);},0) : 0;
     csv += s.id + ',' + (STAFFING_TYPE_MAP[s.staffingType] || '') + ',' + s.orgName + ',' + (s.district || '') + ',' + (s.totalStaff || '') + ',' + (s.currentStaff || '') + ',' + (s.controlNum || '') + ',' + (s.controlActual || '') + ',' + useCount + ',' + (STATUS_MAP[s.status] || '') + ',' + (s.submitDate || '') + '\n';
@@ -3141,7 +3141,7 @@ function renderSubmissionsTable(subs) {
     allBatches.forEach(function(b) { h += '<option>' + b + '</option>'; });
     h += '</select>';
   } else {
-    h += '<label>申请单位</label>';
+    h += '<label>单位名称</label>';
     h += '<div class="searchable-select" id="orgSearchableSelect">';
     h += '<input class="ss-input" id="ssOrgInput" placeholder="搜索单位..." autocomplete="off" value="' + (orgNameFilter || '').replace(/"/g, '&quot;') + '" onfocus="showOrgDropdown()" oninput="filterOrgDropdown()" onkeydown="handleOrgKeydown(event)">';
     h += '<span class="ss-clear' + (orgNameFilter ? ' visible' : '') + '" id="ssClear" onclick="event.stopPropagation();clearOrgFilter()">×</span>';
@@ -3158,7 +3158,7 @@ function renderSubmissionsTable(subs) {
   h += '<th>申报编号</th>';
   h += '<th>申报批次</th>';
   h += '<th>编制类型</th>';
-  if (!isSchoolView) h += '<th>申请单位</th><th>所属区域</th>';
+  if (!isSchoolView) h += '<th>单位名称</th><th>所属区域</th>';
   h += '<th>事业编核定数</th><th>实有在编人数</th><th>控制数核定数</th><th>实有控制数人数</th>';
   h += '<th>申请数</th>';
   h += '<th>统一公开招聘</th><th>单位自主实施招聘</th><th>中高级人才招聘</th><th>引进高层次人才</th><th>调动</th><th>其他</th>';

@@ -202,9 +202,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
       <h1>菜单管理</h1>
     </div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="resetToDefault()">↺ 重置为默认</button>
       <button class="btn btn-outline btn-sm" onclick="openAddMenuModal()">+ 新增菜单</button>
-      <button class="btn btn-outline btn-sm" id="saveBtn" onclick="saveConfig()" disabled>✓ 已保存</button>
     </div>
   </div>
   <div id="menuGroups"></div>
@@ -353,24 +351,6 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
   </div>
 </div>
 
-<!-- Reset Confirm Modal -->
-<div class="modal-overlay" id="resetModal">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <h3>确认重置</h3>
-      <button class="modal-close" onclick="closeResetModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="confirm-msg">确定将所有菜单恢复为默认配置？</p>
-      <p class="confirm-sub">当前已做的修改将全部丢失。</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeResetModal()">取消</button>
-      <button class="btn btn-xs-danger" style="padding:8px 18px;font-size:13px;" onclick="confirmReset()">确认重置</button>
-    </div>
-  </div>
-</div>
-
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -504,21 +484,10 @@ function loadConfig() {
   draftConfig = JSON.parse(JSON.stringify(savedConfig));
 }
 
-function isDirty() {
-  return JSON.stringify(draftConfig) !== JSON.stringify(savedConfig);
-}
-
-function updateSaveBtn() {
-  var btn = document.getElementById('saveBtn');
-  if (isDirty()) {
-    btn.textContent = '💾 保存配置';
-    btn.className = 'btn btn-primary btn-sm';
-    btn.disabled = false;
-  } else {
-    btn.textContent = '✓ 已保存';
-    btn.className = 'btn btn-outline btn-sm';
-    btn.disabled = true;
-  }
+// 所有操作确认后立即持久化到 localStorage
+function persistConfig() {
+  savedConfig = JSON.parse(JSON.stringify(draftConfig));
+  localStorage.setItem('menu_config', JSON.stringify(savedConfig));
 }
 
 // ========== RENDER ==========
@@ -618,9 +587,8 @@ function renderAll() {
     html += '</div></div>';
   }
 
-  document.getElementById('menuGroups').innerHTML = html || '<div style="text-align:center;padding:60px;color:var(--text-light);background:#fff;border-radius:var(--radius-lg);border:1px solid var(--border);">暂无菜单，请点击"新增菜单"或"重置为默认"</div>';
+  document.getElementById('menuGroups').innerHTML = html || '<div style="text-align:center;padding:60px;color:var(--text-light);background:#fff;border-radius:var(--radius-lg);border:1px solid var(--border);">暂无菜单，请点击"新增菜单"</div>';
   document.getElementById('menuCount').textContent = '共 ' + totalCount + ' 个菜单项 · ' + draftConfig.groupOrder.length + ' 个分组';
-  updateSaveBtn();
 }
 
 // ========== GROUP OPERATIONS ==========
@@ -629,6 +597,7 @@ function moveGroupUp(idx) {
   var tmp = draftConfig.groupOrder[idx];
   draftConfig.groupOrder[idx] = draftConfig.groupOrder[idx - 1];
   draftConfig.groupOrder[idx - 1] = tmp;
+  persistConfig();
   renderAll();
 }
 
@@ -637,6 +606,7 @@ function moveGroupDown(idx) {
   var tmp = draftConfig.groupOrder[idx];
   draftConfig.groupOrder[idx] = draftConfig.groupOrder[idx + 1];
   draftConfig.groupOrder[idx + 1] = tmp;
+  persistConfig();
   renderAll();
 }
 
@@ -660,6 +630,7 @@ function addGroup() {
   draftConfig.groupOrder.push(name);
 
   closeGroupModal();
+  persistConfig();
   showToast('分组「' + name + '」已添加', 'success');
   if (typeof writeLog === 'function') writeLog({ module: 'menu', actionType: 'create', targetType: 'group', targetName: name, detail: '新增菜单分组', result: 'success' });
   renderAll();
@@ -701,6 +672,7 @@ function saveEditGroup() {
   }
 
   closeEditGroupModal();
+  persistConfig();
   showToast('分组已更名为「' + newName + '」', 'success');
   if (typeof writeLog === 'function') writeLog({ module: 'menu', actionType: 'update', targetType: 'group', targetName: newName, detail: '重命名菜单分组：' + editingGroupName + ' → ' + newName, result: 'success' });
   renderAll();
@@ -732,6 +704,7 @@ function confirmDeleteGroup() {
   draftConfig.menus = draftConfig.menus.filter(function(m) { return (m.group || '') !== gname; });
 
   closeDeleteGroupModal();
+  persistConfig();
   showToast('分组「' + gname + '」及组内菜单已删除', 'success');
   if (typeof writeLog === 'function') writeLog({ module: 'menu', actionType: 'delete', targetType: 'group', targetName: gname, detail: '删除菜单分组及组内所有菜单', result: 'success' });
   renderAll();
@@ -776,6 +749,7 @@ function confirmToggleStatus() {
   }
 
   closeStatusModal();
+  persistConfig();
   showToast('菜单状态已更新', 'success');
   if (typeof writeLog === 'function') writeLog({ module: 'menu', actionType: 'update', targetType: 'menu', targetId: pendingStatusMenuId, detail: '切换菜单启停状态', result: 'success' });
   renderAll();
@@ -805,6 +779,7 @@ function moveItemUp(id) {
   var tmpOrder = menu.order;
   menu.order = prev.order;
   prev.order = tmpOrder;
+  persistConfig();
   renderAll();
 }
 
@@ -830,6 +805,7 @@ function moveItemDown(id) {
   var tmpOrder = menu.order;
   menu.order = next.order;
   next.order = tmpOrder;
+  persistConfig();
   renderAll();
 }
 
@@ -950,7 +926,7 @@ function saveMenuItem() {
     showToast('菜单「' + label + '」已添加', 'success');
   }
 
-
+  persistConfig();
   closeMenuModal();
   renderAll();
 
@@ -985,90 +961,9 @@ function confirmDeleteMenu() {
   });
 
   closeDeleteModal();
+  persistConfig();
   showToast('菜单「' + label + '」已删除', 'success');
   if (typeof writeLog === 'function') writeLog({ module: 'menu', actionType: 'delete', targetType: 'menu', targetId: deletingMenuId, targetName: label, detail: '删除菜单', result: 'success' });
-  renderAll();
-}
-
-// ========== RESET ==========
-function resetToDefault() {
-  document.getElementById('resetModal').classList.add('show');
-}
-
-function closeResetModal() {
-  document.getElementById('resetModal').classList.remove('show');
-}
-
-function confirmReset() {
-  draftConfig = JSON.parse(JSON.stringify(getDefaultConfig()));
-
-  closeResetModal();
-  showToast('已重置为默认配置，请点击"保存配置"生效', 'success');
-  if (typeof writeLog === 'function') writeLog({ module: 'menu', actionType: 'update', targetType: 'menu', detail: '重置菜单为默认配置（未保存）', result: 'success' });
-  renderAll();
-}
-
-// ========== SAVE WITH VALIDATION ==========
-function saveConfig() {
-  // 1. Check id uniqueness
-  var idSet = {};
-  for (var i = 0; i < draftConfig.menus.length; i++) {
-    var mid = draftConfig.menus[i].id;
-    if (idSet[mid]) { showToast('菜单标识「' + mid + '」重复，请修复后再保存', 'error'); return; }
-    idSet[mid] = true;
-  }
-  // 2. Check order uniqueness within each group + auto-fix
-  var groupOrders = {};
-  for (var j = 0; j < draftConfig.menus.length; j++) {
-    var g = draftConfig.menus[j].group || '';
-    if (!groupOrders[g]) groupOrders[g] = [];
-    groupOrders[g].push(draftConfig.menus[j]);
-  }
-  var fixed = false;
-  for (var gk in groupOrders) {
-    var items = groupOrders[gk];
-    items.sort(function(a, b) { return a.order - b.order; });
-    var seen = {};
-    for (var k = 0; k < items.length; k++) {
-      if (seen[items[k].order]) {
-        // Auto renumber with gaps of 10
-        for (var r = 0; r < items.length; r++) {
-          items[r].order = (r + 1) * 10;
-        }
-        fixed = true;
-        break;
-      }
-      seen[items[k].order] = true;
-    }
-  }
-  // 3. Clean groupOrder - remove non-existent groups
-  var actualGroups = {};
-  for (var m = 0; m < draftConfig.menus.length; m++) {
-    actualGroups[draftConfig.menus[m].group || ''] = true;
-  }
-  draftConfig.groupOrder = draftConfig.groupOrder.filter(function(g) { return actualGroups[g]; });
-  // Add missing groups to end
-  for (var ag in actualGroups) {
-    if (draftConfig.groupOrder.indexOf(ag) === -1 && ag !== '') {
-      draftConfig.groupOrder.push(ag);
-    }
-  }
-  // Ensure '' is first in groupOrder
-  if (draftConfig.groupOrder.indexOf('') === 0) {
-    // Already first, fine
-  } else if (draftConfig.groupOrder.indexOf('') > 0) {
-    draftConfig.groupOrder = draftConfig.groupOrder.filter(function(g) { return g !== ''; });
-    draftConfig.groupOrder.unshift('');
-  }
-
-  // Persist to localStorage
-  savedConfig = JSON.parse(JSON.stringify(draftConfig));
-  localStorage.setItem('menu_config', JSON.stringify(savedConfig));
-
-  var msg = '菜单配置已保存';
-  if (fixed) msg += '（排序号已自动修复）';
-  showToast(msg, 'success');
-  if (typeof writeLog === 'function') writeLog({ module: 'menu', actionType: 'update', targetType: 'menu', detail: '保存菜单配置', result: 'success' });
   renderAll();
 }
 
@@ -1078,12 +973,9 @@ function renderSidebar() {
 }
 
 function sidebarClick(id) {
-  if (id !== 'menuMgr' && isDirty()) {
-    if (!confirm('您有未保存的修改，确定离开吗？')) return;
-  }
   var ROUTES = {
     account: 'account-management.html', org: 'org-management.html',
-    perm: 'perm-management.html', log: 'log-management.html', menuMgr: 'menu-management.html', announcement: 'announcement-management.html',
+    perm: 'perm-management.html', log: 'log-management.html', menuMgr: 'menu-management.html', announcement: 'announcement-management.html', dict: 'dict-management.html',
     'contract-entry': 'contract-entry-list-admin.html', 'contract-exit': 'contract-exit-list-admin.html'
   };
   var dest = ROUTES[id];
@@ -1170,14 +1062,6 @@ function init() {
   renderIconPicker(); // Prepare icon picker
   renderAll();
 }
-
-// Unsaved changes warning on page leave
-window.addEventListener('beforeunload', function(e) {
-  if (isDirty()) {
-    e.preventDefault();
-    e.returnValue = '您有未保存的修改，确定离开吗？';
-  }
-});
 
 // Close modals on overlay click
 document.addEventListener('click', function(e) {

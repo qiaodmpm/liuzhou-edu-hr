@@ -52,14 +52,15 @@
         { id: 'menuMgr', label: '菜单管理', icon: 'file', group: '系统设置', order: 3, route: 'menu-management.html', status: 'active' },
         { id: 'perm', label: '角色权限', icon: 'key', group: '系统设置', order: 4, route: 'perm-management.html', status: 'active' },
         { id: 'log', label: '操作日志', icon: 'list', group: '系统设置', order: 5, route: 'log-management.html', status: 'active' },
-        { id: 'announcement', label: '公告管理', icon: 'file', group: '系统设置', order: 6, route: 'announcement-management.html', status: 'active' }
+        { id: 'announcement', label: '公告管理', icon: 'file', group: '系统设置', order: 6, route: 'announcement-management.html', status: 'active' },
+        { id: 'dict', label: '字典管理', icon: 'list', group: '系统设置', order: 7, route: 'dict-management.html', status: 'active' }
       ]
     };
   }
 
   // ===== 默认角色权限 =====
   var DEFAULT_ROLE_PERMS = {
-    system: ['account', 'org', 'menuMgr', 'perm', 'log', 'announcement'],
+    system: ['account', 'org', 'menuMgr', 'perm', 'log', 'announcement', 'dict'],
     city: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'perm', 'log', 'announcement'],
     district: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'ethics', 'account', 'org', 'announcement'],
     school: ['workbench', 'ledger', 'staffing', 'entry', 'exit', 'postset', 'promote', 'recruit', 'employ', 'contract-entry', 'contract-exit', 'retire', 'account', 'org', 'announcement'],
@@ -99,6 +100,19 @@
     return cfg;
   }
 
+  /** 迁移：补全字典管理菜单项（兼容旧版持久化配置） */
+  function ensureDictMenu(cfg) {
+    if (!cfg || !cfg.menus) return cfg;
+    var has = false;
+    for (var i = 0; i < cfg.menus.length; i++) {
+      if (cfg.menus[i].id === 'dict') { has = true; break; }
+    }
+    if (!has) {
+      cfg.menus.push({ id: 'dict', label: '字典管理', icon: 'list', group: '系统设置', order: 7, route: 'dict-management.html', status: 'active' });
+    }
+    return cfg;
+  }
+
   /**
    * 读取菜单配置（menu_config），不存在时返回默认；自动迁移补全编外教师管理与公告管理
    */
@@ -107,10 +121,10 @@
       var raw = localStorage.getItem('menu_config');
       if (raw) {
         var cfg = JSON.parse(raw);
-        if (cfg && cfg.menus && cfg.groupOrder) return ensureAnnouncementMenu(ensureContractMenus(cfg));
+        if (cfg && cfg.menus && cfg.groupOrder) return ensureDictMenu(ensureAnnouncementMenu(ensureContractMenus(cfg)));
       }
     } catch (e) {}
-    return ensureAnnouncementMenu(ensureContractMenus(getDefaultConfig()));
+    return ensureDictMenu(ensureAnnouncementMenu(ensureContractMenus(getDefaultConfig())));
   }
 
   /**
@@ -131,6 +145,14 @@
   function ensureAnnouncementPerm(role, ids) {
     if (role !== 'teacher' && ids && ids.indexOf('announcement') === -1) {
       ids.push('announcement');
+    }
+    return ids;
+  }
+
+  /** 迁移：系统管理员角色补全字典管理菜单权限（兼容旧版持久化权限） */
+  function ensureDictPerm(role, ids) {
+    if (role === 'system' && ids && ids.indexOf('dict') === -1) {
+      ids.push('dict');
     }
     return ids;
   }
@@ -165,14 +187,14 @@
 	          }
 	                    // System role: force system-settings-only menus
           if (role === "system") {
-            var sysOnly = ["account","org","menuMgr","perm","log"];
+            var sysOnly = ["account","org","menuMgr","perm","log","dict"];
             ids = ids.filter(function(id) { return sysOnly.indexOf(id) !== -1; });
           }
-          return ensureAnnouncementPerm(role, ensureContractPerms(role, ids));
+          return ensureDictPerm(role, ensureAnnouncementPerm(role, ensureContractPerms(role, ids)));
 	        }
 	      }
 	    } catch (e) {}
-	    return ensureAnnouncementPerm(role, ensureContractPerms(role, (DEFAULT_ROLE_PERMS[role] || []).slice()));
+	    return ensureDictPerm(role, ensureAnnouncementPerm(role, ensureContractPerms(role, (DEFAULT_ROLE_PERMS[role] || []).slice())));
 	  }function getMenusForRole(role) {
     var cfg = getMenuConfig();
     var permittedIds = getRolePermittedMenuIds(role);

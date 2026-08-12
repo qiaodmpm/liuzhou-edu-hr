@@ -89,8 +89,29 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .filter-tab .count { font-size: 10px; margin-left: 4px; opacity: 0.7; }
 
 /* School switcher */
-.school-switcher { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.school-switcher { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
 .school-switcher select { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; }
+	/* Filter dropdowns container */
+	.filter-dropdowns { margin-left: auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+	.filter-dropdown { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+	.filter-dropdown select { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; }
+	/* Searchable select */
+	.searchable-select { position: relative; display: inline-flex; align-items: center; }
+	.searchable-input { width: 180px; padding: 6px 28px 6px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: #fff; color: var(--text); outline: none; transition: var(--transition); }
+	.searchable-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.12); }
+	.searchable-input::placeholder { color: var(--text-light); }
+	.searchable-arrow { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-light); font-size: 10px; transition: transform 0.15s; }
+	.searchable-select.open .searchable-arrow { transform: translateY(-50%) rotate(180deg); }
+	.searchable-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; max-height: 240px; overflow-y: auto; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: var(--shadow); z-index: 50; }
+	.searchable-select.open .searchable-dropdown { display: block; }
+	.searchable-option { padding: 7px 12px; font-size: 12px; cursor: pointer; color: var(--text); transition: background 0.1s; }
+	.searchable-option:hover { background: var(--primary-light); color: var(--primary); }
+	.searchable-option.selected { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+	.searchable-option .highlight { color: var(--accent); font-weight: 600; }
+	.searchable-no-result { padding: 12px; font-size: 12px; color: var(--text-light); text-align: center; }
+	.searchable-clear { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-light); font-size: 12px; display: none; line-height: 1; padding: 2px 4px; border-radius: 50%; }
+	.searchable-clear:hover { color: var(--text-secondary); background: var(--gray-bg); }
+	.searchable-clear.visible { display: block; }
 
 /* Table */
 .list-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
@@ -241,6 +262,8 @@ var SCHOOL_LIST = ['柳州市第八中学', '鱼峰区实验小学', '柳州高�
 var currentRole = 'school';
 var schoolName = '柳州市第八中学';
 var currentFilter = 'all';
+var currentOrgLevelFilter = 'all';
+var currentFundTypeFilter = 'all';
 
 // DEMO
 var DEMO_RECORDS = [
@@ -323,6 +346,12 @@ function sidebarClick(el, id) {
 
 function getFilteredRecords() {
   var records = loadRecords().filter(function(r) { return r.schoolName === schoolName; });
+  if (currentOrgLevelFilter !== 'all') {
+    records = records.filter(function(r) { return r.orgLevel === currentOrgLevelFilter; });
+  }
+  if (currentFundTypeFilter !== 'all') {
+    records = records.filter(function(r) { return r.fundType === currentFundTypeFilter; });
+  }
   if (currentFilter === 'reviewing') return records.filter(function(r) { return r.status === 'first_review' || r.status === 'second_review'; });
   if (currentFilter === 'passed') return records.filter(function(r) { return r.status === 'first_approved' || r.status === 'completed'; });
   if (currentFilter === 'rejected') return records.filter(function(r) { return r.status === 'first_rejected'; });
@@ -358,10 +387,28 @@ function renderFilterBar() {
     h += '<button class="filter-tab' + (currentFilter===t.key?' active':'') + '" onclick="setFilter(\'' + t.key + '\')">' + t.label + '<span class="count">(' + t.count + ')</span></button>';
   });
   h += '</div>';
-  h += '<div class="school-switcher"><span>当前学校：</span><select onchange="schoolName=this.value;renderAll()">';
-  SCHOOL_LIST.forEach(function(s) { h += '<option value="' + s + '"' + (schoolName===s?' selected':'') + '>' + s + '</option>'; });
+  h += '<div class="filter-dropdowns">';
+  h += '<div class="school-switcher"><span>当前学校：</span><div class="searchable-select" id="schoolSearch">';
+  h += '<input type="text" class="searchable-input" placeholder="搜索学校..." value="' + schoolName + '" autocomplete="off">';
+  h += '<span class="searchable-arrow">▼</span>';
+  h += '<span class="searchable-clear visible" data-clear>&times;</span>';
+  h += '<div class="searchable-dropdown"></div>';
+  h += '</div></div>';
+  // 单位级别
+  var orgLevelList = ['副厅级','正处级','副处级','正科级','副科级','其他未定级'];
+  h += '<div class="school-switcher"><span>单位级别：</span><select onchange="currentOrgLevelFilter=this.value;renderAll()">';
+  h += '<option value="all"' + (currentOrgLevelFilter==='all'?' selected':'') + '>全部级别</option>';
+  orgLevelList.forEach(function(l) { h += '<option value="' + l + '"' + (currentOrgLevelFilter===l?' selected':'') + '>' + l + '</option>'; });
   h += '</select></div>';
+  // 经费类型
+  var fundTypeList = ['全额拨款','差额拨款','自收自支'];
+  h += '<div class="school-switcher"><span>经费类型：</span><select onchange="currentFundTypeFilter=this.value;renderAll()">';
+  h += '<option value="all"' + (currentFundTypeFilter==='all'?' selected':'') + '>全部类型</option>';
+  fundTypeList.forEach(function(t) { h += '<option value="' + t + '"' + (currentFundTypeFilter===t?' selected':'') + '>' + t + '</option>'; });
+  h += '</select></div>';
+  h += '</div>';
   document.getElementById('filterBar').innerHTML = h;
+  initSchoolSearch('school');
 }
 
 function renderTable() {
@@ -377,7 +424,7 @@ function renderTable() {
   h += '<th>管理岗</th><th>管理岗比</th>';
   h += '<th>专技岗</th><th>专技岗比</th>';
   h += '<th>工勤岗</th><th>工勤岗比</th>';
-  h += '<th>附件</th><th>人社批复</th>';
+
   h += '<th>提交时间</th><th>状态</th><th>操作</th>';
   h += '</tr></thead><tbody>';
   records.forEach(function(r) {
@@ -400,20 +447,6 @@ function renderTable() {
     h += '<td class="col-pct">' + pct(r.profPosts||0, tp) + '%</td>';
     h += '<td class="col-num">' + (r.laborPosts||0) + '</td>';
     h += '<td class="col-pct">' + pct(r.laborPosts||0, tp) + '%</td>';
-    // Attachments
-    h += '<td>';
-    if (r.attachments && r.attachments.length > 0) {
-      r.attachments.forEach(function(f, fi) {
-        h += '<div><a class="file-link" onclick="showToast(\'预览：' + f.name + '（模拟）\')">' + (fi+1) + '.' + f.name + '</a></div>';
-      });
-    } else { h += '<span class="file-link none">无</span>'; }
-    h += '</td>';
-    // HR approval attachment
-    h += '<td>';
-    if (r.hrApprovalAttachment) {
-      h += '<a class="file-link" onclick="showToast(\'预览：' + r.hrApprovalAttachment.name + '（模拟）\')">' + r.hrApprovalAttachment.name + '</a>';
-    } else { h += '<span class="file-link none">—</span>'; }
-    h += '</td>';
     // Submit time
     h += '<td style="font-size:12px;color:var(--text-secondary);">' + (r.submitTime ? r.submitTime.substring(0,10) : '—') + '</td>';
     // Status
@@ -526,6 +559,82 @@ function exportRecord(id) {
 }
 
 function renderAll() { renderFilterBar(); renderTable(); }
+
+function initSchoolSearch(type) {
+  var container = document.getElementById('schoolSearch');
+  if (!container) return;
+  var input = container.querySelector('.searchable-input');
+  var dropdown = container.querySelector('.searchable-dropdown');
+  var clearBtn = container.querySelector('.searchable-clear');
+
+  var allOptions = (type === 'admin') ? ['全部学校'].concat(SCHOOL_LIST.slice()) : SCHOOL_LIST.slice();
+
+  function highlightMatch(text, search) {
+    if (!search) return text;
+    var idx = text.toLowerCase().indexOf(search.toLowerCase());
+    if (idx === -1) return text;
+    return text.substring(0, idx) + '<span class="highlight">' + text.substring(idx, idx + search.length) + '</span>' + text.substring(idx + search.length);
+  }
+
+  function renderDropdown(search) {
+    var s = (search || '').toLowerCase();
+    var filtered = allOptions.filter(function(name) {
+      if (!s) return true;
+      return name.toLowerCase().indexOf(s) !== -1;
+    });
+    var h = '';
+    if (filtered.length === 0) {
+      h = '<div class="searchable-no-result">无匹配学校</div>';
+    } else {
+      filtered.forEach(function(name) {
+        var isSelected = (type === 'admin' && name === '全部学校' && currentSchoolFilter === 'all') ||
+                         (type === 'admin' && name === currentSchoolFilter) ||
+                         (type === 'school' && name === schoolName);
+        h += '<div class="searchable-option' + (isSelected ? ' selected' : '') + '" data-value="' + name + '">' + highlightMatch(name, s) + '</div>';
+      });
+    }
+    dropdown.innerHTML = h;
+    dropdown.querySelectorAll('.searchable-option').forEach(function(opt) {
+      opt.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        var val = this.getAttribute('data-value');
+        if (type === 'admin') {
+          if (val === '全部学校') { currentSchoolFilter = 'all'; }
+          else { currentSchoolFilter = val; }
+        } else {
+          schoolName = val;
+        }
+        closeDropdown();
+        renderAll();
+      });
+    });
+  }
+
+  function openDropdown() { container.classList.add('open'); dropdown.style.display = 'block'; renderDropdown(input.value); }
+  function closeDropdown() { container.classList.remove('open'); dropdown.style.display = 'none'; }
+
+  input.addEventListener('focus', function() { openDropdown(); });
+  input.addEventListener('input', function() { openDropdown(); });
+  input.addEventListener('click', function() { openDropdown(); });
+
+  if (clearBtn) {
+    clearBtn.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      input.value = '';
+      if (type === 'admin') { currentSchoolFilter = 'all'; }
+      openDropdown();
+      renderAll();
+    });
+  }
+
+  document.addEventListener('mousedown', function(e) {
+    if (!container.contains(e.target)) { closeDropdown(); }
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeDropdown(); input.blur(); }
+  });
+}
 
 function init() {
   markReminderRead();
