@@ -2551,8 +2551,8 @@ function showEditBatchModal(id) {
   c += '</div>';
 
   // 申报截止日期
-  c += '<div class="form-group"><label>申报截止日期 <span style="color:var(--danger);">*</span></label><input type="date" id="editBatchDeadline" value="' + b.deadline + '"' + (isClosed ? ' disabled' : '') + ' required>';
-  if (isClosed) c += '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">批次已结束，不允许修改</div>';
+  c += '<div class="form-group"><label>申报截止日期 <span style="color:var(--danger);">*</span></label><input type="date" id="editBatchDeadline" value="' + b.deadline + '"' + (isClosed ? ' min="' + b.deadline + '"' : '') + ' required>';
+  if (isClosed) c += '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">批次已结束，截止日期仅可往后延长，不可提前</div>';
   c += '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">截止到当天 23:59:59</div>';
   c += '</div>';
 
@@ -2579,6 +2579,7 @@ function saveEditBatch(id) {
   if (!nameEl || !nameEl.value.trim()) { showToast('请输入批次名称'); return; }
   if (!deadlineEl || !deadlineEl.value) { showToast('请选择申报截止日期'); return; }
   if (startEl && startEl.value && deadlineEl.value && startEl.value > deadlineEl.value) { showToast('开始日期不能晚于截止日期'); return; }
+  if (b.status === '已结束' && b.deadline && deadlineEl.value < b.deadline) { showToast('已结束批次截止日期仅可往后延长，不可提前'); return; }
   b.name = nameEl.value.trim();
   if (startEl && !startEl.disabled) {
     b.startDate = startEl.value;
