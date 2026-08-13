@@ -2107,6 +2107,11 @@ function formatScopeText(s) {
   return '—';
 }
 
+// 批次类型文案（只读展示用）：定向批次 / 自主申报批次
+function getBatchTypeText(b) {
+  return (b && b.type === 'auto') ? '自主申报批次' : '定向批次';
+}
+
 // ===== BATCH ACTIONS =====
 function showBatchDetail(id) {
   var pool = currentRole === 'school' ? getSchoolBatches() : getAllBatches();
@@ -2125,13 +2130,13 @@ function showBatchDetail(id) {
   c += '<fieldset class="modal-fieldset"><legend>基本信息</legend>';
   c += '<div class="detail-grid">';
   c += '<div class="detail-item"><span class="detail-label">批次编号</span><span class="detail-value">' + b.id + '</span></div>';
+  c += '<div class="detail-item"><span class="detail-label">批次类型</span><span class="detail-value">' + getBatchTypeText(b) + '</span></div>';
   c += '<div class="detail-item"><span class="detail-label">批次名称</span><span class="detail-value">' + b.name + '</span></div>';
   c += '<div class="detail-item"><span class="detail-label">年度</span><span class="detail-value">' + b.year + '</span></div>';
   c += '<div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span class="batch-card-status ' + statusCls + '">' + b.status + '</span></span></div>';
   var scopeText = formatScopeText(b.scope);
   c += '<div class="detail-item"><span class="detail-label">适用范围</span><span class="detail-value" title="' + scopeText.replace(/"/g, '&quot;') + '">' + scopeText + '</span></div>';
   if (isAuto) {
-    c += '<div class="detail-item"><span class="detail-label">类型</span><span class="detail-value" style="color:#059669;">自主申报批次</span></div>';
     c += '<div class="detail-item"><span class="detail-label">申报期限</span><span class="detail-value">' + (b.startDate || b.year + '-01-01') + ' ~ ' + (b.deadline || b.year + '-12-31') + '</span></div>';
     c += '<div class="detail-item span-2"><span class="detail-label">说明</span><span class="detail-value">学校可在全年任意时间自主发起申报，不受截止日期限制</span></div>';
   } else {
@@ -2222,6 +2227,7 @@ function showCreateBatchModal() {
 
   var c = '<div class="modal-header"><h3>新建批次</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body">';
+  c += '<div class="form-group"><label>批次类型</label><input value="定向批次" disabled style="background:#F8FAFC;color:var(--text-secondary);"><div style="font-size:11px;color:var(--text-light);margin-top:2px;">系统默认，不允许修改</div></div>';
   c += '<div class="form-group"><label>批次名称 <span style="color:var(--danger);">*</span></label><input id="batchName" placeholder="例：2026年度中小学聘用教师控制数使用计划（第三批）" maxlength="50" required><div style="font-size:11px;color:var(--text-light);margin-top:2px;">最多50字</div></div>';
   c += '<div class="form-group"><label>年度 <span style="color:var(--danger);">*</span></label><select id="batchYear"><option>2026</option><option>2027</option></select></div>';
   c += '<div class="form-group"><label>申报开始日期 <span style="color:var(--danger);">*</span></label><input type="date" id="batchStartDate" required><div style="font-size:11px;color:var(--text-light);margin-top:2px;">申报从当天 00:00:00 开始</div></div>';
@@ -2525,6 +2531,12 @@ function showEditBatchModal(id) {
 
   var c = '<div class="modal-header"><h3>编辑批次</h3><button class="modal-close" onclick="closeModal()">×</button></div>';
   c += '<div class="modal-body">';
+
+  // 批次编号 — readonly
+  c += '<div class="form-group"><label>批次编号</label><input value="' + b.id + '" disabled style="background:#F8FAFC;color:var(--text-secondary);"></div>';
+
+  // 批次类型 — readonly
+  c += '<div class="form-group"><label>批次类型</label><input value="' + getBatchTypeText(b) + '" disabled style="background:#F8FAFC;color:var(--text-secondary);"></div>';
 
   // 批次名称 — editable
   c += '<div class="form-group"><label>批次名称 <span style="color:var(--danger);">*</span></label><input id="editBatchName" value="' + b.name.replace(/"/g, '&quot;') + '" maxlength="50" required><div style="font-size:11px;color:var(--text-light);margin-top:2px;">最多50字</div></div>';
