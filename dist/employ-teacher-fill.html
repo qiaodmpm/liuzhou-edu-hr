@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拟聘教师个人信息填报 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.topbar { background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px; color: #fff; }
+.topbar .logo { width: 34px; height: 34px; background: rgba(255,255,255,0.18); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.topbar .title { font-size: 15px; font-weight: 600; letter-spacing: 1px; }
+.fill-main { max-width: 920px; margin: 0 auto; padding: 28px 16px 64px; }
+.fill-card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 28px 32px; }
+.fill-header { text-align: center; margin-bottom: 8px; }
+.fill-header h1 { font-size: 20px; font-weight: 700; }
+.fill-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.8; }
+.fill-banner { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin: 14px 0 18px; }
+.fill-banner.info { background: var(--primary-light); color: var(--primary); }
+.fill-banner.done { background: #D1FAE5; color: #065F46; }
+.fill-banner.warn { background: #FEF3C7; color: #92400E; }
+.fill-banner.edit { background: #E0F2FE; color: #0369A1; }
+.fill-title-row { background: var(--primary); color: #fff; font-size: 14px; font-weight: 600; letter-spacing: 2px; }
+.fill-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
+.fill-table td { border: 1px solid var(--border); padding: 7px 10px; vertical-align: middle; }
+.fill-lbl { width: 118px; background: #F8FAFC; color: var(--text-secondary); font-size: 12px; font-weight: 500; text-align: right; padding-right: 14px; white-space: nowrap; }
+.fill-val input[type=text], .fill-val input[type=month], .fill-val input[type=date], .fill-val input[type=tel], .fill-val select, .fill-val textarea { width: 100%; padding: 6px 8px; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; background: #fff; box-sizing: border-box; }
+.fill-val input:focus, .fill-val select:focus, .fill-val textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.fill-val textarea { resize: vertical; min-height: 40px; }
+.fill-val input[disabled], .fill-val select[disabled], .fill-val textarea[disabled] { background: #F8FAFC; color: var(--text); border-color: transparent; }
+.fill-auto { width: 100%; padding: 6px 8px; font-size: 13px; color: var(--text-secondary); background: #F8FAFC; border-radius: 4px; text-align: center; }
+.req { color: var(--danger); }
+.photo-cell { width: 150px; text-align: center; vertical-align: top; background: #FAFBFC; position: relative; overflow: hidden; padding: 0 !important; }
+.photo-head { padding: 8px 6px 4px; font-size: 12px; color: var(--text-secondary); }
+.photo-note { font-size: 10px; color: var(--text-light); margin-left: 2px; }
+.photo-wrap { position: absolute; left: 0; right: 0; top: 30px; bottom: 0; overflow: hidden; cursor: pointer; }
+.photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-upload-btn { display: inline-block; margin-top: 10px; padding: 5px 12px; font-size: 12px; color: var(--primary); background: var(--primary-light); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; }
+.photo-upload-btn:hover { background: #DBEAFE; }
+.photo-empty { padding-top: 8px; font-size: 11px; color: var(--text-light); }
+.title-att { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.title-att .att-btn { padding: 4px 10px; font-size: 12px; color: var(--primary); background: var(--primary-light); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; }
+.title-att .att-btn:hover { background: #DBEAFE; }
+.title-att .att-del { padding: 4px 10px; font-size: 12px; color: var(--danger); background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 4px; cursor: pointer; }
+.title-att .att-del:hover { background: #FEE2E2; }
+.title-att .att-has { font-size: 12px; color: var(--text-secondary); }
+.title-att .att-has a { color: var(--primary); text-decoration: none; }
+.title-att .att-has a:hover { text-decoration: underline; }
+.title-att .att-empty { font-size: 12px; color: var(--text-light); }
+.spouse-empty { font-size: 12px; color: var(--text-light); margin-right: 8px; }
+.rel-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.rel-table th { padding: 5px 6px; font-size: 11px; font-weight: 500; color: var(--text-secondary); text-align: center; border-bottom: 1px solid var(--border); background: #F8FAFC; }
+.rel-table td { padding: 4px; }
+.rel-table input { width: 100%; padding: 5px 6px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; box-sizing: border-box; }
+.rel-table input:focus { outline: none; border-color: var(--accent); }
+.rel-add { margin-top: 6px; padding: 5px 14px; font-size: 12px; color: var(--primary); border: 1px dashed var(--border); border-radius: 4px; background: transparent; cursor: pointer; font-family: inherit; }
+.rel-add:hover { background: var(--primary-light); }
+.rel-del { color: var(--danger); cursor: pointer; font-size: 12px; }
+.region-cell { display: flex; gap: 8px; }
+.region-sel { flex: 1; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; background: #fff; }
+.region-sel:focus { outline: none; border-color: var(--accent); }
+.region-detail { flex: 2; }
+.hist-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.hist-table th { padding: 5px 6px; font-size: 11px; font-weight: 500; color: var(--text-secondary); text-align: center; border-bottom: 1px solid var(--border); background: #F8FAFC; white-space: nowrap; }
+.hist-table td { padding: 4px; }
+.hist-table input, .hist-table select { width: 100%; padding: 5px 6px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; box-sizing: border-box; }
+.hist-table input:focus, .hist-table select:focus { outline: none; border-color: var(--accent); }
+.hist-end-cell { display: flex; gap: 4px; align-items: center; }
+.hist-end-cell input { flex: 1 1 0; min-width: 0; width: auto; }
+.still-btn { flex: none; padding: 4px 8px; font-size: 11px; color: var(--primary); background: var(--primary-light); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; font-family: inherit; }
+.still-btn:hover { background: #DBEAFE; }
+.still-btn[disabled] { opacity: .5; cursor: default; }
+.still-txt { color: var(--text-secondary); font-size: 12px; }
+.hist-val { width:100%; padding:5px 6px; font-size:12px; color:var(--text); line-height:1.5; word-break:break-all; white-space:normal; box-sizing:border-box; }
+.hist-empty { font-size: 12px; color: var(--text-light); padding: 6px 2px; }
+.verify-card { max-width: 420px; margin: 24px auto 0; }
+.verify-card .vc-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 6px; }
+.verify-card input[type=tel], .verify-card input[type=text] { width: 100%; padding: 10px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; margin-bottom: 12px; }
+.verify-card input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.verify-row { display: flex; gap: 10px; align-items: flex-start; }
+.verify-row input { flex: 1; margin-bottom: 0; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.fill-actions { display: flex; justify-content: center; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); }
+.fill-note { font-size: 11px; color: var(--text-light); margin-top: 6px; text-align: center; }
+.footer-note { text-align: center; font-size: 11px; color: var(--text-light); margin-top: 20px; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease; box-shadow: var(--shadow-lg); }
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.success { background: var(--success); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.error-card { text-align: center; padding: 60px 30px; }
+.error-card .e-icon { font-size: 56px; margin-bottom: 14px; }
+.error-card h2 { font-size: 18px; margin-bottom: 8px; color: var(--text-secondary); }
+.error-card p { font-size: 13px; color: var(--text-light); }
+.confirm-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 9990; }
+.confirm-box { width: 380px; max-width: calc(100vw - 32px); background: #fff; border-radius: var(--radius-lg); padding: 22px 24px; box-shadow: var(--shadow-lg); }
+.confirm-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.confirm-msg { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 20px; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div>
+  <span class="title">柳州教育人事管理平台</span>
+</nav>
+
+<main class="fill-main">
+  <div class="fill-card" id="fillCard"></div>
+</main>
+<div id="toastContainer"></div>
+<div id="confirmOverlay" class="confirm-overlay" style="display:none;">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">确认</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="confirmOkBtn" onclick="confirmOk()">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.onerror = function(msg, url, line) { var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;';d.innerHTML='ERROR: '+msg+' (line '+line+')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>';document.body.prepend(d); };
+
+// ===== 状态 =====
+var fill = null;          // employ_teacher_fills[token]
+var token = null;
+var stage = 'verify';     // 'verify' | 'form'
+var relRows = [];         // 其他主要社会关系（编辑态）
+var photo = '';           // 照片 base64（编辑态）
+var titleFile = '';       // 职称或职业资格附件 base64（编辑态）
+var titleFileName = '';   // 职称或职业资格附件文件名
+var spouseData = { name:'', gender:'', birthDate:'', unit:'' };  // 配偶基本情况（编辑态）
+var spouseShown = false;  // 配偶是否已「添加」（默认无配偶，点「＋ 添加配偶」才展示待填内容）
+var unitShown = false;    // 原单位是否已「添加」（默认无原单位，添加后才展示原岗位类别/等级/聘任时间）
+var schoolEdit = false;   // 学校编辑模式（?mode=edit，学校从「教师信息采集」弹框进入）
+var eduRows = [];         // 学习经历（编辑态，多行表格）
+var workRows = [];        // 工作经历（编辑态，多行表格）
+var demoMode = false;     // 直接打开（未带链接参数）时自动载入演示数据
+
+function getUrlParam(name) { var m = window.location.search.match(new RegExp('[?&]' + name + '=([^&]*)')); return m ? decodeURIComponent(m[1]) : null; }
+function escapeHtml(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function now() { var d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); }
+function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2200); }
+function g(id) { return document.getElementById(id); }
+
+// ===== 数据读写（employ_teacher_fills）=====
+// 演示种子：与 employ-list-school / employ-form 一致（幂等，仅当 key 为空时写入）
+var TEACHER_FILL_SEED = [
+  { token:'EFTREC20260501001_0_0', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中语文教师', schoolName:'柳州高级中学', name:'张伟', phone:'13800001234', status:'submitted', seedRev:3, createdTime:'2026-08-10 09:00:00', submitTime:'2026-08-12 15:30:00',
+    teacher:{ name:'张伟', photo:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0U4RUVGNyIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjOURCOEQ0Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iIzlEQjhENCIvPjwvc3ZnPg==', gender:'男', birthDate:'1995-03-01', age:31, ethnicity:'汉族', nativePlace:'广西壮族自治区/柳州市/城中区', nativePlaceDetail:'城中区东环路12号', birthPlace:'广西壮族自治区/柳州市/城中区', birthPlaceDetail:'城中区东环路12号', household:'广西壮族自治区/柳州市/城中区', householdDetail:'城中区高新南路8号', idNumber:'450202199503017890',
+      edu:{ education:'本科', degree:'学士', gradSchool:'广西师范大学', gradMajor:'汉语言文学' }, partEdu:{ education:'硕士', degree:'硕士', gradSchool:'广西师范大学', gradMajor:'学科教学（语文）' },
+      title:'中学二级教师', titleFile:'data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgNTk1IDg0Ml0+PmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXI8PC9TaXplIDQvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgoxOTAKJSVFT0Y=', titleFileName:'中学二级教师职称证书.pdf', originalUnit:'柳州市第一中学', originalCategory:'专业技术岗位', originalLevel:'专技十级', appointmentTime:'2019-07', otherQual:'具有高级中学教师资格证，普通话二级甲等',
+      eduHistory:[{ start:'2010-09', end:'2013-06', edu:'高中及以下', school:'柳州市第一中学', major:'' },{ start:'2013-09', end:'2017-06', edu:'本科', school:'广西师范大学', major:'汉语言文学' }],
+      workHistory:[{ start:'2017-09', end:'至今', unit:'柳州市第一中学', position:'高中语文教师', category:'专业技术岗位', level:'专技十级' }],
+      spouse:{ name:'王丽', gender:'女', birthDate:'1996-04-12', unit:'柳州市人民医院' }, relations:[{ name:'张建国', relation:'父亲', unit:'柳州市国资委' },{ name:'李秀英', relation:'母亲', unit:'柳州市第一人民医院' }] } },
+  { token:'EFTREC20260501001_0_1', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中语文教师', schoolName:'柳州高级中学', name:'李娜', phone:'13900005678', status:'submitted', seedRev:3, createdTime:'2026-08-10 09:00:00', submitTime:'2026-08-12 16:05:00',
+    teacher:{ name:'李娜', photo:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0Y3RThFRSIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjRDQ5REI4Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iI0Q0OURCOCIvPjwvc3ZnPg==', gender:'女', birthDate:'1996-07-15', age:30, ethnicity:'汉族', nativePlace:'广西壮族自治区/柳州市/鱼峰区', nativePlaceDetail:'鱼峰区柳石路3号', birthPlace:'广西壮族自治区/柳州市/鱼峰区', birthPlaceDetail:'鱼峰区柳石路3号', household:'广西壮族自治区/柳州市/鱼峰区', householdDetail:'鱼峰区西江路15号', idNumber:'450203199607019022',
+      edu:{ education:'本科', degree:'学士', gradSchool:'广西师范大学', gradMajor:'汉语言文学' }, partEdu:{ education:'硕士', degree:'硕士', gradSchool:'广西师范大学', gradMajor:'学科教学（语文）' },
+      title:'中学二级教师', titleFile:'data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgNTk1IDg0Ml0+PmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXI8PC9TaXplIDQvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgoxOTAKJSVFT0Y=', titleFileName:'中学二级教师职称证书.pdf', originalUnit:'柳州市第二中学', originalCategory:'专业技术岗位', originalLevel:'专技十一级', appointmentTime:'2020-08', otherQual:'具有高级中学教师资格证，普通话二级甲等',
+      eduHistory:[{ start:'2011-09', end:'2014-06', edu:'高中及以下', school:'柳州市第二中学', major:'' },{ start:'2014-09', end:'2018-06', edu:'本科', school:'广西师范大学', major:'汉语言文学' }],
+      workHistory:[{ start:'2018-09', end:'至今', unit:'柳州市第二中学', position:'高中语文教师', category:'专业技术岗位', level:'专技十一级' }],
+      spouse:{ name:'刘洋', gender:'男', birthDate:'1995-11-20', unit:'柳州市建筑设计院' }, relations:[{ name:'李国栋', relation:'父亲', unit:'柳州市农业农村局' },{ name:'陈秀兰', relation:'母亲', unit:'柳州市城中区实验小学' }] } }
+];
+
+// ===== 扩充演示数据：为各招聘批次/岗位补充已填报教师（三页同步）=====
+var PHOTO_MALE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0U4RUVGNyIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjOURCOEQ0Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iIzlEQjhENCIvPjwvc3ZnPg==';
+var PHOTO_FEMALE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0Y3RThFRSIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjRDQ5REI4Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iI0Q0OURCOCIvPjwvc3ZnPg==';
+// 通用演示教师模板：占位信息一致，仅区分姓名/性别/身份证号/批次/岗位
+function demoFill(o) {
+  var gender = o.gender || '男';
+  var major = o.major || '学科教学';
+  var unit = o.unit || '柳州市第一中学';
+  return {
+    token:o.token, recruitRecordId:o.recruitRecordId, batchId:o.batchId, batchName:o.batchName,
+    positionName:o.positionName, schoolName:o.schoolName, name:o.name, phone:o.phone,
+    status:'submitted', seedRev:3, createdTime:'2026-08-10 09:00:00', submitTime:'2026-08-13 10:00:00',
+    teacher:{ name:o.name, photo:gender==='女'?PHOTO_FEMALE:PHOTO_MALE, gender:gender, birthDate:o.birthDate, age:o.age, ethnicity:'汉族',
+      nativePlace:'广西壮族自治区/柳州市/城中区', nativePlaceDetail:'城中区东环路12号',
+      birthPlace:'广西壮族自治区/柳州市/城中区', birthPlaceDetail:'城中区东环路12号',
+      household:'广西壮族自治区/柳州市/城中区', householdDetail:'城中区高新南路8号',
+      idNumber:o.idNumber,
+      edu:{ education:'本科', degree:'学士', gradSchool:'广西师范大学', gradMajor:major },
+      partEdu:{ education:'硕士', degree:'硕士', gradSchool:'广西师范大学', gradMajor:major },
+      title:'中学二级教师', originalUnit:unit, originalCategory:'专业技术岗位', originalLevel:'专技十级', appointmentTime:'2019-07',
+      otherQual:'具有高级中学教师资格证，普通话二级甲等',
+      eduHistory:[{ start:'2010-09', end:'2013-06', edu:'高中及以下', school:unit, major:'' },{ start:'2013-09', end:'2017-06', edu:'本科', school:'广西师范大学', major:major }],
+      workHistory:[{ start:'2017-09', end:'至今', unit:unit, position:o.positionName, category:'专业技术岗位', level:'专技十级' }],
+      spouse:{ name:'王丽', gender:'女', birthDate:'1996-04-12', unit:'柳州市人民医院' },
+      relations:[{ name:'张建国', relation:'父亲', unit:'柳州市国资委' },{ name:'李秀英', relation:'母亲', unit:'柳州市第一人民医院' }] }
+  };
+}
+var TEACHER_FILL_SEED_EXT = [
+  demoFill({ token:'EFTREC20260501001_1_0', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中数学教师', schoolName:'柳州高级中学', name:'王强', phone:'13700001111', gender:'男', birthDate:'1994-08-12', age:32, idNumber:'450202199408121234', major:'数学与应用数学' }),
+  demoFill({ token:'EFTREC20260501001_1_1', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中数学教师', schoolName:'柳州高级中学', name:'赵敏', phone:'13600002222', gender:'女', birthDate:'1995-01-05', age:31, idNumber:'450203199501054321', major:'数学与应用数学' }),
+  demoFill({ token:'EFTREC20260501001_2_0', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中英语教师', schoolName:'柳州高级中学', name:'陈璐', phone:'13500003333', gender:'女', birthDate:'1996-05-20', age:30, idNumber:'450202199605201111', major:'英语' }),
+  demoFill({ token:'EFTREC20260415001_0_0', recruitRecordId:'REC20260415001', batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', positionName:'高中物理教师', schoolName:'柳州高级中学', name:'孙志远', phone:'13400004444', gender:'男', birthDate:'1989-09-08', age:37, idNumber:'450203198909082222', major:'物理学' }),
+  demoFill({ token:'EFTREC20260415001_1_0', recruitRecordId:'REC20260415001', batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', positionName:'高中化学教师', schoolName:'柳州高级中学', name:'周晓琳', phone:'13300005555', gender:'女', birthDate:'1990-11-25', age:35, idNumber:'450202199011253333', major:'化学' }),
+  demoFill({ token:'EFTREC20260515001_0_0', recruitRecordId:'REC20260515001', batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', positionName:'高中生物教师', schoolName:'柳州高级中学', name:'吴倩', phone:'13200006666', gender:'女', birthDate:'1995-03-16', age:31, idNumber:'450203199503164444', major:'生物科学' }),
+  demoFill({ token:'EFTREC20260515001_1_0', recruitRecordId:'REC20260515001', batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', positionName:'高中政治教师', schoolName:'柳州高级中学', name:'郑晓峰', phone:'13100007777', gender:'男', birthDate:'1993-07-02', age:33, idNumber:'450202199307025555', major:'思想政治教育' }),
+  demoFill({ token:'EFTREC20260701002_0_0', recruitRecordId:'REC20260701002', batchId:'RCB20260701001', batchName:'2026年柳州市教师自主招聘（第二批）', positionName:'初中语文教师', schoolName:'柳州市第一中学', name:'黄雨桐', phone:'13000008888', gender:'女', birthDate:'1994-12-18', age:31, idNumber:'450203199412186666', major:'汉语言文学' }),
+  demoFill({ token:'EFTREC20260701002_0_1', recruitRecordId:'REC20260701002', batchId:'RCB20260701001', batchName:'2026年柳州市教师自主招聘（第二批）', positionName:'初中语文教师', schoolName:'柳州市第一中学', name:'林浩', phone:'13900009999', gender:'男', birthDate:'1993-02-28', age:33, idNumber:'450202199302287777', major:'汉语言文学' })
+];
+var ALL_TEACHER_FILL_SEED = TEACHER_FILL_SEED.concat(TEACHER_FILL_SEED_EXT);
+
+function seedTeacherFills() {
+  var raw = localStorage.getItem('employ_teacher_fills');
+  if (raw === null) { // 首次打开：写入演示数据
+    var map = {};
+    ALL_TEACHER_FILL_SEED.forEach(function(f) { map[f.token] = f; });
+    localStorage.setItem('employ_teacher_fills', JSON.stringify(map));
+    return;
+  }
+  // 兼容旧版本遗留数据：确保演示记录存在；演示教师信息整体以最新种子为准——
+  // 旧版本（seedRev<3）存过的任意字段缺失/待填/旧格式数据，下一次打开一次性刷新为
+  // 最新完整演示数据（照片/在职教育/职称附件/原单位/学习工作经历/配偶/社会关系全部填写），
+  // 刷新后（seedRev=3）用户自行修改的内容保留不动。
+  var all; try { all = JSON.parse(raw) || {}; } catch(e) { return; }
+  var changed = false;
+  ALL_TEACHER_FILL_SEED.forEach(function(f) {
+    var cur = all[f.token];
+    if (!cur) { all[f.token] = f; changed = true; return; }
+    if (cur.teacher && (cur.seedRev || 0) < 3) {
+      cur.teacher = JSON.parse(JSON.stringify(f.teacher));
+      cur.seedRev = 3;
+      changed = true;
+    }
+  });
+  if (changed) localStorage.setItem('employ_teacher_fills', JSON.stringify(all));
+}
+function loadFills() { seedTeacherFills(); var s = localStorage.getItem('employ_teacher_fills'); if (s) { try { return JSON.parse(s) || {}; } catch(e) {} } return {}; }
+function saveFills(all) { localStorage.setItem('employ_teacher_fills', JSON.stringify(all)); }
+
+// 身份证号脱敏
+function maskId(v) { if (!v) return ''; return v.length >= 8 ? v.substring(0,4) + '****' + v.substring(v.length-4) : v; }
+
+// ===== 年龄计算 =====
+function calcAge(birth) { if (!birth) return ''; var b = birth.substring(0,4); var y = parseInt(b); if (!y) return ''; var nowY = new Date().getFullYear(); return nowY - y; }
+
+// ===== 字典与级联数据 =====
+var ETHNICITY_OPTS = ['汉族','壮族','回族','满族','维吾尔族','苗族','彝族','土家族','藏族','蒙古族','侗族','瑶族','白族','朝鲜族','哈尼族','哈萨克族','黎族','傣族','畲族','傈僳族','仡佬族','东乡族','高山族','拉祜族','水族','佤族','纳西族','羌族','土族','仫佬族','锡伯族','柯尔克孜族','达斡尔族','景颇族','毛南族','撒拉族','布朗族','塔吉克族','阿昌族','普米族','鄂温克族','怒族','京族','基诺族','德昂族','保安族','俄罗斯族','裕固族','乌孜别克族','门巴族','鄂伦春族','独龙族','塔塔尔族','赫哲族','珞巴族'];
+var CATEGORY_OPTS = ['管理岗位','专业技术岗位','工勤技能岗位'];
+function ethnicityOpts(v) { var h='<option value="">请选择</option>'; ETHNICITY_OPTS.forEach(function(o){ h += '<option value="'+o+'"'+(v===o?' selected':'')+'>'+o+'</option>'; }); return h; }
+function degreeOpts(v) { var arr=['博士','硕士','学士','无']; var h='<option value="">请选择</option>'; arr.forEach(function(o){ h += '<option value="'+o+'"'+(v===o?' selected':'')+'>'+o+'</option>'; }); return h; }
+function categoryOpts(v) { var h='<option value="">请选择</option>'; CATEGORY_OPTS.forEach(function(o){ h += '<option value="'+o+'"'+(v===o?' selected':'')+'>'+o+'</option>'; }); return h; }
+// 岗位等级（依岗位类别级联的下拉选项）
+var POST_LEVELS = {
+  '管理岗位': ['管理一级','管理二级','管理三级','管理四级','管理五级','管理六级','管理七级','管理八级','管理九级','管理十级'],
+  '专业技术岗位': ['专技一级','专技二级','专技三级','专技四级','专技五级','专技六级','专技七级','专技八级','专技九级','专技十级','专技十一级','专技十二级','专技十三级'],
+  '工勤技能岗位': ['工勤一级（高级技师）','工勤二级（技师）','工勤三级（高级工）','工勤四级（中级工）','工勤五级（初级工）']
+};
+function levelOpts(v, cat) {
+  var h = '<option value="">请选择</option>';
+  (POST_LEVELS[cat] || []).forEach(function(o){ h += '<option value="'+o+'"'+(v===o?' selected':'')+'>'+o+'</option>'; });
+  return h;
+}
+// 工作经历岗位类别：允许「无」（如待业/兼职经历）
+function workCategoryOpts(v) {
+  var h = '<option value="">请选择</option>';
+  CATEGORY_OPTS.forEach(function(o){ h += '<option value="'+o+'"'+(v===o?' selected':'')+'>'+o+'</option>'; });
+  h += '<option value="无"'+(v==='无'?' selected':'')+'>无</option>';
+  return h;
+}
+function onOriginalCategoryChange() {
+  var catSel = g('f_originalCategory'), lvlSel = g('f_originalLevel');
+  if (!catSel || !lvlSel) return;
+  lvlSel.innerHTML = levelOpts('', catSel.value);
+}
+
+// 省市区县级联数据：广西含全量区县；直辖市含区县；其余省份含地级市（无区县）
+var REGIONS = [
+  { n: '广西壮族自治区', c: [
+    { n:'南宁市', d:['青秀区','兴宁区','西乡塘区','江南区','良庆区','邕宁区','武鸣区','隆安县','马山县','上林县','宾阳县','横州市'] },
+    { n:'柳州市', d:['城中区','鱼峰区','柳南区','柳北区','柳江区','柳城县','鹿寨县','融安县','融水苗族自治县','三江侗族自治县'] },
+    { n:'桂林市', d:['秀峰区','叠彩区','象山区','七星区','雁山区','临桂区','阳朔县','灵川县','全州县','兴安县','永福县','灌阳县','龙胜各族自治县','资源县','平乐县','荔浦市','恭城瑶族自治县'] },
+    { n:'梧州市', d:['万秀区','长洲区','龙圩区','苍梧县','藤县','蒙山县','岑溪市'] },
+    { n:'北海市', d:['海城区','银海区','铁山港区','合浦县'] },
+    { n:'防城港市', d:['港口区','防城区','上思县','东兴市'] },
+    { n:'钦州市', d:['钦南区','钦北区','灵山县','浦北县'] },
+    { n:'贵港市', d:['港北区','港南区','覃塘区','平南县','桂平市'] },
+    { n:'玉林市', d:['玉州区','福绵区','容县','陆川县','博白县','兴业县','北流市'] },
+    { n:'百色市', d:['右江区','田阳区','田东县','平果市','德保县','靖西市','那坡县','凌云县','乐业县','田林县','西林县','隆林各族自治县'] },
+    { n:'贺州市', d:['八步区','平桂区','昭平县','钟山县','富川瑶族自治县'] },
+    { n:'河池市', d:['金城江区','宜州区','南丹县','天峨县','凤山县','东兰县','罗城仫佬族自治县','环江毛南族自治县','巴马瑶族自治县','都安瑶族自治县','大化瑶族自治县'] },
+    { n:'来宾市', d:['兴宾区','忻城县','象州县','武宣县','金秀瑶族自治县','合山市'] },
+    { n:'崇左市', d:['江州区','扶绥县','宁明县','龙州县','大新县','天等县','凭祥市'] }
+  ] },
+  { n: '北京市', c: [{ n:'北京市', d:['东城区','西城区','朝阳区','海淀区','丰台区','石景山区','通州区','顺义区','房山区','大兴区','昌平区','平谷区','密云区','怀柔区','延庆区','门头沟区'] }] },
+  { n: '上海市', c: [{ n:'上海市', d:['黄浦区','徐汇区','长宁区','静安区','普陀区','虹口区','杨浦区','闵行区','宝山区','嘉定区','浦东新区','金山区','松江区','青浦区','奉贤区','崇明区'] }] },
+  { n: '天津市', c: [{ n:'天津市', d:['和平区','河东区','河西区','南开区','河北区','红桥区','东丽区','西青区','津南区','北辰区','武清区','宝坻区','滨海新区','宁河区','静海区','蓟州区'] }] },
+  { n: '重庆市', c: [{ n:'重庆市', d:['渝中区','大渡口区','江北区','沙坪坝区','九龙坡区','南岸区','北碚区','渝北区','巴南区','涪陵区','江津区','合川区','永川区','南川区','綦江区','大足区','璧山区','铜梁区','潼南区','荣昌区','万州区','黔江区','长寿区','开州区','梁平区','武隆区'] }] },
+  { n: '广东省', c: [ {n:'广州市'},{n:'深圳市'},{n:'珠海市'},{n:'汕头市'},{n:'佛山市'},{n:'韶关市'},{n:'湛江市'},{n:'肇庆市'},{n:'江门市'},{n:'茂名市'},{n:'惠州市'},{n:'梅州市'},{n:'汕尾市'},{n:'河源市'},{n:'阳江市'},{n:'清远市'},{n:'东莞市'},{n:'中山市'},{n:'潮州市'},{n:'揭阳市'},{n:'云浮市'} ] },
+  { n: '湖南省', c: [ {n:'长沙市'},{n:'株洲市'},{n:'湘潭市'},{n:'衡阳市'},{n:'邵阳市'},{n:'岳阳市'},{n:'常德市'},{n:'张家界市'},{n:'益阳市'},{n:'郴州市'},{n:'永州市'},{n:'怀化市'},{n:'娄底市'},{n:'湘西土家族苗族自治州'} ] },
+  { n: '贵州省', c: [ {n:'贵阳市'},{n:'六盘水市'},{n:'遵义市'},{n:'安顺市'},{n:'毕节市'},{n:'铜仁市'},{n:'黔西南布依族苗族自治州'},{n:'黔东南苗族侗族自治州'},{n:'黔南布依族苗族自治州'} ] },
+  { n: '云南省', c: [ {n:'昆明市'},{n:'曲靖市'},{n:'玉溪市'},{n:'保山市'},{n:'昭通市'},{n:'丽江市'},{n:'普洱市'},{n:'临沧市'},{n:'楚雄彝族自治州'},{n:'红河哈尼族彝族自治州'},{n:'文山壮族苗族自治州'},{n:'西双版纳傣族自治州'},{n:'大理白族自治州'},{n:'德宏傣族景颇族自治州'},{n:'怒江傈僳族自治州'},{n:'迪庆藏族自治州'} ] },
+  { n: '四川省', c: [ {n:'成都市'},{n:'自贡市'},{n:'攀枝花市'},{n:'泸州市'},{n:'德阳市'},{n:'绵阳市'},{n:'广元市'},{n:'遂宁市'},{n:'内江市'},{n:'乐山市'},{n:'南充市'},{n:'眉山市'},{n:'宜宾市'},{n:'广安市'},{n:'达州市'},{n:'雅安市'},{n:'巴中市'},{n:'资阳市'},{n:'阿坝藏族羌族自治州'},{n:'甘孜藏族自治州'},{n:'凉山彝族自治州'} ] },
+  { n: '福建省', c: [ {n:'福州市'},{n:'厦门市'},{n:'莆田市'},{n:'三明市'},{n:'泉州市'},{n:'漳州市'},{n:'南平市'},{n:'龙岩市'},{n:'宁德市'} ] },
+  { n: '浙江省', c: [ {n:'杭州市'},{n:'宁波市'},{n:'温州市'},{n:'嘉兴市'},{n:'湖州市'},{n:'绍兴市'},{n:'金华市'},{n:'衢州市'},{n:'舟山市'},{n:'台州市'},{n:'丽水市'} ] },
+  { n: '江苏省', c: [ {n:'南京市'},{n:'无锡市'},{n:'徐州市'},{n:'常州市'},{n:'苏州市'},{n:'南通市'},{n:'连云港市'},{n:'淮安市'},{n:'盐城市'},{n:'扬州市'},{n:'镇江市'},{n:'泰州市'},{n:'宿迁市'} ] },
+  { n: '山东省', c: [ {n:'济南市'},{n:'青岛市'},{n:'淄博市'},{n:'枣庄市'},{n:'东营市'},{n:'烟台市'},{n:'潍坊市'},{n:'济宁市'},{n:'泰安市'},{n:'威海市'},{n:'日照市'},{n:'临沂市'},{n:'德州市'},{n:'聊城市'},{n:'滨州市'},{n:'菏泽市'} ] },
+  { n: '河南省', c: [ {n:'郑州市'},{n:'开封市'},{n:'洛阳市'},{n:'平顶山市'},{n:'安阳市'},{n:'鹤壁市'},{n:'新乡市'},{n:'焦作市'},{n:'濮阳市'},{n:'许昌市'},{n:'漯河市'},{n:'三门峡市'},{n:'南阳市'},{n:'商丘市'},{n:'信阳市'},{n:'周口市'},{n:'驻马店市'} ] },
+  { n: '湖北省', c: [ {n:'武汉市'},{n:'黄石市'},{n:'十堰市'},{n:'宜昌市'},{n:'襄阳市'},{n:'鄂州市'},{n:'荆门市'},{n:'孝感市'},{n:'荆州市'},{n:'黄冈市'},{n:'咸宁市'},{n:'随州市'},{n:'恩施土家族苗族自治州'} ] },
+  { n: '安徽省', c: [ {n:'合肥市'},{n:'芜湖市'},{n:'蚌埠市'},{n:'淮南市'},{n:'马鞍山市'},{n:'淮北市'},{n:'铜陵市'},{n:'安庆市'},{n:'黄山市'},{n:'滁州市'},{n:'阜阳市'},{n:'宿州市'},{n:'六安市'},{n:'亳州市'},{n:'池州市'},{n:'宣城市'} ] },
+  { n: '江西省', c: [ {n:'南昌市'},{n:'景德镇市'},{n:'萍乡市'},{n:'九江市'},{n:'新余市'},{n:'鹰潭市'},{n:'赣州市'},{n:'吉安市'},{n:'宜春市'},{n:'抚州市'},{n:'上饶市'} ] },
+  { n: '海南省', c: [ {n:'海口市'},{n:'三亚市'},{n:'三沙市'},{n:'儋州市'} ] },
+  { n: '河北省', c: [ {n:'石家庄市'},{n:'唐山市'},{n:'秦皇岛市'},{n:'邯郸市'},{n:'邢台市'},{n:'保定市'},{n:'张家口市'},{n:'承德市'},{n:'沧州市'},{n:'廊坊市'},{n:'衡水市'} ] },
+  { n: '山西省', c: [ {n:'太原市'},{n:'大同市'},{n:'阳泉市'},{n:'长治市'},{n:'晋城市'},{n:'朔州市'},{n:'晋中市'},{n:'运城市'},{n:'忻州市'},{n:'临汾市'},{n:'吕梁市'} ] },
+  { n: '陕西省', c: [ {n:'西安市'},{n:'铜川市'},{n:'宝鸡市'},{n:'咸阳市'},{n:'渭南市'},{n:'延安市'},{n:'汉中市'},{n:'榆林市'},{n:'安康市'},{n:'商洛市'} ] },
+  { n: '甘肃省', c: [ {n:'兰州市'},{n:'嘉峪关市'},{n:'金昌市'},{n:'白银市'},{n:'天水市'},{n:'武威市'},{n:'张掖市'},{n:'平凉市'},{n:'酒泉市'},{n:'庆阳市'},{n:'定西市'},{n:'陇南市'},{n:'临夏回族自治州'},{n:'甘南藏族自治州'} ] },
+  { n: '宁夏回族自治区', c: [ {n:'银川市'},{n:'石嘴山市'},{n:'吴忠市'},{n:'固原市'},{n:'中卫市'} ] },
+  { n: '青海省', c: [ {n:'西宁市'},{n:'海东市'},{n:'海北藏族自治州'},{n:'黄南藏族自治州'},{n:'海南藏族自治州'},{n:'果洛藏族自治州'},{n:'玉树藏族自治州'},{n:'海西蒙古族藏族自治州'} ] },
+  { n: '西藏自治区', c: [ {n:'拉萨市'},{n:'日喀则市'},{n:'昌都市'},{n:'林芝市'},{n:'山南市'},{n:'那曲市'},{n:'阿里地区'} ] },
+  { n: '内蒙古自治区', c: [ {n:'呼和浩特市'},{n:'包头市'},{n:'乌海市'},{n:'赤峰市'},{n:'通辽市'},{n:'鄂尔多斯市'},{n:'呼伦贝尔市'},{n:'巴彦淖尔市'},{n:'乌兰察布市'},{n:'兴安盟'},{n:'锡林郭勒盟'},{n:'阿拉善盟'} ] },
+  { n: '辽宁省', c: [ {n:'沈阳市'},{n:'大连市'},{n:'鞍山市'},{n:'抚顺市'},{n:'本溪市'},{n:'丹东市'},{n:'锦州市'},{n:'营口市'},{n:'阜新市'},{n:'辽阳市'},{n:'盘锦市'},{n:'铁岭市'},{n:'朝阳市'},{n:'葫芦岛市'} ] },
+  { n: '吉林省', c: [ {n:'长春市'},{n:'吉林市'},{n:'四平市'},{n:'辽源市'},{n:'通化市'},{n:'白山市'},{n:'松原市'},{n:'白城市'},{n:'延边朝鲜族自治州'} ] },
+  { n: '黑龙江省', c: [ {n:'哈尔滨市'},{n:'齐齐哈尔市'},{n:'鸡西市'},{n:'鹤岗市'},{n:'双鸭山市'},{n:'大庆市'},{n:'伊春市'},{n:'佳木斯市'},{n:'七台河市'},{n:'牡丹江市'},{n:'黑河市'},{n:'绥化市'},{n:'大兴安岭地区'} ] },
+  { n: '新疆维吾尔自治区', c: [ {n:'乌鲁木齐市'},{n:'克拉玛依市'},{n:'吐鲁番市'},{n:'哈密市'},{n:'昌吉回族自治州'},{n:'博尔塔拉蒙古自治州'},{n:'巴音郭楞蒙古自治州'},{n:'阿克苏地区'},{n:'克孜勒苏柯尔克孜自治州'},{n:'喀什地区'},{n:'和田地区'},{n:'伊犁哈萨克自治州'},{n:'塔城地区'},{n:'阿勒泰地区'} ] },
+  { n: '台湾省', c: [ {n:'台北市'},{n:'新北市'},{n:'高雄市'},{n:'台中市'} ] },
+  { n: '香港特别行政区', c: [ {n:'香港特别行政区'} ] },
+  { n: '澳门特别行政区', c: [ {n:'澳门特别行政区'} ] }
+];
+
+function findProvince(n) { for (var i=0;i<REGIONS.length;i++) if (REGIONS[i].n===n) return REGIONS[i]; return null; }
+function findCity(prov, n) { if (!prov) return null; for (var i=0;i<prov.c.length;i++) if (prov.c[i].n===n) return prov.c[i]; return null; }
+
+// 省市区三个级联下拉的渲染与联动
+function regionHtml(prefix, value, detail, locked) {
+  var parts = String(value||'').split('/');
+  var p = parts[0]||'', c = parts[1]||'', d = parts[2]||'';
+  var dis = locked ? 'disabled' : '';
+  var prov = findProvince(p);
+  var city = findCity(prov, c);
+  var h = '<div class="region-cell">';
+  h += '<select class="region-sel" id="'+prefix+'_prov"' + dis + ' onchange="onRegionChange(\''+prefix+'\',\'prov\')"><option value="">省份</option>';
+  REGIONS.forEach(function(r){ h += '<option value="'+r.n+'"'+(p===r.n?' selected':'')+'>'+r.n+'</option>'; });
+  h += '</select>';
+  h += '<select class="region-sel" id="'+prefix+'_city"' + dis + ' onchange="onRegionChange(\''+prefix+'\',\'city\')"><option value="">城市</option>';
+  if (prov) prov.c.forEach(function(ci){ h += '<option value="'+ci.n+'"'+(c===ci.n?' selected':'')+'>'+ci.n+'</option>'; });
+  h += '</select>';
+  h += '<select class="region-sel" id="'+prefix+'_dist"' + dis + ' onchange="onRegionChange(\''+prefix+'\',\'dist\')"><option value="">区县</option>';
+  if (city && city.d) city.d.forEach(function(di){ h += '<option value="'+di+'"'+(d===di?' selected':'')+'>'+di+'</option>'; });
+  h += '</select>';
+  h += '<input type="text" class="region-sel region-detail" id="'+prefix+'_detail" value="'+escapeHtml(detail||'')+'"' + dis + ' maxlength="60" placeholder="详细地址">';
+  h += '</div>';
+  return h;
+}
+
+function onRegionChange(prefix, level) {
+  var provSel = g(prefix+'_prov'), citySel = g(prefix+'_city'), distSel = g(prefix+'_dist');
+  if (!provSel || !citySel || !distSel) return;
+  var prov = findProvince(provSel.value);
+  var keepCity = (level === 'city' || level === 'dist') ? citySel.value : '';
+  var ch = '<option value="">城市</option>';
+  if (prov) prov.c.forEach(function(ci){ ch += '<option value="'+ci.n+'"'+(ci.n===keepCity?' selected':'')+'>'+ci.n+'</option>'; });
+  citySel.innerHTML = ch;
+  var keepDist = (level === 'dist') ? distSel.value : '';
+  var city = findCity(prov, keepCity);
+  var dh = '<option value="">区县</option>';
+  if (city && city.d) city.d.forEach(function(di){ dh += '<option value="'+di+'"'+(di===keepDist?' selected':'')+'>'+di+'</option>'; });
+  distSel.innerHTML = dh;
+}
+
+function regionValue(prefix) {
+  var p = g(prefix+'_prov'), c = g(prefix+'_city'), d = g(prefix+'_dist');
+  if (!p || !c || !d) return '';
+  return [p.value, c.value, d.value].filter(function(x){ return x; }).join('/');
+}
+
+// 学习/工作经历：兼容旧字符串 → 数组
+function normEdu(v) {
+  if (Array.isArray(v)) return v.map(function(r){ return {start:r.start||'',end:r.end||'',edu:r.edu||'',school:r.school||'',major:r.major||''}; });
+  if (v) return [{start:'',end:'',edu:'',school:String(v),major:''}];
+  return [];
+}
+function normWork(v) {
+  if (Array.isArray(v)) return v.map(function(r){ return {start:r.start||'',end:r.end||'',unit:r.unit||'',position:r.position||'',category:r.category||'',level:r.level||''}; });
+  if (v) return [{start:'',end:'',unit:String(v),position:'',category:'',level:''}];
+  return [];
+}
+
+// ===== 身份校验 =====
+function sendSmsCode() {
+  var phone = g('f_phone') ? g('f_phone').value.trim() : '';
+  if (!/^\d{11}$/.test(phone)) { showToast('请输入正确的11位手机号', 'warning'); return; }
+  if (fill && fill.phone && phone !== fill.phone) { showToast('手机号与学校登记不一致，请使用登记的本人手机号', 'warning'); return; }
+  if (window._smsCountdown > 0) return;
+  window._smsCountdown = 60;
+  var btn = g('btnSendSms');
+  btn.disabled = true; btn.textContent = window._smsCountdown + 's后重发';
+  var timer = setInterval(function() {
+    window._smsCountdown--;
+    if (window._smsCountdown <= 0) { clearInterval(timer); btn.disabled = false; btn.textContent = '获取验证码'; }
+    else { btn.textContent = window._smsCountdown + 's后重发'; }
+  }, 1000);
+  window._demoSmsCode = '123456';
+  showToast('验证码已发送至 ' + phone.slice(0,3) + '****' + phone.slice(7), 'success');
+}
+
+function verifySms() {
+  var phone = g('f_phone') ? g('f_phone').value.trim() : '';
+  if (!/^\d{11}$/.test(phone)) { showToast('请输入正确的11位手机号', 'warning'); return; }
+  if (fill && fill.phone && phone !== fill.phone) { showToast('手机号与学校登记不一致', 'warning'); return; }
+  var code = g('f_sms') ? g('f_sms').value.trim() : '';
+  if (!code || code.length !== 6) { showToast('请输入完整的6位短信验证码', 'warning'); return; }
+  if (code !== '123456' && code !== (window._demoSmsCode || '123456')) { showToast('验证码错误，请重新输入', 'warning'); return; }
+  stage = 'form';
+  renderContent();
+  showToast('身份校验通过', 'success');
+}
+
+// ===== 表单渲染 =====
+function renderContent() {
+  if (!fill) { renderInvalid(); return; }
+  if (schoolEdit) { renderForm(false); return; }   // 学校编辑模式：直接显示可编辑表单
+  if (fill.status === 'submitted') { renderForm(true); return; }
+  if (fill.status === 'editing') { stage = 'form'; }
+  if (stage === 'verify') { renderVerify(); return; }
+  renderForm(false);
+}
+
+function renderInvalid() {
+  g('fillCard').innerHTML = '<div class="error-card"><div class="e-icon">🔗</div><h2>链接无效或已失效</h2><p>请确认链接是否正确，或联系学校管理员重新发送填报链接。</p></div>';
+}
+
+function renderVerify() {
+  var h = '<div class="fill-header"><h1>拟聘教师个人信息填报</h1><div class="fill-sub">' + ctxLine() + '</div></div>';
+  h += '<div class="fill-banner info">🔐 为确保信息由教师本人填写，请先完成手机短信校验</div>';
+  h += '<div class="verify-card">';
+  h += '<div class="vc-label">手机号 <span class="req">*</span></div>';
+  h += '<input type="tel" id="f_phone" maxlength="11" value="' + escapeHtml(fill.phone||'') + '" readonly>';
+  h += '<div style="font-size:11px;color:var(--text-light);margin-bottom:10px;">手机号为学校登记号码，不可修改</div>';
+  h += '<div class="vc-label">短信验证码 <span class="req">*</span></div>';
+  h += '<div class="verify-row"><input type="text" id="f_sms" maxlength="6" placeholder="6位验证码"><button class="btn btn-outline btn-sm" id="btnSendSms" onclick="sendSmsCode()">获取验证码</button></div>';
+  h += '<div style="font-size:11px;color:var(--text-light);margin-bottom:14px;">演示环境：验证码为 123456</div>';
+  h += '<div style="text-align:center;margin-top:8px;"><button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="verifySms()">校验并继续</button></div>';
+  h += '</div>';
+  g('fillCard').innerHTML = h;
+}
+
+function ctxLine() {
+  var parts = [];
+  if (fill.schoolName) parts.push('单位：' + escapeHtml(fill.schoolName));
+  if (fill.batchName) parts.push('批次：' + escapeHtml(fill.batchName));
+  if (fill.positionName) parts.push('拟聘岗位：' + escapeHtml(fill.positionName));
+  return parts.join('　');
+}
+
+function renderForm(locked) {
+  var t = fill.teacher || {};
+  var dis = locked ? 'disabled' : '';
+  // 姓名只读：教师端（初次填报/重新编辑）不可改，学校编辑模式可改（更正登记名），锁定态禁用
+  var nameDis = locked ? 'disabled' : (schoolEdit ? '' : 'readonly');
+  var h = '<div class="fill-header"><h1>拟聘教师个人信息填报</h1><div class="fill-sub">' + ctxLine() + '</div></div>';
+  if (locked) {
+    h += '<div class="fill-banner done">✅ 您已提交个人信息，内容已锁定，不可再次修改。如需更正请联系学校管理员。</div>';
+  } else if (schoolEdit) {
+    h += '<div class="fill-banner edit">🏫 学校编辑模式：可修改教师填报的信息，保存后将重新锁定，教师端显示为已提交。</div>';
+  } else if (fill.status === 'editing') {
+    h += '<div class="fill-banner warn">✏️ 学校已退回修改，请修改有误的信息后再次「保存并发送」。</div>';
+  }
+  if (demoMode) {
+    h += '<div class="fill-banner info">🔗 演示入口：未携带链接参数，已自动载入示例（' + escapeHtml(fill.schoolName||'') + ' · ' + escapeHtml(fill.positionName||'') + ' · ' + escapeHtml(fill.name||'') + '）。正式使用请通过学校发送的链接（带 invite 参数）访问。</div>';
+  }
+  h += '<div style="font-size:11px;color:var(--text-light);margin-top:10px;">带 <span class="req">*</span> 为必填项</div>';
+
+  h += '<table class="fill-table">';
+  h += '<tr><td colspan="6" class="fill-title-row" style="text-align:center;">聘用人员基本情况</td></tr>';
+
+  // 姓名 + 出生年月 + 照片（照片固定在右上角）
+  h += '<tr>';
+  h += '<td class="fill-lbl">姓名 <span class="req">*</span></td>';
+  h += '<td class="fill-val" style="width:220px;"><input type="text" id="f_name" value="' + escapeHtml(t.name||fill.name||'') + '"' + nameDis + '>' + (nameDis === 'readonly' ? '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">（学校登记姓名，不可修改）</div>' : '') + '</td>';
+  h += '<td class="fill-lbl">出生年月 <span class="req">*</span></td>';
+  h += '<td class="fill-val" style="width:220px;"><input type="date" id="f_birth" value="' + escapeHtml(t.birthDate||'') + '"' + dis + (locked?'':' onchange="updateAge()"') + '></td>';
+  h += '<td class="photo-cell" rowspan="3" style="width:150px;"><div class="photo-head">照片<span class="photo-note">（一寸近期免冠照）</span></div>';
+  h += '<div class="photo-wrap" id="f_photoBox" onclick="' + (locked ? '' : 'pickPhoto()') + '">' + (t.photo ? '<img src="' + escapeHtml(t.photo) + '">' : (locked ? '<span class="photo-empty">无照片</span>' : '<span class="photo-upload-btn">＋ 点击上传</span>')) + '</div>';
+  h += (locked ? '' : '<input type="file" id="f_photoInput" accept="image/*" onchange="onPhotoSelected(this)" style="display:none;">');
+  h += '</td></tr>';
+
+  // 性别 / 年龄
+  h += '<tr><td class="fill-lbl">性别 <span class="req">*</span></td><td class="fill-val">';
+  h += '<select id="f_gender"' + dis + '><option value="">请选择</option><option value="男"' + (t.gender==='男'?' selected':'') + '>男</option><option value="女"' + (t.gender==='女'?' selected':'') + '>女</option></select>';
+  h += '</td><td class="fill-lbl" style="width:118px;">年龄</td><td class="fill-val"><div class="fill-auto" id="f_age">' + (t.age||calcAge(t.birthDate)||'—') + '</div></td></tr>';
+
+  // 民族 / 身份证号
+  h += '<tr><td class="fill-lbl">民族 <span class="req">*</span></td><td class="fill-val">';
+  h += '<select id="f_ethnicity"' + dis + '>' + ethnicityOpts(t.ethnicity) + '</select>';
+  h += '</td><td class="fill-lbl">身份证号 <span class="req">*</span></td><td class="fill-val" style="width:220px;"><input type="text" id="f_idNumber" value="' + escapeHtml(t.idNumber||'') + '" maxlength="18"' + dis + '></td></tr>';
+
+  // 籍贯 / 出生地 / 户籍地（省市区县级联下拉 + 详细地址）
+  h += '<tr><td class="fill-lbl">籍贯 <span class="req">*</span></td><td class="fill-val" colspan="4">' + regionHtml('f_nativePlace', t.nativePlace, t.nativePlaceDetail, locked) + '</td></tr>';
+  h += '<tr><td class="fill-lbl">出生地 <span class="req">*</span></td><td class="fill-val" colspan="4">' + regionHtml('f_birthPlace', t.birthPlace, t.birthPlaceDetail, locked) + '</td></tr>';
+  h += '<tr><td class="fill-lbl">户籍地 <span class="req">*</span></td><td class="fill-val" colspan="4">' + regionHtml('f_household', t.household, t.householdDetail, locked) + '</td></tr>';
+
+  // 全日制教育
+  h += '<tr><td class="fill-lbl">全日制教育 <span class="req">*</span></td><td class="fill-val" colspan="4">';
+  h += '<div style="display:flex;gap:10px;">';
+  h += '<div style="flex:1;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">学历</div><select id="f_edu_education"' + dis + '>' + eduOpts(t.edu&&t.edu.education) + '</select></div>';
+  h += '<div style="flex:1;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">学位</div><select id="f_edu_degree"' + dis + '>' + degreeOpts(t.edu&&t.edu.degree) + '</select></div>';
+  h += '<div style="flex:2.5;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">毕业院校系及专业</div><div style="display:flex;gap:8px;"><input type="text" id="f_edu_gradSchool" value="' + escapeHtml((t.edu&&t.edu.gradSchool)||'') + '"' + dis + ' placeholder="院校系" style="flex:1;"><input type="text" id="f_edu_gradMajor" value="' + escapeHtml((t.edu&&t.edu.gradMajor)||'') + '"' + dis + ' placeholder="专业" style="flex:1;"></div></div>';
+  h += '</div></td></tr>';
+
+  // 在职教育
+  h += '<tr><td class="fill-lbl">在职教育</td><td class="fill-val" colspan="4">';
+  h += '<div style="display:flex;gap:10px;">';
+  h += '<div style="flex:1;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">学历</div><select id="f_partEdu_education"' + dis + '>' + eduOpts(t.partEdu&&t.partEdu.education) + '</select></div>';
+  h += '<div style="flex:1;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">学位</div><select id="f_partEdu_degree"' + dis + '>' + degreeOpts(t.partEdu&&t.partEdu.degree) + '</select></div>';
+  h += '<div style="flex:2.5;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">毕业院校系及专业</div><div style="display:flex;gap:8px;"><input type="text" id="f_partEdu_gradSchool" value="' + escapeHtml((t.partEdu&&t.partEdu.gradSchool)||'') + '"' + dis + ' placeholder="院校系" style="flex:1;"><input type="text" id="f_partEdu_gradMajor" value="' + escapeHtml((t.partEdu&&t.partEdu.gradMajor)||'') + '"' + dis + ' placeholder="专业" style="flex:1;"></div></div>';
+  h += '</div></td></tr>';
+
+  // 职称或职业资格（含附件上传：职称证书/资格证扫描件）
+  h += '<tr><td class="fill-lbl">职称或职业资格</td><td class="fill-val" colspan="4">';
+  h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
+  h += '<input type="text" id="f_title" value="' + escapeHtml(t.title||'') + '"' + dis + ' placeholder="如：中学二级教师" style="flex:1;min-width:160px;">';
+  h += '<span class="title-att" id="f_titleAtt">' + titleAttHtml(locked, t) + '</span>';
+  h += '</div>';
+  h += (locked ? '' : '<input type="file" id="f_titleFileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="onTitleFileSelected(this)" style="display:none;">');
+  h += '</td></tr>';
+
+  // 原单位及岗位类别和等级 → 拆分为三个字段（原单位默认「无」，添加后才展示原岗位类别/原岗位等级/原等级聘任时间）
+  var unitActive = locked ? !!((t.originalUnit||'').trim()) : unitShown;
+  var unitHide = unitActive ? '' : ' style="display:none;"';
+  h += '<tr><td class="fill-lbl">原单位</td><td class="fill-val" colspan="2"><div id="f_unitBox">' + unitBoxHtml(locked) + '</div></td>';
+  h += '<td class="fill-lbl" id="f_unitCatLbl"' + unitHide + '>原岗位类别</td><td class="fill-val" id="f_unitCat"' + unitHide + '><select id="f_originalCategory"' + dis + (locked?'':' onchange="onOriginalCategoryChange()"') + '>' + categoryOpts(t.originalCategory) + '</select></td></tr>';
+  h += '<tr id="f_unitRow2"' + unitHide + '><td class="fill-lbl">原岗位等级</td><td class="fill-val" colspan="2"><select id="f_originalLevel"' + dis + '>' + levelOpts(t.originalLevel, t.originalCategory) + '</select></td>';
+  h += '<td class="fill-lbl">原等级聘任时间</td><td class="fill-val"><input type="month" id="f_appointmentTime" value="' + escapeHtml(t.appointmentTime||'') + '"' + dis + '></td></tr>';
+
+  // 符合岗位要求的其他条件
+  h += '<tr><td class="fill-lbl">符合岗位要求的其他条件</td><td class="fill-val" colspan="4"><input type="text" id="f_otherQual" value="' + escapeHtml(t.otherQual || '无') + '"' + dis + '></td></tr>';
+
+  // 学习经历 / 工作经历（表格形式，支持添加多份）
+  h += '<tr><td class="fill-lbl">学习经历 <span class="req">*</span><br><span style="font-size:10px;color:var(--text-light);">（从高中填起）</span></td><td class="fill-val" colspan="4">';
+  h += '<table class="hist-table"><thead><tr><th style="width:96px;">开始时间</th><th style="width:96px;">结束时间</th><th style="width:86px;">学历</th><th>学校名称</th><th>专业</th>' + (locked?'':'<th style="width:40px;"></th>') + '</tr></thead><tbody id="f_eduBody">';
+  eduRows = [];
+  var ehs = normEdu(t.eduHistory);
+  ehs.forEach(function(r, i){ eduRows.push(r); h += eduRowHtml(i, locked); });
+  if (ehs.length === 0) { eduRows.push({start:'',end:'',edu:'',school:'',major:''}); h += eduRowHtml(0, locked); }
+  h += '</tbody></table>';
+  h += (locked ? '' : '<button class="rel-add" onclick="addEduRow()">＋ 添加学习经历</button>');
+  h += '</td></tr>';
+
+  h += '<tr><td class="fill-lbl">工作经历</td><td class="fill-val" colspan="4">';
+  workRows = [];
+  var whs = normWork(t.workHistory);
+  whs.forEach(function(r, i){ workRows.push(r); });
+  if (locked && workRows.length === 0) {
+    // 锁定视图无工作经历：直接提示，不渲染空表格
+    h += '<div class="hist-empty">无工作经历</div>';
+  } else {
+    h += '<table class="hist-table"><thead><tr><th style="width:84px;">开始时间</th><th style="width:136px;">结束时间</th><th>单位名称</th><th style="width:88px;">岗位名称</th><th style="width:96px;">岗位类别</th><th style="width:84px;">岗位等级</th>' + (locked?'':'<th style="width:40px;"></th>') + '</tr></thead><tbody id="f_workBody">';
+    workRows.forEach(function(r, i){ h += workRowHtml(i, locked); });
+    h += '</tbody></table>';
+  }
+  h += (locked ? '' : '<button class="rel-add" onclick="addWorkRow()">＋ 添加工作经历</button>');
+  h += '</td></tr>';
+
+  // 配偶基本情况（默认无配偶，点「＋ 添加配偶」才展示待填内容）
+  h += '<tr><td class="fill-lbl">配偶基本情况</td><td class="fill-val" colspan="4"><div id="f_spouseBox">' + spouseBoxHtml(locked) + '</div></td></tr>';
+
+  // 其他主要社会关系
+  h += '<tr><td class="fill-lbl">其他主要<br>社会关系</td><td class="fill-val" colspan="4">';
+  h += '<table class="rel-table"><thead><tr><th style="width:36px;">序号</th><th style="width:120px;">姓名</th><th style="width:150px;">与本人关系</th><th>工作单位</th>' + (locked?'':'<th style="width:40px;"></th>') + '</tr></thead><tbody id="f_relBody">';
+  relRows = [];
+  var rels = (t.relations && t.relations.length) ? t.relations : [];
+  rels.forEach(function(r, i) {
+    relRows.push({ name:r.name||'', relation:r.relation||'', unit:r.unit||'' });
+    h += relRowHtml(i, locked);
+  });
+  if (rels.length === 0) { relRows.push({name:'',relation:'',unit:''}); h += relRowHtml(0, locked); }
+  h += '</tbody></table>';
+  h += (locked ? '' : '<button class="rel-add" onclick="addRelRow()">＋ 添加社会关系</button>');
+  h += '</td></tr>';
+
+  h += '</table>';
+
+  // 操作区
+  if (!locked) {
+    h += '<div class="fill-actions">';
+    h += '<button class="btn btn-primary" onclick="saveAndSend()" style="padding:10px 40px;">' + (schoolEdit ? '保存修改' : '保存并发送') + '</button></div>';
+    h += '<div class="fill-note">' + (schoolEdit ? '保存后信息将重新锁定，教师端显示为已提交。' : '保存并发送后信息将锁定，如需更正请在学校重新开启编辑后修改。') + '</div>';
+  } else {
+    h += '<div class="fill-actions"><div style="font-size:12px;color:var(--text-light);">提交时间：' + (fill.submitTime||'') + '</div></div>';
+  }
+
+  g('fillCard').innerHTML = h;
+}
+
+function eduOpts(v) {
+  var arr = ['', '博士', '硕士', '本科', '大专', '中专', '高中及以下'];
+  var h = '<option value="">请选择</option>';
+  arr.forEach(function(o) { if (!o) return; h += '<option value="'+o+'"'+(v===o?' selected':'')+'>'+o+'</option>'; });
+  return h;
+}
+
+function relRowHtml(i, locked) {
+  var r = relRows[i] || {};
+  if (locked) {
+    // 锁定（只读）视图：纯文本单元格，内容过长时自动换行展示全部
+    return '<tr id="relrow_'+i+'">' +
+      '<td style="color:var(--text-secondary);text-align:center;">'+(i+1)+'</td>' +
+      '<td class="hist-val">' + escapeHtml(r.name||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.relation||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.unit||'') + '</td>' +
+      '</tr>';
+  }
+  return '<tr id="relrow_'+i+'">' +
+    '<td style="color:var(--text-secondary);text-align:center;">'+(i+1)+'</td>' +
+    '<td><input type="text" value="'+escapeHtml(r.name||'')+'"'+(locked?'disabled':' onchange="relRows['+i+'].name=this.value"')+'></td>' +
+    '<td><input type="text" value="'+escapeHtml(r.relation||'')+'"'+(locked?'disabled':' onchange="relRows['+i+'].relation=this.value"')+'></td>' +
+    '<td><input type="text" value="'+escapeHtml(r.unit||'')+'"'+(locked?'disabled':' onchange="relRows['+i+'].unit=this.value"')+'></td>' +
+    (locked?'':'<td><a class="rel-del" onclick="delRelRow('+i+')">删除</a></td>') +
+    '</tr>';
+}
+
+function addRelRow() { relRows.push({name:'',relation:'',unit:''}); renderRelBody(); }
+function delRelRow(i) {
+  showConfirm('确定删除该条社会关系吗？删除后不可恢复。', function(){ relRows.splice(i,1); if (relRows.length===0) relRows.push({name:'',relation:'',unit:''}); renderRelBody(); }, '删除确认', '确认删除');
+}
+function renderRelBody() {
+  var b = g('f_relBody'); if (!b) return;
+  var h = '';
+  relRows.forEach(function(r,i){ h += relRowHtml(i,false); });
+  b.innerHTML = h;
+}
+
+// 学习经历行（开始时间/结束时间/学历/学校名称/专业）
+function eduRowHtml(i, locked) {
+  var r = eduRows[i] || {};
+  var dis = locked ? 'disabled' : '';
+  if (locked) {
+    // 锁定（只读）视图：纯文本单元格，内容过长时自动换行展示全部
+    return '<tr>' +
+      '<td class="hist-val">' + escapeHtml(r.start||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.end||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.edu||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.school||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.major||'') + '</td>' +
+      '</tr>';
+  }
+  return '<tr>' +
+    '<td><input type="month" value="'+escapeHtml(r.start||'')+'"'+(locked?'disabled':' onchange="eduRows['+i+'].start=this.value"')+'></td>' +
+    '<td><input type="month" value="'+escapeHtml(r.end||'')+'"'+(locked?'disabled':' onchange="eduRows['+i+'].end=this.value"')+'></td>' +
+    '<td><select'+(locked?'disabled':' onchange="eduRows['+i+'].edu=this.value"')+'>' + eduOpts(r.edu) + '</select></td>' +
+    '<td><input type="text" value="'+escapeHtml(r.school||'')+'"'+(locked?'disabled':' onchange="eduRows['+i+'].school=this.value"')+'></td>' +
+    '<td><input type="text" value="'+escapeHtml(r.major||'')+'"'+(locked?'disabled':' onchange="eduRows['+i+'].major=this.value"')+'></td>' +
+    (locked?'':'<td><a class="rel-del" onclick="delEduRow('+i+')">删除</a></td>') +
+    '</tr>';
+}
+// 工作经历行（开始时间/结束时间/单位名称/岗位名称/岗位类别/岗位等级）
+function workRowHtml(i, locked) {
+  var r = workRows[i] || {};
+  var dis = locked ? 'disabled' : '';
+  if (locked) {
+    // 锁定（只读）视图：纯文本单元格，内容过长时自动换行展示全部
+    return '<tr>' +
+      '<td class="hist-val">' + escapeHtml(r.start||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.end||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.unit||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.position||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.category||'') + '</td>' +
+      '<td class="hist-val">' + escapeHtml(r.level||'') + '</td>' +
+      '</tr>';
+  }
+  return '<tr>' +
+    '<td><input type="month" value="'+escapeHtml(r.start||'')+'"'+(locked?'disabled':' onchange="workRows['+i+'].start=this.value"')+'></td>' +
+    '<td><div class="hist-end-cell">' +
+      (r.end === '至今'
+        ? '<span class="still-txt">至今</span>' + (locked ? '' : '<a class="rel-del" style="font-size:11px;" onclick="clearWorkEndStill('+i+')">撤销</a>')
+        : '<input type="month" value="'+escapeHtml(r.end||'')+'"'+(locked?'disabled':' onchange="workRows['+i+'].end=this.value"')+'><button class="still-btn" type="button" onclick="stillWorkEnd('+i+')"'+(locked?'disabled':'')+'>至今</button>') +
+    '</div></td>' +
+    '<td><input type="text" value="'+escapeHtml(r.unit||'')+'"'+(locked?'disabled':' onchange="workRows['+i+'].unit=this.value"')+'></td>' +
+    '<td><input type="text" value="'+escapeHtml(r.position||'')+'"'+(locked?'disabled':' onchange="workRows['+i+'].position=this.value"')+'></td>' +
+    '<td><select'+(locked?'disabled':' onchange="workRows['+i+'].category=this.value"')+'>' + workCategoryOpts(r.category) + '</select></td>' +
+    '<td><input type="text" value="'+escapeHtml(r.level||'')+'"'+(locked?'disabled':' onchange="workRows['+i+'].level=this.value"')+' placeholder="可填无"></td>' +
+    (locked?'':'<td><a class="rel-del" onclick="delWorkRow('+i+')">删除</a></td>') +
+    '</tr>';
+}
+function addEduRow() { eduRows.push({start:'',end:'',edu:'',school:'',major:''}); renderEduBody(); }
+function delEduRow(i) {
+  showConfirm('确定删除该条学习经历吗？删除后不可恢复。', function(){ eduRows.splice(i,1); if (eduRows.length===0) eduRows.push({start:'',end:'',edu:'',school:'',major:''}); renderEduBody(); }, '删除确认', '确认删除');
+}
+function renderEduBody() {
+  var b = g('f_eduBody'); if (!b) return;
+  var h = '';
+  eduRows.forEach(function(r,i){ h += eduRowHtml(i,false); });
+  b.innerHTML = h;
+}
+function addWorkRow() { workRows.push({start:'',end:'',unit:'',position:'',category:'',level:''}); renderWorkBody(); }
+function delWorkRow(i) {
+  showConfirm('确定删除该条工作经历吗？删除后不可恢复。', function(){ workRows.splice(i,1); renderWorkBody(); }, '删除确认', '确认删除');
+}
+function stillWorkEnd(i) { workRows[i].end = '至今'; renderWorkBody(); }
+function clearWorkEndStill(i) { workRows[i].end = ''; renderWorkBody(); }
+function renderWorkBody() {
+  var b = g('f_workBody'); if (!b) return;
+  var h = '';
+  workRows.forEach(function(r,i){ h += workRowHtml(i,false); });
+  b.innerHTML = h;
+}
+
+function updateAge() {
+  var birth = g('f_birth') ? g('f_birth').value : '';
+  var age = g('f_age');
+  if (age) age.textContent = calcAge(birth) || '—';
+}
+
+function pickPhoto() { var inp = g('f_photoInput'); if (inp) inp.click(); }
+function onPhotoSelected(input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  if (f.size > 2*1024*1024) { showToast('照片文件不能超过2MB', 'warning'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) { photo = e.target.result; var box = g('f_photoBox'); if (box) box.innerHTML = '<img src="' + photo + '">'; };
+  reader.readAsDataURL(f);
+}
+
+// ===== 职称或职业资格附件 =====
+function titleAttHtml(locked) {
+  if (locked) {
+    return titleFile
+      ? '<span class="att-has">📎 <a href="' + escapeHtml(titleFile) + '" target="_blank" download="' + escapeHtml(titleFileName||'附件') + '">' + escapeHtml(titleFileName||'职称证书') + '</a></span>'
+      : '<span class="att-empty">未上传附件</span>';
+  }
+  if (titleFile) {
+    return '<span class="att-has">📎 <a href="' + escapeHtml(titleFile) + '" target="_blank">' + escapeHtml(titleFileName||'附件') + '</a></span>'
+      + '<button type="button" class="att-btn" onclick="pickTitleFile()">重新上传</button>'
+      + '<button type="button" class="att-del" onclick="removeTitleFile()">移除</button>';
+  }
+  return '<button type="button" class="att-btn" onclick="pickTitleFile()">＋ 上传附件</button>';
+}
+function pickTitleFile() { var inp = g('f_titleFileInput'); if (inp) inp.click(); }
+function onTitleFileSelected(input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  if (f.size > 5*1024*1024) { showToast('附件不能超过5MB', 'warning'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) { titleFile = e.target.result; titleFileName = f.name; var box = g('f_titleAtt'); if (box) box.innerHTML = titleAttHtml(false); };
+  reader.readAsDataURL(f);
+}
+function removeTitleFile() {
+  showConfirm('确定移除该附件吗？移除后需重新上传。', function(){ titleFile = ''; titleFileName = ''; var box = g('f_titleAtt'); if (box) box.innerHTML = titleAttHtml(false); }, '移除确认', '确认移除');
+}
+
+// ===== 配偶基本情况（默认无配偶）=====
+function spouseEmpty(sp) {
+  return !sp || (!(sp.name||'').trim() && !(sp.gender||'') && !(sp.birthDate||'') && !(sp.unit||'').trim());
+}
+function spouseFieldsHtml(dis) {
+  var h = '<div style="display:flex;gap:10px;">';
+  h += '<div style="flex:1;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">姓名</div><input type="text" id="f_spouse_name" value="' + escapeHtml(spouseData.name) + '"' + dis + '></div>';
+  h += '<div style="flex:0.8;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">性别</div><select id="f_spouse_gender"' + dis + '><option value="">请选择</option><option value="男"' + (spouseData.gender==='男'?' selected':'') + '>男</option><option value="女"' + (spouseData.gender==='女'?' selected':'') + '>女</option></select></div>';
+  h += '<div style="flex:1;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">出生年月</div><input type="date" id="f_spouse_birth" value="' + escapeHtml(spouseData.birthDate) + '"' + dis + '></div>';
+  h += '<div style="flex:1.8;"><div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">工作单位</div><input type="text" id="f_spouse_unit" value="' + escapeHtml(spouseData.unit) + '"' + dis + '></div>';
+  h += '</div>';
+  return h;
+}
+function spouseBoxHtml(locked) {
+  if (locked) {
+    return spouseEmpty(spouseData) ? '<span class="spouse-empty">无配偶</span>' : spouseFieldsHtml('disabled');
+  }
+  if (!spouseShown) {
+    return '<span class="spouse-empty">无配偶</span><button class="rel-add" onclick="showSpouseForm()">＋ 添加配偶</button>';
+  }
+  return spouseFieldsHtml('') + '<div style="margin-top:6px;"><a class="rel-del" onclick="delSpouse()">删除配偶</a></div>';
+}
+function showSpouseForm() { spouseShown = true; var box = g('f_spouseBox'); if (box) box.innerHTML = spouseBoxHtml(false); }
+function delSpouse() {
+  showConfirm('确定删除配偶信息吗？删除后需重新填写。', function(){ spouseShown = false; var box = g('f_spouseBox'); if (box) box.innerHTML = spouseBoxHtml(false); }, '删除确认', '确认删除');
+}
+
+// ===== 原单位（默认无，添加后才展示原岗位类别/等级/聘任时间）=====
+function unitEmpty(u) { return !u || !String(u||'').trim(); }
+function unitBoxHtml(locked) {
+  var u = (fill.teacher && fill.teacher.originalUnit) || '';
+  if (locked) {
+    return unitEmpty(u) ? '<span class="spouse-empty">无</span>'
+      : '<input type="text" id="f_originalUnit" value="' + escapeHtml(u) + '" disabled>';
+  }
+  if (!unitShown) {
+    return '<span class="spouse-empty">无</span><button class="rel-add" onclick="showUnitForm()">＋ 添加原单位</button>';
+  }
+  return '<div style="display:flex;gap:8px;align-items:center;"><input type="text" id="f_originalUnit" value="' + escapeHtml(u) + '" placeholder="原工作单位名称"><a class="rel-del" onclick="delUnit()">删除</a></div>';
+}
+function showUnitForm() {
+  unitShown = true;
+  var box = g('f_unitBox'); if (box) box.innerHTML = unitBoxHtml(false);
+  var cat = g('f_unitCat'); if (cat) cat.style.display = '';
+  var catL = g('f_unitCatLbl'); if (catL) catL.style.display = '';
+  var row2 = g('f_unitRow2'); if (row2) row2.style.display = '';
+}
+function delUnit() {
+  showConfirm('确定删除原单位信息吗？删除后需重新填写。', function(){
+    unitShown = false;
+    var box = g('f_unitBox'); if (box) box.innerHTML = unitBoxHtml(false);
+    var cat = g('f_unitCat'); if (cat) cat.style.display = 'none';
+    var catL = g('f_unitCatLbl'); if (catL) catL.style.display = 'none';
+    var row2 = g('f_unitRow2'); if (row2) row2.style.display = 'none';
+    // 隐藏后清空值，避免保存时残留旧的岗位类别/等级/聘任时间
+    var oc = g('f_originalCategory'); if (oc) oc.value = '';
+    var ol = g('f_originalLevel'); if (ol) ol.value = '';
+    var at = g('f_appointmentTime'); if (at) at.value = '';
+  }, '删除确认', '确认删除');
+}
+
+// ===== 二次确认 =====
+var confirmCb = null;
+function showConfirm(msg, onOk, title, okText) {
+  confirmCb = onOk;
+  var m = g('confirmMsg'); if (m) m.textContent = msg;
+  var t = g('confirmTitle'); if (t) t.textContent = title || '确认';
+  var b = g('confirmOkBtn'); if (b) b.textContent = okText || '确认';
+  var o = g('confirmOverlay'); if (o) o.style.display = 'flex';
+}
+function closeConfirm() {
+  confirmCb = null;
+  var o = g('confirmOverlay'); if (o) o.style.display = 'none';
+}
+function confirmOk() {
+  var cb = confirmCb; confirmCb = null;
+  var o = g('confirmOverlay'); if (o) o.style.display = 'none';
+  if (cb) cb();
+}
+
+// ===== 保存并发送 =====
+function saveAndSend() {
+  if (schoolEdit) {
+    // 学校「保存修改」：二次确认后才保存
+    showConfirm('确认保存修改？保存后信息将重新锁定，教师端显示为已提交。', function(){ doSave(); }, '保存修改', '确认保存');
+    return;
+  }
+  doSave();
+}
+function doSave() {
+  var name = g('f_name') ? g('f_name').value.trim() : '';
+  var gender = g('f_gender') ? g('f_gender').value : '';
+  var birth = g('f_birth') ? g('f_birth').value : '';
+  var idNumber = g('f_idNumber') ? g('f_idNumber').value.trim() : '';
+  var ethnicity = g('f_ethnicity') ? g('f_ethnicity').value : '';
+  var nativePlace = regionValue('f_nativePlace');
+
+  if (!name) { showToast('请填写姓名', 'warning'); return; }
+  if (!gender) { showToast('请选择性别', 'warning'); return; }
+  if (!birth) { showToast('请填写出生年月', 'warning'); return; }
+  if (!ethnicity) { showToast('请选择民族', 'warning'); return; }
+  if (!nativePlace) { showToast('请选择籍贯', 'warning'); return; }
+  if (!regionValue('f_birthPlace')) { showToast('请选择出生地', 'warning'); return; }
+  if (!regionValue('f_household')) { showToast('请选择户籍地', 'warning'); return; }
+  if (!idNumber) { showToast('请填写身份证号', 'warning'); return; }
+  if (!/^\d{17}[\dXx]$/.test(idNumber)) { showToast('请输入正确的18位身份证号', 'warning'); return; }
+  if (!val('f_edu_education')) { showToast('请选择全日制教育学历', 'warning'); return; }
+  if (!val('f_edu_gradSchool') || !val('f_edu_gradMajor')) { showToast('请填写全日制教育毕业院校系及专业', 'warning'); return; }
+  if (!eduRows.some(function(r){ return r.school || r.major; })) { showToast('请至少填写一段学习经历（学校名称）', 'warning'); return; }
+  // 工作经历可选：不添加即为「无工作经历」
+
+  // 姓名与学校登记比对提示（学校编辑模式可更正姓名，不拦截）
+  if (!schoolEdit && fill.name && name !== fill.name) {
+    showToast('姓名与学校登记不一致（登记：' + fill.name + '），请核实', 'warning'); return;
+  }
+
+  var teacher = {
+    name: name,
+    photo: photo || (fill.teacher && fill.teacher.photo) || '',
+    titleFile: titleFile || (fill.teacher && fill.teacher.titleFile) || '',
+    titleFileName: titleFileName || (fill.teacher && fill.teacher.titleFileName) || '',
+    gender: gender,
+    birthDate: birth,
+    age: calcAge(birth),
+    ethnicity: ethnicity,
+    nativePlace: nativePlace,
+    nativePlaceDetail: val('f_nativePlace_detail'),
+    birthPlace: regionValue('f_birthPlace'),
+    birthPlaceDetail: val('f_birthPlace_detail'),
+    household: regionValue('f_household'),
+    householdDetail: val('f_household_detail'),
+    idNumber: idNumber,
+    edu: { education: val('f_edu_education'), degree: val('f_edu_degree'), gradSchool: val('f_edu_gradSchool'), gradMajor: val('f_edu_gradMajor') },
+    partEdu: { education: val('f_partEdu_education'), degree: val('f_partEdu_degree'), gradSchool: val('f_partEdu_gradSchool'), gradMajor: val('f_partEdu_gradMajor') },
+    title: val('f_title'),
+    originalUnit: val('f_originalUnit'),
+    originalCategory: val('f_originalCategory'),
+    originalLevel: val('f_originalLevel'),
+    appointmentTime: val('f_appointmentTime'),
+    otherQual: val('f_otherQual') || '无',
+    eduHistory: eduRows.filter(function(r){ return r.start || r.end || r.edu || r.school || r.major; }),
+    workHistory: workRows.filter(function(r){ return r.start || r.end || r.unit || r.position || r.category || r.level; }),
+    spouse: (function(){ spouseData = { name: val('f_spouse_name'), gender: val('f_spouse_gender'), birthDate: val('f_spouse_birth'), unit: val('f_spouse_unit') }; return spouseData; })(),
+    relations: relRows.filter(function(r){ return r.name || r.relation || r.unit; })
+  };
+
+  var all = loadFills();
+  var rec = all[token];
+  if (!rec) { showToast('链接已失效，请联系学校管理员', 'warning'); return; }
+  rec.teacher = teacher;
+  rec.status = 'submitted';
+  rec.submitTime = now();
+  all[token] = rec;
+  saveFills(all);
+  fill = rec;
+  var wasEdit = schoolEdit;
+  if (wasEdit) schoolEdit = false;   // 学校编辑保存后退出编辑模式，回到只读锁定视图
+  showToast(wasEdit ? '已保存修改，信息已重新锁定' : '已提交，信息已锁定', 'success');
+  renderContent();
+}
+
+function val(id) { var el = g(id); return el ? el.value.trim() : ''; }
+
+// ===== INIT =====
+(function init() {
+  token = getUrlParam('invite');
+  schoolEdit = (getUrlParam('mode') === 'edit');
+  var all = loadFills();
+  if (!token) {
+    // 直接打开（未带 ?invite= 参数）：自动载入演示数据，便于演示查看
+    var demoKeys = Object.keys(all).filter(function(k){ return all[k] && all[k].teacher; });
+    if (demoKeys.length) { token = demoKeys[0]; demoMode = true; }
+    else { renderInvalid(); return; }
+  }
+  fill = all[token] || null;
+  if (fill && fill.teacher) {
+    relRows = (fill.teacher.relations||[]).map(function(r){ return {name:r.name||'',relation:r.relation||'',unit:r.unit||''}; });
+    photo = fill.teacher.photo || '';
+    titleFile = fill.teacher.titleFile || '';
+    titleFileName = fill.teacher.titleFileName || '';
+    spouseData = { name: (fill.teacher.spouse&&fill.teacher.spouse.name)||'', gender: (fill.teacher.spouse&&fill.teacher.spouse.gender)||'', birthDate: (fill.teacher.spouse&&fill.teacher.spouse.birthDate)||'', unit: (fill.teacher.spouse&&fill.teacher.spouse.unit)||'' };
+    spouseShown = !spouseEmpty(spouseData);
+    unitShown = !!((fill.teacher.originalUnit||'').trim());
+    eduRows = normEdu(fill.teacher.eduHistory);
+    workRows = normWork(fill.teacher.workHistory);
+  }
+  if (schoolEdit) {
+    if (!fill) { renderInvalid(); return; }   // 学校编辑需已有填报数据
+    stage = 'form';
+  }
+  renderContent();
+})();
+</script>
+</body>
+</html>

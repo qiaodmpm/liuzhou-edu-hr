@@ -232,6 +232,31 @@ legend { font-size: 13px; font-weight: 600; color: var(--primary); padding: 0 8p
 .modal-container .input-readonly{background:var(--gray-bg) !important;color:var(--text) !important;border-color:transparent !important;cursor:default;}
 .modal-container .modal-section{padding:16px;margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);background:#FAFBFC;}
 .modal-container .modal-section .ms-title{font-size:12px;font-weight:600;color:var(--primary);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+/* 招聘情况统计表（只读） */
+.stats-block { margin-top:12px; padding:12px 14px; background:var(--primary-light); border:1px solid #DBEAFE; border-radius:var(--radius); }
+.stats-title { font-size:12px; font-weight:600; color:var(--primary); margin-bottom:8px; }
+.stats-grid { display:flex; gap:22px; flex-wrap:wrap; }
+.stats-item .s-label { font-size:11px; color:var(--text-secondary); margin-bottom:2px; }
+.stats-item .s-val { font-size:18px; font-weight:700; color:var(--primary); }
+.stats-note { font-size:11px; color:var(--text-secondary); margin-top:6px; }
+.stats-note.hint { margin-top:2px; }
+.stats-empty { font-size:12px; color:var(--text-light); }
+/* 从已填报教师导入 */
+.import-bar { display:flex; align-items:center; gap:10px; margin-bottom:12px; padding:8px 12px; background:var(--gray-bg); border:1px dashed var(--border); border-radius:6px; flex-wrap:wrap; }
+.import-bar select { padding:5px 10px; border:1px solid var(--border); border-radius:5px; font-size:12px; font-family:inherit; min-width:230px; }
+.import-hint { font-size:11px; color:var(--text-light); }
+.source-tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:11px; font-weight:500; margin-left:8px; }
+.source-tag.teacher { background:var(--primary-light); color:var(--primary); }
+/* 更多信息（教师填报同步） */
+.more-toggle { font-size:11px; color:var(--accent); cursor:pointer; text-decoration:none; }
+.rel-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
+.rel-table th { background:var(--bg); font-weight:500; color:var(--text-secondary); border:1px solid var(--border); padding:4px 6px; text-align:left; font-size:11px; }
+.rel-table td { border:1px solid var(--border); padding:3px 6px; }
+.rel-table input { width:100%; border:none; background:transparent; font-size:12px; font-family:inherit; padding:2px; }
+.rel-table input:focus { outline:none; }
+.photo-preview { width:56px; height:70px; object-fit:cover; border:1px solid var(--border); border-radius:4px; background:var(--gray-bg); }
+.photo-box { display:flex; align-items:center; gap:10px; }
+.photo-box .photo-actions { font-size:11px; color:var(--accent); cursor:pointer; }
 
 @media (max-width: 900px) {
   .form-row, .form-row-3 { flex-direction: column; }
@@ -351,6 +376,7 @@ var editRecordId = null;
 var editRecordRef = null;
 var businessType = null; // 'recruitment' | 'transfer'
 var attachedFiles = [];
+var moreOpen = {};       // 花名册「更多信息」展开状态，key: pi_ri
 
 // 表单数据
 var formData = {
@@ -364,6 +390,17 @@ var formData = {
 
 // ===== UTILITY =====
 function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// 学习/工作经历：数组（教师填报新格式）→ 多行文本（花名册/备案表展示）
+function histToText(h) {
+  if (!h) return '';
+  if (typeof h === 'string') return h;   // 兼容旧数据
+  if (!Array.isArray(h)) return '';
+  return h.map(function(r){
+    var seg = [];
+    ['start','end','edu','school','major','unit','position','category','level'].forEach(function(k){ if (r[k]) seg.push(r[k]); });
+    return seg.join(' | ');
+  }).join('\n');
+}
 function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
 function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
 document.addEventListener('click', function(e) { if (!e.target.closest('.topnav-user')) document.getElementById('userDropdown').classList.remove('show'); });
@@ -457,6 +494,155 @@ function loadEmployRecords() {
 }
 function saveEmployRecords(r) { localStorage.setItem('employ_records', JSON.stringify(r)); }
 
+// ===== 教师填报信息（employ_teacher_fills）与招聘统计表（recruit_stats）=====
+var TEACHER_FILL_SEED = [
+  { token:'EFTREC20260501001_0_0', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中语文教师', schoolName:'柳州高级中学', name:'张伟', phone:'13800001234', status:'submitted', seedRev:3, createdTime:'2026-08-10 09:00:00', submitTime:'2026-08-12 15:30:00',
+    teacher:{ name:'张伟', photo:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0U4RUVGNyIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjOURCOEQ0Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iIzlEQjhENCIvPjwvc3ZnPg==', gender:'男', birthDate:'1995-03-01', age:31, ethnicity:'汉族', nativePlace:'广西壮族自治区/柳州市/城中区', nativePlaceDetail:'城中区东环路12号', birthPlace:'广西壮族自治区/柳州市/城中区', birthPlaceDetail:'城中区东环路12号', household:'广西壮族自治区/柳州市/城中区', householdDetail:'城中区高新南路8号', idNumber:'450202199503017890',
+      edu:{ education:'本科', degree:'学士', gradSchool:'广西师范大学', gradMajor:'汉语言文学' }, partEdu:{ education:'硕士', degree:'硕士', gradSchool:'广西师范大学', gradMajor:'学科教学（语文）' },
+      title:'中学二级教师', titleFile:'data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgNTk1IDg0Ml0+PmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXI8PC9TaXplIDQvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgoxOTAKJSVFT0Y=', titleFileName:'中学二级教师职称证书.pdf', originalUnit:'柳州市第一中学', originalCategory:'专业技术岗位', originalLevel:'专技十级', appointmentTime:'2019-07', otherQual:'具有高级中学教师资格证，普通话二级甲等',
+      eduHistory:[{ start:'2010-09', end:'2013-06', edu:'高中及以下', school:'柳州市第一中学', major:'' },{ start:'2013-09', end:'2017-06', edu:'本科', school:'广西师范大学', major:'汉语言文学' }],
+      workHistory:[{ start:'2017-09', end:'至今', unit:'柳州市第一中学', position:'高中语文教师', category:'专业技术岗位', level:'专技十级' }],
+      spouse:{ name:'王丽', gender:'女', birthDate:'1996-04-12', unit:'柳州市人民医院' }, relations:[{ name:'张建国', relation:'父亲', unit:'柳州市国资委' },{ name:'李秀英', relation:'母亲', unit:'柳州市第一人民医院' }] } },
+  { token:'EFTREC20260501001_0_1', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中语文教师', schoolName:'柳州高级中学', name:'李娜', phone:'13900005678', status:'submitted', seedRev:3, createdTime:'2026-08-10 09:00:00', submitTime:'2026-08-12 16:05:00',
+    teacher:{ name:'李娜', photo:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0Y3RThFRSIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjRDQ5REI4Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iI0Q0OURCOCIvPjwvc3ZnPg==', gender:'女', birthDate:'1996-07-15', age:30, ethnicity:'汉族', nativePlace:'广西壮族自治区/柳州市/鱼峰区', nativePlaceDetail:'鱼峰区柳石路3号', birthPlace:'广西壮族自治区/柳州市/鱼峰区', birthPlaceDetail:'鱼峰区柳石路3号', household:'广西壮族自治区/柳州市/鱼峰区', householdDetail:'鱼峰区西江路15号', idNumber:'450203199607019022',
+      edu:{ education:'本科', degree:'学士', gradSchool:'广西师范大学', gradMajor:'汉语言文学' }, partEdu:{ education:'硕士', degree:'硕士', gradSchool:'广西师范大学', gradMajor:'学科教学（语文）' },
+      title:'中学二级教师', titleFile:'data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgNTk1IDg0Ml0+PmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXI8PC9TaXplIDQvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgoxOTAKJSVFT0Y=', titleFileName:'中学二级教师职称证书.pdf', originalUnit:'柳州市第二中学', originalCategory:'专业技术岗位', originalLevel:'专技十一级', appointmentTime:'2020-08', otherQual:'具有高级中学教师资格证，普通话二级甲等',
+      eduHistory:[{ start:'2011-09', end:'2014-06', edu:'高中及以下', school:'柳州市第二中学', major:'' },{ start:'2014-09', end:'2018-06', edu:'本科', school:'广西师范大学', major:'汉语言文学' }],
+      workHistory:[{ start:'2018-09', end:'至今', unit:'柳州市第二中学', position:'高中语文教师', category:'专业技术岗位', level:'专技十一级' }],
+      spouse:{ name:'刘洋', gender:'男', birthDate:'1995-11-20', unit:'柳州市建筑设计院' }, relations:[{ name:'李国栋', relation:'父亲', unit:'柳州市农业农村局' },{ name:'陈秀兰', relation:'母亲', unit:'柳州市城中区实验小学' }] } }
+];
+
+// ===== 扩充演示数据：为各招聘批次/岗位补充已填报教师（三页同步）=====
+var PHOTO_MALE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0U4RUVGNyIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjOURCOEQ0Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iIzlEQjhENCIvPjwvc3ZnPg==';
+var PHOTO_FEMALE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI0Y3RThFRSIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNTUiIHI9IjI2IiBmaWxsPSIjRDQ5REI4Ii8+PHBhdGggZD0iTTIwIDE1MmM2LTMyIDIyLTQ4IDQwLTQ4czM0IDE2IDQwIDQ4eiIgZmlsbD0iI0Q0OURCOCIvPjwvc3ZnPg==';
+// 通用演示教师模板：占位信息一致，仅区分姓名/性别/身份证号/批次/岗位
+function demoFill(o) {
+  var gender = o.gender || '男';
+  var major = o.major || '学科教学';
+  var unit = o.unit || '柳州市第一中学';
+  return {
+    token:o.token, recruitRecordId:o.recruitRecordId, batchId:o.batchId, batchName:o.batchName,
+    positionName:o.positionName, schoolName:o.schoolName, name:o.name, phone:o.phone,
+    status:'submitted', seedRev:3, createdTime:'2026-08-10 09:00:00', submitTime:'2026-08-13 10:00:00',
+    teacher:{ name:o.name, photo:gender==='女'?PHOTO_FEMALE:PHOTO_MALE, gender:gender, birthDate:o.birthDate, age:o.age, ethnicity:'汉族',
+      nativePlace:'广西壮族自治区/柳州市/城中区', nativePlaceDetail:'城中区东环路12号',
+      birthPlace:'广西壮族自治区/柳州市/城中区', birthPlaceDetail:'城中区东环路12号',
+      household:'广西壮族自治区/柳州市/城中区', householdDetail:'城中区高新南路8号',
+      idNumber:o.idNumber,
+      edu:{ education:'本科', degree:'学士', gradSchool:'广西师范大学', gradMajor:major },
+      partEdu:{ education:'硕士', degree:'硕士', gradSchool:'广西师范大学', gradMajor:major },
+      title:'中学二级教师', originalUnit:unit, originalCategory:'专业技术岗位', originalLevel:'专技十级', appointmentTime:'2019-07',
+      otherQual:'具有高级中学教师资格证，普通话二级甲等',
+      eduHistory:[{ start:'2010-09', end:'2013-06', edu:'高中及以下', school:unit, major:'' },{ start:'2013-09', end:'2017-06', edu:'本科', school:'广西师范大学', major:major }],
+      workHistory:[{ start:'2017-09', end:'至今', unit:unit, position:o.positionName, category:'专业技术岗位', level:'专技十级' }],
+      spouse:{ name:'王丽', gender:'女', birthDate:'1996-04-12', unit:'柳州市人民医院' },
+      relations:[{ name:'张建国', relation:'父亲', unit:'柳州市国资委' },{ name:'李秀英', relation:'母亲', unit:'柳州市第一人民医院' }] }
+  };
+}
+var TEACHER_FILL_SEED_EXT = [
+  demoFill({ token:'EFTREC20260501001_1_0', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中数学教师', schoolName:'柳州高级中学', name:'王强', phone:'13700001111', gender:'男', birthDate:'1994-08-12', age:32, idNumber:'450202199408121234', major:'数学与应用数学' }),
+  demoFill({ token:'EFTREC20260501001_1_1', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中数学教师', schoolName:'柳州高级中学', name:'赵敏', phone:'13600002222', gender:'女', birthDate:'1995-01-05', age:31, idNumber:'450203199501054321', major:'数学与应用数学' }),
+  demoFill({ token:'EFTREC20260501001_2_0', recruitRecordId:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', positionName:'高中英语教师', schoolName:'柳州高级中学', name:'陈璐', phone:'13500003333', gender:'女', birthDate:'1996-05-20', age:30, idNumber:'450202199605201111', major:'英语' }),
+  demoFill({ token:'EFTREC20260415001_0_0', recruitRecordId:'REC20260415001', batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', positionName:'高中物理教师', schoolName:'柳州高级中学', name:'孙志远', phone:'13400004444', gender:'男', birthDate:'1989-09-08', age:37, idNumber:'450203198909082222', major:'物理学' }),
+  demoFill({ token:'EFTREC20260415001_1_0', recruitRecordId:'REC20260415001', batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', positionName:'高中化学教师', schoolName:'柳州高级中学', name:'周晓琳', phone:'13300005555', gender:'女', birthDate:'1990-11-25', age:35, idNumber:'450202199011253333', major:'化学' }),
+  demoFill({ token:'EFTREC20260515001_0_0', recruitRecordId:'REC20260515001', batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', positionName:'高中生物教师', schoolName:'柳州高级中学', name:'吴倩', phone:'13200006666', gender:'女', birthDate:'1995-03-16', age:31, idNumber:'450203199503164444', major:'生物科学' }),
+  demoFill({ token:'EFTREC20260515001_1_0', recruitRecordId:'REC20260515001', batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', positionName:'高中政治教师', schoolName:'柳州高级中学', name:'郑晓峰', phone:'13100007777', gender:'男', birthDate:'1993-07-02', age:33, idNumber:'450202199307025555', major:'思想政治教育' }),
+  demoFill({ token:'EFTREC20260701002_0_0', recruitRecordId:'REC20260701002', batchId:'RCB20260701001', batchName:'2026年柳州市教师自主招聘（第二批）', positionName:'初中语文教师', schoolName:'柳州市第一中学', name:'黄雨桐', phone:'13000008888', gender:'女', birthDate:'1994-12-18', age:31, idNumber:'450203199412186666', major:'汉语言文学' }),
+  demoFill({ token:'EFTREC20260701002_0_1', recruitRecordId:'REC20260701002', batchId:'RCB20260701001', batchName:'2026年柳州市教师自主招聘（第二批）', positionName:'初中语文教师', schoolName:'柳州市第一中学', name:'林浩', phone:'13900009999', gender:'男', birthDate:'1993-02-28', age:33, idNumber:'450202199302287777', major:'汉语言文学' })
+];
+var ALL_TEACHER_FILL_SEED = TEACHER_FILL_SEED.concat(TEACHER_FILL_SEED_EXT);
+
+function seedTeacherFills() {
+  var raw = localStorage.getItem('employ_teacher_fills');
+  if (raw === null) { // 首次打开：写入演示数据
+    var map = {};
+    ALL_TEACHER_FILL_SEED.forEach(function(f) { map[f.token] = f; });
+    localStorage.setItem('employ_teacher_fills', JSON.stringify(map));
+    return;
+  }
+  // 兼容旧版本遗留数据：确保演示记录存在；演示教师信息整体以最新种子为准——
+  // 旧版本（seedRev<3）存过的任意字段缺失/待填/旧格式数据，下一次打开一次性刷新为
+  // 最新完整演示数据（照片/在职教育/职称附件/原单位/学习工作经历/配偶/社会关系全部填写），
+  // 刷新后（seedRev=3）用户自行修改的内容保留不动。
+  var all; try { all = JSON.parse(raw) || {}; } catch(e) { return; }
+  var changed = false;
+  ALL_TEACHER_FILL_SEED.forEach(function(f) {
+    var cur = all[f.token];
+    if (!cur) { all[f.token] = f; changed = true; return; }
+    if (cur.teacher && (cur.seedRev || 0) < 3) {
+      cur.teacher = JSON.parse(JSON.stringify(f.teacher));
+      cur.seedRev = 3;
+      changed = true;
+    }
+  });
+  if (changed) localStorage.setItem('employ_teacher_fills', JSON.stringify(all));
+}
+function loadTeacherFills() { seedTeacherFills(); var s = localStorage.getItem('employ_teacher_fills'); if (s) { try { return JSON.parse(s) || {}; } catch(e) {} } return {}; }
+
+function loadRecruitStatsMap() {
+  if (localStorage.getItem('recruit_stats') === null) {
+    // 演示：为 REC20260501001（语文3+数学2+英语2=7）预置统计表，守恒 0+2+5=7
+    localStorage.setItem('recruit_stats', JSON.stringify({
+      REC20260501001: { planTotal:7, planCut:0, planActual:7, employDone:0, employThis:2, employDefer:5, updateTime:'2026-08-15 10:00:00', updateOperator:'王玉兰' }
+    }));
+  }
+  try { return JSON.parse(localStorage.getItem('recruit_stats')) || {}; } catch(e) { return {}; }
+}
+function getRecruitStats(rid) { if (!rid) return null; var m = loadRecruitStatsMap(); return m[rid] || null; }
+function maskIdCard(id) { if (!id) return ''; if (id.length <= 8) return id; return id.substring(0,4) + '****' + id.substring(id.length-4); }
+function sourceFromRecruit(pos) {
+  try {
+    var recs = JSON.parse(localStorage.getItem('recruit_records') || '[]');
+    for (var i = 0; i < recs.length; i++) {
+      if (recs[i].id === pos.recruitRecordId) {
+        var t = recs[i].recruitmentType;
+        return (t === 'independent' || t === 'senior') ? '公招自主' : '公招统一';
+      }
+    }
+  } catch(e) {}
+  return '公招统一';
+}
+
+function loadRecruitRecords() {
+  var s = localStorage.getItem('recruit_records');
+  var existing = [];
+  if (s) { try { existing = JSON.parse(s); } catch(e) {} }
+  // 确保演示用「已完成」招聘申请始终存在（合并而非覆盖）
+  var ts = now();
+  var DEMO_COMPLETED = [
+    { id:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', recruitmentType:'independent',
+      schoolName:'柳州高级中学', district: '市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'高中语文教师', count:3, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
+        { positionName:'高中数学教师', count:2, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
+        { positionName:'高中英语教师', count:2, positionCategory:'专技岗', positionLevel:'初级', employmentMethod:'control' }
+      ]} },
+    { id:'REC20260415001', batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', recruitmentType:'senior',
+      schoolName:'柳州高级中学', district: '市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'高中物理教师', count:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career' },
+        { positionName:'高中化学教师', count:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career' }
+      ]} },
+    { id:'REC20260515001', batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', recruitmentType:'public',
+      schoolName:'柳州高级中学', district: '市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'高中生物教师', count:2, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
+        { positionName:'高中政治教师', count:2, positionCategory:'专技岗', positionLevel:'初级', employmentMethod:'control' },
+        { positionName:'高中历史教师', count:1, positionCategory:'专技岗', positionLevel:'初级', employmentMethod:'career' }
+      ]} },
+    { id:'REC20260701002', batchId:'RCB20260701001', batchName:'2026年柳州市教师自主招聘（第二批）', recruitmentType:'independent',
+      schoolName:'柳州市第一中学', district: '市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'初中语文教师', count:4, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' }
+      ]} }
+  ];
+  var demoIds = {};
+  DEMO_COMPLETED.forEach(function(r) { demoIds[r.id] = true; });
+  var merged = existing.filter(function(r) { return !demoIds[r.id]; }).concat(DEMO_COMPLETED);
+  localStorage.setItem('recruit_records', JSON.stringify(merged));
+  return JSON.parse(JSON.stringify(merged));
+}
+
 function getCompletedRecruitBatches() {
   var records = loadRecords();
   var batchIds = {};
@@ -532,21 +718,20 @@ function updateRoleUI() {
 function renderPage() {
   var h = '';
 
-  // Step 1: Business type selection
-  if (!businessType) {
-    h += '<div class="form-card">';
-    h += '<h2><span class="card-icon">&#128204;</span>选择业务类型</h2>';
-    h += '<div class="type-card">';
-    h += '<div class="type-option'+(businessType==='recruitment'?' selected':'')+'" onclick="selectType(\'recruitment\')">';
-    h += '<div class="type-icon">&#127891;</div><div class="type-name">招聘</div>';
-    h += '<div class="type-desc">通过公开招聘方式新进人员，办理聘用备案手续</div></div>';
-    h += '<div class="type-option'+(businessType==='transfer'?' selected':'')+'" onclick="selectType(\'transfer\')">';
-    h += '<div class="type-icon">&#128260;</div><div class="type-name">调动</div>';
-    h += '<div class="type-desc">人员从其他单位交流调入，办理交流登记和备案手续</div></div>';
-    h += '</div></div>';
-  }
+  // Step 1: Business type selection（常驻页面顶部，选择后不跳转，下方直接展开对应表单）
+  var editLock = pageMode === 'edit';
+  h += '<div class="form-card">';
+  h += '<h2><span class="card-icon">&#128204;</span>选择业务类型</h2>';
+  h += '<div class="type-card">';
+  h += '<div class="type-option'+(businessType==='recruitment'?' selected':'')+'" onclick="'+(editLock ? 'showTypeEditLocked()' : 'selectType(\'recruitment\')')+'">';
+  h += '<div class="type-icon">&#127891;</div><div class="type-name">招聘</div>';
+  h += '<div class="type-desc">通过公开招聘方式新进人员，办理聘用备案手续</div></div>';
+  h += '<div class="type-option'+(businessType==='transfer'?' selected':'')+'" onclick="'+(editLock ? 'showTypeEditLocked()' : 'selectType(\'transfer\')')+'">';
+  h += '<div class="type-icon">&#128260;</div><div class="type-name">调动</div>';
+  h += '<div class="type-desc">人员从其他单位交流调入，办理交流登记和备案手续</div></div>';
+  h += '</div></div>';
 
-  // Step 2: Forms (directly after selecting business type)
+  // Step 2: Forms（选择业务类型后在本页下方直接展示，不再跳转）
   if (businessType) {
     initFormData();
 
@@ -577,15 +762,43 @@ function renderPage() {
   }
 }
 
+function showTypeEditLocked() { showToast('编辑状态下不可修改业务类型', 'warning'); }
+
+// 业务类型表单是否已填写实质内容（用于切换类型前的防误清确认）
+function hasEnteredFormData() {
+  if (businessType === 'recruitment') {
+    return (formData.positions || []).some(function(p) {
+      return (p.rosterRows || []).some(function(r) {
+        return !!(r.name && r.name.trim()) || !!(r.idNumber && r.idNumber.trim());
+      });
+    });
+  }
+  if (businessType === 'transfer') {
+    if (formData.transferForm && formData.transferForm.name && formData.transferForm.name.trim()) return true;
+    return (formData.transferRows || []).some(function(r) {
+      return !!(r.name && r.name.trim());
+    });
+  }
+  return false;
+}
+
 function selectType(type) {
+  if (type === businessType) return;
+  if (businessType && hasEnteredFormData()) {
+    if (!window.confirm('切换业务类型将清空当前已填写的内容，确定切换吗？')) return;
+  }
   businessType = type;
+  // 招聘/调动的数据结构互不相同，切换类型时清空表单数据
+  formData = { positions: [], batchSummaries: {}, transferRows: [], transferForm: {} };
+  attachedFiles = [];
+  moreOpen = {};
   var label = type === 'recruitment' ? '招聘' : '调动';
   var desc = type === 'recruitment' ? '通过公开招聘方式新进人员，办理聘用备案手续' : '人员从其他单位交流调入，办理交流登记和备案手续';
   document.getElementById('pageSubtitle').textContent = '业务类型：' + label + ' — ' + desc;
   renderPage();
 }
 function confirmType() { if (!businessType) { showToast('请选择业务类型', 'warning'); return; } renderPage(); }
-function resetType() { businessType = null; formData.positions = []; document.getElementById('pageSubtitle').textContent = '选择业务类型并填写相关信息'; renderPage(); }
+function resetType() { businessType = null; formData = { positions: [], batchSummaries: {}, transferRows: [], transferForm: {} }; attachedFiles = []; document.getElementById('pageSubtitle').textContent = '选择业务类型并填写相关信息'; renderPage(); }
 
 function onBatchSelect() {}
 
@@ -698,6 +911,7 @@ function renderRecruitmentForms() {
       h += '<div class="info-item"><div class="info-label">待审核（人）</div><div class="info-value">'+(pos.pendingCount||0)+'</div></div>';
       h += '<div class="info-item"><div class="info-label">本次办理聘用（人）</div><div class="info-value highlight"><input type="number" min="1" value="'+(pos.hireCount != null ? pos.hireCount : currC)+'" onchange="formData.positions['+pi+'].hireCount=parseInt(this.value)||0"></div></div>';
       h += '</div>';
+      h += renderStatsBlock(pos);
     }
 
     // Confirm button: shown when prereqs met but not yet confirmed
@@ -714,6 +928,30 @@ function renderRecruitmentForms() {
       h += '<a onclick="reselectPosition('+pi+')" style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:none;">← 重选批次/岗位</a>';
       h += '</div>';
 
+      // 从已填报教师导入（教师经链接填报后，学校选人自动同步个人信息）
+      var importedTokens = {};
+      (pos.rosterRows||[]).forEach(function(r) { if (r.teacherRef) importedTokens[r.teacherRef] = true; });
+      var fillList = loadTeacherFills();
+      var importOpts = [];
+      Object.keys(fillList).forEach(function(tok) {
+        var fl = fillList[tok];
+        if (!fl || fl.status !== 'submitted' || fl.schoolName !== currentSchool) return;
+        if (fl.batchId !== pos.batchId || fl.positionName !== pos.positionName) return;
+        if (importedTokens[tok]) return;
+        importOpts.push(fl);
+      });
+      h += '<div class="import-bar"><label style="font-size:12px;color:var(--text-secondary);">从已填报教师导入</label>';
+      h += '<select id="importSelect_'+pi+'" onchange="importFilledTeacher('+pi+',this.value)">';
+      h += '<option value="">— 请选择已填报教师 —</option>';
+      if (importOpts.length === 0) {
+        h += '<option value="" disabled>（暂无已填报且未导入的教师）</option>';
+      }
+      importOpts.forEach(function(fl) {
+        var t = fl.teacher || {};
+        h += '<option value="'+escapeHtml(fl.token)+'">'+escapeHtml(fl.name)+'（'+escapeHtml(maskIdCard(t.idNumber))+'）</option>';
+      });
+      h += '</select><span class="import-hint">导入后自动同步教师个人信息，可编辑修改</span></div>';
+
       h += '<div class="roster-cards" id="rosterCards_'+pi+'">';
       var rows = pos.rosterRows || [];
       rows.forEach(function(row, ri) {
@@ -722,7 +960,7 @@ function renderRecruitmentForms() {
         h += '<div class="roster-card">';
         h += '<div class="roster-card-header">';
         h += '<span class="roster-card-seq">人员 '+(ri+1)+'</span>';
-        h += '<span class="roster-card-name"><label>姓名</label><input value="'+escapeHtml(row.name||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="name" placeholder="拟聘人员姓名"></span>';
+        h += '<span class="roster-card-name"><label>姓名</label><input value="'+escapeHtml(row.name||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="name" placeholder="拟聘人员姓名">' + (row.teacherRef ? '<span class="source-tag teacher">来源：教师填报</span>' : '') + '</span>';
         h += '<span class="roster-card-gender"><label>性别</label><select data-pos="'+pi+'" data-idx="'+ri+'" data-field="gender"><option value="">请选择</option><option value="男"'+(row.gender==='男'?' selected':'')+'>男</option><option value="女"'+(row.gender==='女'?' selected':'')+'>女</option></select></span>';
         if (rows.length>1) { h += '<button class="roster-card-del" onclick="removeRosterRow('+pi+','+ri+')">×</button>'; }
         h += '</div>';
@@ -783,6 +1021,7 @@ function renderRecruitmentForms() {
         h += '<div class="roster-field"><label>班子会讨论时间</label><input type="month" value="'+escapeHtml(row.meetingTime||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="meetingTime"></div>';
         h += '<div class="roster-field roster-field-textarea"><label>备注</label><textarea data-pos="'+pi+'" data-idx="'+ri+'" data-field="remark" maxlength="200" rows="2" placeholder="最多200字">'+escapeHtml(row.remark||'')+'</textarea></div>';
         h += '</div></div>';
+        h += renderMoreInfo(pi, ri, row);
         h += '</div>';
         h += '<div class="roster-card-footer">';
         if (hasCard) {
@@ -929,7 +1168,7 @@ function renderRecruitmentForms() {
 }
 
 function addPosition() {
-  formData.positions.push({ batchId:'', batchName:'', positionIndex:-1, positionName:'', planCount:0, completedCount:0, pendingCount:0, confirmed:false, positionCategory:'', positionLevel:'', employmentMethod:'', rosterRows:[{seq:1,name:'',gender:'',birth:'',maritalStatus:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',sourceDetail:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:''}], recordCards:[], personAttachments:{}, cancelCount:0, cancelDocNo:'', cancelReason:'', deferredPersons:[] });
+  formData.positions.push({ batchId:'', batchName:'', positionIndex:-1, positionName:'', recruitRecordId:'', planCount:0, completedCount:0, pendingCount:0, confirmed:false, positionCategory:'', positionLevel:'', employmentMethod:'', rosterRows:[{seq:1,name:'',gender:'',birth:'',maritalStatus:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',sourceDetail:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:'',teacherRef:'',idNumber:'',ethnicity:'',nativePlace:'',birthPlace:'',household:'',age:'',parttimeEdu:'',parttimeDegree:'',parttimeSchool:'',otherQual:'',eduHistory:'',workHistory:'',relations:[],photo:''}], recordCards:[], personAttachments:{}, cancelCount:0, cancelDocNo:'', cancelReason:'', deferredPersons:[] });
   renderPage();
   var pi = formData.positions.length - 1;
   initPosNameDropdown(pi);
@@ -947,13 +1186,15 @@ function onPositionBatchChange(pi, batchId) {
   var oldBatchId = pos.batchId;
   if (!batchId) {
     pos.batchId = ''; pos.batchName = ''; pos.positionName = '';
+    pos.recruitRecordId = '';
     pos.planCount = 0; pos.completedCount = 0; pos.pendingCount = 0; pos.confirmed = false;
     cleanupEmptyBatchSummaries(); renderPage(); return;
   }
   var batches = getCompletedRecruitBatches();
   var batch = batches.find(function(b) { return b.id === batchId; });
   pos.batchId = batchId; pos.batchName = batch ? batch.name : '';
-  pos.positionName = ''; pos.planCount = 0; pos.completedCount = 0; pos.pendingCount = 0; pos.confirmed = false;
+  pos.positionName = ''; pos.recruitRecordId = '';
+  pos.planCount = 0; pos.completedCount = 0; pos.pendingCount = 0; pos.confirmed = false;
   if (oldBatchId !== batchId) cleanupEmptyBatchSummaries();
   renderPage();
   initPosNameDropdown(pi);
@@ -983,18 +1224,21 @@ function onPositionNameChange(pi, posName) {
   pos.confirmed = false;
   // Reset position-level fields
   pos.positionCategory = ''; pos.positionLevel = ''; pos.employmentMethod = '';
+  pos.recruitRecordId = '';
   if (posName && pos.batchId) {
     try {
       var recruitRecs = JSON.parse(localStorage.getItem('recruit_records') || '[]');
       var batchRecs = recruitRecs.filter(function(r) { return r.batchId === pos.batchId && r.status === 'completed'; });
       var planC = 0;
       var matchedRp = null;
+      var matchedRecId = null;
       batchRecs.forEach(function(rec) {
         if (rec.formData && rec.formData.positions) rec.formData.positions.forEach(function(p) {
-          if (p.positionName === posName) { planC += parseInt(p.count)||0; if (!matchedRp) matchedRp = p; }
+          if (p.positionName === posName) { planC += parseInt(p.count)||0; if (!matchedRp) { matchedRp = p; matchedRecId = rec.id; } }
         });
       });
       pos.planCount = planC;
+      if (matchedRecId) pos.recruitRecordId = matchedRecId;   // 关联招聘岗位申请，供统计表只读/导入使用
       // Extract position-level fields from recruit record
       if (matchedRp) {
         if (matchedRp.positionCategory) pos.positionCategory = matchedRp.positionCategory;
@@ -1058,13 +1302,171 @@ function addRosterRow(pi) {
       return;
     }
   }
-  pos.rosterRows.push({seq:pos.rosterRows.length+1,name:'',gender:'',birth:'',maritalStatus:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',sourceDetail:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:''});
+  pos.rosterRows.push({seq:pos.rosterRows.length+1,name:'',gender:'',birth:'',maritalStatus:'',education:'',degree:'',gradTime:'',school:'',major:'',score:'',rank:'',title:'',positionCategory:'',positionLevel:'',method:'career',source:'',sourceDetail:'',originalUnit:'',spouseName:'',spouseUnit:'',meetingTime:'',remark:'',teacherRef:'',idNumber:'',ethnicity:'',nativePlace:'',birthPlace:'',household:'',age:'',parttimeEdu:'',parttimeDegree:'',parttimeSchool:'',otherQual:'',eduHistory:'',workHistory:'',relations:[],photo:''});
   renderPage();
 }
 
 function removeRosterRow(pi, ri) {
   var pos = formData.positions[pi]; if (!pos || pos.rosterRows.length <= 1) return;
   pos.rosterRows.splice(ri, 1); if (pos.recordCards) pos.recordCards.splice(ri, 1); renderPage();
+}
+
+// ===== 更多信息（教师填报同步，学校可编辑）=====
+function renderMoreInfo(pi, ri, row) {
+  var t = row || {};
+  var key = pi + '_' + ri;
+  var open = (moreOpen[key] !== undefined) ? moreOpen[key] : !!t.teacherRef;
+  var show = open ? '' : 'none';
+  var relRows = t.relations || [];
+  var h = '<div class="roster-section" style="border:1px dashed var(--accent);">';
+  h += '<div class="roster-section-title">更多信息（教师填报同步）<span class="auto-fill-tag">可编辑</span>';
+  h += '<a class="more-toggle" onclick="toggleMoreInfo('+pi+','+ri+')">'+(open?'▲ 收起':'▼ 展开')+'</a></div>';
+  h += '<div id="moreInfo_'+pi+'_'+ri+'" style="display:'+show+';">';
+  h += '<div class="roster-section-grid">';
+  h += '<div class="roster-field"><label>身份证号</label><input value="'+escapeHtml(t.idNumber||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="idNumber"></div>';
+  h += '<div class="roster-field"><label>年龄</label><input value="'+escapeHtml(t.age != null ? String(t.age) : '')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="age" placeholder="自动计算可改"></div>';
+  h += '<div class="roster-field"><label>民族</label><input value="'+escapeHtml(t.ethnicity||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="ethnicity"></div>';
+  h += '<div class="roster-field"><label>籍贯</label><input value="'+escapeHtml(t.nativePlace||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="nativePlace"></div>';
+  h += '<div class="roster-field"><label>出生地</label><input value="'+escapeHtml(t.birthPlace||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="birthPlace"></div>';
+  h += '<div class="roster-field"><label>户籍地</label><input value="'+escapeHtml(t.household||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="household"></div>';
+  h += '</div>';
+  h += '<div style="margin:8px 0 4px;font-size:11px;font-weight:500;color:var(--text-secondary);">在职教育</div>';
+  h += '<div class="roster-section-grid">';
+  h += '<div class="roster-field"><label>学历</label><input value="'+escapeHtml(t.parttimeEdu||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="parttimeEdu"></div>';
+  h += '<div class="roster-field"><label>学位</label><input value="'+escapeHtml(t.parttimeDegree||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="parttimeDegree"></div>';
+  h += '<div class="roster-field"><label>毕业院校系及专业</label><input value="'+escapeHtml(t.parttimeSchool||'')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="parttimeSchool"></div>';
+  h += '<div class="roster-field"><label>符合岗位要求的其他条件</label><input value="'+escapeHtml(t.otherQual||'无')+'" data-pos="'+pi+'" data-idx="'+ri+'" data-field="otherQual"></div>';
+  h += '</div>';
+  h += '<div style="margin:8px 0 4px;font-size:11px;font-weight:500;color:var(--text-secondary);">学习与工作经历</div>';
+  h += '<div class="roster-section-grid">';
+  h += '<div class="roster-field roster-field-textarea"><label>学习经历（从高中填起）</label><textarea data-pos="'+pi+'" data-idx="'+ri+'" data-field="eduHistory" rows="2">'+escapeHtml(histToText(t.eduHistory))+'</textarea></div>';
+  h += '<div class="roster-field roster-field-textarea"><label>工作经历</label><textarea data-pos="'+pi+'" data-idx="'+ri+'" data-field="workHistory" rows="2">'+escapeHtml(histToText(t.workHistory))+'</textarea></div>';
+  h += '</div>';
+  h += '<div class="photo-box">';
+  if (t.photo) { h += '<img class="photo-preview" src="'+t.photo+'" alt="照片">'; }
+  else { h += '<div class="photo-preview" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:10px;">无照片</div>'; }
+  h += '<div class="photo-actions" onclick="pickRosterPhoto('+pi+','+ri+')">📷 上传照片</div>';
+  h += '<input type="file" id="rp_photo_'+pi+'_'+ri+'" accept="image/*" style="display:none" onchange="onRosterPhotoSelected('+pi+','+ri+',this)">';
+  h += '</div>';
+  h += '<div style="margin:10px 0 4px;font-size:11px;font-weight:500;color:var(--text-secondary);">其他主要社会关系</div>';
+  h += '<table class="rel-table"><thead><tr><th style="width:30px;">#</th><th>姓名</th><th>与本人关系</th><th>工作单位</th><th style="width:46px;"></th></tr></thead><tbody>';
+  if (relRows.length === 0) { h += '<tr><td colspan="5" style="color:var(--text-light);text-align:center;">暂无，可点击下方「＋ 添加社会关系」</td></tr>'; }
+  relRows.forEach(function(r, ci) {
+    h += '<tr><td>'+(ci+1)+'</td>';
+    h += '<td><input value="'+escapeHtml(r.name||'')+'" data-rel-pos="'+pi+'" data-rel-idx="'+ri+'" data-rel-ri="'+ci+'" data-rel-field="name"></td>';
+    h += '<td><input value="'+escapeHtml(r.relation||'')+'" data-rel-pos="'+pi+'" data-rel-idx="'+ri+'" data-rel-ri="'+ci+'" data-rel-field="relation"></td>';
+    h += '<td><input value="'+escapeHtml(r.unit||'')+'" data-rel-pos="'+pi+'" data-rel-idx="'+ri+'" data-rel-ri="'+ci+'" data-rel-field="unit"></td>';
+    h += '<td style="text-align:center;"><a onclick="removeRelationRow('+pi+','+ri+','+ci+')" style="color:var(--danger);cursor:pointer;font-size:11px;text-decoration:none;">删除</a></td></tr>';
+  });
+  h += '</tbody></table>';
+  h += '<div style="text-align:right;margin-top:6px;"><button class="btn btn-outline btn-sm" onclick="addRelationRow('+pi+','+ri+')" style="font-size:11px;border-style:dashed;">＋ 添加社会关系</button></div>';
+  h += '</div></div>';
+  return h;
+}
+function toggleMoreInfo(pi, ri) {
+  var key = pi + '_' + ri;
+  moreOpen[key] = !moreOpen[key];
+  renderPage();
+}
+function addRelationRow(pi, ri) {
+  var row = formData.positions[pi] && formData.positions[pi].rosterRows[ri];
+  if (!row) return;
+  if (!row.relations) row.relations = [];
+  row.relations.push({ name:'', relation:'', unit:'' });
+  renderPage();
+}
+function removeRelationRow(pi, ri, ci) {
+  var row = formData.positions[pi] && formData.positions[pi].rosterRows[ri];
+  if (!row || !row.relations) return;
+  row.relations.splice(ci, 1);
+  renderPage();
+}
+function pickRosterPhoto(pi, ri) { var inp = document.getElementById('rp_photo_' + pi + '_' + ri); if (inp) inp.click(); }
+function onRosterPhotoSelected(pi, ri, input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  if (f.size > 2*1024*1024) { showToast('图片不能超过2MB', 'warning'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var row = formData.positions[pi] && formData.positions[pi].rosterRows[ri];
+    if (row) { row.photo = e.target.result; renderPage(); }
+  };
+  reader.readAsDataURL(f);
+}
+
+// ===== 从已填报教师导入 =====
+function importFilledTeacher(pi, token) {
+  var pos = formData.positions[pi]; if (!pos) return;
+  var fills = loadTeacherFills();
+  var f = fills[token];
+  if (!f || f.status !== 'submitted') { showToast('该教师尚未提交填报信息', 'warning'); return; }
+  if ((pos.rosterRows||[]).some(function(r) { return r.teacherRef === token; })) { showToast('该教师已在花名册中', 'warning'); return; }
+  // 名额校验（与 addRosterRow 一致）
+  if (pos.planCount > 0) {
+    var occupied = (pos.completedCount || 0) + (pos.pendingCount || 0);
+    var current = (pos.rosterRows || []).length;
+    var remaining = pos.planCount - occupied;
+    if (current >= remaining) {
+      showToast('拟聘岗位「' + (pos.positionName || '岗位' + (pi+1)) + '」名额已满（计划' + pos.planCount + '人，剩余' + remaining + '人），无法导入', 'warning');
+      return;
+    }
+  }
+  var t = f.teacher || {};
+  var edu = t.edu || {};
+  var row = {
+    seq: (pos.rosterRows||[]).length + 1,
+    name: f.name || t.name || '', gender: t.gender || '', birth: t.birthDate || '',
+    maritalStatus: (t.spouse && t.spouse.name) ? 'married' : '',
+    education: edu.education || '', degree: edu.degree || '', gradTime: '', school: edu.gradSchool || '', major: edu.gradMajor || '',
+    score: '', rank: '', title: t.title || '', positionCategory: pos.positionCategory || '', positionLevel: pos.positionLevel || '', method: pos.employmentMethod || 'career',
+    source: sourceFromRecruit(pos), sourceDetail: '', originalUnit: t.originalUnit || '',
+    originalCategory: t.originalCategory || '', originalLevel: t.originalLevel || '',
+    spouseName: (t.spouse && t.spouse.name) || '', spouseUnit: (t.spouse && t.spouse.unit) || '',
+    meetingTime: '', remark: '',
+    teacherRef: token, idNumber: t.idNumber || '', ethnicity: t.ethnicity || '', nativePlace: t.nativePlace || '',
+    birthPlace: t.birthPlace || '', household: t.household || '', age: t.age || '',
+    parttimeEdu: (t.partEdu && t.partEdu.education) || '', parttimeDegree: (t.partEdu && t.partEdu.degree) || '', parttimeSchool: (t.partEdu && t.partEdu.gradSchool) || '',
+    otherQual: t.otherQual || '无', eduHistory: histToText(t.eduHistory), workHistory: histToText(t.workHistory),
+    relations: (t.relations || []).slice(), photo: t.photo || ''
+  };
+  pos.rosterRows.push(row);
+  // 自动联动填写备案表（附件6）
+  var idx = pos.rosterRows.length - 1;
+  if (!pos.recordCards) pos.recordCards = [];
+  var card = pos.recordCards[idx] || {};
+  card.idNumber = t.idNumber || '';
+  card.ethnicity = t.ethnicity || ''; card.nativePlace = t.nativePlace || ''; card.birthPlace = t.birthPlace || ''; card.household = t.household || '';
+  card.parttimeEdu = (t.partEdu && t.partEdu.education) || ''; card.parttimeDegree = (t.partEdu && t.partEdu.degree) || ''; card.parttimeSchool = (t.partEdu && t.partEdu.gradSchool) || '';
+  card.appointTime = t.appointmentTime || ''; card.otherQual = t.otherQual || '无';
+  card.education = histToText(t.eduHistory); card.workHistory = histToText(t.workHistory);
+  card.spouseBirth = (t.spouse && t.spouse.birthDate) || ''; card.spouseUnit = (t.spouse && t.spouse.unit) || '';
+  pos.recordCards[idx] = card;
+  moreOpen[pi + '_' + idx] = true;   // 展开更多信息方便核对
+  var sel = document.getElementById('importSelect_' + pi); if (sel) sel.value = '';
+  renderPage();
+  showToast('已导入教师填报信息：' + (row.name || ''), 'success');
+}
+
+// ===== 招聘情况统计表（只读）=====
+function renderStatsBlock(pos) {
+  var stats = getRecruitStats(pos.recruitRecordId);
+  var h = '<div class="stats-block">';
+  h += '<div class="stats-title">📊 招聘情况统计表' + (pos.recruitRecordId ? '（关联：' + escapeHtml(pos.batchName || pos.recruitRecordId) + '）' : '') + '</div>';
+  if (stats) {
+    var pa = (stats.planActual != null) ? stats.planActual : ((stats.planTotal || 0) - (stats.planCut || 0));
+    h += '<div class="stats-grid">';
+    h += '<div class="stats-item"><div class="s-label">已办理聘用手续（人）</div><div class="s-val">' + (stats.employDone || 0) + '</div></div>';
+    h += '<div class="stats-item"><div class="s-label">本次办理手续（人）</div><div class="s-val">' + (stats.employThis || 0) + '</div></div>';
+    h += '<div class="stats-item"><div class="s-label">还需暂缓办理手续（人）</div><div class="s-val">' + (stats.employDefer || 0) + '</div></div>';
+    h += '<div class="stats-item"><div class="s-label">实际招聘计划（人）</div><div class="s-val">' + pa + '</div></div>';
+    h += '</div>';
+    h += '<div class="stats-note">✓ 守恒：已办理 + 本次办理 + 还需暂缓 = 实际招聘计划（' + ((stats.employDone||0)+(stats.employThis||0)+(stats.employDefer||0)) + ' = ' + pa + '）</div>';
+    h += '<div class="stats-note hint"><a href="recruit-stats-form.html?id=' + escapeHtml(pos.recruitRecordId) + '" style="color:var(--accent);text-decoration:underline;">前往招聘情况统计表查看/修改 →</a></div>';
+  } else {
+    h += '<div class="stats-empty">该招聘申请尚未录入统计表' + (pos.recruitRecordId ? '，<a href="recruit-stats-form.html?id=' + escapeHtml(pos.recruitRecordId) + '" style="color:var(--accent);text-decoration:underline;">前往录入 →</a>' : '') + '</div>';
+  }
+  h += '</div>';
+  return h;
 }
 
 function confirmPosition(pi) {
@@ -1200,7 +1602,8 @@ function openRecordCardModal(pi, idx) {
   h += '<div style="margin:6px 0 4px;font-size:11px;font-weight:500;color:var(--text-secondary);">在职教育</div>';
   h += '<div class="modal-row">' + mg('学历', card.parttimeEdu, dc(idx,'parttimeEdu')) + mg('学位', card.parttimeDegree, dc(idx,'parttimeDegree')) + '</div>';
   h += mg('毕业院校系及专业', card.parttimeSchool, dc(idx,'parttimeSchool'));
-  h += '<div class="modal-row">' + mg('职称或职业资格', row.title, 'readonly') + mg('原单位及岗位类别等级', row.originalUnit, 'readonly') + '</div>';
+  h += '<div class="modal-row">' + mg('职称或职业资格', row.title, 'readonly') + mg('原单位', row.originalUnit, 'readonly') + '</div>';
+  h += '<div class="modal-row">' + mg('原岗位类别', row.originalCategory || '', 'readonly') + mg('原岗位等级', row.originalLevel || '', 'readonly') + '</div>';
   h += '<div class="modal-row">' + mg('原等级聘任时间', card.appointTime, dc(idx,'appointTime')) + mg('符合岗位要求的其他条件', card.otherQual, dc(idx,'otherQual')) + '</div>';
   h += mt('学习经历（从高中填起）', card.education, 3, dc(idx,'education'));
   h += mt('工作经历', card.workHistory, 2, dc(idx,'workHistory'));
@@ -1409,6 +1812,21 @@ function bindRosterTableEvents() {
       formData.positions[pi].rosterRows[idx][field] = this.value;
     };
   });
+  // 社会关系行（data-rel-*）：data-rel-idx=花名册行，data-rel-ri=关系行，data-rel-field=字段
+  document.querySelectorAll('#mainContent input[data-rel-pos]').forEach(function(el) {
+    if (el._relBound) return; el._relBound = true;
+    el.onchange = function() {
+      var pi = parseInt(this.dataset.relPos);
+      var ri = parseInt(this.dataset.relIdx);
+      var ci = parseInt(this.dataset.relRi);
+      var field = this.dataset.relField;
+      var row = formData.positions[pi] && formData.positions[pi].rosterRows[ri];
+      if (isNaN(pi) || isNaN(ri) || isNaN(ci) || !field || !row) return;
+      if (!row.relations) row.relations = [];
+      if (!row.relations[ci]) row.relations[ci] = { name:'', relation:'', unit:'' };
+      row.relations[ci][field] = this.value;
+    };
+  });
 }
 function bindTransferTableEvents() {
   document.querySelectorAll('#transferBody input, #transferBody select').forEach(function(el) {
@@ -1505,6 +1923,26 @@ function submitForm() {
       var actualPlan2 = (pos.planCount||0) - (pos.cancelCount||0);
       if (current > actualPlan2 - occupied) {
         showToast('拟聘岗位'+(pi+1)+'「'+escapeHtml(pos.positionName||'')+'」：拟聘人数（'+current+'）超出剩余名额（原计划'+pos.planCount+'人，核减'+(pos.cancelCount||0)+'人，实际计划'+actualPlan2+'人，已完成'+(pos.completedCount||0)+'人，待审核'+(pos.pendingCount||0)+'人，剩余'+(actualPlan2-occupied)+'人），请调整', 'warning');
+        valid = false;
+      }
+    });
+    if (!valid) return;
+
+    // 校验招聘统计表守恒（按招聘申请记录汇总：统计表已办理 + 本次申报办理 ≤ 实际招聘计划）
+    var byRecord = {};
+    formData.positions.forEach(function(pos, pi) {
+      if (!pos.confirmed || !pos.recruitRecordId) return;
+      if (!byRecord[pos.recruitRecordId]) byRecord[pos.recruitRecordId] = { pos:pos, rows:0 };
+      byRecord[pos.recruitRecordId].rows += (pos.rosterRows||[]).length;
+    });
+    Object.keys(byRecord).forEach(function(rid) {
+      var grp = byRecord[rid];
+      var stats = getRecruitStats(rid);
+      if (!stats) return;
+      var pa = (stats.planActual != null) ? stats.planActual : ((stats.planTotal||0) - (stats.planCut||0));
+      var total = (stats.employDone||0) + grp.rows;
+      if (total > pa) {
+        showToast('拟聘岗位'+(formData.positions.indexOf(grp.pos)+1)+'「'+escapeHtml(grp.pos.positionName||'')+'」：本次办理（'+grp.rows+'人）+ 统计表已办理（'+(stats.employDone||0)+'人）='+total+'人，超出实际招聘计划（'+pa+'人），请调整或前往统计表确认', 'warning');
         valid = false;
       }
     });
@@ -1624,6 +2062,20 @@ function loadForEdit(id) {
       delete formData.summaryForm;
     }
     if (!formData.batchSummaries) { formData.batchSummaries = {}; }
+    // 兼容旧数据：按 批次+岗位名 回填关联的招聘申请 id（用于统计表只读展示与守恒校验）
+    var recruitRecords = loadRecruitRecords();
+    formData.positions.forEach(function(p) {
+      if (p.recruitRecordId || !p.batchId || !p.positionName) return;
+      for (var i = 0; i < recruitRecords.length; i++) {
+        var rr = recruitRecords[i];
+        if (rr.schoolName !== currentSchool || rr.status !== 'completed' || rr.batchId !== p.batchId) continue;
+        var positions = (rr.formData && rr.formData.positions) || [];
+        for (var j = 0; j < positions.length; j++) {
+          if (positions[j].positionName === p.positionName) { p.recruitRecordId = rr.id; break; }
+        }
+        if (p.recruitRecordId) break;
+      }
+    });
   }
   attachedFiles = rec.attachments ? JSON.parse(JSON.stringify(rec.attachments)) : [];
   editRecordRef = rec;

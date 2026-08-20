@@ -72,6 +72,16 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text
 .type-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;}
 .type-tag.recruitment{background:#EFF6FF;color:var(--primary);}
 .type-tag.transfer{background:#F3E8FF;color:#6B21A8;}
+.src-tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:500;margin-left:6px;vertical-align:middle;}
+.src-tag.teacher{background:var(--primary-light);color:var(--primary);}
+.src-tag.manual{background:var(--gray-bg);color:var(--text-secondary);}
+.stats-card{margin-top:12px;padding:12px 14px;background:var(--primary-light);border:1px solid #DBEAFE;border-radius:var(--radius);}
+.stats-card .st-title{font-size:12px;font-weight:600;color:var(--primary);margin-bottom:8px;}
+.stats-card .st-grid{display:flex;gap:22px;flex-wrap:wrap;}
+.stats-card .st-item .st-label{font-size:11px;color:var(--text-secondary);margin-bottom:2px;}
+.stats-card .st-item .st-val{font-size:17px;font-weight:700;color:var(--primary);}
+.stats-card .st-note{font-size:11px;color:var(--text-secondary);margin-top:6px;}
+.stats-card .st-empty{font-size:12px;color:var(--text-light);}
 .attachment-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--gray-bg);border-radius:6px;margin-bottom:6px;font-size:12px;}
 .attachment-item .file-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .attachment-item .file-download{color:var(--primary);cursor:pointer;text-decoration:none;}
@@ -121,6 +131,86 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('co
 function formatSize(b){if(!b)return'';if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
 
 function loadEmployRecords(){var s=localStorage.getItem('employ_records');if(s){try{return JSON.parse(s);}catch(e){}}return [];}
+
+// ===== 招聘申请 / 教师填报 / 招聘情况统计表（只读关联）=====
+function loadRecruitRecords(){
+  var s=localStorage.getItem('recruit_records');
+  var existing=[];
+  if(s){try{existing=JSON.parse(s);}catch(e){}}
+  var ts='2026-08-15 10:00:00';
+  var DEMO_COMPLETED=[
+    { id:'REC20260501001', batchId:'RCB20260501001', batchName:'2026年柳州市教师自主招聘（第一批）', recruitmentType:'independent',
+      schoolName:'柳州高级中学', district:'市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'高中语文教师', count:3, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
+        { positionName:'高中数学教师', count:2, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
+        { positionName:'高中英语教师', count:2, positionCategory:'专技岗', positionLevel:'初级', employmentMethod:'control' }
+      ]} },
+    { id:'REC20260415001', batchId:'RCB20260415001', batchName:'2026年柳州市中高级人才招聘', recruitmentType:'senior',
+      schoolName:'柳州高级中学', district:'市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'高中物理教师', count:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career' },
+        { positionName:'高中化学教师', count:1, positionCategory:'专技岗', positionLevel:'副高级', employmentMethod:'career' }
+      ]} },
+    { id:'REC20260515001', batchId:'RCB20260515001', batchName:'2026年柳州市直属学校统一公招', recruitmentType:'public',
+      schoolName:'柳州高级中学', district:'市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'高中生物教师', count:2, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' },
+        { positionName:'高中政治教师', count:2, positionCategory:'专技岗', positionLevel:'初级', employmentMethod:'control' },
+        { positionName:'高中历史教师', count:1, positionCategory:'专技岗', positionLevel:'初级', employmentMethod:'career' }
+      ]} },
+    { id:'REC20260701002', batchId:'RCB20260701001', batchName:'2026年柳州市教师自主招聘（第二批）', recruitmentType:'independent',
+      schoolName:'柳州市第一中学', district:'市直属', status:'completed', submitTime:ts,
+      formData:{ positions:[
+        { positionName:'初中语文教师', count:4, positionCategory:'专技岗', positionLevel:'中级', employmentMethod:'career' }
+      ]} }
+  ];
+  var demoIds={}; DEMO_COMPLETED.forEach(function(r){demoIds[r.id]=true;});
+  var merged=existing.filter(function(r){return !demoIds[r.id];}).concat(DEMO_COMPLETED);
+  localStorage.setItem('recruit_records',JSON.stringify(merged));
+  return JSON.parse(JSON.stringify(merged));
+}
+function resolveRecruitRecordId(p){
+  if(!p||!p.batchId||!p.positionName)return'';
+  try{
+    var recs=JSON.parse(localStorage.getItem('recruit_records')||'[]');
+    for(var i=0;i<recs.length;i++){
+      var rr=recs[i];
+      if(rr.status!=='completed'||rr.batchId!==p.batchId)continue;
+      var ps=(rr.formData&&rr.formData.positions)||[];
+      for(var j=0;j<ps.length;j++){ if(ps[j].positionName===p.positionName)return rr.id; }
+    }
+  }catch(e){}
+  return'';
+}
+function loadRecruitStatsMap(){
+  if(localStorage.getItem('recruit_stats')===null){
+    localStorage.setItem('recruit_stats',JSON.stringify({
+      REC20260501001:{ planTotal:7,planCut:0,planActual:7,employDone:0,employThis:2,employDefer:5,updateTime:'2026-08-15 10:00:00',updateOperator:'王玉兰' }
+    }));
+  }
+  try{return JSON.parse(localStorage.getItem('recruit_stats'))||{};}catch(e){return{};}
+}
+function getRecruitStats(rid){ if(!rid)return null; var m=loadRecruitStatsMap(); return m[rid]||null; }
+function renderStatsCard(rid,batchName){
+  var stats=getRecruitStats(rid);
+  var h='<div class="stats-card"><div class="st-title">📊 招聘情况统计表'+(rid?('（关联：'+escapeHtml(batchName||rid)+'）'):'')+'</div>';
+  if(stats){
+    var pa=(stats.planActual!=null)?stats.planActual:((stats.planTotal||0)-(stats.planCut||0));
+    h+='<div class="st-grid">';
+    h+='<div class="st-item"><div class="st-label">已办理聘用手续（人）</div><div class="st-val">'+(stats.employDone||0)+'</div></div>';
+    h+='<div class="st-item"><div class="st-label">本次办理手续（人）</div><div class="st-val">'+(stats.employThis||0)+'</div></div>';
+    h+='<div class="st-item"><div class="st-label">还需暂缓办理手续（人）</div><div class="st-val">'+(stats.employDefer||0)+'</div></div>';
+    h+='<div class="st-item"><div class="st-label">实际招聘计划（人）</div><div class="st-val">'+pa+'</div></div>';
+    h+='</div>';
+    h+='<div class="st-note">✓ 守恒：已办理 + 本次办理 + 还需暂缓 = 实际招聘计划（'+((stats.employDone||0)+(stats.employThis||0)+(stats.employDefer||0))+' = '+pa+'）</div>';
+    h+='<div class="st-note"><a href="recruit-stats-form.html?id='+escapeHtml(rid)+'" style="color:var(--accent);text-decoration:underline;">前往招聘情况统计表查看 →</a></div>';
+  }else{
+    h+='<div class="st-empty">该招聘申请尚未录入统计表'+(rid?('，<a href="recruit-stats-form.html?id='+escapeHtml(rid)+'" style="color:var(--accent);text-decoration:underline;">前往录入 →</a>'):'')+'</div>';
+  }
+  h+='</div>';
+  return h;
+}
 
 function renderTimeline(r){
   var items=(r.timeline||[]).slice();var h='<div class="sidebar-section"><h4>申报履历</h4><div class="timeline">';
@@ -176,8 +266,9 @@ function getRosterRows(r){
   if(r.businessType==='recruitment'&&r.formData.positions){
     var rows=[];
     r.formData.positions.forEach(function(p){
+      var rid=p.recruitRecordId||resolveRecruitRecordId(p);
       (p.rosterRows||[]).forEach(function(row){
-        rows.push({positionName:p.positionName||'',batchName:p.batchName||'',recordCards:p.recordCards||[],personAttachments:p.personAttachments||{},name:row.name,gender:row.gender,birth:row.birth,education:row.education||row.eduDegree||'',degree:row.degree||'',gradTime:row.gradTime||'',school:row.school||'',major:row.major||'',score:row.score,rank:row.rank,title:row.title,positionCategory:row.positionCategory||row.position||'',positionLevel:row.positionLevel||'',method:row.method,source:row.source,originalUnit:row.originalUnit,spouseName:row.spouseName||row.spouse||'',spouseUnit:row.spouseUnit||'',meetingTime:row.meetingTime,remark:row.remark});
+        rows.push({recruitRecordId:rid,batchId:p.batchId||'',positionName:p.positionName||'',batchName:p.batchName||'',recordCards:p.recordCards||[],personAttachments:p.personAttachments||{},teacherRef:row.teacherRef||'',name:row.name,gender:row.gender,birth:row.birth,education:row.education||row.eduDegree||'',degree:row.degree||'',gradTime:row.gradTime||'',school:row.school||'',major:row.major||'',score:row.score,rank:row.rank,title:row.title,positionCategory:row.positionCategory||row.position||'',positionLevel:row.positionLevel||'',method:row.method,source:row.source,originalUnit:row.originalUnit,spouseName:row.spouseName||row.spouse||'',spouseUnit:row.spouseUnit||'',meetingTime:row.meetingTime,remark:row.remark});
       });
     });
     return rows;
@@ -210,7 +301,8 @@ function renderPage(){
       html+='<div class="table-scroll"><table class="list-table"><thead><tr>';
       html+='<th>序号</th><th>姓名</th><th>性别</th><th>出生年月</th><th>学历</th><th>学位</th><th>毕业时间</th><th>学校</th><th>专业</th><th>成绩</th><th>排名</th><th>职称</th><th>拟聘岗位类别</th><th>拟聘岗位等级</th><th>聘用方式</th><th>来源</th></tr></thead><tbody>';
       rosterRows.forEach(function(row,idx){
-        html+='<tr><td>'+(idx+1)+'</td><td>'+escapeHtml(row.name||'—')+'</td><td>'+escapeHtml(row.gender||'—')+'</td><td>'+escapeHtml(row.birth||'—')+'</td><td>'+escapeHtml(row.education||'—')+'</td><td>'+escapeHtml(row.degree||'—')+'</td><td>'+escapeHtml(row.gradTime||'—')+'</td><td>'+escapeHtml(row.school||'—')+'</td><td>'+escapeHtml(row.major||'—')+'</td><td>'+escapeHtml(row.score||'—')+'</td><td>'+escapeHtml(row.rank||'—')+'</td><td>'+escapeHtml(row.title||'—')+'</td><td>'+escapeHtml(row.positionCategory||row.positionName||'—')+'</td><td>'+escapeHtml(row.positionLevel||'—')+'</td><td>'+escapeHtml(row.method||'—')+'</td><td>'+escapeHtml(row.source||'—')+'</td></tr>';
+        var srcTag=row.teacherRef?'<span class="src-tag teacher">教师填报</span>':'<span class="src-tag manual">手动录入</span>';
+        html+='<tr><td>'+(idx+1)+'</td><td>'+escapeHtml(row.name||'—')+srcTag+'</td><td>'+escapeHtml(row.gender||'—')+'</td><td>'+escapeHtml(row.birth||'—')+'</td><td>'+escapeHtml(row.education||'—')+'</td><td>'+escapeHtml(row.degree||'—')+'</td><td>'+escapeHtml(row.gradTime||'—')+'</td><td>'+escapeHtml(row.school||'—')+'</td><td>'+escapeHtml(row.major||'—')+'</td><td>'+escapeHtml(row.score||'—')+'</td><td>'+escapeHtml(row.rank||'—')+'</td><td>'+escapeHtml(row.title||'—')+'</td><td>'+escapeHtml(row.positionCategory||row.positionName||'—')+'</td><td>'+escapeHtml(row.positionLevel||'—')+'</td><td>'+escapeHtml(row.method||'—')+'</td><td>'+escapeHtml(row.source||'—')+'</td></tr>';
       });
       html+='</tbody></table></div>';
     } else {
@@ -222,6 +314,17 @@ function renderPage(){
       html+='</tbody></table></div>';
     }
     html+='</div>';
+  }
+  // 招聘情况统计表（只读，按关联的招聘申请汇总展示）
+  if(r.businessType==='recruitment'){
+    var ridMap={};
+    rosterRows.forEach(function(row){ if(row.recruitRecordId&&!ridMap[row.recruitRecordId])ridMap[row.recruitRecordId]=row.batchName||row.recruitRecordId; });
+    var rids=Object.keys(ridMap);
+    if(rids.length>0){
+      html+='<div class="form-card" style="padding:14px;">';
+      rids.forEach(function(rid){ html+=renderStatsCard(rid,ridMap[rid]); });
+      html+='</div>';
+    }
   }
   // HR Result
   if(r.hrResult){

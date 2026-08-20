@@ -86,7 +86,12 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .filter-tabs { display: flex; gap: 4px; background: var(--gray-bg); border-radius: 8px; padding: 3px; }
 .filter-tab { padding: 6px 16px; font-size: 12px; font-weight: 500; border-radius: 6px; cursor: pointer; transition: var(--transition); color: var(--text-secondary); background: transparent; border: none; font-family: inherit; }
 .filter-tab.active { background: #fff; color: var(--primary); box-shadow: var(--shadow-sm); }
-.filter-tab .count { font-size: 10px; margin-left: 4px; opacity: 0.7; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; }
+.pagination button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-secondary); transition: var(--transition); }
+.pagination button:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+.pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+.pagination .page-info { font-size: 12px; color: var(--text-light); margin: 0 8px; }
 
 /* School filter */
 .school-filter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
@@ -147,11 +152,6 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .file-link:hover { text-decoration: underline; }
 .file-link.none { color: var(--text-light); cursor: default; }
 .file-link.none:hover { text-decoration: none; }
-
-/* Remind button */
-.btn-remind { padding: 4px 12px; font-size: 12px; background: #fff; color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; cursor: pointer; font-family: inherit; white-space: nowrap; }
-.btn-remind:hover { background: var(--primary-light); }
-.btn-reminded { padding: 4px 12px; font-size: 12px; background: var(--gray-bg); color: var(--text-light); border: 1px solid var(--border); border-radius: 4px; cursor: default; font-family: inherit; white-space: nowrap; }
 
 /* Empty state */
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
@@ -297,15 +297,40 @@ var currentSchoolFilter = 'all';
 var currentDistrictFilter = 'all';
 var currentOrgLevelFilter = 'all';
 var currentFundTypeFilter = 'all';
+var currentPage = 1;
+var pageSize = 10;
+
+function renderPaginationControls(totalItems, pageNum, goFnName) {
+  var totalPages = Math.ceil(totalItems / pageSize) || 1;
+  if (pageNum > totalPages) pageNum = totalPages;
+  if (pageNum < 1) pageNum = 1;
+  var h = '<div class="pagination">';
+  h += '<button ' + (pageNum <= 1 ? 'disabled' : '') + ' onclick="' + goFnName + '(' + (pageNum - 1) + ')">◀</button>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (totalPages <= 7 || p <= 2 || p > totalPages - 2 || Math.abs(p - pageNum) <= 1) {
+      h += '<button class="' + (p === pageNum ? 'active' : '') + '" onclick="' + goFnName + '(' + p + ')">' + p + '</button>';
+    } else if (p === 3 || p === totalPages - 2) {
+      h += '<button disabled>…</button>';
+    }
+  }
+  h += '<button ' + (pageNum >= totalPages ? 'disabled' : '') + ' onclick="' + goFnName + '(' + (pageNum + 1) + ')">▶</button>';
+  h += '<span class="page-info">共 ' + totalPages + ' 页 / ' + totalItems + ' 条</span>';
+  h += '</div>';
+  return h;
+}
+
+function goPage(p) { currentPage = p; renderTable(); }
 
 var DEMO_RECORDS = [
-  { id:'PS20260522001', schoolName:'柳州市第八中学', schoolType:'初中', status:'first_review', totalPosts:104, submitTime:'2026-05-22 09:00:00', orgLevel:'正科级', fundType:'全额拨款', totalControlQuota:104, highlandPosts:0, careerStaffQuota:88, authControlNo:16, mgmtPosts:8, profPosts:80, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':2,'8':2,'9':1,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:15,levels:{'5':3,'6':6,'7':6}},middle:{total:45,levels:{'8':14,'9':18,'10':13}},junior:{total:20,levels:{'11':8,'12':8,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[], timeline:[{time:'2026-05-22 09:00:00',action:'学校提交一审',operator:'周敏'}], firstReviewOpinion:null, firstReviewer:null, firstReviewTime:null, firstRejectReason:null, hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
+  { id:'PS20260522001', schoolName:'柳州市第八中学', schoolType:'初中', status:'first_review', totalPosts:104, submitTime:'2026-05-22 09:00:00', orgLevel:'正科级', fundType:'全额拨款', totalControlQuota:104, highlandPosts:0, careerStaffQuota:88, authControlNo:16, mgmtPosts:8, profPosts:80, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':2,'8':2,'9':1,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:15,levels:{'5':3,'6':6,'7':6}},middle:{total:45,levels:{'8':14,'9':18,'10':13}},junior:{total:20,levels:{'11':8,'12':8,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[{name:'八中岗位设置方案.pdf',size:298000}], timeline:[{time:'2026-05-22 09:00:00',action:'学校提交一审',operator:'周敏'}], firstReviewOpinion:null, firstReviewer:null, firstReviewTime:null, firstRejectReason:null, hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
+  { id:'PS20260523001', schoolName:'柳州市第八中学', schoolType:'初中', status:'first_approved', totalPosts:104, submitTime:'2026-05-23 08:30:00', orgLevel:'正科级', fundType:'全额拨款', totalControlQuota:104, highlandPosts:0, careerStaffQuota:88, authControlNo:16, mgmtPosts:8, profPosts:80, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':2,'8':2,'9':1,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:15,levels:{'5':3,'6':6,'7':6}},middle:{total:45,levels:{'8':14,'9':18,'10':13}},junior:{total:20,levels:{'11':8,'12':8,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[{name:'八中岗位设置方案.pdf',size:301000}], timeline:[{time:'2026-05-23 08:30:00',action:'学校提交一审',operator:'周敏'},{time:'2026-05-24 10:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'}], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-24 10:00:00', firstRejectReason:null, hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
   { id:'PS20260520001', schoolName:'柳州高级中学', schoolType:'自治区示范高中', status:'first_review', totalPosts:186, submitTime:'2026-05-20 10:00:00', orgLevel:'正处级', fundType:'全额拨款', totalControlQuota:186, highlandPosts:0, careerStaffQuota:186, authControlNo:0, mgmtPosts:10, profPosts:160, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':3,'8':2,'9':1,'10':1}, profLevels:{senior:{total:5,levels:{'3':1,'4':4}},vice:{total:48,levels:{'5':10,'6':19,'7':19}},middle:{total:83,levels:{'8':25,'9':33,'10':25}},junior:{total:24,levels:{'11':10,'12':10,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[{name:'柳高岗位设置方案.pdf',size:345000}], timeline:[{time:'2026-05-20 10:00:00',action:'学校提交一审',operator:'陈丽华'}], firstReviewOpinion:null, firstReviewer:null, firstReviewTime:null, firstRejectReason:null, hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
-  { id:'PS20260518001', schoolName:'鱼峰区实验小学', schoolType:'小学', status:'first_approved', totalPosts:65, submitTime:'2026-05-18 14:00:00', orgLevel:'副科级', fundType:'全额拨款', totalControlQuota:65, highlandPosts:0, careerStaffQuota:65, authControlNo:0, mgmtPosts:5, profPosts:54, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':1,'8':2,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:6,levels:{'5':1,'6':3,'7':2}},middle:{total:30,levels:{'8':9,'9':12,'10':9}},junior:{total:18,levels:{'11':8,'12':8,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, attachments:[], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-19 15:00:00', firstRejectReason:null, timeline:[{time:'2026-05-18 14:00:00',action:'学校提交一审',operator:'王玉兰'},{time:'2026-05-19 15:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'}], hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
-  { id:'PS20260515001', schoolName:'鱼峰区实验小学', schoolType:'小学', status:'second_review', totalPosts:65, submitTime:'2026-05-15 08:00:00', orgLevel:'副科级', fundType:'全额拨款', totalControlQuota:65, highlandPosts:0, careerStaffQuota:65, authControlNo:0, mgmtPosts:5, profPosts:54, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':1,'8':2,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:6,levels:{'5':1,'6':3,'7':2}},middle:{total:30,levels:{'8':9,'9':12,'10':9}},junior:{total:18,levels:{'11':8,'12':8,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, hrResult:{totalPosts:66,mgmtPosts:5,profPosts:55,laborPosts:6}, hrApprovalAttachment:{name:'人社批复_鱼峰实小.pdf',size:567000}, attachments:[], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-19 15:00:00', firstRejectReason:null, timeline:[{time:'2026-05-15 08:00:00',action:'学校提交一审',operator:'王玉兰'},{time:'2026-05-16 10:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'},{time:'2026-05-20 16:00:00',action:'录入人社结果并提交二审',operator:'王玉兰'}], secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
+  { id:'PS20260518001', schoolName:'鱼峰区实验小学', schoolType:'小学', status:'first_approved', totalPosts:65, submitTime:'2026-05-18 14:00:00', orgLevel:'副科级', fundType:'全额拨款', totalControlQuota:65, highlandPosts:0, careerStaffQuota:65, authControlNo:0, mgmtPosts:5, profPosts:54, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':1,'8':2,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:6,levels:{'5':1,'6':3,'7':2}},middle:{total:30,levels:{'8':9,'9':12,'10':9}},junior:{total:18,levels:{'11':8,'12':8,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, attachments:[{name:'鱼峰实小岗位设置方案.pdf',size:275000}], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-19 15:00:00', firstRejectReason:null, timeline:[{time:'2026-05-18 14:00:00',action:'学校提交一审',operator:'王玉兰'},{time:'2026-05-19 15:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'}], hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
+  { id:'PS20260515001', schoolName:'鱼峰区实验小学', schoolType:'小学', status:'second_review', totalPosts:65, submitTime:'2026-05-15 08:00:00', orgLevel:'副科级', fundType:'全额拨款', totalControlQuota:65, highlandPosts:0, careerStaffQuota:65, authControlNo:0, mgmtPosts:5, profPosts:54, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':1,'8':2,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:6,levels:{'5':1,'6':3,'7':2}},middle:{total:30,levels:{'8':9,'9':12,'10':9}},junior:{total:18,levels:{'11':8,'12':8,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, hrResult:{totalPosts:66,mgmtPosts:5,profPosts:55,laborPosts:6}, hrApprovalAttachment:{name:'人社批复_鱼峰实小.pdf',size:567000}, attachments:[{name:'鱼峰实小岗位设置方案.pdf',size:268000}], firstReviewOpinion:'同意申报方案', firstReviewer:'李振华', firstReviewTime:'2026-05-19 15:00:00', firstRejectReason:null, timeline:[{time:'2026-05-15 08:00:00',action:'学校提交一审',operator:'王玉兰'},{time:'2026-05-16 10:00:00',action:'一审通过',operator:'李振华',opinion:'同意申报方案'},{time:'2026-05-20 16:00:00',action:'录入人社结果并提交二审',operator:'王玉兰'}], secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
   { id:'PS20260510001', schoolName:'柳州市第一中学', schoolType:'普通高中', status:'completed', totalPosts:150, submitTime:'2026-05-10 10:00:00', orgLevel:'正科级', fundType:'全额拨款', totalControlQuota:150, highlandPosts:0, careerStaffQuota:150, authControlNo:0, mgmtPosts:10, profPosts:125, laborPosts:15, mgmtLevels:{'5':1,'6':2,'7':3,'8':2,'9':1,'10':1}, profLevels:{senior:{total:3,levels:{'3':1,'4':2}},vice:{total:31,levels:{'5':6,'6':13,'7':12}},middle:{total:65,levels:{'8':20,'9':26,'10':19}},junior:{total:26,levels:{'11':12,'12':12,'13':2}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':5,'common':2}, hrResult:{totalPosts:150}, hrApprovalAttachment:{name:'人社批复_柳州一中.pdf',size:678000}, attachments:[{name:'柳州一中岗位设置会议纪要.pdf',size:234000}], firstReviewOpinion:'同意', firstReviewer:'张建国', firstReviewTime:'2026-05-11 14:00:00', firstRejectReason:null, secondReviewer:'张建国', secondReviewTime:'2026-05-15 09:00:00', secondReviewModifications:[], timeline:[{time:'2026-05-10 10:00:00',action:'学校提交一审',operator:'徐志明'},{time:'2026-05-11 14:00:00',action:'一审通过',operator:'张建国',opinion:'同意'},{time:'2026-05-13 09:00:00',action:'录入人社结果并提交二审',operator:'徐志明'},{time:'2026-05-15 09:00:00',action:'二审确认通过',operator:'张建国'}], completeTime:'2026-05-15 09:00:00' },
   { id:'PS20260519001', schoolName:'柳州市特色实验高中', schoolType:'自治区特色高中', status:'first_rejected', totalPosts:120, submitTime:'2026-05-19 11:00:00', orgLevel:'正科级', fundType:'全额拨款', totalControlQuota:120, highlandPosts:0, careerStaffQuota:110, authControlNo:10, mgmtPosts:8, profPosts:100, laborPosts:12, mgmtLevels:{'5':1,'6':2,'7':2,'8':2,'9':1,'10':0}, profLevels:{senior:{total:3,levels:{'3':1,'4':2}},vice:{total:25,levels:{'5':5,'6':10,'7':10}},middle:{total:52,levels:{'8':16,'9':21,'10':15}},junior:{total:20,levels:{'11':9,'12':9,'13':2}}}, laborLevels:{'1':0,'2':1,'3':2,'4':4,'5':4,'common':1}, attachments:[{name:'岗位设置申请表.pdf',size:256000}], timeline:[{time:'2026-05-19 11:00:00',action:'学校提交一审',operator:'林芳'},{time:'2026-05-20 09:00:00',action:'一审驳回',operator:'张建国',opinion:'管理岗位设置数量需调整'}], firstReviewOpinion:null, firstReviewer:'张建国', firstReviewTime:'2026-05-20 09:00:00', firstRejectReason:'管理岗位设置数量需调整，请重新核算后提交', hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
-  { id:'PS20260512001', schoolName:'鱼峰区机关幼儿园', schoolType:'幼儿园', status:'completed', totalPosts:45, submitTime:'2026-05-12 09:30:00', orgLevel:'股级', fundType:'全额拨款', totalControlQuota:45, highlandPosts:0, careerStaffQuota:45, authControlNo:0, mgmtPosts:3, profPosts:36, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':0,'8':1,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:4,levels:{'5':1,'6':2,'7':1}},middle:{total:20,levels:{'8':6,'9':8,'10':6}},junior:{total:12,levels:{'11':5,'12':5,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, hrResult:{totalPosts:45,mgmtPosts:3,profPosts:36,laborPosts:6,mgmtLevels:{'5':0,'6':0,'7':0,'8':1,'9':1,'10':1},profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:4,levels:{'5':1,'6':2,'7':1}},middle:{total:20,levels:{'8':6,'9':8,'10':6}},junior:{total:12,levels:{'11':5,'12':5,'13':2}}},laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}}, hrApprovalAttachment:{name:'人社批复_鱼峰幼儿园.pdf',size:432000}, attachments:[], firstReviewOpinion:'同意', firstReviewer:'李振华', firstReviewTime:'2026-05-13 10:00:00', firstRejectReason:null, secondReviewer:'李振华', secondReviewTime:'2026-05-17 14:00:00', secondReviewModifications:[], timeline:[{time:'2026-05-12 09:30:00',action:'学校提交一审',operator:'黄丽萍'},{time:'2026-05-13 10:00:00',action:'一审通过',operator:'李振华',opinion:'同意'},{time:'2026-05-16 11:00:00',action:'录入人社结果并提交二审',operator:'黄丽萍'},{time:'2026-05-17 14:00:00',action:'二审确认通过',operator:'李振华'}], completeTime:'2026-05-17 14:00:00' },
+  { id:'PS20260524001', schoolName:'柳州市第八中学', schoolType:'初中', status:'first_rejected', totalPosts:104, submitTime:'2026-05-24 09:30:00', orgLevel:'正科级', fundType:'全额拨款', totalControlQuota:104, highlandPosts:0, careerStaffQuota:88, authControlNo:16, mgmtPosts:8, profPosts:80, laborPosts:16, mgmtLevels:{'5':1,'6':2,'7':2,'8':2,'9':1,'10':0}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:15,levels:{'5':3,'6':6,'7':6}},middle:{total:45,levels:{'8':14,'9':18,'10':13}},junior:{total:20,levels:{'11':8,'12':8,'13':4}}}, laborLevels:{'1':0,'2':1,'3':2,'4':5,'5':6,'common':2}, attachments:[{name:'八中岗位设置方案（修改稿）.pdf',size:312000}], timeline:[{time:'2026-05-24 09:30:00',action:'学校提交一审',operator:'周敏'},{time:'2026-05-25 10:00:00',action:'一审驳回',operator:'李振华',opinion:'专业技术岗位结构比例需调整'}], firstReviewOpinion:null, firstReviewer:'李振华', firstReviewTime:'2026-05-25 10:00:00', firstRejectReason:'专业技术岗位结构比例需调整，请重新核算后提交', hrResult:null, hrApprovalAttachment:null, secondReviewModifications:[], secondReviewer:null, secondReviewTime:null, completeTime:null },
+  { id:'PS20260512001', schoolName:'鱼峰区机关幼儿园', schoolType:'幼儿园', status:'completed', totalPosts:45, submitTime:'2026-05-12 09:30:00', orgLevel:'股级', fundType:'全额拨款', totalControlQuota:45, highlandPosts:0, careerStaffQuota:45, authControlNo:0, mgmtPosts:3, profPosts:36, laborPosts:6, mgmtLevels:{'5':0,'6':0,'7':0,'8':1,'9':1,'10':1}, profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:4,levels:{'5':1,'6':2,'7':1}},middle:{total:20,levels:{'8':6,'9':8,'10':6}},junior:{total:12,levels:{'11':5,'12':5,'13':2}}}, laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}, hrResult:{totalPosts:45,mgmtPosts:3,profPosts:36,laborPosts:6,mgmtLevels:{'5':0,'6':0,'7':0,'8':1,'9':1,'10':1},profLevels:{senior:{total:0,levels:{'3':0,'4':0}},vice:{total:4,levels:{'5':1,'6':2,'7':1}},middle:{total:20,levels:{'8':6,'9':8,'10':6}},junior:{total:12,levels:{'11':5,'12':5,'13':2}}},laborLevels:{'1':0,'2':0,'3':1,'4':2,'5':2,'common':1}}, hrApprovalAttachment:{name:'人社批复_鱼峰幼儿园.pdf',size:432000}, attachments:[{name:'鱼峰幼儿园岗位设置方案.pdf',size:245000}], firstReviewOpinion:'同意', firstReviewer:'李振华', firstReviewTime:'2026-05-13 10:00:00', firstRejectReason:null, secondReviewer:'李振华', secondReviewTime:'2026-05-17 14:00:00', secondReviewModifications:[], timeline:[{time:'2026-05-12 09:30:00',action:'学校提交一审',operator:'黄丽萍'},{time:'2026-05-13 10:00:00',action:'一审通过',operator:'李振华',opinion:'同意'},{time:'2026-05-16 11:00:00',action:'录入人社结果并提交二审',operator:'黄丽萍'},{time:'2026-05-17 14:00:00',action:'二审确认通过',operator:'李振华'}], completeTime:'2026-05-17 14:00:00' },
 
 ];
 
@@ -359,76 +384,7 @@ function getPermittedRecords() {
   });
 }
 
-function getUnsubmittedSchools() {
-  var records = loadRecords();
-  var submittedSchools = {};
-  records.forEach(function(r) { submittedSchools[r.schoolName] = true; });
-  return SCHOOL_LIST.filter(function(name) {
-    var cat = SCHOOL_CATEGORY_MAP[name] || '';
-    if (currentRole === 'district' && cat !== '鱼峰区属') return false;
-    return !submittedSchools[name];
-  });
-}
-
-function loadReminders() {
-  try { return JSON.parse(localStorage.getItem('post_reminders') || '{}'); } catch(e) { return {}; }
-}
-function saveReminders(data) { localStorage.setItem('post_reminders', JSON.stringify(data)); }
-
-function canRemind(schoolName) {
-  var reminders = loadReminders();
-  var r = reminders[schoolName];
-  if (!r) return true;
-  var today = new Date().toISOString().substring(0, 10);
-  return (r.time || '').substring(0, 10) !== today;
-}
-
-function getLastReminderDisplay(schoolName) {
-  var reminders = loadReminders();
-  var r = reminders[schoolName];
-  if (!r) return '—';
-  var time = (r.time || '').substring(0, 16);
-  var cnt = r.count || 1;
-  return time + ' (第' + cnt + '次)';
-}
-
-function showRemindModal(schoolName) {
-  var modalHtml =
-    '<div class="modal-overlay" id="remindModal">' +
-      '<div class="modal-container">' +
-        '<h3>提醒申报确认</h3>' +
-        '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">' +
-          '将向<strong>' + schoolName + '</strong>发送岗位设置申请提醒通知。每个学校每日最多提醒一次。' +
-        '</div>' +
-        '<div class="modal-buttons">' +
-          '<button class="btn-cancel" id="cancelRemind">取消</button>' +
-          '<button class="btn-confirm success" id="confirmRemind">确认发送</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-  document.getElementById('cancelRemind').onclick = function() { document.getElementById('remindModal').remove(); };
-  document.getElementById('confirmRemind').onclick = function() { doRemind(schoolName); };
-}
-
-function doRemind(schoolName) {
-  var modalEl = document.getElementById('remindModal');
-  if (modalEl) modalEl.remove();
-  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  var reminders = loadReminders();
-  if (!reminders[schoolName]) { reminders[schoolName] = { time: now, count: 1, read: false }; }
-  else {
-    reminders[schoolName].time = now;
-    reminders[schoolName].count = (reminders[schoolName].count || 0) + 1;
-    reminders[schoolName].read = false;
-  }
-  saveReminders(reminders);
-  showToast('已向' + schoolName + '发送提醒', 'success');
-  renderTable();
-}
-
 function getFilteredRecords() {
-  if (currentFilter === 'unsubmitted') return [];
   var records = getPermittedRecords();
   if (currentSchoolFilter !== 'all') {
     records = records.filter(function(r) { return r.schoolName === currentSchoolFilter; });
@@ -446,17 +402,6 @@ function getFilteredRecords() {
   if (currentFilter === 'passed') return records.filter(function(r) { return r.status === 'first_approved' || r.status === 'completed'; });
   if (currentFilter === 'rejected') return records.filter(function(r) { return r.status === 'first_rejected'; });
   return records;
-}
-
-function getFilterCounts() {
-  var records = getPermittedRecords();
-  return {
-    all: records.length,
-    reviewing: records.filter(function(r){ return r.status==='first_review' || r.status==='second_review'; }).length,
-    passed: records.filter(function(r){ return r.status==='first_approved' || r.status==='completed'; }).length,
-    rejected: records.filter(function(r){ return r.status==='first_rejected'; }).length,
-    unsubmitted: getUnsubmittedSchools().length
-  };
 }
 
 function renderSidebar() {
@@ -499,17 +444,15 @@ function getStatusBadgeClass(status) {
 }
 
 function renderFilterBar() {
-  var counts = getFilterCounts();
   var tabs = [
-    { key:'all', label:'全部', count:counts.all },
-    { key:'reviewing', label:'审核中', count:counts.reviewing },
-    { key:'passed', label:'已通过', count:counts.passed },
-    { key:'rejected', label:'已驳回', count:counts.rejected },
-    { key:'unsubmitted', label:'待提交', count:counts.unsubmitted }
+    { key:'all', label:'全部' },
+    { key:'reviewing', label:'待审核' },
+    { key:'passed', label:'已通过' },
+    { key:'rejected', label:'已驳回' }
   ];
   var h = '<div class="filter-tabs">';
   tabs.forEach(function(t) {
-    h += '<button class="filter-tab' + (currentFilter===t.key?' active':'') + '" onclick="setFilter(\'' + t.key + '\')">' + t.label + '<span class="count">(' + t.count + ')</span></button>';
+    h += '<button class="filter-tab' + (currentFilter===t.key?' active':'') + '" onclick="setFilter(\'' + t.key + '\')">' + t.label + '</button>';
   });
   h += '</div>';
   h += '<div class="filter-dropdowns">';
@@ -547,45 +490,28 @@ function renderFilterBar() {
 }
 
 function renderTable() {
-  if (currentFilter === 'unsubmitted') {
-    var schools = getUnsubmittedSchools();
-    if (schools.length === 0) {
-      document.getElementById('tableArea').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">所有学校均已提交岗位设置申请</div></div>';
-      return;
-    }
-    var h = '<table class="list-table"><thead><tr><th>学校名称</th><th>所属类别</th><th>最近提醒</th><th>状态</th><th>操作</th></tr></thead><tbody>';
-    schools.forEach(function(name) {
-      h += '<tr><td>' + name + '</td><td>' + (SCHOOL_CATEGORY_MAP[name]||'—') + '</td>';
-      h += '<td style="font-size:12px;color:var(--text-secondary);">' + getLastReminderDisplay(name) + '</td>';
-      h += '<td><span class="status-badge pending">待提交</span></td>';
-      h += '<td>';
-      if (canRemind(name)) {
-        h += '<button class="btn-remind" onclick="event.stopPropagation();showRemindModal(\'' + name + '\')">提醒申报</button>';
-      } else {
-        h += '<button class="btn-reminded" disabled>今日已提醒</button>';
-      }
-      h += '</td></tr>';
-    });
-    h += '</tbody></table>';
-    document.getElementById('tableArea').innerHTML = h;
-    return;
-  }
   var records = getFilteredRecords();
   if (records.length === 0) {
     document.getElementById('tableArea').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">暂无岗位设置申请记录</div></div>';
     return;
   }
+  var totalItems = records.length;
+  var totalPages = Math.ceil(totalItems / pageSize);
+  if (currentPage > totalPages) currentPage = totalPages || 1;
+  if (currentPage < 1) currentPage = 1;
+  var startIdx = (currentPage - 1) * pageSize;
+  var pageData = records.slice(startIdx, startIdx + pageSize);
   var h = '<div class="table-scroll"><table class="list-table"><thead><tr>';
-  h += '<th>申请编号</th><th>学校名称</th><th>岗位设置分类</th><th>所属区域</th><th>单位级别</th><th>经费类型</th>';
+  h += '<th>申请编号</th><th>单位名称</th><th>岗位设置分类</th><th>所属区域</th><th>单位级别</th><th>经费类型</th>';
   h += '<th>总量控制数</th><th>事业编核定数</th><th>控制数核定数</th>';
   h += '<th>岗位总量</th>';
-  h += '<th>管理岗</th><th>管理岗比</th>';
-  h += '<th>专技岗</th><th>专技岗比</th>';
-  h += '<th>工勤岗</th><th>工勤岗比</th>';
+  h += '<th>管理岗位数量</th><th>管理岗占比</th>';
+  h += '<th>专技岗位数量</th><th>专技岗占比</th>';
+  h += '<th>工勤技能岗位数量</th><th>工勤岗占比</th>';
 
   h += '<th>提交时间</th><th>状态</th><th>操作</th>';
   h += '</tr></thead><tbody>';
-  records.forEach(function(r) {
+  pageData.forEach(function(r) {
     var cat = SCHOOL_CATEGORY_MAP[r.schoolName] || '';
     var tp = r.totalPosts || 0;
     h += '<tr>';
@@ -623,15 +549,16 @@ function renderTable() {
     h += '</div></td></tr>';
   });
   h += '</tbody></table></div>';
+  h += renderPaginationControls(totalItems, currentPage, 'goPage');
   document.getElementById('tableArea').innerHTML = h;
 }
 
-function setFilter(f) { currentFilter = f; renderFilterBar(); renderTable(); }
+function setFilter(f) { currentFilter = f; currentPage = 1; renderFilterBar(); renderTable(); }
 function viewDetail(id) { window.location.href = 'post-detail.html?id=' + id; }
 function reviewFirst(id) { window.location.href = 'post-audit-first.html?id=' + id; }
 function reviewSecond(id) { window.location.href = 'post-audit-second.html?id=' + id; }
 
-function renderAll() { renderFilterBar(); renderTable(); }
+function renderAll() { currentPage = 1; renderFilterBar(); renderTable(); }
 
 function initSchoolSearch(type) {
   var container = document.getElementById('schoolSearch');
@@ -729,7 +656,7 @@ function showExportModal() {
 
   // Filters
   h += '<div class="export-filters">';
-  h += '<label>学校名称<select id="ef_school" onchange="filterExportTable()"><option value="">全部</option>';
+  h += '<label>单位名称<select id="ef_school" onchange="filterExportTable()"><option value="">全部</option>';
   schools.forEach(function(s) { h += '<option value="' + s + '">' + s + '</option>'; });
   h += '</select></label>';
   h += '<label>单位级别<select id="ef_org" onchange="filterExportTable()"><option value="">全部</option>';
@@ -752,8 +679,8 @@ function showExportModal() {
   // Table
   h += '<div class="export-table-wrap"><table class="export-table"><thead><tr>';
   h += '<th class="cb-cell"><input type="checkbox" id="exportSelectAll" onchange="toggleExportSelectAll()" checked></th>';
-  h += '<th>申请编号</th><th>学校名称</th><th>岗位设置分类</th><th>所属区域</th><th>单位级别</th><th>经费类型</th>';
-  h += '<th>岗位总量</th><th>管理岗</th><th>专技岗</th><th>工勤岗</th><th>状态</th><th>提交时间</th>';
+  h += '<th>申请编号</th><th>单位名称</th><th>岗位设置分类</th><th>所属区域</th><th>单位级别</th><th>经费类型</th>';
+  h += '<th>岗位总量</th><th>管理岗位数量</th><th>专技岗位数量</th><th>工勤技能岗位数量</th><th>状态</th><th>提交时间</th>';
   h += '</tr></thead><tbody id="exportTbody">';
   records.forEach(function(r) {
     var cat = SCHOOL_CATEGORY_MAP[r.schoolName] || '';
@@ -858,9 +785,9 @@ function doExportChecked() {
   if (selectedIds.length === 0) { showToast('请至少选择一条记录', 'warning'); return; }
 
   var records = getPermittedRecords().filter(function(r) { return selectedIds.indexOf(r.id) >= 0; });
-  var headers = ['申请编号','学校名称','岗位设置分类','所属区域','单位级别','经费类型',
+  var headers = ['申请编号','单位名称','岗位设置分类','所属区域','单位级别','经费类型',
     '总量控制数','事业编核定数','控制数核定数','岗位总量',
-    '管理岗位数','管理岗占比','专技岗位数','专技岗占比','工勤岗位数','工勤岗占比',
+    '管理岗位数量','管理岗占比','专技岗位数量','专技岗占比','工勤技能岗位数量','工勤岗占比',
     '管理五级','管理六级','管理七级','管理八级','管理九级','管理十级',
     '专技正高合计','专技三级','专技四级',
     '专技副高合计','专技五级','专技六级','专技七级',

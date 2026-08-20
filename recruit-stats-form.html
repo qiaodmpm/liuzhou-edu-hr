@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>招聘情况统计表 — 柳州教育人事管理平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #1E40AF; --primary-dark: #1E3A8A; --primary-light: #EFF6FF;
+  --accent: #3B82F6; --primary-bright: #2563EB;
+  --text: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --gray-bg: #F1F5F9;
+  --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+  --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 240px;
+}
+
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.topnav { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.18); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topnav-logo svg { width: 24px; height: 24px; }
+.topnav-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+.topnav-right { display: flex; align-items: center; gap: 18px; }
+.topnav-bell { position: relative; cursor: pointer; color: rgba(255,255,255,0.85); padding: 6px; border-radius: 6px; transition: var(--transition); }
+.topnav-bell:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.topnav-bell .badge { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.topnav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; transition: var(--transition); font-size: 13px; position: relative; }
+.topnav-user:hover { background: rgba(255,255,255,0.1); }
+.topnav-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.user-dropdown { display: none; position: absolute; top: 46px; right: 0; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 160px; z-index: 200; overflow: hidden; }
+.user-dropdown.show { display: block; }
+.user-dropdown a { display: block; padding: 12px 18px; font-size: 13px; color: var(--text); text-decoration: none; transition: var(--transition); }
+.user-dropdown a:hover { background: var(--primary-light); color: var(--primary); }
+
+.sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: #1E3A8A; z-index: 90; overflow-y: auto; display: flex; flex-direction: column; transition: width var(--transition); }
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .menu-label, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-badge, .sidebar.collapsed .role-switcher-label, .sidebar.collapsed .role-switcher-name { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .menu-icon { margin-right: 0; }
+.sidebar-menu { flex: 1; padding: 8px 0; }
+.menu-group { padding: 14px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.menu-item { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); transition: var(--transition); position: relative; text-decoration: none; border-left: 3px solid transparent; }
+.menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.menu-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; border-left-color: var(--accent); }
+.menu-item .menu-icon { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; opacity: 0.7; }
+.menu-item.active .menu-icon { opacity: 1; }
+.menu-item .menu-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.5); transition: var(--transition); }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+.sidebar-toggle svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.role-switcher { padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.role-switcher-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+.role-switcher-options { display: flex; flex-direction: column; gap: 4px; }
+.role-switch-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.55); transition: var(--transition); border: 1px solid transparent; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.role-switch-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.role-switch-btn.active { background: rgba(59,130,246,0.2); color: #fff; border-color: rgba(59,130,246,0.4); font-weight: 500; }
+.role-switch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.role-switch-dot.city { background: #3B82F6; }
+.role-switch-dot.district { background: #F59E0B; }
+.role-switch-dot.school { background: #10B981; }
+.role-switch-dot.teacher { background: #A78BFA; }
+
+.main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; min-height: calc(100vh - 56px); transition: margin-left var(--transition); }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-light); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb span { color: var(--text-secondary); }
+
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.page-header h1 { font-size: 20px; font-weight: 700; }
+.page-header .subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+.back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+.back-link:hover { color: var(--primary); }
+
+.status-stamp { display: inline-block; padding: 6px 16px; border: 2px solid; transform: rotate(-5deg); font-weight: 700; font-size: 14px; background: #fff; }
+.status-stamp.completed { color: #3730A3; border-color: #3730A3; }
+.status-stamp.pending { color: #F59E0B; border-color: #F59E0B; }
+
+.type-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 500; }
+.type-tag.independent { background: #EFF6FF; color: var(--primary); }
+.type-tag.public { background: #FEF3C7; color: #92400E; }
+.type-tag.senior { background: #F3E8FF; color: #6B21A8; }
+
+.form-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 28px 32px; margin-bottom: 20px; }
+.form-card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.section-title { font-size: 13px; font-weight: 600; color: var(--primary); margin: 0 0 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.form-row { display: flex; gap: 16px 20px; flex-wrap: wrap; margin-bottom: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; min-width: 150px; flex: 1; }
+.form-group.wide { flex-basis: 420px; }
+.form-group.narrow { flex: 0 1 480px; min-width: 220px; }
+.form-group label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.req { color: var(--danger); margin-right: 3px; font-weight: 700; }
+.form-group input[type="text"], .form-group input[type="number"], .form-group select, .form-group textarea { padding: 8px 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; color: var(--text); background: #fff; width: 100%; transition: var(--transition); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+.form-group input:disabled, .form-group select:disabled, .form-group textarea:disabled { background: var(--gray-bg); color: var(--text-light); cursor: not-allowed; }
+.form-group textarea { resize: vertical; min-height: 66px; }
+.form-group .field-note { font-size: 11px; color: var(--text-light); }
+.form-group .auto-val { padding: 8px 10px; font-size: 13px; font-weight: 600; color: var(--primary); background: var(--primary-light); border-radius: 6px; text-align: center; }
+.form-group .auto-val.warn { color: var(--danger); background: #FEE2E2; }
+
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 12px 22px; padding: 0; margin-bottom: 16px; }
+.checkbox-group label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; }
+.checkbox-group label:disabled { cursor: not-allowed; }
+.checkbox-group input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--primary); }
+.checkbox-group input[type="checkbox"]:disabled { accent-color: var(--text-light); }
+
+.auto-fill-tag { font-size: 11px; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 10px; }
+
+.readonly-banner { background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.not-completed-banner { background: #FEE2E2; border: 1px solid #FECACA; color: #991B1B; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 16px; }
+
+.stats-meta { font-size: 12px; color: var(--text-light); margin-left: auto; }
+
+.action-bar { display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 24px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; font-family: inherit; transition: var(--transition); border: 1px solid transparent; text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--gray-bg); }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; animation: toastIn 0.3s ease; box-shadow: var(--shadow-lg); }
+.toast.warning { background: var(--warning); color: #1E293B; }
+.toast.success { background: var(--success); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+@media (max-width: 768px) { .form-row { flex-direction: column; } .form-group { min-width: 0; } .form-group.narrow { flex: 1; } }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="topnav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="16" y2="18"/><circle cx="8" cy="18" r="1.5" fill="#fff"/></svg></div>
+    <span class="topnav-title">柳州教育人事管理平台</span>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge">3</span></div>
+    <div class="topnav-user" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">王</div><span id="userName">王玉兰</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="user-dropdown" id="userDropdown"><a href="personal-center.html">个人中心</a></div>
+    </div>
+  </div>
+</nav>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-menu" id="sidebarMenu"></div>
+  <div class="role-switcher" id="roleSwitcher">
+    <div class="role-switcher-label">切换演示角色</div>
+    <div class="role-switcher-options">
+      <button class="role-switch-btn" data-role="city" onclick="switchRole('city')"><span class="role-switch-dot city"></span><span class="role-switcher-name">市管理员</span></button>
+      <button class="role-switch-btn" data-role="district" onclick="switchRole('district')"><span class="role-switch-dot district"></span><span class="role-switcher-name">区管理员</span></button>
+      <button class="role-switch-btn" data-role="school" onclick="switchRole('school')"><span class="role-switch-dot school"></span><span class="role-switcher-name">校管理员</span></button>
+      <button class="role-switch-btn" data-role="teacher" onclick="switchRole('teacher')"><span class="role-switch-dot teacher"></span><span class="role-switcher-name">教&emsp;师</span></button>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg><span class="menu-label">收起菜单</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="breadcrumb">
+    <a href="workbench.html">首页</a> &nbsp;/&nbsp;
+    <a href="#" id="bcList">招聘岗位管理</a> &nbsp;/&nbsp;
+    <span>招聘情况统计表</span>
+  </div>
+  <div id="mainContent"></div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script src="src/menu-config.js"></script>
+<script>
+window.onerror = function(msg, url, line, col, err) { console.error('JS Error:', msg, 'at', line, ':', col, err); var errDiv = document.getElementById('errorDisplay'); if (!errDiv) { errDiv = document.createElement('div'); errDiv.id = 'errorDisplay'; errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;color:#991B1B;padding:16px 20px;font-family:monospace;font-size:13px;border-bottom:2px solid #FECACA;'; document.body.prepend(errDiv); } errDiv.innerHTML = 'ERROR: ' + msg + ' (line ' + line + ':' + col + ')<br><button onclick="location.reload()" style="margin-top:8px;padding:6px 16px;cursor:pointer;">重新加载</button>'; };
+
+var ICONS = {
+  home: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  chart: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  userp: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+  monitor: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  userx: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',
+  arrowup: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+  shield: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  search: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  file: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  clock: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  dollar: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  warn: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  star: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  users: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  building: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="18" x2="12" y2="18"/></svg>',
+  key: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  list: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+};
+
+var MENU_ICONS = { workbench:'home', dashboard:'chart', entry:'userp', staffing:'monitor', exit:'userx', promote:'arrowup', postset:'shield', recruit:'search', employ:'file', retire:'clock', ethics:'warn', account:'users', org:'building', perm:'key', log:'list' };
+
+var ROLES = {
+  city: { name:'张建国', short:'张' },
+  district: { name:'李振华', short:'李' },
+  school: { name:'王玉兰', short:'王' },
+  teacher: { name:'陈明辉', short:'陈' }
+};
+
+var STATUS_MAP = { pending_first:'待一审', first_approved:'一审通过', first_rejected:'一审驳回', pending_second:'待二审', second_rejected:'二审驳回', completed:'已完成' };
+var RECRUITMENT_TYPE_MAP = { independent:'自主招聘', public:'统一公招', senior:'中高级招聘' };
+
+var currentRole = 'school';
+var recordId = null;
+var currentRecord = null;
+var stats = null;
+
+// ===== UTILS =====
+function escapeHtml(str) { if (str === null || str === undefined) return ''; str = String(str); return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg, type) { var el = document.createElement('div'); el.className = 'toast ' + (type||''); el.textContent = msg; document.getElementById('toastContainer').appendChild(el); setTimeout(function(){el.remove();}, 2000); }
+function toggleUserMenu() { var el = document.getElementById('userDropdown'); if (el) el.classList.toggle('show'); }
+document.addEventListener('click', function(e) { var ud = document.getElementById('userDropdown'); if (ud && !e.target.closest('.topnav-user')) ud.classList.remove('show'); });
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function loadRecords() { var s = localStorage.getItem('recruit_records'); if (s) { try { return JSON.parse(s); } catch(e) {} } return []; }
+function findRecord(id) { return loadRecords().find(function(r) { return r.id === id; }) || null; }
+function getTotalCount(formData) { if (!formData || !formData.positions) return 0; var total = 0; formData.positions.forEach(function(p) { total += (parseInt(p.count) || 0); }); return total; }
+
+// ===== RECRUIT STATS STORAGE（独立 key，避免 admin 页 seedDemoData 整体覆盖 recruit_records 时丢失）=====
+function loadRecruitStats() { var s = localStorage.getItem('recruit_stats'); if (s) { try { return JSON.parse(s) || {}; } catch(e) {} } return {}; }
+function saveRecruitStatsObj(obj) {
+  var all = loadRecruitStats();
+  all[recordId] = obj;
+  localStorage.setItem('recruit_stats', JSON.stringify(all));
+}
+
+function emptyStats() {
+  return {
+    planTotal: 0, planCut: 0, planActual: 0,
+    employDone: 0, employThis: 0, employDefer: 0,
+    deptApproved: false, rsApproved: false,
+    pubChannel: { rs:false, dept:false, own:false }, pubName: '', pub7Days: false,
+    adjust: 'none', adjustContent: '', adjustChannel: { rs:false, dept:false, own:false },
+    gongshiChannel: { rs:false, dept:false, own:false },
+    verifyOriginals: 'yes', ratioAdjust: 'no',
+    writtenExam: '无异常情况', writtenExamDetail: '', interviewImpl: '无异常情况', interviewImplDetail: '',
+    interviewerTotal: 0, interviewerOwn: 0, interviewerDept: 0, interviewerRs: 0, interviewerOther: 0,
+    assessMaterials: 'yes', physicalExam: 'yes', meetingMinutes: 'yes', resultReviewed: 'yes',
+    negativeSentiment: 'no', reportComplaint: 'no',
+    archive: { a:'yes', b:'yes', c:'yes', d:'yes', e:'yes', f:'yes' }, archiveOther: '',
+    otherNotes: '',
+    updateTime: '', updateOperator: ''
+  };
+}
+
+// ===== FORM HELPERS =====
+function isEditable() { return currentRole === 'school' && currentRecord && currentRecord.status === 'completed'; }
+function disAttr() { return isEditable() ? '' : ' disabled'; }
+
+function g(id) { return document.getElementById(id); }
+
+function numVal(id) { var el = g(id); if (!el) return 0; var v = parseInt(el.value); return isNaN(v) ? 0 : v; }
+
+function chkVal(id) { var el = g(id); return !!(el && el.checked); }
+function chk(key, label, checked, req) { return '<label>' + (req ? '<span class="req">*</span>' : '') + '<input type="checkbox" id="st_' + key + '"' + (checked ? ' checked' : '') + disAttr() + '> ' + label + '</label>'; }
+// normYesNo：兼容旧布尔值/字符串，统一归一到 'yes'/'no'，默认 'yes'
+function normYesNo(v) { if (v === 'no' || v === false) return 'no'; return 'yes'; }
+function sel(id, options, selected, extra) {
+  var h = '<select id="st_' + id + '"' + (extra ? ' ' + extra : '') + disAttr() + '>';
+  options.forEach(function(o) { h += '<option value="' + o[0] + '"' + (String(selected) === String(o[0]) ? ' selected' : '') + '>' + o[1] + '</option>'; });
+  h += '</select>';
+  return h;
+}
+function input(id, val, opts) { opts = opts || {}; var w = opts.wide ? ' wide' : ''; return '<input type="' + (opts.number ? 'number' : 'text') + '" id="st_' + id + '" value="' + (val === null || val === undefined ? '' : escapeHtml(val)) + '" min="0"' + disAttr() + '>'; }
+function textarea(id, val, maxLen) { return '<textarea id="st_' + id + '" rows="3"' + (maxLen ? ' maxlength="' + maxLen + '"' : '') + disAttr() + '>' + escapeHtml(val) + '</textarea>'; }
+
+function fg(id, label, controlHtml, opts) {
+  opts = opts || {};
+  var note = opts.note ? '<div class="field-note">' + opts.note + '</div>' : '';
+  // 除显式 required:false 外，默认全部为必填（自动计算字段 / 允许留空的字段显式排除）
+  var isReq = opts.required !== false;
+  var req = isReq ? ' required' : '';
+  var reqMark = isReq ? '<span class="req">*</span>' : '';
+  var cls = (opts.wide ? ' wide' : '') + (opts.narrow ? ' narrow' : '');
+  return '<div class="form-group' + cls + '"><label class="' + req + '">' + reqMark + label + '</label>' + controlHtml + note + '</div>';
+}
+
+// ===== SECTION RENDERERS =====
+// 还需暂缓办理手续 = 实际招聘计划 − 已办理 − 本次办理（自动计算，不手动填写）
+function calcDefer() {
+  var pa = Math.max(0, (stats.planTotal || 0) - (stats.planCut || 0));
+  return Math.max(0, pa - (stats.employDone || 0) - (stats.employThis || 0));
+}
+
+// ===== CONDITIONAL DISPLAY（下拉选择触发显隐）=====
+function toggleAdjustPanel() { var el = g('st_adjust'); var p = g('st_adjustPanel'); if (el && p) p.style.display = el.value === 'adjust' ? '' : 'none'; }
+function toggleWrittenExamDetail() { var el = g('st_writtenExam'); var p = g('st_writtenExamDetailPanel'); if (el && p) p.style.display = el.value === '具体异常说明' ? '' : 'none'; }
+function toggleInterviewImplDetail() { var el = g('st_interviewImpl'); var p = g('st_interviewImplDetailPanel'); if (el && p) p.style.display = el.value === '具体异常说明' ? '' : 'none'; }
+
+function renderSection1() {
+  var h = '<div class="form-card"><div class="form-card-title">一、基本情况</div>';
+  h += '<div class="section-title">招聘计划完成情况<span class="auto-fill-tag">自动计算</span></div>';
+  h += '<div class="form-row">';
+  h += fg('planTotal', '原计划招聘（人）', input('planTotal', stats.planTotal || '', { number:true }), { required:true });
+  h += fg('planCut', '核减或取消计划（个）', input('planCut', stats.planCut || '', { number:true }), { required:true });
+  h += fg('planActual', '实际招聘计划（人）', '<div class="auto-val" id="st_planActual">' + (stats.planActual || 0) + '</div>', { required:false, note:'自动 = 原计划 − 核减' });
+  h += '</div>';
+  h += '<div class="form-row">';
+  h += fg('employDone', '已办理聘用手续（人）', input('employDone', stats.employDone || '', { number:true }), { required:true });
+  h += fg('employThis', '本次办理手续（人）', input('employThis', stats.employThis || '', { number:true }), { required:true });
+  h += fg('employDefer', '还需暂缓办理手续（人）', '<div class="auto-val" id="st_employDefer">' + calcDefer() + '</div>', { required:false, note:'自动 = 实际招聘计划 − 已办理 − 本次办理' });
+  h += '</div>';
+  h += '<div class="section-title"><span class="req">*</span>招聘方案</div>';
+  h += '<div class="checkbox-group">';
+  h += chk('deptApproved', '主管部门已审核', stats.deptApproved);
+  h += chk('rsApproved', '人社部门已核准', stats.rsApproved);
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderSection2() {
+  var h = '<div class="form-card"><div class="form-card-title">二、信息发布情况</div>';
+  h += '<div class="section-title">公告发布</div>';
+  h += '<div class="form-row">';
+  h += fg('pubName', '公告名称', input('pubName', stats.pubName), { wide:true });
+  h += fg('pub7Days', '公告发布满7个工作日', sel('pub7Days', [['true','是'],['false','否']], stats.pub7Days ? 'true' : 'false'));
+  h += '</div>';
+  h += '<div class="section-title"><span class="req">*</span>公告发布地址</div><div class="checkbox-group">';
+  h += chk('pubRs', '人社部门指定网站', stats.pubChannel.rs);
+  h += chk('pubDept', '主管部门网站', stats.pubChannel.dept);
+  h += chk('pubOwn', '本单位网站', stats.pubChannel.own);
+  h += '</div>';
+  h += '<div class="section-title">调整公告情况</div>';
+  h += '<div class="form-row">';
+  h += fg('adjust', '调整公告情况', sel('adjust', [['none','无调整'],['adjust','有调整']], stats.adjust, 'onchange="toggleAdjustPanel()"'), { narrow:true });
+  h += '</div>';
+  h += '<div id="st_adjustPanel" style="display:' + (stats.adjust === 'adjust' ? '' : 'none') + ';">';
+  h += '<div class="form-row">';
+  h += fg('adjustContent', '主要调整内容', input('adjustContent', stats.adjustContent), { wide:true });
+  h += '</div>';
+  h += '<div class="section-title"><span class="req">*</span>公告调整发布地址</div><div class="checkbox-group">';
+  h += chk('adjRs', '人社部门指定网站', stats.adjustChannel.rs);
+  h += chk('adjDept', '主管部门网站', stats.adjustChannel.dept);
+  h += chk('adjOwn', '本单位网站', stats.adjustChannel.own);
+  h += '</div>';
+  h += '</div>';
+  h += '<div class="section-title"><span class="req">*</span>公示地址</div><div class="checkbox-group">';
+  h += chk('gsRs', '人社部门指定网站', stats.gongshiChannel.rs);
+  h += chk('gsDept', '主管部门网站', stats.gongshiChannel.dept);
+  h += chk('gsOwn', '本单位网站', stats.gongshiChannel.own);
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderSection3() {
+  var h = '<div class="form-card"><div class="form-card-title">三、招聘过程</div>';
+  h += '<div class="form-row">';
+  h += fg('verify', '审核相关证件原件', sel('verify', [['yes','是'],['no','否']], stats.verifyOriginals));
+  h += fg('ratio', '调整开考比例情况', sel('ratio', [['no','未调整'],['dept','经主管部门批准调整']], stats.ratioAdjust));
+  h += '</div>';
+  var wExOpts = [['免笔试','免笔试'],['无异常情况','无异常情况'],['全市统一笔试','全市统一笔试'],['具体异常说明','具体异常说明']];
+  var wExVal = wExOpts.some(function(o) { return o[0] === stats.writtenExam; }) ? stats.writtenExam : '无异常情况';
+  var ivOpts = [['免面试','免面试'],['无异常情况','无异常情况'],['具体异常说明','具体异常说明']];
+  var ivVal = ivOpts.some(function(o) { return o[0] === stats.interviewImpl; }) ? stats.interviewImpl : '无异常情况';
+  h += '<div class="form-row">';
+  h += fg('writtenExam', '笔试组织实施情况', sel('writtenExam', wExOpts, wExVal, 'onchange="toggleWrittenExamDetail()"'), { narrow:true });
+  h += '</div>';
+  h += '<div id="st_writtenExamDetailPanel" style="display:' + (wExVal === '具体异常说明' ? '' : 'none') + ';">';
+  h += fg('writtenExamDetail', '具体原因', textarea('writtenExamDetail', stats.writtenExamDetail, 200), { wide:true });
+  h += '</div>';
+  h += '<div class="form-row">';
+  h += fg('interviewImpl', '面试（实操）组织实施情况', sel('interviewImpl', ivOpts, ivVal, 'onchange="toggleInterviewImplDetail()"'), { narrow:true });
+  h += '</div>';
+  h += '<div id="st_interviewImplDetailPanel" style="display:' + (ivVal === '具体异常说明' ? '' : 'none') + ';">';
+  h += fg('interviewImplDetail', '具体原因', textarea('interviewImplDetail', stats.interviewImplDetail, 200), { wide:true });
+  h += '</div>';
+  h += '<div class="section-title">面试考官组成</div>';
+  h += '<div class="form-row">';
+  h += fg('iTotal', '共（人）', '<div class="auto-val" id="st_iTotal">' + calcITotal() + '</div>', { required:false, note:'自动 = 本单位 + 主管部门 + 人社部门选派 + 其他单位考官' });
+  h += fg('iOwn', '本单位（人）', input('iOwn', stats.interviewerOwn || '', { number:true }));
+  h += fg('iDept', '主管部门（人）', input('iDept', stats.interviewerDept || '', { number:true }));
+  h += fg('iRs', '人社部门选派（人）', input('iRs', stats.interviewerRs || '', { number:true }));
+  h += fg('iOther', '其他单位考官（人）', input('iOther', stats.interviewerOther || '', { number:true }));
+  h += '</div>';
+  h += '<div class="section-title">确认事项</div>';
+  h += '<div class="form-row">';
+  h += fg('assess', '对考核人选逐一出具考核材料', sel('assess', [['yes','是'],['no','否']], normYesNo(stats.assessMaterials)));
+  h += fg('physical', '按规定组织体检', sel('physical', [['yes','是'],['no','否']], normYesNo(stats.physicalExam)));
+  h += '</div>';
+  h += '<div class="form-row">';
+  h += fg('meeting', '领导班子集体研究确定拟聘人员的会议纪要', sel('meeting', [['yes','有'],['no','无']], normYesNo(stats.meetingMinutes)));
+  h += fg('resultReviewed', '招聘结果审核情况', sel('resultReviewed', [['yes','主管部门已审核'],['no','未审核']], normYesNo(stats.resultReviewed)));
+  h += '</div>';
+  h += '<div class="form-row">';
+  h += fg('sentiment', '是否有负面舆情', sel('sentiment', [['no','否'],['yes','是']], stats.negativeSentiment));
+  h += fg('complaint', '是否有举报投诉', sel('complaint', [['no','否'],['yes','是']], stats.reportComplaint));
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderSection4() {
+  var items = [
+    ['a', '面向社会发布招聘公告、调整公告信息、公示等的证明材料'],
+    ['b', '笔试面试成绩汇总表、评分原始材料及相关音像资料、面试考官签到表'],
+    ['c', '调整招聘公告、降低开考比例的批复材料'],
+    ['d', '拟聘人员体检表'],
+    ['e', '拟聘人员考察材料'],
+    ['f', '拟聘人员与招聘条件相符的相关证件复印件']
+  ];
+  var h = '<div class="form-card"><div class="form-card-title">四、材料存档备查情况</div>';
+  for (var i = 0; i < items.length; i += 2) {
+    h += '<div class="form-row">';
+    h += fg('arch' + items[i][0].toUpperCase(), items[i][1], sel('arch' + items[i][0].toUpperCase(), [['yes','已存档'],['no','未存档']], normYesNo(stats.archive[items[i][0]])));
+    if (items[i + 1]) h += fg('arch' + items[i + 1][0].toUpperCase(), items[i + 1][1], sel('arch' + items[i + 1][0].toUpperCase(), [['yes','已存档'],['no','未存档']], normYesNo(stats.archive[items[i + 1][0]])));
+    h += '</div>';
+  }
+  h += '<div class="form-row">';
+  h += fg('archOther', '其他已存档材料', textarea('archOther', stats.archiveOther, 200), { required:false, wide:true });
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderSection5() {
+  var h = '<div class="form-card"><div class="form-card-title">五、其他需说明的情况</div>';
+  h += '<div class="form-group wide">' + textarea('otherNotes', stats.otherNotes, 200) + '</div>';
+  h += '</div>';
+  return h;
+}
+
+// ===== COLLECT / APPLY =====
+function collectStats() {
+  var pt = numVal('st_planTotal'); var pc = numVal('st_planCut');
+  var pa = Math.max(0, pt - pc);
+  var eDone = numVal('st_employDone'); var eThis = numVal('st_employThis');
+  var eDefer = Math.max(0, pa - eDone - eThis);
+  var s = {
+    planTotal: pt, planCut: pc, planActual: pa,
+    employDone: eDone, employThis: eThis, employDefer: eDefer,
+    deptApproved: chkVal('st_deptApproved'), rsApproved: chkVal('st_rsApproved'),
+    pubChannel: { rs: chkVal('st_pubRs'), dept: chkVal('st_pubDept'), own: chkVal('st_pubOwn') },
+    pubName: g('st_pubName') ? g('st_pubName').value : '', pub7Days: g('st_pub7Days') ? g('st_pub7Days').value === 'true' : false,
+    adjust: g('st_adjust') ? g('st_adjust').value : 'none', adjustContent: g('st_adjustContent') ? g('st_adjustContent').value : '',
+    adjustChannel: { rs: chkVal('st_adjRs'), dept: chkVal('st_adjDept'), own: chkVal('st_adjOwn') },
+    gongshiChannel: { rs: chkVal('st_gsRs'), dept: chkVal('st_gsDept'), own: chkVal('st_gsOwn') },
+    verifyOriginals: g('st_verify') ? g('st_verify').value : 'yes', ratioAdjust: g('st_ratio') ? g('st_ratio').value : 'no',
+    writtenExam: g('st_writtenExam') ? g('st_writtenExam').value : '无异常情况',
+    writtenExamDetail: g('st_writtenExamDetail') ? g('st_writtenExamDetail').value : '',
+    interviewImpl: g('st_interviewImpl') ? g('st_interviewImpl').value : '无异常情况',
+    interviewImplDetail: g('st_interviewImplDetail') ? g('st_interviewImplDetail').value : '',
+    interviewerTotal: numVal('st_iOwn') + numVal('st_iDept') + numVal('st_iRs') + numVal('st_iOther'),
+    interviewerOwn: numVal('st_iOwn'), interviewerDept: numVal('st_iDept'), interviewerRs: numVal('st_iRs'), interviewerOther: numVal('st_iOther'),
+    assessMaterials: g('st_assess') ? g('st_assess').value : 'yes',
+    physicalExam: g('st_physical') ? g('st_physical').value : 'yes',
+    meetingMinutes: g('st_meeting') ? g('st_meeting').value : 'yes',
+    resultReviewed: g('st_resultReviewed') ? g('st_resultReviewed').value : 'yes',
+    negativeSentiment: g('st_sentiment') ? g('st_sentiment').value : 'no', reportComplaint: g('st_complaint') ? g('st_complaint').value : 'no',
+    archive: { a: g('st_archA') ? g('st_archA').value : 'yes', b: g('st_archB') ? g('st_archB').value : 'yes', c: g('st_archC') ? g('st_archC').value : 'yes', d: g('st_archD') ? g('st_archD').value : 'yes', e: g('st_archE') ? g('st_archE').value : 'yes', f: g('st_archF') ? g('st_archF').value : 'yes' },
+    archiveOther: g('st_archOther') ? g('st_archOther').value : '',
+    otherNotes: g('st_otherNotes') ? g('st_otherNotes').value : '',
+    updateTime: stats && stats.updateTime ? stats.updateTime : '', updateOperator: stats && stats.updateOperator ? stats.updateOperator : ''
+  };
+  return s;
+}
+
+function recalcPlan() {
+  var t = numVal('st_planTotal'); var c = numVal('st_planCut');
+  var actual = Math.max(0, t - c);
+  var el = g('st_planActual');
+  if (el) el.textContent = actual;
+  return actual;
+}
+
+function recalcAll() {
+  var a = recalcPlan();
+  var d = numVal('st_employDone') + numVal('st_employThis');
+  var defEl = g('st_employDefer');
+  if (defEl) defEl.textContent = Math.max(0, a - d);
+  var done = d + Math.max(0, a - d);
+  var cel = g('st_planActual');
+  if (cel) cel.classList.toggle('warn', a !== done);
+}
+
+// 面试考官总数 = 本单位 + 主管部门 + 人社部门选派 + 其他单位考官（自动计算，不手动输入）
+function calcITotal() {
+  return (stats.interviewerOwn || 0) + (stats.interviewerDept || 0) + (stats.interviewerRs || 0) + (stats.interviewerOther || 0);
+}
+function recalcITotal() {
+  var t = numVal('st_iOwn') + numVal('st_iDept') + numVal('st_iRs') + numVal('st_iOther');
+  var el = g('st_iTotal');
+  if (el) el.textContent = t;
+  return t;
+}
+
+function bindEvents() {
+  if (!isEditable()) return;
+  ['st_planTotal', 'st_planCut', 'st_employDone', 'st_employThis'].forEach(function(id) {
+    var el = g(id);
+    if (el) el.addEventListener('input', recalcAll);
+  });
+  ['st_iOwn', 'st_iDept', 'st_iRs', 'st_iOther'].forEach(function(id) {
+    var el = g(id);
+    if (el) el.addEventListener('input', recalcITotal);
+  });
+}
+
+// ===== MAIN RENDER =====
+function renderPage() {
+  var html = '<div class="back-link" onclick="goBack()">&#8592; 返回</div>';
+
+  if (!currentRecord) {
+    html += '<div class="form-card" style="text-align:center;padding:60px;">' +
+      '<div style="font-size:48px;margin-bottom:16px;">&#x1F4CB;</div>' +
+      '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">未找到招聘申报记录</div>' +
+      '<div style="color:var(--text-light);">请检查申请编号是否正确</div></div>';
+    document.getElementById('mainContent').innerHTML = html;
+    return;
+  }
+
+  var r = currentRecord;
+  var typeLabel = RECRUITMENT_TYPE_MAP[r.recruitmentType] || r.recruitmentType;
+  var typeCls = r.recruitmentType;
+  var statusLabel = STATUS_MAP[r.status] || r.status;
+  var stampCls = r.status === 'completed' ? 'completed' : 'pending';
+
+  html += '<div class="page-header"><div>';
+  html += '<h1>招聘情况统计表</h1>';
+  html += '<div class="subtitle">申请编号：' + r.id + ' | 单位：' + escapeHtml(r.schoolName) + ' | 批次：' + escapeHtml(r.batchName) + ' | 招聘类型：<span class="type-tag ' + typeCls + '">' + typeLabel + '</span></div>';
+  html += '</div>';
+  html += '<div style="display:flex;align-items:center;gap:12px;">';
+  if (stats && stats.updateTime) html += '<span class="stats-meta">录入：' + escapeHtml(stats.updateOperator || '') + ' · ' + escapeHtml(stats.updateTime) + '</span>';
+  html += '<span class="status-stamp ' + stampCls + '">' + statusLabel + '</span>';
+  html += '</div></div>';
+
+  if (r.status !== 'completed') {
+    html += '<div class="not-completed-banner">该申请尚未完成审核，无需录入招聘情况统计表。审核完成后（状态为「已完成」）方可录入。</div>';
+    document.getElementById('mainContent').innerHTML = html;
+    return;
+  }
+
+  if (!isEditable()) {
+    html += '<div class="readonly-banner">当前为只读查看模式（区/市管理员）。如需修改，请以学校管理员身份进入。可点击「下载统计表」保存归档。</div>';
+  }
+
+  html += renderSection1();
+  html += renderSection2();
+  html += renderSection3();
+  html += renderSection4();
+  html += renderSection5();
+
+  html += '<div class="action-bar">';
+  html += '<button type="button" class="btn btn-outline" onclick="downloadDoc()">&#11015; 下载统计表</button>';
+  if (isEditable()) {
+    html += '<button type="button" class="btn btn-primary" onclick="saveStats()">保存统计表</button>';
+  }
+  html += '</div>';
+
+  document.getElementById('mainContent').innerHTML = html;
+  bindEvents();
+}
+
+// ===== SAVE =====
+function saveStats() {
+  var s = collectStats();
+  if (s.planTotal <= 0) { showToast('请填写原计划招聘人数', 'warning'); return; }
+  var planCutEl = g('st_planCut');
+  if (!planCutEl || planCutEl.value === '') { showToast('请填写核减或取消计划人数', 'warning'); return; }
+  var actual = s.planActual;
+  var done = s.employDone + s.employThis + s.employDefer;
+  if (done !== actual) { showToast('已办理 + 本次办理 + 暂缓办理（' + done + '）须等于实际招聘计划（' + actual + '）', 'warning'); return; }
+  if (!s.pubName || !String(s.pubName).trim()) { showToast('请填写公告名称', 'warning'); return; }
+  if (!s.pubChannel.rs && !s.pubChannel.dept && !s.pubChannel.own) { showToast('请至少勾选一个公告发布地址', 'warning'); return; }
+  if (!s.gongshiChannel.rs && !s.gongshiChannel.dept && !s.gongshiChannel.own) { showToast('请至少勾选一个公示地址', 'warning'); return; }
+  if (s.adjust === 'adjust') {
+    if (!s.adjustContent || !String(s.adjustContent).trim()) { showToast('请填写主要调整内容', 'warning'); return; }
+    if (!s.adjustChannel.rs && !s.adjustChannel.dept && !s.adjustChannel.own) { showToast('请至少勾选一个公告调整发布地址', 'warning'); return; }
+  }
+
+  var now = new Date();
+  var ts = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+  s.updateTime = ts;
+  s.updateOperator = ROLES[currentRole].name;
+  saveRecruitStatsObj(s);
+  stats = s;
+  showToast('招聘情况统计表已保存', 'success');
+  setTimeout(function() { window.location.href = 'recruit-list-school.html'; }, 900);
+}
+
+// ===== DOWNLOAD（生成 Word 兼容 .doc，无第三方依赖）=====
+function yn(v) { return v === true ? '是' : '否'; }
+function ynStr(v) { return v === 'yes' ? '是' : (v === 'dept' ? '经主管部门批准调整' : '否'); }
+function ch(v) { return v ? '✓' : ''; }
+
+function buildDocHtml() {
+  var s = stats;
+  var rows = [];
+  function row(label, val, colspan) { rows.push('<tr><td style="width:220px;">' + label + '</td><td' + (colspan ? ' colspan="' + colspan + '"' : '') + '>' + (val === '' || val === null || val === undefined ? '' : val) + '</td></tr>'); }
+
+  row('申请编号', recordId);
+  row('招聘单位', currentRecord.schoolName);
+  row('招聘批次', currentRecord.batchName);
+  row('招聘类型', RECRUITMENT_TYPE_MAP[currentRecord.recruitmentType] || currentRecord.recruitmentType);
+
+  rows.push('<tr><td colspan="2" style="font-weight:700;background:#F1F5F9;text-align:center;">一、基本情况</td></tr>');
+  row('原计划招聘（人）', s.planTotal);
+  row('核减或取消计划（个）', s.planCut);
+  row('实际招聘计划（人）', s.planActual);
+  row('已办理聘用手续（人）', s.employDone);
+  row('本次办理手续（人）', s.employThis);
+  row('还需暂缓办理手续（人）', s.employDefer);
+  row('主管部门审核情况', (s.deptApproved ? '主管部门已审核✓' : '主管部门已审核') + '；' + (s.rsApproved ? '人社部门已核准✓' : '人社部门已核准'));
+
+  rows.push('<tr><td colspan="2" style="font-weight:700;background:#F1F5F9;text-align:center;">二、信息发布情况</td></tr>');
+  var chTxt = function(obj) { var parts = []; if (obj.rs) parts.push('人社部门指定网站'); if (obj.dept) parts.push('主管部门网站'); if (obj.own) parts.push('本单位网站'); return parts.length ? parts.join('、') : '（ 未勾选  ）'; };
+  row('公告名称', s.pubName);
+  row('公告发布地址', chTxt(s.pubChannel));
+  row('公告发布满7个工作日', yn(s.pub7Days));
+  row('调整公告情况', s.adjust === 'adjust' ? '有调整' : '无调整');
+  row('主要调整内容', s.adjustContent);
+  row('公告调整发布地址', chTxt(s.adjustChannel));
+  row('公示地址', chTxt(s.gongshiChannel));
+
+  rows.push('<tr><td colspan="2" style="font-weight:700;background:#F1F5F9;text-align:center;">三、招聘过程</td></tr>');
+  row('审核相关证件原件', s.verifyOriginals === 'yes' ? '是' : '否');
+  row('调整开考比例情况', s.ratioAdjust === 'dept' ? '经主管部门批准调整' : '未调整');
+  row('笔试组织实施情况', s.writtenExam === '具体异常说明' ? '具体异常说明' + (s.writtenExamDetail ? '：' + s.writtenExamDetail : '') : (s.writtenExam || ''));
+  row('面试（实操）组织实施情况', s.interviewImpl === '具体异常说明' ? '具体异常说明' + (s.interviewImplDetail ? '：' + s.interviewImplDetail : '') : (s.interviewImpl || ''));
+  row('面试考官组成', '共' + s.interviewerTotal + '人，其中本单位' + s.interviewerOwn + '人、主管部门' + s.interviewerDept + '人、人社部门选派' + s.interviewerRs + '人、其他单位考官' + s.interviewerOther + '人');
+  row('对考核人选逐一出具考核材料', s.assessMaterials === 'yes' ? '是' : '否');
+  row('按规定组织体检', s.physicalExam === 'yes' ? '是' : '否');
+  row('领导班子集体研究确定拟聘人员的会议纪要', s.meetingMinutes === 'yes' ? '有' : '无');
+  row('招聘结果审核情况', s.resultReviewed === 'yes' ? '主管部门已审核' : '未审核');
+  row('是否有负面舆情', s.negativeSentiment === 'yes' ? '是' : '否');
+  row('是否有举报投诉', s.reportComplaint === 'yes' ? '是' : '否');
+
+  rows.push('<tr><td colspan="2" style="font-weight:700;background:#F1F5F9;text-align:center;">四、材料存档备查情况</td></tr>');
+  var archLabels = [['a','面向社会发布招聘公告、调整公告信息、公示等的证明材料'],['b','笔试面试成绩汇总表、评分原始材料及相关音像资料、面试考官签到表'],['c','调整招聘公告、降低开考比例的批复材料'],['d','拟聘人员体检表'],['e','拟聘人员考察材料'],['f','拟聘人员与招聘条件相符的相关证件复印件']];
+  archLabels.forEach(function(it) { row(it[1], s.archive[it[0]] === 'yes' ? '已存档' : '未存档'); });
+  row('其他已存档材料', s.archiveOther);
+
+  rows.push('<tr><td colspan="2" style="font-weight:700;background:#F1F5F9;text-align:center;">五、其他需说明的情况</td></tr>');
+  row('说明', s.otherNotes, 1);
+
+  var sHtml = rows.join('');
+  return '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:12pt;font-family:\'SimSun\',serif;">' +
+    '<tr><td colspan="2" style="text-align:center;font-size:16pt;font-weight:700;padding:12px;">招聘情况统计表</td></tr>' +
+    sHtml +
+    '<tr><td colspan="2" style="text-align:right;padding:10px;">填报单位（盖章）：____________&nbsp;&nbsp;填报日期：____________</td></tr>' +
+    '</table>';
+}
+
+function downloadDoc() {
+  if (!stats || !stats.updateTime) { showToast('请先填写并保存统计表后再下载', 'warning'); return; }
+  var body = buildDocHtml();
+  var docHtml = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>招聘情况统计表_' + recordId + '</title></head><body>' + body + '</body></html>';
+  var blob = new Blob(['﻿' + docHtml], { type: 'application/msword' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '招聘情况统计表_' + recordId + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() { URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
+
+// ===== NAVIGATION =====
+function goBack() {
+  if (currentRole === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+  window.location.href = 'recruit-list-admin.html?role=' + currentRole;
+}
+function getBackUrl() {
+  if (currentRole === 'school') return 'recruit-list-school.html';
+  return 'recruit-list-admin.html?role=' + currentRole;
+}
+function getEmployUrl() {
+  if (currentRole === 'city' || currentRole === 'district') return 'employ-list-admin.html?role=' + currentRole;
+  if (currentRole === 'school') return 'employ-list-school.html';
+  return null;
+}
+
+function renderSidebar() { renderSidebarMenu('sidebarMenu', currentRole, 'recruit'); }
+
+function sidebarClick(el, id) {
+  if (arguments.length === 1) { id = el; el = null; }
+  if (el) { document.querySelectorAll('.sidebar-menu .menu-item').forEach(function(i) { i.classList.remove('active'); }); el.classList.add('active'); }
+  if (id === 'workbench') { window.location.href = 'workbench.html'; return; }
+  if (id === 'recruit') { window.location.href = getBackUrl(); return; }
+  if (id === 'employ') { var url = getEmployUrl(); if (url) window.location.href = url; else showToast('跳转至：聘用手续办理'); return; }
+  if (id === 'contract-entry') { var cr = currentRole; window.location.href = (cr === 'city' || cr === 'district') ? 'contract-entry-list-admin.html' : 'contract-entry-list-school.html'; return; }
+  if (id === 'contract-exit') { var cr2 = currentRole; window.location.href = (cr2 === 'city' || cr2 === 'district') ? 'contract-exit-list-admin.html' : 'contract-exit-list-school.html'; return; }
+  if (id === 'postset') { window.location.href = 'post-list-school.html'; return; }
+  if (id === 'promote') { window.location.href = 'promote-list-school.html'; return; }
+  if (id === 'staffing') { window.location.href = 'staffing-application.html'; return; }
+  if (id === 'entry') { window.location.href = '教师入编管理（学校管理员视角）.html'; return; }
+  if (id === 'exit') { window.location.href = '教师出编管理（学校管理员视角）.html'; return; }
+  if (id === 'ledger') { var lr = currentRole; window.location.href = (lr === 'city' || lr === 'district') ? 'org-ledger-admin.html' : lr === 'school' ? 'org-ledger-school.html' : 'workbench.html'; return; }
+  else if (id === 'account') { window.location.href = 'account-management.html'; }
+  else if (id === 'org') { window.location.href = 'org-management.html'; }
+  if (id === 'announcement') { window.location.href = 'announcement-management.html'; return; }
+  showToast('跳转至：' + (el.querySelector('.menu-label') ? el.querySelector('.menu-label').textContent : id));
+}
+
+function switchRole(role) {
+  if (role === 'school') { window.location.href = 'recruit-list-school.html'; return; }
+  if (role === 'teacher') { showToast('教师角色无法访问招聘模块', 'warning'); return; }
+  if (role === 'city' || role === 'district') {
+    window.location.href = 'recruit-list-admin.html?role=' + role; return;
+  }
+}
+
+function updateRoleUI() {
+  var roleData = ROLES[currentRole];
+  if (!roleData) return;
+  document.getElementById('userAvatar').textContent = roleData.short;
+  document.getElementById('userName').textContent = roleData.name;
+  document.querySelectorAll('.role-switch-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.role === currentRole);
+  });
+  document.getElementById('bcList').href = getBackUrl();
+}
+
+// ===== INIT =====
+(function init() {
+  var params = new URLSearchParams(window.location.search);
+  var urlRole = params.get('role');
+  if (urlRole === 'city' || urlRole === 'district' || urlRole === 'school') {
+    currentRole = urlRole;
+  }
+  updateRoleUI();
+  renderSidebar();
+
+  recordId = params.get('id');
+  if (recordId) {
+    currentRecord = findRecord(recordId);
+    var all = loadRecruitStats();
+    if (all[recordId]) {
+      stats = Object.assign(emptyStats(), all[recordId]);
+    } else {
+      stats = emptyStats();
+      stats.planTotal = getTotalCount(currentRecord ? currentRecord.formData : null);
+      stats.planActual = stats.planTotal;
+    }
+  }
+  renderPage();
+})();
+</script>
+
+</body>
+</html>

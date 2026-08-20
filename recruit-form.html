@@ -93,6 +93,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
 .form-group textarea { resize: vertical; min-height: 50px; }
+.form-group input[readonly] { background: var(--bg); color: var(--text-secondary); cursor: not-allowed; }
 .form-row { display: flex; gap: 16px; }
 .form-row .form-group { flex: 1; }
 .form-row-3 { display: flex; gap: 12px; }
@@ -174,6 +175,17 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 .sbw-stats { display: flex; gap: 16px; padding: 6px 10px; background: #F8FAFC; border-radius: 4px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; flex-wrap: wrap; }
 .sbw-stats span { white-space: nowrap; }
 .sbw-stats b { color: var(--text); }
+.sbw-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 6px; }
+.sbw-table th { background: var(--gray-bg); color: var(--text-secondary); text-align: left; padding: 4px 6px; border: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
+.sbw-table td { padding: 4px 6px; border: 1px solid var(--border); color: var(--text); white-space: nowrap; }
+.sbw-table input[type="number"] { width: 84px; }
+.sbw-dd-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.sbw-dd-table th { position: sticky; top: 0; z-index: 1; background: var(--gray-bg); color: var(--text-secondary); text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
+.sbw-dd-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); color: var(--text); white-space: nowrap; }
+.sbw-dd-table td.num, .sbw-dd-table th.num { text-align: right; }
+.sbw-dd-row { cursor: pointer; transition: var(--transition); }
+.sbw-dd-row:hover { background: var(--primary-light); }
+.sbw-dd-row:last-child td { border-bottom: none; }
 
 /* Access denied */
 .access-denied { text-align: center; padding: 80px 20px; }
@@ -253,6 +265,7 @@ body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI
 <main class="main" id="mainContent">
   <div class="breadcrumb">
     <a href="workbench.html">首页</a> &nbsp;/&nbsp; <span>招聘岗位申报</span>
+    <span id="schoolSwitcher" style="margin-left:16px;"></span>
   </div>
 
   <div class="page-header">
@@ -313,84 +326,215 @@ var CATEGORY_LEVELS = {
   '工勤技能岗': ['工勤一级','工勤二级','工勤三级','工勤四级','工勤五级']
 };
 
-// ===== DEMO STAFFING DATA for quota validation =====
-var USAGE_TYPE_MAP = {
-  independent_self: '单位自主实施招聘',
-  public_unified: '统一公开招聘',
-  senior_talent: '中高级人才招聘',
-  senior_high_level: '引进高层次人才'
+// ===== 编制岗位台账数据源（org_ledger）=====
+// 「关联编制使用申请批次」改为从编制岗位台账（org_ledger）读取计划记录，
+// 只展示「未用完且有效」的计划，并展示使用形式（不同批次类型只能使用同一类型的编制）
+// 列表字段：来源、批复文号/批次、使用形式、未使用、有效期、状态
+var LEDGER_STATUS_LABEL = { active: '有效', exhausted: '已用完', expiring_occupied: '过期·有占用', expired: '已到期' };
+var LEDGER_STATUS_COLOR = { active: '#10B981', exhausted: '#94A3B8', expiring_occupied: '#F59E0B', expired: '#EF4444' };
+
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function getLedgerForSchool(schoolName) {
+  var s = localStorage.getItem('org_ledger');
+  if (!s) return null;
+  try { return (JSON.parse(s) || {})[schoolName] || null; } catch (e) { return null; }
+}
+
+function getLedgerPlans(schoolName, type) {
+  var d = getLedgerForSchool(schoolName);
+  if (!d) return [];
+  if (type === 'control') return d.controlPlans || [];
+  return d.careerPlans || [];
+}
+
+function ledgerRemaining(plan) {
+  return Math.max(0, (plan.approvedCount || 0) - (plan.occupiedCount || 0) - (plan.usedCount || 0));
+}
+
+function ledgerPlanStatus(plan) {
+  var adj = plan.approvedCount || 0;
+  var occupied = plan.occupiedCount || 0;
+  var used = plan.usedCount || 0;
+  var remain = adj - occupied - used;
+  var ref = todayStr();
+  if (remain <= 0 && adj > 0) return 'exhausted';
+  if (plan.validEnd && plan.validEnd < ref && occupied > 0) return 'expiring_occupied';
+  if (plan.validEnd && plan.validEnd < ref) return 'expired';
+  return 'active';
+}
+
+function planDocLabel(plan) {
+  if (plan.source === 'online') return plan.sourceBatchId || plan.sourceSubmissionId || plan.id;
+  return plan.offlineDocNo || plan.id;
+}
+
+// 使用形式（编制批次使用类型）— 与编制岗位台账 useTypes 对齐（6 种）
+// 不同批次类型的岗位只能使用同一类型的编制，故下拉列表需展示并过滤使用形式
+var LEDGER_USE_TYPE_KEYS = ['publicRecruit', 'selfRecruit', 'talentMid', 'talentHigh', 'transfer', 'other'];
+var LEDGER_USE_TYPE_LABELS = {
+  publicRecruit: '统一公开招聘',
+  selfRecruit: '自主实施招聘',
+  talentMid: '中高级人才招聘',
+  talentHigh: '引进高层次人才',
+  transfer: '调动',
+  other: '其他'
+};
+// 招聘类型 → 允许使用的编制使用形式（台账 useTypes 键）
+var RECRUIT_TO_LEDGER_USE_KEYS = {
+  independent: ['selfRecruit'],
+  public: ['publicRecruit'],
+  senior: ['talentMid', 'talentHigh']
 };
 
-function getUsageTypesForRecruitment(recruitmentType) {
-  if (recruitmentType === 'independent') return ['independent_self'];
-  if (recruitmentType === 'public') return ['public_unified'];
-  if (recruitmentType === 'senior') return ['senior_talent', 'senior_high_level'];
-  return [];
+function getLedgerUseTypeKeysForRecruitment(recruitmentType) {
+  return RECRUIT_TO_LEDGER_USE_KEYS[recruitmentType] || [];
 }
 
-var DEMO_STAFFING = [
-  // ===== 柳州高级中学 =====
-  { id:'SU2026001', name:'2026年事业编自主招聘计划', schoolName:'柳州高级中学', type:'career', usageType:'independent_self', status:'approved', approvedPlan:10, usedPlan:2, pendingAudit:1, validStart:'2026-01-01', validEnd:'2026-12-31' },
-  { id:'SU2026002', name:'2026年控制数自主招聘计划', schoolName:'柳州高级中学', type:'control', usageType:'independent_self', status:'approved', approvedPlan:8, usedPlan:2, pendingAudit:1, validStart:'2026-01-01', validEnd:'2026-12-31' },
-  { id:'SU2026003', name:'2026年事业编统一公招计划', schoolName:'柳州高级中学', type:'career', usageType:'public_unified', status:'approved', approvedPlan:6, usedPlan:1, pendingAudit:0, validStart:'2026-03-01', validEnd:'2026-09-30' },
-  { id:'SU2026004', name:'2026年控制数统一公招计划', schoolName:'柳州高级中学', type:'control', usageType:'public_unified', status:'approved', approvedPlan:5, usedPlan:0, pendingAudit:1, validStart:'2026-03-01', validEnd:'2026-09-30' },
-  { id:'SU2026005', name:'2026年事业编中高级人才招聘计划', schoolName:'柳州高级中学', type:'career', usageType:'senior_talent', status:'approved', approvedPlan:4, usedPlan:1, pendingAudit:0, validStart:'2026-04-01', validEnd:'2026-09-30' },
-  { id:'SU2026006', name:'2026年控制数高层次人才引进计划', schoolName:'柳州高级中学', type:'control', usageType:'senior_high_level', status:'approved', approvedPlan:3, usedPlan:1, pendingAudit:0, validStart:'2026-04-01', validEnd:'2026-09-30' },
-  // ===== 柳州市第一中学 =====
-  { id:'SU2026007', name:'2026年事业编自主招聘计划', schoolName:'柳州市第一中学', type:'career', usageType:'independent_self', status:'approved', approvedPlan:8, usedPlan:1, pendingAudit:0, validStart:'2026-01-01', validEnd:'2026-12-31' },
-  { id:'SU2026008', name:'2026年控制数自主招聘计划', schoolName:'柳州市第一中学', type:'control', usageType:'independent_self', status:'approved', approvedPlan:6, usedPlan:0, pendingAudit:1, validStart:'2026-01-01', validEnd:'2026-12-31' },
-  { id:'SU2026009', name:'2026年事业编统一公招计划', schoolName:'柳州市第一中学', type:'career', usageType:'public_unified', status:'approved', approvedPlan:7, usedPlan:2, pendingAudit:0, validStart:'2026-02-01', validEnd:'2026-08-31' },
-  { id:'SU2026010', name:'2026年控制数统一公招计划', schoolName:'柳州市第一中学', type:'control', usageType:'public_unified', status:'approved', approvedPlan:4, usedPlan:0, pendingAudit:0, validStart:'2026-02-01', validEnd:'2026-08-31' },
-  { id:'SU2026011', name:'2026年事业编中高级人才招聘计划', schoolName:'柳州市第一中学', type:'career', usageType:'senior_talent', status:'approved', approvedPlan:3, usedPlan:0, pendingAudit:0, validStart:'2026-05-01', validEnd:'2026-11-30' },
-  { id:'SU2026012', name:'2026年控制数高层次人才引进计划', schoolName:'柳州市第一中学', type:'control', usageType:'senior_high_level', status:'approved', approvedPlan:2, usedPlan:0, pendingAudit:0, validStart:'2026-05-01', validEnd:'2026-11-30' },
-  // ===== 柳州市第八中学 =====
-  { id:'SU2026013', name:'2026年事业编自主招聘计划', schoolName:'柳州市第八中学', type:'career', usageType:'independent_self', status:'approved', approvedPlan:6, usedPlan:1, pendingAudit:0, validStart:'2026-01-01', validEnd:'2026-12-31' },
-  { id:'SU2026014', name:'2026年控制数自主招聘计划', schoolName:'柳州市第八中学', type:'control', usageType:'independent_self', status:'approved', approvedPlan:4, usedPlan:0, pendingAudit:0, validStart:'2026-01-01', validEnd:'2026-12-31' },
-  { id:'SU2026015', name:'2026年事业编统一公招计划', schoolName:'柳州市第八中学', type:'career', usageType:'public_unified', status:'approved', approvedPlan:5, usedPlan:0, pendingAudit:2, validStart:'2026-03-01', validEnd:'2026-09-30' },
-  { id:'SU2026016', name:'2026年控制数统一公招计划', schoolName:'柳州市第八中学', type:'control', usageType:'public_unified', status:'approved', approvedPlan:3, usedPlan:1, pendingAudit:0, validStart:'2026-03-01', validEnd:'2026-09-30' },
-  { id:'SU2026017', name:'2026年事业编中高级人才招聘计划', schoolName:'柳州市第八中学', type:'career', usageType:'senior_talent', status:'approved', approvedPlan:2, usedPlan:0, pendingAudit:0, validStart:'2026-06-01', validEnd:'2026-12-31' },
-  { id:'SU2026018', name:'2026年控制数高层次人才引进计划', schoolName:'柳州市第八中学', type:'control', usageType:'senior_high_level', status:'approved', approvedPlan:2, usedPlan:1, pendingAudit:0, validStart:'2026-06-01', validEnd:'2026-12-31' },
-  // ===== 鱼峰区实验小学 =====
-  { id:'SU2026019', name:'2026年事业编自主招聘计划', schoolName:'鱼峰区实验小学', type:'career', usageType:'independent_self', status:'approved', approvedPlan:5, usedPlan:0, pendingAudit:0, validStart:'2026-02-01', validEnd:'2026-08-31' },
-  { id:'SU2026020', name:'2026年控制数自主招聘计划', schoolName:'鱼峰区实验小学', type:'control', usageType:'independent_self', status:'approved', approvedPlan:3, usedPlan:0, pendingAudit:1, validStart:'2026-02-01', validEnd:'2026-08-31' },
-  { id:'SU2026021', name:'2026年事业编统一公招计划', schoolName:'鱼峰区实验小学', type:'career', usageType:'public_unified', status:'approved', approvedPlan:4, usedPlan:1, pendingAudit:0, validStart:'2026-04-01', validEnd:'2026-10-31' },
-  { id:'SU2026022', name:'2026年控制数统一公招计划', schoolName:'鱼峰区实验小学', type:'control', usageType:'public_unified', status:'approved', approvedPlan:3, usedPlan:0, pendingAudit:0, validStart:'2026-04-01', validEnd:'2026-10-31' },
-  { id:'SU2026023', name:'2026年事业编中高级人才招聘计划', schoolName:'鱼峰区实验小学', type:'career', usageType:'senior_talent', status:'approved', approvedPlan:2, usedPlan:0, pendingAudit:0, validStart:'2026-07-01', validEnd:'2026-12-31' },
-  { id:'SU2026024', name:'2026年控制数高层次人才引进计划', schoolName:'鱼峰区实验小学', type:'control', usageType:'senior_high_level', status:'approved', approvedPlan:2, usedPlan:0, pendingAudit:0, validStart:'2026-07-01', validEnd:'2026-12-31' }
-];
-
-function seedStaffing() {
-  // Always overwrite to keep demo data in sync
-  localStorage.setItem('staffing_submissions', JSON.stringify(DEMO_STAFFING));
+// 计划的使用形式标签（useTypes 中批复 > 0 的类型）
+// 传入 useTypeKeys 时，只显示与当前批次类型一致的使用形式（如统一公招只显示「统一公开招聘」）
+function planUsageFormLabels(plan, useTypeKeys) {
+  var ut = (plan && plan.useTypes) || {};
+  var labels = [];
+  LEDGER_USE_TYPE_KEYS.forEach(function (k) {
+    var row = ut[k];
+    if (!row || (row.approved || 0) <= 0) return;
+    if (useTypeKeys && useTypeKeys.length > 0 && useTypeKeys.indexOf(k) < 0) return;
+    labels.push(LEDGER_USE_TYPE_LABELS[k]);
+  });
+  return labels;
 }
 
+// 计划是否匹配指定使用形式（为空或台账未标注使用形式时不过滤）
+function planMatchesUsageForms(plan, useTypeKeys) {
+  if (!useTypeKeys || useTypeKeys.length === 0) return true;
+  var ut = (plan && plan.useTypes) || {};
+  var hasAny = false;
+  var matched = false;
+  LEDGER_USE_TYPE_KEYS.forEach(function (k) {
+    var row = ut[k];
+    if (row && (row.approved || 0) > 0) {
+      hasAny = true;
+      if (useTypeKeys.indexOf(k) >= 0) matched = true;
+    }
+  });
+  if (!hasAny) return true; // 台账未标注使用形式，不按使用形式过滤（显示为「—」）
+  return matched;
+}
+
+function findLedgerPlanById(id) {
+  var plans = getLedgerPlans(currentSchool, 'career').concat(getLedgerPlans(currentSchool, 'control'));
+  for (var i = 0; i < plans.length; i++) { if (plans[i].id === id) return plans[i]; }
+  return null;
+}
+
+// 编制类型：事业编 / 控制数（依据台账数组归属判断）
+function getPlanEmploymentType(plan) {
+  if (!plan) return '';
+  return getPlanEmploymentTypeById(plan.id);
+}
+function getPlanEmploymentTypeById(id) {
+  var d = getLedgerForSchool(currentSchool);
+  if (!d || !id) return '';
+  var cp = d.careerPlans || [], kp = d.controlPlans || [];
+  for (var i = 0; i < cp.length; i++) { if (cp[i].id === id) return 'career'; }
+  for (var j = 0; j < kp.length; j++) { if (kp[j].id === id) return 'control'; }
+  return '';
+}
+
+// 兜底种子：直接打开本页而台账尚未初始化时，为演示学校补齐计划记录，保证字段结构与台账一致
+function seedLedgerDemoPlans() {
+  var s = localStorage.getItem('org_ledger');
+  var all = {};
+  try { all = s ? JSON.parse(s) : {}; } catch (e) { all = {}; }
+  var changed = false;
+
+  function mkUseTypes(useType, approved, used) {
+    var EDU = {
+      publicRecruit: '本科及以上，中国语言文学类，高中教师资格证',
+      selfRecruit: '本科及以上，中国语言文学类，高中教师资格证',
+      talentMid: '硕士及以上，学科教学类，高中教师资格证',
+      talentHigh: '博士，学科相关专业，高中教师资格证',
+      transfer: '', other: ''
+    };
+    var COND = {
+      publicRecruit: '35周岁以下，师范类专业优先',
+      selfRecruit: '35周岁以下，普通话二级甲等及以上',
+      talentMid: '45周岁以下，具有2年以上教学经验',
+      talentHigh: '50周岁以下，高层次人才',
+      transfer: '', other: ''
+    };
+    var ut = {};
+    LEDGER_USE_TYPE_KEYS.forEach(function (k) { ut[k] = { approved: 0, occupied: 0, enrolled: 0, unused: 0, eduRequirement: '', conditions: '' }; });
+    if (useType) ut[useType] = { approved: approved, occupied: 0, enrolled: used, unused: Math.max(0, approved - used), eduRequirement: EDU[useType] || '', conditions: COND[useType] || '' };
+    return ut;
+  }
+  function mkOnline(track, batchId, subId, approved, used, validEnd, useType) {
+    return { id: 'PLAN-' + track + '-DEMO-' + batchId, source: 'online', sourceBatchId: batchId, sourceSubmissionId: subId, offlineDocNo: '', approvedCount: approved, occupiedCount: 0, usedCount: used, validStart: '2026-01-01', validEnd: validEnd || '2026-12-31', status: 'active', useTypes: mkUseTypes(useType, approved, used), notes: '' };
+  }
+  function mkOffline(track, docNo, approved, used, validEnd, useType) {
+    return { id: 'PLAN-' + track + '-DEMO-' + docNo.replace(/[^\w一-龥]/g, ''), source: 'offline', sourceBatchId: '', sourceSubmissionId: '', offlineDocNo: docNo, approvedCount: approved, occupiedCount: 0, usedCount: used, validStart: '2026-01-01', validEnd: validEnd || '2026-12-31', status: 'active', useTypes: mkUseTypes(useType, approved, used), notes: '' };
+  }
+
+  var DEMO = {
+    '柳州高级中学': {
+      careerPlans: [ mkOnline('C', 'B2026-003', 'S20260201001', 8, 8, '2026-12-31', 'selfRecruit') ],
+      controlPlans: [ mkOnline('K', 'B2026-003', 'S20260201002', 3, 3, '2026-12-31', 'selfRecruit'), mkOffline('K', '柳编办[2025]22号', 2, 1, '2026-12-31', 'selfRecruit') ]
+    },
+    '柳州市第一中学': {
+      careerPlans: [ mkOnline('C', 'B2026-001', 'S20260301001', 8, 5, '2026-12-31', 'publicRecruit') ],
+      controlPlans: [ mkOnline('K', 'B2026-001', 'S20260301002', 2, 1, '2026-12-31', 'publicRecruit'), mkOffline('K', '柳编办[2025]20号', 2, 1, '2026-12-31', 'selfRecruit') ]
+    },
+    '柳州市第八中学': {
+      careerPlans: [ mkOnline('C', 'B2026-005', 'S20260614001', 3, 2, '2026-12-31', 'selfRecruit'), mkOffline('C', '柳编办[2025]12号', 2, 2, '2026-12-31', 'selfRecruit') ],
+      controlPlans: [ mkOnline('K', 'B2026-005', 'S20260614002', 2, 1, '2026-12-31', 'publicRecruit'), mkOffline('K', '柳编办[2025]25号', 1, 0, '2026-12-31', 'selfRecruit') ]
+    },
+    '鱼峰区实验小学': {
+      careerPlans: [ mkOnline('C', 'B2026-007', 'S20260515001', 4, 4, '2026-12-31', 'talentMid'), mkOffline('C', '柳编办[2025]16号', 1, 1, '2026-12-31', 'selfRecruit') ],
+      controlPlans: [ mkOnline('K', 'B2026-007', 'S20260515002', 1, 1, '2026-12-31', 'talentMid'), mkOffline('K', '柳编办[2025]27号', 1, 0, '2026-12-31', 'selfRecruit') ]
+    }
+  };
+
+  Object.keys(DEMO).forEach(function (name) {
+    if (!all[name]) { all[name] = { schoolName: name }; changed = true; }
+    var d = all[name];
+    if (!d.careerPlans || d.careerPlans.length === 0) { d.careerPlans = DEMO[name].careerPlans; changed = true; }
+    if (!d.controlPlans || d.controlPlans.length === 0) { d.controlPlans = DEMO[name].controlPlans; changed = true; }
+  });
+
+  if (changed) localStorage.setItem('org_ledger', JSON.stringify(all));
+}
+
+// 从台账读取可用的编制计划（事业编 / 控制数）
 function getSchoolUnusedPlan(schoolName, type, usageTypes) {
-  var s = localStorage.getItem('staffing_submissions');
-  var subs = s ? JSON.parse(s) : [];
+  var plans = [];
+  if (!type || type === 'all') {
+    plans = getLedgerPlans(schoolName, 'career').concat(getLedgerPlans(schoolName, 'control'));
+  } else {
+    plans = getLedgerPlans(schoolName, type);
+  }
   var total = 0;
-  subs.forEach(function(sub) {
-    if (sub.schoolName !== schoolName || sub.status !== 'approved') return;
-    if (type && sub.type !== type) return;
-    if (usageTypes && usageTypes.length > 0 && usageTypes.indexOf(sub.usageType) < 0) return;
-    var remain = (parseInt(sub.approvedPlan)||0) - (parseInt(sub.usedPlan)||0) - (parseInt(sub.pendingAudit)||0);
-    total += Math.max(0, remain);
+  plans.forEach(function (p) {
+    if (ledgerPlanStatus(p) === 'expired') return; // 已到期不计入
+    total += ledgerRemaining(p);
   });
   return total;
 }
 
 function getCurrentUsageTypes() {
-  return selectedBatch ? getUsageTypesForRecruitment(selectedBatch.recruitmentType) : [];
+  return selectedBatch ? getLedgerUseTypeKeysForRecruitment(selectedBatch.recruitmentType) : [];
 }
 
+// 关联编制批次候选列表：只展示「未用完且有效」的计划，并按使用形式过滤
+// （不同批次类型的岗位只能使用同一类型的编制）
 function getAvailableStaffingBatches(schoolName, type, usageTypes) {
-  var s = localStorage.getItem('staffing_submissions');
-  if (!s) return [];
-  var subs = JSON.parse(s);
-  return subs.filter(function(sub) {
-    if (sub.schoolName !== schoolName || sub.status !== 'approved') return false;
-    if (type && type !== 'all' && sub.type !== type) return false;
-    if (usageTypes && usageTypes.length > 0 && usageTypes.indexOf(sub.usageType) < 0) return false;
-    return true;
+  var plans = getLedgerPlans(schoolName, type);
+  return plans.filter(function (p) {
+    if (ledgerPlanStatus(p) !== 'active') return false; // 已用完 / 已过期不展示
+    return planMatchesUsageForms(p, usageTypes);
   });
 }
 
@@ -400,7 +544,7 @@ var DEMO_RECORDS = [
     id: 'RCA20260515001', batchId: 'RCB20260501001', batchName: '2026年柳州市教师自主招聘（第一批）',
     recruitmentType: 'independent', schoolName: '柳州高级中学', district: '市直属',
     status: 'pending_first',
-    formData: { positions: [{ city:'柳州市', schoolName:'柳州高级中学', schoolType:'自治区示范高中', positionName:'语文教师', count:1, positionCategory:'专业技术岗', positionLevel:'专技十级', categoryLevel:'专业技术岗-专技十级', employmentMethod:'career', major:'中国语言文学类', education:'研究生', degree:'博士', age:'18-38周岁', titleOrQualification:'教师资格证', otherConditions:'党员或预备党员', examMethod:'直接面试', contactName:'张三', contactPhone:'13800000000', contactEmail:'zhangsan@xxx.com', remark:'', staffingBatchIds:['SU20260310001'], positionDescription:'高中语文教学' }] },
+    formData: { positions: [{ city:'柳州市', schoolName:'柳州高级中学', fundType:'全额拨款', positionName:'语文教师', count:1, positionCategory:'专业技术岗', positionLevel:'专技十级', categoryLevel:'专业技术岗-专技十级', employmentMethod:'career', major:'中国语言文学类', education:'研究生', degree:'博士', age:'18-38周岁', titleOrQualification:'教师资格证', otherConditions:'党员或预备党员', examMethod:'直接面试', contactName:'张三', contactPhone:'13800000000', contactEmail:'zhangsan@xxx.com', remark:'', staffingBatchIds:['SU20260310001'], positionDescription:'高中语文教学' }] },
     submitTime: '2026-05-15 09:00:00',
     firstReviewResult: null, firstReviewOpinion: '', firstReviewer: null, firstReviewTime: null, firstRejectReason: '', firstModifiableUntil: null,
     secondReviewResult: null, secondReviewOpinion: '', secondReviewer: null, secondReviewTime: null, secondRejectReason: '', secondModifiableUntil: null,
@@ -411,11 +555,12 @@ var DEMO_RECORDS = [
 
 // ===== PAGE STATE =====
 var currentRole = 'school';
-var currentSchool = '柳州高级中学';
+var currentSchool = '柳州市第八中学';
 var pageMode = 'new'; // 'new' | 'edit' | 'modify'
 var editRecordId = null;
 var editRecordRef = null;
 var selectedBatch = null;
+var directBatch = false; // true when navigated with a specific batchId (skip batch selection)
 var positionRows = [];  // Array of position data objects
 var uploadedFiles = [];
 var totalCount = 0;
@@ -537,18 +682,18 @@ function switchRole(role) {
 
 // ===== SCHOOL SWITCHER =====
 function renderSchoolSwitcher() {
+  var el = document.getElementById('schoolSwitcher');
+  if (!el) return;
+  if (pageMode === 'edit') { el.innerHTML = ''; return; }
   var schools = Object.keys(SCHOOL_DATA);
-  var h = '<div class="form-card" style="margin-bottom:16px;">';
-  h += '<div class="form-row" style="align-items:center;">';
-  h += '<div class="form-group" style="margin-bottom:0;"><label>当前学校</label>';
-  h += '<select id="schoolSelect" onchange="onSchoolChange(this.value)">';
+  var h = '<span style="display:inline-flex;align-items:center;gap:6px;">';
+  h += '<label style="font-size:12px;color:var(--text-secondary);">当前学校：</label>';
+  h += '<select onchange="onSchoolChange(this.value)" style="padding:3px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;color:var(--text);">';
   schools.forEach(function(s) {
     h += '<option value="' + s + '"' + (s===currentSchool?' selected':'') + '>' + s + '（' + SCHOOL_DATA[s].district + '）</option>';
   });
-  h += '</select></div>';
-  h += '<div style="padding-top:18px;"><span style="font-size:12px;color:var(--text-light);">切换学校以查看不同批次的申报资格</span></div>';
-  h += '</div></div>';
-  return h;
+  h += '</select></span>';
+  el.innerHTML = h;
 }
 
 function onSchoolChange(schoolName) {
@@ -593,16 +738,30 @@ function onBatchChange(batchId) {
   renderPage();
 }
 
+function renderDirectBatchInfo() {
+  if (!selectedBatch) return '';
+  var h = '<div class="batch-select-card" style="background:var(--primary-light);">';
+  h += '<label>申报批次</label>';
+  h += '<span style="font-size:13px;color:var(--primary);font-weight:600;">' + selectedBatch.name + '</span>';
+  h += '<div class="batch-info show">';
+  h += '招聘类型：<b>' + (RECRUITMENT_TYPE_MAP[selectedBatch.recruitmentType]||'') + '</b> &nbsp;|&nbsp; ';
+  h += '适用范围：<b>' + (selectedBatch.scope==='全市'?'全市':(selectedBatch.scopeAreas||[]).join('、')) + '</b> &nbsp;|&nbsp; ';
+  h += '申报期限：<b>' + selectedBatch.startTime.substring(0,10) + ' ~ ' + selectedBatch.endTime.substring(0,10) + '</b>';
+  if (selectedBatch.remark) h += ' &nbsp;|&nbsp; 备注：' + selectedBatch.remark;
+  h += '</div></div>';
+  return h;
+}
+
 function createEmptyPosition() {
   var pos = { seq: 1 };
   if (!selectedBatch) return pos;
   var sd = SCHOOL_DATA[currentSchool] || {};
   if (selectedBatch.recruitmentType === 'independent') {
-    pos = { seq:1, city:'柳州市', schoolName:currentSchool, schoolType:sd.schoolType||'', positionName:'', count:1, positionCategory:'', positionLevel:'', categoryLevel:'', employmentMethod:'career', major:'', education:'', degree:'', age:'18-38周岁', titleOrQualification:'教师资格证', otherConditions:'', examMethod:'', contactName:'', contactPhone:'', contactEmail:'', remark:'', staffingBatchIds:[], positionDescription:'' };
+    pos = { seq:1, city:'柳州市', schoolName:currentSchool, fundType:sd.fundType||'', positionName:'', count:1, positionCategory:'', positionLevel:'', categoryLevel:'', employmentMethod:'career', major:'', education:'', degree:'', age:'18-38周岁', titleOrQualification:'教师资格证', otherConditions:'', examMethod:'', contactName:'', contactPhone:'', contactEmail:'', remark:'', staffingBatchIds:[], staffingApplyCounts:{}, positionDescription:'' };
   } else if (selectedBatch.recruitmentType === 'public') {
-    pos = { seq:1, authority:'柳州市教育局', unit:currentSchool, positionName:'', positionCode:'', count:1, positionCategory:'', positionLevel:'', categoryLevel:'', employmentMethod:'career', positionDescription:'', major:'', education:'本科以上', degree:'学士以上', age:'18-38周岁', titleOrQualification:'', isServiceGrassroots:false, isGraduateRecruitment:false, isRetiredSoldier:false, otherConditions:'', examCategory:'', examCategoryName:'', examCategoryCode:'', examMethod:'笔试+面试', needPublicExamThreshold:false, thresholdCount:'', interviewMethod:'', contactAddress:'', contactPhone:'', supervisionPhone:'', fax:'', staffingBatchIds:[] };
+    pos = { seq:1, authority:'柳州市教育局', unit:currentSchool, positionName:'', count:1, positionCategory:'', positionLevel:'', categoryLevel:'', employmentMethod:'career', positionDescription:'', major:'', education:'本科及以上', degree:'学士及以上', age:'18-38周岁', titleOrQualification:'', isServiceGrassroots:false, isGraduateRecruitment:false, isRetiredSoldier:false, otherConditions:'', examCategory:'', examCategoryName:'', examCategoryCode:'', examMethod:'笔试+面试', needPublicExamThreshold:false, thresholdCount:'', interviewMethod:'', contactAddress:'', contactPhone:'', supervisionPhone:'', fax:'', staffingBatchIds:[], staffingApplyCounts:{} };
   } else if (selectedBatch.recruitmentType === 'senior') {
-    pos = { seq:1, authority:'柳州市教育局', unit:currentSchool, unitNature:sd.fundType||'', positionName:'', positionCategory:'', positionLevel:'', categoryLevel:'', employmentMethod:'career', positionDescription:'', count:1, major:'', education:'', degree:'', age:'', titleOrQualification:'', otherConditions:'', examMethod:'直接面试', openingRatio:'', onlineApplyStart:'', onlineApplyEnd:'', contactPhone:'', staffingBatchIds:[] };
+    pos = { seq:1, authority:'柳州市教育局', unit:currentSchool, unitNature:sd.fundType||'', positionName:'', positionCategory:'', positionLevel:'', categoryLevel:'', employmentMethod:'career', positionDescription:'', count:1, major:'', education:'', degree:'', age:'', titleOrQualification:'', otherConditions:'', examMethod:'直接面试', openingRatio:'', onlineApplyStart:'', onlineApplyEnd:'', contactPhone:'', staffingBatchIds:[], staffingApplyCounts:{} };
   }
   return pos;
 }
@@ -621,8 +780,8 @@ function renderIndependentPosition(pos, idx) {
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">单位信息</div>';
   h += '<div class="field-grid">';
   h += formField('所在市', 'city_' + idx, pos.city, 'text', '', true);
-  h += formField('招聘学校名称（全称）', 'schoolName_' + idx, pos.schoolName, 'text', '', true);
-  h += formField('学校类型', 'schoolType_' + idx, pos.schoolType, 'text');
+  h += formField('招聘单位名称（全称）', 'schoolName_' + idx, pos.schoolName, 'text', '', true);
+  h += formField('经费类型', 'fundType_' + idx, pos.fundType, 'text');
   h += '</div></div>';
 
   // === Section 2: 岗位信息 ===
@@ -652,7 +811,7 @@ function renderIndependentPosition(pos, idx) {
   h += '<div class="form-group"><label>招聘人数 <span class="req">*</span></label><input type="number" id="count_' + idx + '" value="' + (pos.count||1) + '" oninput="updateSBWStats(' + idx + ')" style="max-width:80px;width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"></div>';
   // Staffing batch widget
   h += '<div class="full-width" id="staffingBatchGroup_' + idx + '">';
-  h += '<div class="form-group" style="position:relative;"><label>关联编制使用申请批次</label>';
+  h += '<div class="form-group" style="position:relative;"><label>关联编制使用申请批次 <span class="req">*</span></label>';
   h += '<div id="staffingBatchWidget_' + idx + '"><span style="font-size:12px;color:var(--text-light);">请先选择用人方式</span></div>';
   h += '</div></div>';
   // Major textarea
@@ -665,10 +824,10 @@ function renderIndependentPosition(pos, idx) {
   h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">招聘岗位资格条件</div>';
   h += '<div class="field-grid">';
-  h += formField('学历', 'education_' + idx, pos.education, 'select', '', false, ['硕士','本科及以上','本科','大专及以上','大专']);
-  h += formField('学位', 'degree_' + idx, pos.degree, 'select', '', false, ['博士','硕士','学士及以上','学士']);
-  h += renderAgeField(idx, pos);
-  h += formField('职称或职业资格', 'titleOrQualification_' + idx, pos.titleOrQualification, 'text');
+  h += formField('学历', 'education_' + idx, pos.education, 'select', '', true, ['研究生及以上','研究生','本科及以上','本科','大专及以上','大专']);
+  h += formField('学位', 'degree_' + idx, pos.degree, 'select', '', true, ['博士','硕士及以上','硕士','学士及以上','学士']);
+  h += renderAgeField(idx, pos, true);
+  h += formField('职称或职业资格', 'titleOrQualification_' + idx, pos.titleOrQualification, 'text', '', true);
   // Other conditions textarea full-width
   h += '<div class="full-width"><div class="form-group"><label>其他条件</label>';
   h += '<textarea id="otherConditions_' + idx + '" placeholder="最多200字" maxlength="200" oninput="updateIndepOtherCount(' + idx + ')" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;resize:vertical;min-height:50px;">' + (pos.otherConditions||'') + '</textarea>';
@@ -679,16 +838,16 @@ function renderIndependentPosition(pos, idx) {
   h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">考试方式</div>';
   h += '<div class="field-grid">';
-  h += formField('考试方式', 'examMethod_' + idx, pos.examMethod, 'select', '', false, ['直接面试','笔试+面试','直接考核']);
+  h += formField('考试方式', 'examMethod_' + idx, pos.examMethod, 'select', '', true, ['直接面试','笔试+面试','直接考核']);
   h += '</div></div>';
 
   // === Section 5: 招聘单位负责人联系方式 ===
   h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">招聘单位负责人联系方式</div>';
   h += '<div class="field-grid">';
-  h += formField('姓名', 'contactName_' + idx, pos.contactName, 'text');
-  h += formField('联系电话', 'contactPhone_' + idx, pos.contactPhone, 'text');
-  h += formField('电子邮箱', 'contactEmail_' + idx, pos.contactEmail, 'text');
+  h += formField('姓名', 'contactName_' + idx, pos.contactName, 'text', '', true);
+  h += formField('联系电话', 'contactPhone_' + idx, pos.contactPhone, 'text', '', true);
+  h += formField('电子邮箱', 'contactEmail_' + idx, pos.contactEmail, 'text', '', true);
   h += '</div></div>';
 
   // === Section 6: 备注 ===
@@ -713,8 +872,8 @@ function renderPublicPosition(pos, idx) {
   h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">单位信息</div>';
   h += '<div class="field-grid">';
-  h += formField('主管部门', 'authority_' + idx, pos.authority, 'text', '', true);
-  h += formField('招聘单位', 'unit_' + idx, pos.unit, 'text', '', true);
+  h += '<div class="form-group"><label>主管部门</label><input type="text" id="authority_' + idx + '" value="' + (pos.authority||'') + '" readonly></div>';
+  h += '<div class="form-group"><label>招聘单位</label><input type="text" id="unit_' + idx + '" value="' + (pos.unit||'') + '" readonly></div>';
   h += '</div></div>';
 
   // === Section 2: 岗位信息 ===
@@ -722,7 +881,6 @@ function renderPublicPosition(pos, idx) {
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">岗位信息</div>';
   h += '<div class="field-grid">';
   h += formField('招聘岗位名称', 'positionName_' + idx, pos.positionName, 'text', '', true);
-  h += formField('岗位编码', 'positionCode_' + idx, pos.positionCode, 'text');
   // Cascading category and level
   h += '<div class="form-group"><label>岗位类别 <span class="req">*</span></label>';
   h += '<select id="positionCategory_' + idx + '" onchange="onCategoryChange(' + idx + ')" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;">';
@@ -745,11 +903,11 @@ function renderPublicPosition(pos, idx) {
   h += '<div class="form-group"><label>招聘人数 <span class="req">*</span></label><input type="number" id="count_' + idx + '" value="' + (pos.count||1) + '" oninput="updateSBWStats(' + idx + ')" style="max-width:80px;width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"></div>';
   // Staffing batch widget
   h += '<div class="full-width" id="staffingBatchGroup_' + idx + '">';
-  h += '<div class="form-group" style="position:relative;"><label>关联编制使用申请批次</label>';
+  h += '<div class="form-group" style="position:relative;"><label>关联编制使用申请批次 <span class="req">*</span></label>';
   h += '<div id="staffingBatchWidget_' + idx + '"><span style="font-size:12px;color:var(--text-light);">请先选择用人方式</span></div>';
   h += '</div></div>';
   // Position description
-  h += '<div class="full-width"><div class="form-group"><label>岗位说明</label>';
+  h += '<div class="full-width"><div class="form-group"><label>岗位说明 <span class="req">*</span></label>';
   h += '<textarea id="positionDescription_' + idx + '" placeholder="最多200字" maxlength="200" oninput="updatePublicDescCount(' + idx + ')" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;resize:vertical;min-height:50px;">' + (pos.positionDescription||'') + '</textarea>';
   h += '<div style="text-align:right;font-size:11px;color:var(--text-light);margin-top:4px;"><span id="publicDescCount_' + idx + '">' + (pos.positionDescription?pos.positionDescription.length:0) + '</span>/200</div></div></div>';
   h += '</div></div>';
@@ -758,15 +916,17 @@ function renderPublicPosition(pos, idx) {
   h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">招聘岗位资格条件</div>';
   h += '<div class="field-grid">';
-  h += '<div class="full-width">' + formField('所学专业', 'major_' + idx, pos.major, 'textarea', '', true, [], '研究生：xxx\n本科：xxx、xxx') + '</div>';
-  h += formField('学历', 'education_' + idx, pos.education, 'select', '', false, ['硕士','本科及以上','本科','大专及以上','大专']);
-  h += formField('学位', 'degree_' + idx, pos.degree, 'select', '', false, ['博士','硕士','学士及以上','学士']);
+  h += '<div class="full-width"><div class="form-group"><label>所学专业 <span class="req">*</span></label>';
+  h += '<textarea id="major_' + idx + '" placeholder="研究生：xxx\n本科：xxx、xxx" maxlength="200" oninput="updatePublicMajorCount(' + idx + ')" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;resize:vertical;min-height:50px;">' + (pos.major||'') + '</textarea>';
+  h += '<div style="text-align:right;font-size:11px;color:var(--text-light);margin-top:4px;"><span id="publicMajorCount_' + idx + '">' + (pos.major?pos.major.length:0) + '</span>/200</div></div></div>';
+  h += formField('学历要求', 'education_' + idx, pos.education, 'select', '', true, ['研究生及以上','研究生','本科及以上','本科','大专及以上','大专']);
+  h += formField('学位要求', 'degree_' + idx, pos.degree, 'select', '', true, ['博士','硕士及以上','硕士','学士及以上','学士']);
   h += renderAgeField(idx, pos, true);
-  h += formField('职称或职业资格', 'titleOrQualification_' + idx, pos.titleOrQualification, 'text');
-  h += boolField('是否定向招聘服务基层项目人员', 'isServiceGrassroots_' + idx, pos.isServiceGrassroots);
-  h += boolField('是否专项招聘高校毕业生', 'isGraduateRecruitment_' + idx, pos.isGraduateRecruitment);
-  h += boolField('是否定向招聘退役士官士兵', 'isRetiredSoldier_' + idx, pos.isRetiredSoldier);
-  h += '<div class="full-width"><div class="form-group"><label>其他条件</label>';
+  h += formField('职称或职业资格', 'titleOrQualification_' + idx, pos.titleOrQualification, 'text', '', true);
+  h += boolField('是否定向招聘服务基层项目人员', 'isServiceGrassroots_' + idx, pos.isServiceGrassroots, true);
+  h += boolField('是否专项招聘高校毕业生', 'isGraduateRecruitment_' + idx, pos.isGraduateRecruitment, true);
+  h += boolField('是否定向招聘退役士官士兵', 'isRetiredSoldier_' + idx, pos.isRetiredSoldier, true);
+  h += '<div class="full-width"><div class="form-group"><label>其他条件（选填）</label>';
   h += '<textarea id="otherConditions_' + idx + '" placeholder="最多200字" maxlength="200" oninput="updatePublicOtherCount(' + idx + ')" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;resize:vertical;min-height:50px;">' + (pos.otherConditions||'') + '</textarea>';
   h += '<div style="text-align:right;font-size:11px;color:var(--text-light);margin-top:4px;"><span id="publicOtherCount_' + idx + '">' + (pos.otherConditions?pos.otherConditions.length:0) + '</span>/200</div></div></div>';
   h += '</div></div>';
@@ -775,24 +935,24 @@ function renderPublicPosition(pos, idx) {
   h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">公共科目笔试类别</div>';
   h += '<div class="field-grid">';
-  h += formField('考试类别', 'examCategory_' + idx, pos.examCategory, 'select', '', false, ['A类','B类','C类','D类','E类']);
-  h += formField('考试类别名称', 'examCategoryName_' + idx, pos.examCategoryName, 'text');
-  h += formField('考试类别代码', 'examCategoryCode_' + idx, pos.examCategoryCode, 'text');
+  h += formField('考试类别', 'examCategory_' + idx, pos.examCategory, 'select', '', true, ['A类','B类','C类','D类','E类']);
+  h += formField('考试类别名称', 'examCategoryName_' + idx, pos.examCategoryName, 'text', '', true);
+  h += formField('考试类别代码', 'examCategoryCode_' + idx, pos.examCategoryCode, 'text', '', true);
   h += '</div></div>';
 
   // === Section 5: 考试与面试 ===
   h += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">考试与面试</div>';
   h += '<div class="field-grid">';
-  h += formField('考试方式', 'examMethod_' + idx, pos.examMethod, 'select', '', false, ['笔试+面试','直接面试','直接考核']);
-  h += formField('面试方式', 'interviewMethod_' + idx, pos.interviewMethod, 'select', '', false, ['试讲','结构化面试','说课','实际操作']);
+  h += formField('考试方式', 'examMethod_' + idx, pos.examMethod, 'select', '', true, ['笔试+面试','直接面试','直接考核']);
+  h += formField('面试方式', 'interviewMethod_' + idx, pos.interviewMethod, 'select', '', true, ['试讲','结构化面试','说课','实际操作']);
   h += '<div class="form-row" style="display:flex;gap:12px;grid-column:1/-1;">';
-  h += '<div class="form-group" style="flex:1;"><label>是否报考成功人数超过（不含）一定数量时需参加公共科目笔试</label>';
+  h += '<div class="form-group" style="flex:1;"><label>是否报考成功人数超过（不含）一定数量时需参加公共科目笔试 <span class="req">*</span></label>';
   h += '<select id="needPublicExamThreshold_' + idx + '" onchange="toggleThresholdCount(' + idx + ')" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;">';
   h += '<option value="false"' + (!pos.needPublicExamThreshold?' selected':'') + '>否</option>';
   h += '<option value="true"' + (pos.needPublicExamThreshold?' selected':'') + '>是</option>';
   h += '</select></div>';
-  h += '<div class="form-group" style="flex:1;' + (pos.needPublicExamThreshold?'':'display:none;') + '" id="thresholdGroup_' + idx + '"><label>数量</label>';
+  h += '<div class="form-group" style="flex:1;' + (pos.needPublicExamThreshold?'':'display:none;') + '" id="thresholdGroup_' + idx + '"><label>数量 <span class="req">*</span></label>';
   h += '<input type="number" id="thresholdCount_' + idx + '" value="' + (pos.thresholdCount||'') + '" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;">';
   h += '</div></div>';
   h += '</div></div>';
@@ -801,10 +961,10 @@ function renderPublicPosition(pos, idx) {
   h += '<div style="margin-bottom:4px;">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">联系方式</div>';
   h += '<div class="field-grid">';
-  h += '<div class="full-width">' + formField('邮寄材料地址及邮编', 'contactAddress_' + idx, pos.contactAddress, 'text') + '</div>';
-  h += formField('咨询电话', 'contactPhone_' + idx, pos.contactPhone, 'text');
-  h += formField('监督电话', 'supervisionPhone_' + idx, pos.supervisionPhone, 'text');
-  h += formField('传真', 'fax_' + idx, pos.fax, 'text');
+  h += '<div class="full-width">' + formField('邮寄材料地址及邮编', 'contactAddress_' + idx, pos.contactAddress, 'text', '', true) + '</div>';
+  h += formField('咨询电话', 'contactPhone_' + idx, pos.contactPhone, 'text', '', true);
+  h += formField('监督电话', 'supervisionPhone_' + idx, pos.supervisionPhone, 'text', '', true);
+  h += formField('传真（选填）', 'fax_' + idx, pos.fax, 'text');
   h += '</div></div>';
 
   h += '</div>';
@@ -859,7 +1019,7 @@ function renderSeniorPosition(pos, idx) {
   h += '</div>';
   // Staffing batch multi-select - full width
   h += '<div class="full-width" id="staffingBatchGroup_' + idx + '">';
-  h += '<div class="form-group" style="position:relative;"><label>关联编制使用申请批次</label>';
+  h += '<div class="form-group" style="position:relative;"><label>关联编制使用申请批次 <span class="req">*</span></label>';
   h += '<div id="staffingBatchWidget_' + idx + '"><span style="font-size:12px;color:var(--text-light);">请先选择用人方式</span></div>';
   h += '</div></div>';
   h += '</div></div>';
@@ -869,9 +1029,9 @@ function renderSeniorPosition(pos, idx) {
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:10px;">招聘岗位资格条件</div>';
   h += '<div class="field-grid">';
   h += formField('所学专业', 'major_' + idx, pos.major, 'text', '', true);
-  h += formField('学历', 'education_' + idx, pos.education, 'select', '', false, ['硕士','本科及以上','本科','大专及以上']);
-  h += formField('学位', 'degree_' + idx, pos.degree, 'select', '', false, ['博士','硕士','学士及以上','学士']);
-  h += renderAgeField(idx, pos);
+  h += formField('学历', 'education_' + idx, pos.education, 'select', '', true, ['研究生及以上','研究生','本科及以上','本科','大专及以上']);
+  h += formField('学位', 'degree_' + idx, pos.degree, 'select', '', true, ['博士','硕士及以上','硕士','学士及以上','学士']);
+  h += renderAgeField(idx, pos, true);
   h += formField('职称或职业资格', 'titleOrQualification_' + idx, pos.titleOrQualification, 'text', '', true);
   // Other conditions textarea full-width
   h += '<div class="full-width"><div class="form-group"><label>其他条件</label>';
@@ -883,14 +1043,14 @@ function renderSeniorPosition(pos, idx) {
   h += '<div style="margin-bottom:4px;">';
   h += '<div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:10px;">考试与时间安排</div>';
   h += '<div class="field-grid">';
-  h += formField('考试（考核）方式', 'examMethod_' + idx, pos.examMethod, 'select', '', false, ['直接考核','面试+考核','直接面试']);
+  h += formField('考试（考核）方式', 'examMethod_' + idx, pos.examMethod, 'select', '', true, ['直接考核','面试+考核','直接面试']);
   h += renderOpeningRatioField(idx, pos);
   // Online apply start/end on same row
   h += '<div class="form-row" style="display:flex;gap:12px;grid-column:1/-1;">';
   h += '<div class="form-group" style="flex:1;"><label>网络报名开始</label><input type="datetime-local" step="1" id="onlineApplyStart_' + idx + '" value="' + (pos.onlineApplyStart||'') + '" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"></div>';
   h += '<div class="form-group" style="flex:1;"><label>网络报名结束</label><input type="datetime-local" step="1" id="onlineApplyEnd_' + idx + '" value="' + (pos.onlineApplyEnd||'') + '" style="width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:6px;font-family:inherit;"></div>';
   h += '</div>';
-  h += formField('咨询电话', 'contactPhone_' + idx, pos.contactPhone, 'text');
+  h += formField('咨询电话', 'contactPhone_' + idx, pos.contactPhone, 'text', '', true);
   h += '</div></div>';
 
   h += '</div>';
@@ -946,53 +1106,61 @@ function onLevelChange(idx) {
 
 function renderSBWTrigger(idx, batches, selectedIds, method) {
   var selectedBatches = batches.filter(function(b) { return selectedIds.indexOf(b.id) >= 0; });
-  var h = '<div class="sbw-tags">';
+  var currentPos = positionRows[idx] || {};
+  var applyCounts = currentPos.staffingApplyCounts || {};
+  var h = '';
   if (selectedBatches.length === 0) {
-    h += '<span style="font-size:12px;color:var(--text-light);">尚未选择批次</span>';
+    h += '<div class="sbw-tags"><span style="font-size:12px;color:var(--text-light);">尚未选择批次</span></div>';
   } else {
+    // 字段与下拉列表一致，另增一列「本岗位本次申请」可编辑
+    h += '<table class="sbw-table"><thead><tr>';
+    h += '<th>编制类型</th><th>来源</th><th>批复文号/批次</th><th>使用形式</th><th>编办确认数(名)</th><th>学历、专业(大类)、从业资格等</th><th>相关条件</th><th>未使用</th><th>有效期</th><th>状态</th><th>本岗位本次申请</th><th></th>';
+    h += '</tr></thead><tbody>';
     selectedBatches.forEach(function(b) {
-      var shortName = (b.name||b.id).substring(0, 12) + ((b.name&&b.name.length>12)?'...':'');
-      h += '<span class="sbw-tag">' + shortName + ' <span class="tag-close" onclick="removeStaffingBatch(' + idx + ',\'' + b.id + '\')">&times;</span></span>';
+      var st = ledgerPlanStatus(b);
+      var stLabel = LEDGER_STATUS_LABEL[st] || st;
+      var stColor = LEDGER_STATUS_COLOR[st] || '#94A3B8';
+      var remain = ledgerRemaining(b);
+      var doc = planDocLabel(b);
+      var srcLabel = b.source === 'online' ? '线上' : '线下';
+      var usageLabels = planUsageFormLabels(b, getCurrentUsageTypes());
+      var usageText = usageLabels.length > 0 ? usageLabels.join('、') : '—';
+      var applyVal = (applyCounts[b.id] !== undefined && applyCounts[b.id] !== null) ? applyCounts[b.id] : '';
+      var bType = getPlanEmploymentType(b);
+      var bTypeLabel = bType === 'control' ? '控制数' : '事业编';
+      var bTypeStyle = bType === 'control' ? 'background:#FEF3C7;color:#92400E;' : 'background:#E0E7FF;color:#3730A3;';
+      h += '<tr>';
+      h += '<td><span class="sbw-type-tag" style="' + bTypeStyle + '">' + bTypeLabel + '</span></td>';
+      h += '<td><span class="sbw-type-tag" style="background:' + (b.source === 'online' ? '#E0E7FF' : '#F1F5F9') + ';color:' + (b.source === 'online' ? '#3730A3' : '#475569') + ';">' + srcLabel + '</span></td>';
+      h += '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;" title="' + escapeHtml(doc) + '">' + escapeHtml(doc) + '</td>';
+      h += '<td>' + escapeHtml(usageText) + '</td>';
+      var eduReq = '', cond = '';
+      var utRows = b.useTypes || {};
+      getCurrentUsageTypes().forEach(function(tk) {
+        var ur = utRows[tk];
+        if (ur && (ur.approved || 0) > 0) {
+          if (!eduReq && ur.eduRequirement) eduReq = ur.eduRequirement;
+          if (!cond && ur.conditions) cond = ur.conditions;
+        }
+      });
+      h += '<td><strong>' + (b.approvedCount || 0) + '</strong></td>';
+      h += '<td title="' + escapeHtml(eduReq) + '" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(eduReq || '—') + '</td>';
+      h += '<td title="' + escapeHtml(cond) + '" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(cond || '—') + '</td>';
+      h += '<td><strong>' + remain + '</strong></td>';
+      h += '<td>' + (b.validEnd || '—') + '</td>';
+      h += '<td><span class="sbw-type-tag" style="background:' + stColor + '1A;color:' + stColor + ';">' + stLabel + '</span></td>';
+      h += '<td><input type="number" min="1" max="' + remain + '" value="' + applyVal + '" oninput="onSBWApplyCount(' + idx + ',\'' + b.id + '\',this.value)" placeholder="填申请数" style="padding:4px 6px;font-size:12px;border:1px solid var(--border);border-radius:4px;"></td>';
+      h += '<td><span class="tag-close" style="cursor:pointer;font-size:14px;color:var(--text-light);" onclick="removeStaffingBatch(' + idx + ',\'' + b.id + '\')">&times;</span></td>';
+      h += '</tr>';
     });
-  }
-  h += '</div>';
-  // Stats for selected batches
-  if (selectedBatches.length > 0) {
-    var totalPlan = 0, totalUsed = 0, totalPending = 0;
+    h += '</tbody></table>';
+    var totalRemain = 0;
     selectedBatches.forEach(function(b) {
-      totalPlan += parseInt(b.approvedPlan) || 0;
-      totalUsed += parseInt(b.usedPlan) || 0;
-      totalPending += parseInt(b.pendingAudit) || 0;
+      totalRemain += ledgerRemaining(b);
     });
-    var currentPos = positionRows[idx] || {};
-    var filledCount = parseInt(currentPos.count) || 0;
-    var remainCount = Math.max(0, totalPlan - totalUsed - totalPending - filledCount);
     h += '<div class="sbw-stats">';
     h += '<span>已选 <b>' + selectedBatches.length + '</b> 个批次</span>';
-    h += '<span>计划 <b>' + totalPlan + '</b></span>';
-    h += '<span>已通过 <b>' + totalUsed + '</b></span>';
-    h += '<span>待审核 <b>' + totalPending + '</b></span>';
-    h += '<span>本次申请 <b>' + filledCount + '</b></span>';
-    h += '<span>剩余 <b>' + remainCount + '</b></span>';
-    h += '</div>';
-    // 使用类型明细
-    var usageGroups = {};
-    selectedBatches.forEach(function(b) {
-      var uk = b.usageType || 'unknown';
-      if (!usageGroups[uk]) usageGroups[uk] = { plan: 0, used: 0, pending: 0, typeLabel: b.type === 'career' ? '事业编' : '控制数' };
-      usageGroups[uk].plan += parseInt(b.approvedPlan) || 0;
-      usageGroups[uk].used += parseInt(b.usedPlan) || 0;
-      usageGroups[uk].pending += parseInt(b.pendingAudit) || 0;
-    });
-    h += '<div class="sbw-stats" style="background:#EFF6FF;border-radius:4px;margin-top:4px;">';
-    h += '<span style="font-weight:600;color:var(--primary);">使用类型明细：</span>';
-    var ugKeys = Object.keys(usageGroups);
-    ugKeys.forEach(function(uk, i) {
-      var ug = usageGroups[uk];
-      var label = (USAGE_TYPE_MAP[uk] || uk) + '(' + ug.typeLabel + ')';
-      h += '<span>' + label + '：计划<b>' + ug.plan + '</b> 已通过<b>' + ug.used + '</b> 待审核<b>' + ug.pending + '</b></span>';
-      if (i < ugKeys.length - 1) h += '<span style="color:var(--text-light);">|</span>';
-    });
+    h += '<span>未使用 <b>' + totalRemain + '</b></span>';
     h += '</div>';
   }
   h += '<div class="sbw-trigger" onclick="toggleSBWDropdown(' + idx + ')">';
@@ -1003,22 +1171,40 @@ function renderSBWTrigger(idx, batches, selectedIds, method) {
 }
 
 function renderSBWDropdown(idx, batches, selectedIds, method) {
-  var typeClass = method === 'career' ? 'career' : 'control';
   var typeLabel = method === 'career' ? '事业编' : '控制数';
   var h = '<div class="sbw-dropdown" id="sbwDropdown_' + idx + '">';
-  batches.forEach(function(b) {
-    var checked = selectedIds.indexOf(b.id) >= 0;
-    var usageLabel = USAGE_TYPE_MAP[b.usageType] || '';
-    h += '<label class="sbw-option">';
-    h += '<input type="checkbox" class="sbw-cb" value="' + b.id + '"' + (checked?' checked':'') + ' onchange="onSBWCheck(' + idx + ',\'' + b.id + '\')">';
-    h += '<span class="sbw-name">' + (b.name||b.id) + '</span>';
-    h += '<span class="sbw-type-tag ' + typeClass + '">' + typeLabel + '</span>';
-    if (usageLabel) h += '<span class="sbw-type-tag" style="background:#E0E7FF;color:#3730A3;">' + usageLabel + '</span>';
-    h += '<span style="color:var(--text-light);font-size:11px;">' + b.id + '</span>';
-    var remainAmt = Math.max(0, parseInt(b.approvedPlan||0) - parseInt(b.usedPlan||0) - parseInt(b.pendingAudit||0));
-	    h += '<span class="sbw-meta">剩余' + remainAmt + '个 至' + (b.validEnd||'') + '</span>';
-    h += '</label>';
-  });
+  if (batches.length === 0) {
+    h += '<div style="padding:10px 12px;font-size:12px;color:var(--text-light);">无可用的' + typeLabel + '编制批次</div>';
+  } else {
+    h += '<table class="sbw-dd-table"><thead><tr>';
+    h += '<th></th><th>编制类型</th><th>来源</th><th>批复文号/批次</th><th>使用形式</th><th class="num">未使用</th><th>有效期</th><th>状态</th>';
+    h += '</tr></thead><tbody>';
+    batches.forEach(function(b) {
+      var checked = selectedIds.indexOf(b.id) >= 0;
+      var st = ledgerPlanStatus(b);
+      var stLabel = LEDGER_STATUS_LABEL[st] || st;
+      var stColor = LEDGER_STATUS_COLOR[st] || '#94A3B8';
+      var remain = ledgerRemaining(b);
+      var doc = planDocLabel(b);
+      var srcLabel = b.source === 'online' ? '线上' : '线下';
+      var usageLabels = planUsageFormLabels(b, getCurrentUsageTypes());
+      var usageText = usageLabels.length > 0 ? usageLabels.join('、') : '—';
+      h += '<tr class="sbw-dd-row" onclick="onSBWCheck(' + idx + ',\'' + b.id + '\')">';
+      h += '<td style="width:28px;text-align:center;"><input type="checkbox" class="sbw-cb" value="' + b.id + '"' + (checked ? ' checked' : '') + ' style="pointer-events:none;"></td>';
+      var dType = getPlanEmploymentType(b);
+      var dTypeLabel = dType === 'control' ? '控制数' : '事业编';
+      var dTypeStyle = dType === 'control' ? 'background:#FEF3C7;color:#92400E;' : 'background:#E0E7FF;color:#3730A3;';
+      h += '<td><span class="sbw-type-tag" style="' + dTypeStyle + '">' + dTypeLabel + '</span></td>';
+      h += '<td><span class="sbw-type-tag" style="background:' + (b.source === 'online' ? '#E0E7FF' : '#F1F5F9') + ';color:' + (b.source === 'online' ? '#3730A3' : '#475569') + ';">' + srcLabel + '</span></td>';
+      h += '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;" title="' + escapeHtml(doc) + '">' + escapeHtml(doc) + '</td>';
+      h += '<td>' + escapeHtml(usageText) + '</td>';
+      h += '<td class="num"><strong>' + remain + '</strong></td>';
+      h += '<td>' + (b.validEnd || '—') + '</td>';
+      h += '<td><span class="sbw-type-tag" style="background:' + stColor + '1A;color:' + stColor + ';">' + stLabel + '</span></td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+  }
   h += '</div>';
   return h;
 }
@@ -1048,14 +1234,33 @@ function toggleSBWDropdown(idx) {
 function onSBWCheck(idx, batchId) {
   var currentPos = positionRows[idx] || {};
   if (!currentPos.staffingBatchIds) currentPos.staffingBatchIds = [];
+  if (!currentPos.staffingApplyCounts) currentPos.staffingApplyCounts = {};
   var ids = currentPos.staffingBatchIds;
   var p = ids.indexOf(batchId);
-  if (p >= 0) { ids.splice(p, 1); } else { ids.push(batchId); }
+  if (p >= 0) { ids.splice(p, 1); delete currentPos.staffingApplyCounts[batchId]; }
+  else { ids.push(batchId); if (currentPos.staffingApplyCounts[batchId] === undefined) currentPos.staffingApplyCounts[batchId] = ''; }
   var methodEl = document.getElementById('employmentMethod_' + idx);
   var method = methodEl ? methodEl.value : 'career';
   var batches = getAvailableStaffingBatches(currentSchool, method, getCurrentUsageTypes());
-  var trigger = document.getElementById('sbwTriggerArea_' + idx);
-  if (trigger) trigger.innerHTML = renderSBWTrigger(idx, batches, currentPos.staffingBatchIds, method);
+  // 记住下拉是否展开，重渲染后保持展开状态，同时让勾选框状态与数据同步
+  var dd = document.getElementById('sbwDropdown_' + idx);
+  var wasOpen = dd && dd.classList.contains('show');
+  var widget = document.getElementById('staffingBatchWidget_' + idx);
+  if (widget) widget.innerHTML = renderStaffingBatchWidget(idx, batches, currentPos.staffingBatchIds, method);
+  if (wasOpen) {
+    var ndd = document.getElementById('sbwDropdown_' + idx);
+    if (ndd) ndd.classList.add('show');
+    var narr = document.getElementById('sbwArrow_' + idx);
+    if (narr) narr.classList.add('open');
+    SBW_OPEN_IDX = idx;
+  }
+  updateSubmitBarStats();
+}
+
+function onSBWApplyCount(idx, batchId, value) {
+  var currentPos = positionRows[idx] || {};
+  if (!currentPos.staffingApplyCounts) currentPos.staffingApplyCounts = {};
+  currentPos.staffingApplyCounts[batchId] = value === '' ? '' : (parseInt(value) || 0);
   updateSubmitBarStats();
 }
 
@@ -1064,6 +1269,7 @@ function removeStaffingBatch(idx, batchId) {
   if (!currentPos.staffingBatchIds) return;
   var p = currentPos.staffingBatchIds.indexOf(batchId);
   if (p >= 0) currentPos.staffingBatchIds.splice(p, 1);
+  if (currentPos.staffingApplyCounts) delete currentPos.staffingApplyCounts[batchId];
   var methodEl = document.getElementById('employmentMethod_' + idx);
   var method = methodEl ? methodEl.value : 'career';
   var batches = getAvailableStaffingBatches(currentSchool, method, getCurrentUsageTypes());
@@ -1128,6 +1334,11 @@ function updatePublicOtherCount(idx) {
   var c = document.getElementById('publicOtherCount_' + idx);
   if (el && c) c.textContent = el.value.length;
 }
+function updatePublicMajorCount(idx) {
+  var el = document.getElementById('major_' + idx);
+  var c = document.getElementById('publicMajorCount_' + idx);
+  if (el && c) c.textContent = el.value.length;
+}
 function updateIndepMajorCount(idx) {
   var el = document.getElementById('major_' + idx);
   var c = document.getElementById('indepMajorCount_' + idx);
@@ -1166,9 +1377,9 @@ function formField(label, id, value, type, width, required, options, placeholder
   return h;
 }
 
-function boolField(label, id, value) {
+function boolField(label, id, value, required) {
   var h = '<div class="form-group">';
-  h += '<label>' + label + '</label>';
+  h += '<label>' + label + (required ? ' <span class="req">*</span>' : '') + '</label>';
   h += '<select id="' + id + '">';
   h += '<option value="false"' + (!value?' selected':'') + '>否</option>';
   h += '<option value="true"' + (value?' selected':'') + '>是</option>';
@@ -1320,8 +1531,8 @@ function collectPositionData(idx) {
 }
 
 function getFieldsForType(type) {
-  if (type === 'independent') return ['city','schoolName','schoolType','positionName','count','positionCategory','positionLevel','categoryLevel','employmentMethod','major','education','degree','age','titleOrQualification','otherConditions','examMethod','contactName','contactPhone','contactEmail','remark','staffingBatchIds'];
-  if (type === 'public') return ['authority','unit','positionName','positionCode','count','positionCategory','positionLevel','categoryLevel','employmentMethod','positionDescription','major','education','degree','age','titleOrQualification','isServiceGrassroots','isGraduateRecruitment','isRetiredSoldier','otherConditions','examCategory','examCategoryName','examCategoryCode','examMethod','needPublicExamThreshold','thresholdCount','interviewMethod','contactAddress','contactPhone','supervisionPhone','fax','staffingBatchIds'];
+  if (type === 'independent') return ['city','schoolName','fundType','positionName','count','positionCategory','positionLevel','categoryLevel','employmentMethod','major','education','degree','age','titleOrQualification','otherConditions','examMethod','contactName','contactPhone','contactEmail','remark','staffingBatchIds'];
+  if (type === 'public') return ['authority','unit','positionName','count','positionCategory','positionLevel','categoryLevel','employmentMethod','positionDescription','major','education','degree','age','titleOrQualification','isServiceGrassroots','isGraduateRecruitment','isRetiredSoldier','otherConditions','examCategory','examCategoryName','examCategoryCode','examMethod','needPublicExamThreshold','thresholdCount','interviewMethod','contactAddress','contactPhone','supervisionPhone','fax','staffingBatchIds'];
   if (type === 'senior') return ['authority','unit','unitNature','positionName','positionCategory','positionLevel','categoryLevel','employmentMethod','positionDescription','count','major','education','degree','age','titleOrQualification','otherConditions','examMethod','openingRatio','onlineApplyStart','onlineApplyEnd','contactPhone','staffingBatchIds'];
   return [];
 }
@@ -1412,19 +1623,14 @@ function updateSubmitBarStats() {
         if (allIds.indexOf(id) < 0) allIds.push(id);
       });
     });
-    var allStaffing = JSON.parse(localStorage.getItem('staffing_submissions') || '[]');
-    var selectedBatches = allStaffing.filter(function(b) { return allIds.indexOf(b.id) >= 0; });
+    var careerPlans = getLedgerPlans(currentSchool, 'career');
+    var controlPlans = getLedgerPlans(currentSchool, 'control');
     var careerAvail = 0, controlAvail = 0;
-    var careerExplain = '', controlExplain = '';
-    selectedBatches.forEach(function(b) {
-      var avail = Math.max(0, (parseInt(b.approvedPlan)||0) - (parseInt(b.usedPlan)||0) - (parseInt(b.pendingAudit)||0));
-      if (b.type === 'career') {
-        careerAvail += avail;
-        careerExplain += (careerExplain?' + ':'') + b.approvedPlan + '-' + b.usedPlan + '-' + (b.pendingAudit||0) + '=' + avail;
-      } else {
-        controlAvail += avail;
-        controlExplain += (controlExplain?' + ':'') + b.approvedPlan + '-' + b.usedPlan + '-' + (b.pendingAudit||0) + '=' + avail;
-      }
+    careerPlans.forEach(function(b) {
+      if (allIds.indexOf(b.id) >= 0 && ledgerPlanStatus(b) !== 'expired') careerAvail += ledgerRemaining(b);
+    });
+    controlPlans.forEach(function(b) {
+      if (allIds.indexOf(b.id) >= 0 && ledgerPlanStatus(b) !== 'expired') controlAvail += ledgerRemaining(b);
     });
     var careerEl = document.getElementById("careerAvailDisplay");
     var controlEl = document.getElementById("controlAvailDisplay");
@@ -1478,16 +1684,69 @@ function submitForm() {
       if (!p.categoryLevel) { showToast('岗位 ' + (i+1) + '：请填写岗位类别等级', 'warning'); hasError = true; }
       if (!p.staffingBatchIds || p.staffingBatchIds.length === 0) { showToast('岗位 ' + (i+1) + '：请选择关联编制使用申请批次', 'warning'); hasError = true; }
       if (!p.positionCategory || !p.positionLevel) { showToast('岗位 ' + (i+1) + '：请选择岗位类别和等级', 'warning'); hasError = true; }
+      if (!p.education) { showToast('岗位 ' + (i+1) + '：请选择学历要求', 'warning'); hasError = true; }
+      if (!p.degree) { showToast('岗位 ' + (i+1) + '：请选择学位要求', 'warning'); hasError = true; }
+      if (!p.age) { showToast('岗位 ' + (i+1) + '：请选择年龄', 'warning'); hasError = true; }
+      if (!p.titleOrQualification) { showToast('岗位 ' + (i+1) + '：请填写职称或职业资格', 'warning'); hasError = true; }
+      if (!p.examMethod) { showToast('岗位 ' + (i+1) + '：请选择考试方式', 'warning'); hasError = true; }
+      if (!p.contactName) { showToast('岗位 ' + (i+1) + '：请填写负责人姓名', 'warning'); hasError = true; }
+      if (!p.contactPhone) { showToast('岗位 ' + (i+1) + '：请填写联系电话', 'warning'); hasError = true; }
+      if (!p.contactEmail) { showToast('岗位 ' + (i+1) + '：请填写电子邮箱', 'warning'); hasError = true; }
     }
     if (type === 'public') {
       if (!p.authority) { showToast('岗位 ' + (i+1) + '：请填写主管部门', 'warning'); hasError = true; }
       if (!p.positionCategory || !p.positionLevel) { showToast('岗位 ' + (i+1) + '：请选择岗位类别和等级', 'warning'); hasError = true; }
       if (!p.staffingBatchIds || p.staffingBatchIds.length === 0) { showToast('岗位 ' + (i+1) + '：请选择关联编制使用申请批次', 'warning'); hasError = true; }
+      if (!p.positionDescription) { showToast('岗位 ' + (i+1) + '：请填写岗位说明', 'warning'); hasError = true; }
+      if (!p.major) { showToast('岗位 ' + (i+1) + '：请填写所学专业', 'warning'); hasError = true; }
+      if (!p.education) { showToast('岗位 ' + (i+1) + '：请选择学历要求', 'warning'); hasError = true; }
+      if (!p.degree) { showToast('岗位 ' + (i+1) + '：请选择学位要求', 'warning'); hasError = true; }
+      if (!p.age) { showToast('岗位 ' + (i+1) + '：请选择年龄', 'warning'); hasError = true; }
+      if (!p.titleOrQualification) { showToast('岗位 ' + (i+1) + '：请填写职称或职业资格', 'warning'); hasError = true; }
+      if (!p.examCategory) { showToast('岗位 ' + (i+1) + '：请选择考试类别', 'warning'); hasError = true; }
+      if (!p.examCategoryName) { showToast('岗位 ' + (i+1) + '：请填写考试类别名称', 'warning'); hasError = true; }
+      if (!p.examCategoryCode) { showToast('岗位 ' + (i+1) + '：请填写考试类别代码', 'warning'); hasError = true; }
+      if (!p.examMethod) { showToast('岗位 ' + (i+1) + '：请选择考试方式', 'warning'); hasError = true; }
+      if (!p.interviewMethod) { showToast('岗位 ' + (i+1) + '：请选择面试方式', 'warning'); hasError = true; }
+      if (!p.contactAddress) { showToast('岗位 ' + (i+1) + '：请填写邮寄材料地址及邮编', 'warning'); hasError = true; }
+      if (!p.contactPhone) { showToast('岗位 ' + (i+1) + '：请填写咨询电话', 'warning'); hasError = true; }
+      if (!p.supervisionPhone) { showToast('岗位 ' + (i+1) + '：请填写监督电话', 'warning'); hasError = true; }
+      if (p.isServiceGrassroots === undefined || p.isServiceGrassroots === null) { showToast('岗位 ' + (i+1) + '：请选择是否定向招聘服务基层项目人员', 'warning'); hasError = true; }
+      if (p.isGraduateRecruitment === undefined || p.isGraduateRecruitment === null) { showToast('岗位 ' + (i+1) + '：请选择是否专项招聘高校毕业生', 'warning'); hasError = true; }
+      if (p.isRetiredSoldier === undefined || p.isRetiredSoldier === null) { showToast('岗位 ' + (i+1) + '：请选择是否定向招聘退役士官士兵', 'warning'); hasError = true; }
+      if (p.needPublicExamThreshold === undefined || p.needPublicExamThreshold === null) { showToast('岗位 ' + (i+1) + '：请选择是否需参加公共科目笔试', 'warning'); hasError = true; }
+      if (p.needPublicExamThreshold && !p.thresholdCount) { showToast('岗位 ' + (i+1) + '：请填写需参加公共科目笔试的数量', 'warning'); hasError = true; }
+    }
+    if (type === 'senior') {
+      if (!p.education) { showToast('岗位 ' + (i+1) + '：请选择学历', 'warning'); hasError = true; }
+      if (!p.degree) { showToast('岗位 ' + (i+1) + '：请选择学位', 'warning'); hasError = true; }
+      if (!p.age) { showToast('岗位 ' + (i+1) + '：请选择年龄', 'warning'); hasError = true; }
+      if (!p.titleOrQualification) { showToast('岗位 ' + (i+1) + '：请填写职称或职业资格', 'warning'); hasError = true; }
+      if (!p.examMethod) { showToast('岗位 ' + (i+1) + '：请选择考试（考核）方式', 'warning'); hasError = true; }
+      if (!p.contactPhone) { showToast('岗位 ' + (i+1) + '：请填写咨询电话', 'warning'); hasError = true; }
     }
     if (type === 'senior' || type === 'independent' || type === 'public') {
       if (!p.positionCategory || !p.positionLevel) { showToast('岗位 ' + (i+1) + '：请选择岗位类别和等级', 'warning'); hasError = true; }
       if (!p.staffingBatchIds || p.staffingBatchIds.length === 0) { showToast('岗位 ' + (i+1) + '：请选择关联编制使用申请批次', 'warning'); hasError = true; }
       if (!p.authority) { showToast('岗位 ' + (i+1) + '：请填写主管部门', 'warning'); hasError = true; }
+      // 校验每个已选批次的「本岗位本次申请」数值
+      (p.staffingBatchIds || []).forEach(function(bid) {
+        var ac = (p.staffingApplyCounts || {})[bid];
+        var acNum = parseInt(ac);
+        if (ac === undefined || ac === null || ac === '' || isNaN(acNum) || acNum <= 0) {
+          showToast('岗位 ' + (i+1) + '：请填写所选批次的「本岗位本次申请」数值', 'warning'); hasError = true;
+          return;
+        }
+        var plan = findLedgerPlanById(bid);
+        if (plan && acNum > ledgerRemaining(plan)) {
+          showToast('岗位 ' + (i+1) + '：「本岗位本次申请」超出批次未使用名额（' + ledgerRemaining(plan) + '）', 'warning'); hasError = true;
+        }
+        // 关联批次的编制类型须与用人方式一致（事业编岗位关联事业编批次，控制数岗位关联控制数批次）
+        var batchType = getPlanEmploymentTypeById(bid);
+        if (batchType && batchType !== p.employmentMethod) {
+          showToast('岗位 ' + (i+1) + '：关联编制批次须为' + (p.employmentMethod === 'control' ? '控制数' : '事业编') + '编制', 'warning'); hasError = true;
+        }
+      });
     }
   });
   if (hasError) return;
@@ -1510,7 +1769,7 @@ function submitForm() {
     if (totalCnt > unusedPlan) { showToast('招聘总人数超出可用编制计划数，无法提交', 'warning'); return; }
   }
 
-  if (uploadedFiles.length === 0) { showToast('请至少上传一个附件', 'warning'); return; }
+  if (type !== 'public' && uploadedFiles.length === 0) { showToast('请至少上传一个附件', 'warning'); return; }
 
   // Build record
   var sd = SCHOOL_DATA[currentSchool] || {};
@@ -1574,13 +1833,11 @@ function renderPage() {
     h += '<div class="edit-layout">';
     h += '<div class="edit-main">';
   }
-  // School switcher (not in edit mode)
-  if (pageMode !== 'edit') {
-    h += renderSchoolSwitcher();
-  }
+  // School switcher (rendered into breadcrumb, not in edit mode)
+  renderSchoolSwitcher();
   // Batch selection (not in edit mode)
   if (pageMode !== 'edit') {
-    h += renderBatchSelect();
+    h += directBatch ? renderDirectBatchInfo() : renderBatchSelect();
   }
   // Form
   if (selectedBatch) {
@@ -1592,7 +1849,7 @@ function renderPage() {
 
     // Attachments
     h += '<div class="form-card">';
-    h += '<h2><span class="card-icon">&#128206;</span>上传附件</h2>';
+    h += '<h2><span class="card-icon">&#128206;</span>上传附件' + (selectedBatch && selectedBatch.recruitmentType === 'public' ? '（选填）' : '') + '</h2>';
     h += '<div class="upload-area" onclick="document.getElementById(\'fileInput\').click()">';
     h += '<div class="upload-icon">&#128194;</div>';
     h += '<div class="upload-text">点击上传或拖拽文件到此处</div>';
@@ -1653,6 +1910,20 @@ function renderEditTimeline(record) {
         action: record.firstReviewResult === 'rejected' ? '主管审核驳回' : '主管审核通过',
         operator: record.firstReviewer,
         opinion: record.firstRejectReason || record.firstReviewOpinion || ''
+      });
+    }
+  }
+  // Supplement second audit info if timeline doesn't already have it
+  if (record.secondReviewer) {
+    var hasSecond = items.some(function(t) {
+      return t.action && (t.action.indexOf('审') >= 0 || t.action.indexOf('驳回') >= 0 || t.action.indexOf('终审') >= 0);
+    });
+    if (!hasSecond) {
+      items.push({
+        time: record.secondReviewTime || '',
+        action: record.secondReviewResult === 'rejected' ? '终审审核驳回' : '终审审核通过',
+        operator: record.secondReviewer,
+        opinion: record.secondRejectReason || record.secondReviewOpinion || ''
       });
     }
   }
@@ -1717,7 +1988,7 @@ function loadForEdit(id) {
 
 // ===== INIT =====
 function init() {
-  seedStaffing();
+  seedLedgerDemoPlans();
   var id = getUrlParam('id');
   var mode = getUrlParam('mode');
   var schoolParam = getUrlParam('school');
@@ -1741,6 +2012,7 @@ function init() {
         }
       }
     }
+    directBatch = !!selectedBatch;
     if (selectedBatch) {
       positionRows = [createEmptyPosition()];
     }
